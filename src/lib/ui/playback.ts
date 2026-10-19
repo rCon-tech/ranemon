@@ -27,6 +27,10 @@ export function applyEvent(view: View, event: BattleEvent): View {
   const next = view.map((s) => ({ ...s, hp: [...s.hp], status: [...s.status] })) as View;
   const side = next[event.side];
   switch (event.kind) {
+    case 'swap-hp':
+      next[0].hp[next[0].active] = event.hp[0];
+      next[1].hp[next[1].active] = event.hp[1];
+      break;
     case 'send-out':
       side.active = event.index;
       side.shown = true;
@@ -38,6 +42,7 @@ export function applyEvent(view: View, event: BattleEvent): View {
     case 'recoil':
     case 'heal':
     case 'status-damage':
+    case 'self-damage':
       side.hp[side.active] = event.hp;
       break;
     case 'status':
@@ -135,6 +140,20 @@ export function describeEvent(event: BattleEvent, state: BattleState, view: View
       return `${name} woke up!`;
     case 'fluster-skip':
       return `${name} is too flustered to move!`;
+    case 'boost': {
+      const percent = Math.round(Math.abs(event.factor - 1) * 100);
+      const how = event.factor > 1 ? 'rose' : 'fell';
+      return `${name}’s ${STAT_NAME[event.stat]} ${how} by ${percent}%!`;
+    }
+    case 'self-damage':
+      return `${name} paid for it with some HP!`;
+    case 'swap-hp': {
+      const foeSide: Side = side === 0 ? 1 : 0;
+      const foe = state.teams[foeSide].battlers[view[foeSide].active].creature.name;
+      return `${name} swapped HP with ${foeSide === 0 ? foe : `Foe ${foe}`}!`;
+    }
+    case 'move-failed':
+      return 'But it failed!';
     case 'faint':
       return `${name} fainted!`;
   }

@@ -1,11 +1,22 @@
 import type { Creature } from '@/lib/battle/creature';
 
 /**
- * Placeholder art: a chunky outlined blob in the creature's colour, until Creature Studio
- * gives each one a cut-out from a friend's photo. `back` draws it from behind, as your own
- * creature is shown in battle.
+ * The pixel sprite cut from a friend's photo, or a chunky outlined blob for creatures without
+ * one. `back` is your own creature in battle: the sprite is mirrored to face the foe.
  */
 export function Sprite({ creature, back = false }: { creature: Creature; back?: boolean }) {
+  if (creature.sprite) {
+    return (
+      // Sprites are tiny pixel art, so next/image's resizing would only blur them.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={creature.sprite}
+        alt={creature.name}
+        draggable={false}
+        className={`h-full w-full object-contain [image-rendering:pixelated] ${back ? '-scale-x-100' : ''}`}
+      />
+    );
+  }
   const initial = creature.name[0];
   return (
     <svg

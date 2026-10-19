@@ -12,7 +12,8 @@ import {
   type BattleState,
 } from '@/lib/battle/engine';
 import { moveById } from '@/lib/battle/moves';
-import { starterById, STARTERS } from '@/lib/battle/roster';
+import { ROSTER } from '@/lib/battle/roster';
+import { starterById } from '../fixtures/placeholders';
 import { simulateBattle } from '@/lib/battle/simulate';
 
 const move = (index: number): Action => ({ kind: 'move', index });
@@ -200,7 +201,7 @@ describe('whole battles', () => {
   it('always finish, at every difficulty', () => {
     for (let seed = 0; seed < 60; seed++) {
       const pick = (offset: number) =>
-        [0, 1, 2].map((i) => STARTERS[(seed * 5 + offset + i * 4) % STARTERS.length]);
+        [0, 1, 2].map((i) => ROSTER[(seed * 5 + offset + i * 4) % ROSTER.length]);
       const levels = ['easy', 'normal', 'hard'] as const;
       const result = simulateBattle([pick(0), pick(7)], seed, [
         levels[seed % 3],
@@ -214,8 +215,8 @@ describe('whole battles', () => {
     let hardWins = 0;
     const games = 200;
     for (let seed = 0; seed < games; seed++) {
-      const a = [0, 1, 2].map((i) => STARTERS[(seed + i * 3) % 12]);
-      const b = [0, 1, 2].map((i) => STARTERS[(seed + 6 + i * 3) % 12]);
+      const a = [0, 1, 2].map((i) => ROSTER[(seed + i * 3) % ROSTER.length]);
+      const b = [0, 1, 2].map((i) => ROSTER[(seed + 8 + i * 3) % ROSTER.length]);
       const { state } = simulateBattle([a, b], seed, ['hard', 'easy']);
       if (state.phase.kind === 'over' && state.phase.winner === 0) hardWins++;
     }

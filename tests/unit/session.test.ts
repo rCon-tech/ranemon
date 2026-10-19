@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { legalActions, startBattle } from '@/lib/battle/engine';
-import { STARTERS } from '@/lib/battle/roster';
+import { STARTERS } from '../fixtures/placeholders';
 import { applyEvent, describeEvent, viewOf } from '@/lib/ui/playback';
 import { reduce, startSession, TURN_SECONDS, type Session } from '@/lib/ui/session';
 

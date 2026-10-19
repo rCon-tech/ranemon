@@ -11,10 +11,11 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
   - Six personality types (Brains, Brawn, Chaos, Chill, Charm, Hype) on a balanced chart, with 1.5x same-type bonus and dual types.
   - The main-series damage formula fixed at level 50, with crits (1 in 24) and an 85–100% roll.
   - 36 moves (6 per type), PP, accuracy, priority, and effects: statuses, stat stages (±3), recoil, healing and multi-hit. Flail kicks in when every move is out of PP.
+  - 16 special moves, one per Ranemon, that no one else can learn. Their percentage boosts stack on top of stages and wear off when the Ranemon switches out. Some swap HP, tag in a partner, or attack and then switch out.
   - Three statuses: Flustered, Hangry and Asleep.
   - A CPU at three levels. Easy picks moves at random, Normal picks the best expected value, and Hard also switches out of bad matchups.
 - **Screens**: title screen, team preview with a 60-second pick-3, the battle screen and the Ranedex. The battle screen has info boxes, a text box, FIGHT, RANEMON and RUN, a 45-second turn timer, and hit, send-out and faint animations.
-- **Starter roster**: 12 placeholder creatures (`roster.ts`) drawn as simple blobs, until Creature Studio turns friends' photos into real ones.
+- **Roster**: the 16 lads from the Ranemon sheet (`roster.ts`), each with a pixel sprite cut from their photo and their own special move. Each player is dealt 6, and Oismon and Olliemon are always dealt together. The sheet gives no types or stats, so those are a first pass tuned with the simulator.
 - **Record**: your wins and losses, kept in this browser until accounts arrive.
 
 ## Not yet
@@ -38,8 +39,8 @@ pnpm dev          # http://localhost:3000
 | `pnpm lint`      | ESLint                                                            |
 | `pnpm typecheck` | TypeScript                                                        |
 
-`SIM_BATTLES=20000 pnpm simulate` runs a bigger balance check. On a machine with Chromium already installed, set `PW_CHROMIUM_PATH` to skip `playwright install`.
+`SIM_BATTLES=20000 pnpm simulate` runs a bigger balance check. `scripts/make_sprite.py` turns a photo into a sprite; its header lists the Python packages it needs. On a machine with Chromium already installed, set `PW_CHROMIUM_PATH` to skip `playwright install`.
 
 ## Art and sound
 
-All art, names and fonts are original or openly licensed. The pixel font is Press Start 2P, under the SIL Open Font Licence. The game uses no Pokémon names, logos, sprites or music.
+Sprites are made from the friends' own photos, so keep the repo and any shared links private. All other art, names and fonts are original or openly licensed. The pixel font is Press Start 2P, under the SIL Open Font Licence. The game uses no Pokémon names, logos, sprites or music.

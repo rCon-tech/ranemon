@@ -3,7 +3,7 @@ import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { levelStats, STAT_KEYS } from '@/lib/battle/creature';
 import { moveById } from '@/lib/battle/moves';
-import { STARTERS } from '@/lib/battle/roster';
+import { ROSTER } from '@/lib/battle/roster';
 
 export const metadata = { title: 'Ranedex' };
 
@@ -25,7 +25,7 @@ export default function Ranedex() {
         </Link>
       </div>
       <ol className="flex flex-col gap-3">
-        {STARTERS.map((c, i) => {
+        {ROSTER.map((c, i) => {
           const stats = levelStats(c.base);
           return (
             <li key={c.id} className="dialog flex flex-col gap-3 p-3">
@@ -61,10 +61,18 @@ export default function Ranedex() {
               <ul className="grid grid-cols-2 gap-1 text-[7px]">
                 {c.moves.map((id) => (
                   <li key={id} className="truncate">
-                    · {moveById(id).name}
+                    {moveById(id).signature ? '★' : '·'} {moveById(id).name}
                   </li>
                 ))}
               </ul>
+              {c.moves
+                .map(moveById)
+                .filter((m) => m.signature)
+                .map((m) => (
+                  <p key={m.id} className="text-[7px] leading-relaxed">
+                    ★ {m.name}: {m.flavour}
+                  </p>
+                ))}
             </li>
           );
         })}

@@ -19,7 +19,9 @@ export interface Creature {
   moves: string[];
   /** One line for the Ranedex. */
   entry: string;
-  /** Placeholder art until friend photos arrive: a body colour for the stand-in sprite. */
+  /** Path to the pixel sprite cut from the friend's photo. Without one, a blob is drawn. */
+  sprite?: string;
+  /** Accent colour: the blob's body, and the backdrop behind a sprite in the Ranedex. */
   colour: string;
 }
 
@@ -58,6 +60,14 @@ export function validateCreature(c: Creature): string[] {
   const moves = c.moves.map(moveById);
   if (!moves.some((m) => m.type !== null && (c.types as RaneType[]).includes(m.type))) {
     problems.push('At least 1 move must match one of its types');
+  }
+  for (const m of moves) {
+    if (m.signature !== undefined && m.signature !== c.id) {
+      problems.push(`${m.name} is another Ranemon’s special move`);
+    }
+  }
+  if (moves.filter((m) => m.signature !== undefined).length > 1) {
+    problems.push('At most 1 special move');
   }
   if (moves.filter((m) => m.power >= 100).length > 1) {
     problems.push('At most 1 move with Power 100 or more');

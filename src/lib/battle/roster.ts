@@ -1,122 +1,208 @@
 import type { Creature } from './creature';
 
 /**
- * Stand-in creatures until Creature Studio turns friends' photos into real ones. Each is a
- * valid card under the same rules a friend's creature will follow.
+ * The lads, from Rich's Ranemon sheet. Each has their own special move and a sprite cut from
+ * their photo. The sheet doesn't give types or stats, so those are a first pass for balance.
  */
-export const STARTERS: Creature[] = [
+export const ROSTER: Creature[] = [
   {
-    id: 'professor-pip',
-    name: 'Prof Pip',
-    types: ['brains'],
-    base: { hp: 130, attack: 55, defense: 70, spirit: 70, speed: 75 },
-    moves: ['galaxy-brain', 'well-actually', 'overthink', 'long-lecture'],
-    entry: 'Has a fact for every occasion, and several for the others.',
-    colour: '#9b7be8',
-  },
-  {
-    id: 'quizzy',
-    name: 'Quizzy',
-    types: ['brains', 'chill'],
-    base: { hp: 85, attack: 75, defense: 85, spirit: 85, speed: 70 },
-    moves: ['calculated-hit', 'cold-shoulder', 'quick-fact', 'power-nap'],
-    entry: 'Wins every pub quiz, then goes straight to bed.',
-    colour: '#7fa6e6',
-  },
-  {
-    id: 'big-tone',
-    name: 'Big Tone',
-    types: ['brawn'],
-    base: { hp: 100, attack: 115, defense: 60, spirit: 50, speed: 75 },
-    moves: ['slam-dunk', 'gym-bro-punch', 'shoulder-barge', 'flex'],
-    entry: 'Will help you move house. Will not stop talking about it.',
-    colour: '#f08a5d',
-  },
-  {
-    id: 'deadlift-dee',
-    name: 'Dee',
-    types: ['brawn', 'chaos'],
-    base: { hp: 100, attack: 95, defense: 75, spirit: 55, speed: 75 },
-    moves: ['gym-bro-punch', 'shopping-trolley', 'headlock', 'steal-their-chips'],
-    entry: 'Turns every walk into a race.',
-    colour: '#f2a541',
-  },
-  {
-    id: 'gremlin',
-    name: 'Gremlin',
-    types: ['chaos'],
-    base: { hp: 55, attack: 100, defense: 50, spirit: 75, speed: 120 },
-    moves: ['shopping-trolley', 'prank-call', 'cheap-shot', 'stir-the-pot'],
-    entry: 'Nobody knows how it got on the roof.',
-    colour: '#d94fa8',
-  },
-  {
-    id: 'wildcard-wes',
-    name: 'Wes',
-    types: ['chaos', 'charm'],
-    base: { hp: 120, attack: 60, defense: 75, spirit: 70, speed: 75 },
-    moves: ['total-meltdown', 'dazzling-smile', 'sugar-rush', 'smooth-talk'],
-    entry: 'Somehow talks the bouncer into letting everyone in.',
-    colour: '#b45cc9',
-  },
-  {
-    id: 'snooze',
-    name: 'Snooze',
-    types: ['chill'],
-    base: { hp: 105, attack: 50, defense: 95, spirit: 75, speed: 75 },
-    moves: ['avalanche-of-vibes', 'slow-clap', 'power-nap', 'lullaby-playlist'],
-    entry: 'Has never once been in a hurry.',
-    colour: '#6cc4e8',
-  },
-  {
-    id: 'mellow-mo',
-    name: 'Mo',
-    types: ['chill', 'brawn'],
-    base: { hp: 100, attack: 85, defense: 95, spirit: 50, speed: 70 },
-    moves: ['slow-clap', 'gym-bro-punch', 'unbothered', 'power-nap'],
-    entry: 'Shrugs off everything, including furniture.',
-    colour: '#58a6a6',
-  },
-  {
-    id: 'sweet-talk-sal',
-    name: 'Sal',
-    types: ['charm'],
-    base: { hp: 120, attack: 40, defense: 90, spirit: 75, speed: 75 },
-    moves: ['heartbreaker', 'compliment-barrage', 'charm-offensive', 'puppy-eyes'],
-    entry: 'Gets free dessert everywhere.',
-    colour: '#f59ac2',
-  },
-  {
-    id: 'bestie',
-    name: 'Bestie',
-    types: ['charm', 'brains'],
-    base: { hp: 130, attack: 50, defense: 80, spirit: 70, speed: 70 },
-    moves: ['dazzling-smile', 'well-actually', 'smooth-talk', 'overthink'],
-    entry: 'Remembers everyone’s birthday, and everyone’s secrets.',
-    colour: '#e58fd8',
-  },
-  {
-    id: 'loud-lou',
-    name: 'Lou',
+    id: 'carlmon',
+    name: 'Carlmon',
     types: ['hype'],
-    base: { hp: 75, attack: 110, defense: 55, spirit: 55, speed: 105 },
-    moves: ['main-character-energy', 'group-chat-spam', 'hype-train', 'hype-speech'],
-    entry: 'First on the dance floor, last to leave.',
+    base: { hp: 80, attack: 85, defense: 70, spirit: 65, speed: 100 },
+    moves: ['nozzy-call', 'mosh-pit', 'shopping-trolley', 'headlock'],
+    entry: 'One Nozzy Call and he’s already halfway to the bar.',
     colour: '#f5cf3a',
+    sprite: '/sprites/carlmon.png',
   },
   {
-    id: 'party-starter',
-    name: 'Starter',
-    types: ['hype', 'chaos'],
-    base: { hp: 75, attack: 80, defense: 60, spirit: 90, speed: 95 },
-    moves: ['group-chat-spam', 'prank-call', 'late-dinner-plans', 'cheap-shot'],
-    entry: 'Plans the night out, then cancels at 6pm.',
+    id: 'steadmon',
+    name: 'Steadmon',
+    types: ['brains'],
+    base: { hp: 90, attack: 55, defense: 80, spirit: 95, speed: 80 },
+    moves: ['ranelads-com', 'well-actually', 'cold-shoulder', 'quick-fact'],
+    entry: 'Ruler of Ranelads.com. Rewrites the rules of reality when he’s losing.',
+    colour: '#9b7be8',
+    sprite: '/sprites/steadmon.png',
+  },
+  {
+    id: 'enda',
+    name: 'Enda',
+    types: ['charm'],
+    base: { hp: 100, attack: 50, defense: 85, spirit: 95, speed: 70 },
+    moves: ['fierce-friendship', 'heartbreaker', 'prank-call', 'cold-shoulder'],
+    entry: 'Makes friends so fiercely that opponents forget they came to fight.',
+    colour: '#f59ac2',
+    sprite: '/sprites/enda.png',
+  },
+  {
+    id: 'oismon',
+    name: 'Oismon',
+    types: ['hype'],
+    base: { hp: 85, attack: 90, defense: 70, spirit: 60, speed: 95 },
+    moves: ['helping-hand-ois', 'mosh-pit', 'gym-bro-punch', 'hype-train'],
+    entry: 'Always has a Monster in his pocket for Olliemon.',
     colour: '#e8a33a',
+    sprite: '/sprites/oismon.png',
+  },
+  {
+    id: 'olliemon',
+    name: 'Olliemon',
+    types: ['brawn'],
+    base: { hp: 95, attack: 100, defense: 75, spirit: 60, speed: 70 },
+    moves: ['helping-hand-ollie', 'slam-dunk', 'headlock', 'dazzling-smile'],
+    entry: 'Tags in for Oismon with an energy drink. Never seen without him.',
+    colour: '#e58fd8',
+    sprite: '/sprites/olliemon.png',
+  },
+  {
+    id: 'hugomon',
+    name: 'Hugomon',
+    types: ['brains', 'chaos'],
+    base: { hp: 65, attack: 120, defense: 70, spirit: 60, speed: 85 },
+    moves: ['dark-web', 'calculated-hit', 'shopping-trolley', 'cheap-shot'],
+    entry: 'Logs onto the Dark Web, hides his identity, and hits harder for it.',
+    colour: '#6b5bb8',
+    sprite: '/sprites/hugomon.png',
+  },
+  {
+    id: 'gibbsmon',
+    name: 'Gibbsmon',
+    types: ['brawn'],
+    base: { hp: 100, attack: 105, defense: 85, spirit: 45, speed: 65 },
+    moves: ['military-force', 'gym-bro-punch', 'mosh-pit', 'flex'],
+    entry: 'Has the army on speed dial. The bombers arrive in waves.',
+    colour: '#7d8b4f',
+    sprite: '/sprites/gibbsmon.png',
+  },
+  {
+    id: 'jammon',
+    name: 'Jammon',
+    types: ['chill'],
+    base: { hp: 85, attack: 110, defense: 85, spirit: 70, speed: 50 },
+    moves: ['jamanding', 'slow-clap', 'gym-bro-punch', 'shopping-trolley'],
+    entry: 'Demands what he deserves, and digs in until he gets it.',
+    colour: '#58a6a6',
+    sprite: '/sprites/jammon.png',
+  },
+  {
+    id: 'boydemon',
+    name: 'Boydemon',
+    types: ['brawn', 'chaos'],
+    base: { hp: 75, attack: 130, defense: 70, spirit: 45, speed: 80 },
+    moves: ['paddy-pimblett', 'headlock', 'shopping-trolley', 'cheap-shot'],
+    entry: 'Learnt his MMA from the family. Nobody asks for a rematch.',
+    colour: '#f08a5d',
+    sprite: '/sprites/boydemon.png',
+  },
+  {
+    id: 'killemon',
+    name: 'Killemon',
+    types: ['hype'],
+    base: { hp: 90, attack: 100, defense: 65, spirit: 55, speed: 90 },
+    moves: ['this-ones-for-africa', 'mosh-pit', 'hype-train', 'slow-clap'],
+    entry: 'Breaks into a tribal dance from the wilds of Africa and comes back stronger.',
+    colour: '#d9822b',
+    sprite: '/sprites/killemon.png',
+  },
+  {
+    id: 'lorcamon',
+    name: 'Lorcamon',
+    types: ['charm'],
+    base: { hp: 110, attack: 50, defense: 95, spirit: 65, speed: 80 },
+    moves: ['rounds-on-me', 'dazzling-smile', 'cold-shoulder', 'group-chat-spam'],
+    entry: 'Gets the rounds in. His is always the 0% one.',
+    colour: '#7fa6e6',
+    sprite: '/sprites/lorcamon.png',
+  },
+  {
+    id: 'owemon',
+    name: 'Owemon',
+    types: ['brawn', 'hype'],
+    base: { hp: 95, attack: 100, defense: 75, spirit: 60, speed: 70 },
+    moves: ['usa', 'mosh-pit', 'calculated-hit', 'steal-their-chips'],
+    entry: 'Brings the full might of the US military to a pub argument.',
+    colour: '#c94f4f',
+    sprite: '/sprites/owemon.png',
+  },
+  {
+    id: 'conemon',
+    name: 'Conemon',
+    types: ['hype', 'charm'],
+    base: { hp: 90, attack: 110, defense: 65, spirit: 50, speed: 85 },
+    moves: ['try-hard', 'mosh-pit', 'gym-bro-punch', 'shopping-trolley'],
+    entry: 'Tries far too hard for the lads, and it costs him.',
+    colour: '#f2a541',
+    sprite: '/sprites/conemon.png',
+  },
+  {
+    id: 'robinmon',
+    name: 'Robinmon',
+    types: ['charm'],
+    base: { hp: 105, attack: 45, defense: 90, spirit: 80, speed: 80 },
+    moves: ['content-creation', 'dazzling-smile', 'group-chat-spam', 'prank-call'],
+    entry: 'Films everything. The fans keep him going.',
+    colour: '#d94fa8',
+    sprite: '/sprites/robinmon.png',
+  },
+  {
+    id: 'simomon',
+    name: 'Simomon',
+    types: ['chill'],
+    base: { hp: 105, attack: 55, defense: 90, spirit: 100, speed: 50 },
+    moves: ['blaze-up', 'avalanche-of-vibes', 'cold-shoulder', 'well-actually'],
+    entry: 'Slows right down and becomes very, very hard to bother.',
+    colour: '#6cc4a0',
+    sprite: '/sprites/simomon.png',
+  },
+  {
+    id: 'thilomon',
+    name: 'Thilomon',
+    types: ['chaos'],
+    base: { hp: 85, attack: 105, defense: 70, spirit: 50, speed: 90 },
+    moves: ['b2b', 'shopping-trolley', 'mosh-pit', 'cheap-shot'],
+    entry: 'Goes back to back: fires one off, then he’s gone before you notice.',
+    colour: '#b45cc9',
+    sprite: '/sprites/thilomon.png',
   },
 ];
 
-export function starterById(id: string): Creature {
-  const c = STARTERS.find((s) => s.id === id);
+export function creatureById(id: string): Creature {
+  const c = ROSTER.find((s) => s.id === id);
   if (!c) throw new Error(`Unknown creature: ${id}`);
   return c;
+}
+
+/** Ranemon that only work together, so a deal never splits them up. */
+const PAIRS: [string, string][] = [['oismon', 'olliemon']];
+
+/**
+ * Splits a shuffled roster into two hands of `size`, moving a partner across when its pair
+ * was split so Helping Hand always has someone to tag.
+ */
+export function deal(shuffled: Creature[], size: number): [Creature[], Creature[]] {
+  const hands: [Creature[], Creature[]] = [shuffled.slice(0, size), shuffled.slice(size, size * 2)];
+  const rest = shuffled.slice(size * 2);
+  for (const [a, b] of PAIRS) {
+    for (const [mine, theirs] of [
+      [hands[0], hands[1]],
+      [hands[1], hands[0]],
+    ]) {
+      const hasA = mine.some((c) => c.id === a);
+      const hasB = mine.some((c) => c.id === b);
+      if (hasA === hasB) continue;
+      const missing = hasA ? b : a;
+      const source = [theirs, rest].find((h) => h.some((c) => c.id === missing));
+      if (!source) continue;
+      const partner = source.splice(
+        source.findIndex((c) => c.id === missing),
+        1,
+      )[0];
+      // Give back the last creature that isn't part of this pair, keeping both hands full.
+      const out = mine.findLastIndex((c) => c.id !== a && c.id !== b);
+      const [given] = mine.splice(out, 1, partner);
+      source.push(given);
+    }
+  }
+  return hands;
 }

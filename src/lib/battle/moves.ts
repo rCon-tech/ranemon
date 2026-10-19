@@ -16,6 +16,22 @@ export type MoveEffect =
   /** The move hits between min and max times. */
   | { kind: 'multiHit'; min: number; max: number };
 
+/** What a friend's special move does beyond (or instead of) damage. */
+export type SpecialEffect =
+  /** Multiplies a stat of the user or the target, e.g. 1.5 for +50%. Lasts until it switches out. */
+  | { kind: 'boost'; target: 'self' | 'foe'; stat: Stat; factor: number }
+  /** The user loses this fraction of its max HP. */
+  | { kind: 'self-damage'; fraction: number }
+  /** The user and the target swap HP, each capped at its own max. */
+  | { kind: 'swap-hp' }
+  /**
+   * The user tags out for its partner, who comes in at full HP with Attack multiplied by
+   * attackFactor. Fails if the partner isn't on the bench and able to fight.
+   */
+  | { kind: 'tag-partner'; partner: string; attackFactor: number }
+  /** Uses one of the user's other damaging moves at random, then switches out. */
+  | { kind: 'hit-and-run' };
+
 export interface Move {
   id: string;
   name: string;
@@ -30,6 +46,9 @@ export interface Move {
   pp: number;
   priority: -1 | 0 | 1;
   effect?: MoveEffect;
+  /** Only on special moves: the one creature that knows it. */
+  signature?: string;
+  specials?: SpecialEffect[];
 }
 
 /**
@@ -482,7 +501,230 @@ export const FLAIL: Move = {
   effect: { kind: 'recoil', fraction: 0.25 },
 };
 
-const BY_ID = new Map([...MOVES, FLAIL].map((m) => [m.id, m]));
+/**
+ * Each friend's own special move, from Rich's Ranemon sheet. Only that friend can learn it.
+ * Where the sheet gives no number, the values here are a first guess for balancing.
+ */
+export const SPECIAL_MOVES: Move[] = [
+  {
+    id: 'nozzy-call',
+    signature: 'carlmon',
+    name: 'Nozzy Call',
+    flavour: 'Raises Speed by 50%.',
+    type: 'hype',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'speed', factor: 1.5 }],
+  },
+  {
+    id: 'ranelads-com',
+    signature: 'steadmon',
+    name: 'Ranelads.com',
+    flavour:
+      'Uses his powers as ruler of Ranelads.com to change the rules of reality. Swaps HP with the opponent.',
+    type: 'brains',
+    category: 'status',
+    power: 0,
+    accuracy: 90,
+    pp: 5,
+    priority: 0,
+    specials: [{ kind: 'swap-hp' }],
+  },
+  {
+    id: 'fierce-friendship',
+    signature: 'enda',
+    name: 'Fierce Friendship',
+    flavour: 'Makes friends with the opponent, dropping their Attack by 30%.',
+    type: 'charm',
+    category: 'status',
+    power: 0,
+    accuracy: 100,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'foe', stat: 'attack', factor: 0.7 }],
+  },
+  {
+    id: 'helping-hand-ois',
+    signature: 'oismon',
+    name: 'Helping Hand',
+    flavour: 'Swaps out for Olliemon with a Monster energy drink: full HP and 20% more Attack.',
+    type: 'hype',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 5,
+    priority: 1,
+    specials: [{ kind: 'tag-partner', partner: 'olliemon', attackFactor: 1.2 }],
+  },
+  {
+    id: 'helping-hand-ollie',
+    signature: 'olliemon',
+    name: 'Helping Hand',
+    flavour: 'Swaps out for Oismon with a Monster energy drink: full HP and 20% more Attack.',
+    type: 'charm',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 5,
+    priority: 1,
+    specials: [{ kind: 'tag-partner', partner: 'oismon', attackFactor: 1.2 }],
+  },
+  {
+    id: 'dark-web',
+    signature: 'hugomon',
+    name: 'Dark Web',
+    flavour: 'Hides his identity, raising Attack by 30%.',
+    type: 'brains',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'attack', factor: 1.3 }],
+  },
+  {
+    id: 'military-force',
+    signature: 'gibbsmon',
+    name: 'Military Force',
+    flavour: 'Calls in bombers from the army. Hits 2 to 4 times.',
+    type: 'brawn',
+    category: 'physical',
+    power: 40,
+    accuracy: 90,
+    pp: 5,
+    priority: 0,
+    effect: { kind: 'multiHit', min: 2, max: 4 },
+  },
+  {
+    id: 'jamanding',
+    signature: 'jammon',
+    name: 'Jamanding',
+    flavour: 'Demands he gets what he deserves. Raises Defense by 25%.',
+    type: 'chill',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'defense', factor: 1.25 }],
+  },
+  {
+    id: 'paddy-pimblett',
+    signature: 'boydemon',
+    name: 'Paddy Pimblett',
+    flavour: 'MMA moves learnt from the family. Massive damage.',
+    type: 'brawn',
+    category: 'physical',
+    power: 120,
+    accuracy: 85,
+    pp: 5,
+    priority: 0,
+  },
+  {
+    id: 'this-ones-for-africa',
+    signature: 'killemon',
+    name: 'This One’s for Africa',
+    flavour: 'A tribal dance learnt in the wilderness. Raises Attack by 30%.',
+    type: 'hype',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'attack', factor: 1.3 }],
+  },
+  {
+    id: 'rounds-on-me',
+    signature: 'lorcamon',
+    name: 'Rounds on Me',
+    flavour: 'Buys a round: his is 0%, theirs isn’t. Lowers their Speed and raises his.',
+    type: 'charm',
+    category: 'status',
+    power: 0,
+    accuracy: 100,
+    pp: 10,
+    priority: 0,
+    specials: [
+      { kind: 'boost', target: 'foe', stat: 'speed', factor: 0.8 },
+      { kind: 'boost', target: 'self', stat: 'speed', factor: 1.2 },
+    ],
+  },
+  {
+    id: 'usa',
+    signature: 'owemon',
+    name: 'USA',
+    flavour: 'A high-damage attack with the might of the military.',
+    type: 'brawn',
+    category: 'physical',
+    power: 110,
+    accuracy: 90,
+    pp: 5,
+    priority: 0,
+  },
+  {
+    id: 'try-hard',
+    signature: 'conemon',
+    name: 'Try Hard',
+    flavour: 'Tries too hard for the lads: Attack up 30%, HP down 15%.',
+    type: 'hype',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [
+      { kind: 'boost', target: 'self', stat: 'attack', factor: 1.3 },
+      { kind: 'self-damage', fraction: 0.15 },
+    ],
+  },
+  {
+    id: 'content-creation',
+    signature: 'robinmon',
+    name: 'Content Creation',
+    flavour: 'The love of his fans restores half his HP.',
+    type: 'charm',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 5,
+    priority: 0,
+    effect: { kind: 'heal', fraction: 0.5 },
+  },
+  {
+    id: 'blaze-up',
+    signature: 'simomon',
+    name: 'Blaze Up',
+    flavour: 'Lowers his Speed but greatly raises his Defense.',
+    type: 'chill',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [
+      { kind: 'boost', target: 'self', stat: 'speed', factor: 0.75 },
+      { kind: 'boost', target: 'self', stat: 'defense', factor: 1.6 },
+    ],
+  },
+  {
+    id: 'b2b',
+    signature: 'thilomon',
+    name: 'B2B',
+    flavour: 'Fires off a random attack from his moveset, then switches out.',
+    type: 'chaos',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'hit-and-run' }],
+  },
+];
+
+const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, FLAIL].map((m) => [m.id, m]));
 
 export function moveById(id: string): Move {
   const move = BY_ID.get(id);

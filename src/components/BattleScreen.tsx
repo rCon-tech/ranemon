@@ -183,7 +183,10 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     onClick={() => act({ kind: 'move', index: flail ? 0 : index })}
                     title={move.flavour}
                   >
-                    <span className="text-[9px] leading-snug">{move.name}</span>
+                    <span className="text-[9px] leading-snug">
+                      {move.signature && <span className="text-[#d8a000]">★ </span>}
+                      {move.name}
+                    </span>
                     <span className="flex justify-between text-[7px] opacity-75">
                       <span>{move.type ? TYPE_LABEL[move.type] : '—'}</span>
                       <span>

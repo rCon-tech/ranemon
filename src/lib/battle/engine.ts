@@ -1,5 +1,5 @@
 import { levelStats, type BaseStats, type Creature } from './creature';
-import { FLAIL, moveById, type Move, type Stat, type Status } from './moves';
+import { FLAIL, moveById, type Move, type SpecialEffect, type Stat, type Status } from './moves';
 import { Rng } from './rng';
 import { effectiveness } from './types';
 
@@ -14,6 +14,8 @@ export interface Battler {
   /** Turns of sleep left; only meaningful while asleep. */
   sleepTurns: number;
   stages: Record<Stat, number>;
+  /** Multipliers from special moves (1 = unchanged). Like stages, they reset on switching out. */
+  mods: Record<Stat, number>;
   /** PP left for each of the creature's 4 moves, in order. */
   pp: number[];
 }
@@ -62,10 +64,18 @@ export type BattleEvent =
   | { kind: 'asleep'; side: Side }
   | { kind: 'wake'; side: Side }
   | { kind: 'fluster-skip'; side: Side }
+  | { kind: 'boost'; side: Side; stat: Stat; factor: number }
+  | { kind: 'self-damage'; side: Side; amount: number; hp: number }
+  | { kind: 'swap-hp'; side: Side; hp: [number, number] }
+  | { kind: 'move-failed'; side: Side }
   | { kind: 'faint'; side: Side }
   | { kind: 'win'; winner: Side | 'draw' };
 
 export const CRIT_CHANCE = 1 / 24;
+const NO_MODS: Record<Stat, number> = { attack: 1, defense: 1, spirit: 1, speed: 1 };
+/** Special-move multipliers stack, but stay within these bounds. */
+export const MOD_MIN = 0.4;
+export const MOD_MAX = 3;
 
 function makeBattler(creature: Creature): Battler {
   const stats = levelStats(creature.base);
@@ -76,6 +86,7 @@ function makeBattler(creature: Creature): Battler {
     status: null,
     sleepTurns: 0,
     stages: { attack: 0, defense: 0, spirit: 0, speed: 0 },
+    mods: { ...NO_MODS },
     pp: creature.moves.map((id) => moveById(id).pp),
   };
 }
@@ -119,7 +130,7 @@ export function stageMultiplier(stage: number): number {
 }
 
 export function effectiveStat(b: Battler, stat: Stat): number {
-  let value = b.stats[stat] * stageMultiplier(b.stages[stat]);
+  let value = b.stats[stat] * stageMultiplier(b.stages[stat]) * b.mods[stat];
   if (stat === 'speed' && b.status === 'flustered') value /= 2;
   if (stat === 'attack' && b.status === 'hangry') value /= 2;
   return value;
@@ -199,6 +210,7 @@ class Turn {
       this.events.push({ kind: 'withdraw', side, index: team.active });
       // Stat changes don't survive a switch; statuses do.
       leaving.stages = { attack: 0, defense: 0, spirit: 0, speed: 0 };
+      leaving.mods = { ...NO_MODS };
     }
     team.active = to;
     this.events.push({ kind: 'send-out', side, index: to });
@@ -236,13 +248,21 @@ class Turn {
     const move = moveFor(user, index);
     if (move !== FLAIL) user.pp[index]--;
     this.events.push({ kind: 'move', side, moveId: move.id });
+    this.execute(side, move);
+  }
 
+  /** Everything a move does once it's been called: accuracy, damage, effects, specials. */
+  execute(side: Side, move: Move) {
+    const user = this.active(side);
     const foeSide = other(side);
     const foe = this.active(foeSide);
     const targetsFoe =
       move.category !== 'status' ||
       move.effect?.kind === 'status' ||
-      (move.effect?.kind === 'stat' && move.effect.target === 'foe');
+      (move.effect?.kind === 'stat' && move.effect.target === 'foe') ||
+      (move.specials ?? []).some(
+        (e) => e.kind === 'swap-hp' || (e.kind === 'boost' && e.target === 'foe'),
+      );
 
     if (targetsFoe && foe.hp === 0) return;
     if (move.accuracy !== null && targetsFoe && !this.rng.chance(move.accuracy / 100)) {
@@ -273,8 +293,7 @@ class Turn {
     }
 
     const effect = move.effect;
-    if (!effect) return;
-    switch (effect.kind) {
+    switch (effect?.kind) {
       case 'recoil': {
         const amount = Math.max(1, Math.floor(dealt * effect.fraction));
         this.applyDamage(side, amount);
@@ -328,8 +347,97 @@ class Turn {
         }
         break;
       }
-      case 'multiHit':
+      default:
         break;
+    }
+    for (const special of move.specials ?? []) this.special(side, special);
+  }
+
+  /** The friend-specific part of a special move. */
+  special(side: Side, effect: SpecialEffect) {
+    const user = this.active(side);
+    const foeSide = other(side);
+    const foe = this.active(foeSide);
+    switch (effect.kind) {
+      case 'boost': {
+        const targetSide = effect.target === 'self' ? side : foeSide;
+        const target = this.active(targetSide);
+        if (target.hp === 0) return;
+        const before = target.mods[effect.stat];
+        const after = Math.max(MOD_MIN, Math.min(MOD_MAX, before * effect.factor));
+        if (after === before) {
+          this.events.push({
+            kind: 'stat-limit',
+            side: targetSide,
+            stat: effect.stat,
+            rising: effect.factor > 1,
+          });
+          return;
+        }
+        target.mods[effect.stat] = after;
+        this.events.push({
+          kind: 'boost',
+          side: targetSide,
+          stat: effect.stat,
+          factor: effect.factor,
+        });
+        return;
+      }
+      case 'self-damage': {
+        const amount = this.applyDamage(
+          side,
+          Math.max(1, Math.floor(user.stats.hp * effect.fraction)),
+        );
+        this.events.push({ kind: 'self-damage', side, amount, hp: user.hp });
+        return;
+      }
+      case 'swap-hp': {
+        if (foe.hp === 0) return;
+        const mine = user.hp;
+        user.hp = Math.min(user.stats.hp, foe.hp);
+        foe.hp = Math.min(foe.stats.hp, mine);
+        const hp: [number, number] = side === 0 ? [user.hp, foe.hp] : [foe.hp, user.hp];
+        this.events.push({ kind: 'swap-hp', side, hp });
+        return;
+      }
+      case 'tag-partner': {
+        const team = this.state.teams[side];
+        const to = team.battlers.findIndex(
+          (b, i) => b.creature.id === effect.partner && b.hp > 0 && i !== team.active,
+        );
+        if (to < 0) {
+          this.events.push({ kind: 'move-failed', side });
+          return;
+        }
+        this.switchIn(side, to);
+        const partner = this.active(side);
+        const amount = partner.stats.hp - partner.hp;
+        partner.hp = partner.stats.hp;
+        this.events.push({ kind: 'heal', side, amount, hp: partner.hp });
+        partner.mods.attack = Math.min(MOD_MAX, partner.mods.attack * effect.attackFactor);
+        this.events.push({ kind: 'boost', side, stat: 'attack', factor: effect.attackFactor });
+        return;
+      }
+      case 'hit-and-run': {
+        const attacks = user.creature.moves.map(moveById).filter((m) => m.category !== 'status');
+        if (attacks.length > 0 && foe.hp > 0) {
+          const pick = attacks[this.rng.int(0, attacks.length - 1)];
+          this.events.push({ kind: 'move', side, moveId: pick.id });
+          this.execute(side, pick);
+        }
+        const bench = switchTargets(this.state, side);
+        if (user.hp > 0 && bench.length > 0) {
+          const team = this.state.teams[side];
+          const best = bench.reduce((a, b) =>
+            team.battlers[b].hp / team.battlers[b].stats.hp >
+            team.battlers[a].hp / team.battlers[a].stats.hp
+              ? b
+              : a,
+          );
+          this.switchIn(side, best);
+        }
+        return;
+      }
     }
   }
 

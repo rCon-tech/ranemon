@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Rng } from '@/lib/battle/rng';
-import { STARTERS } from '@/lib/battle/roster';
+import { ROSTER } from '@/lib/battle/roster';
 import { simulateBattle } from '@/lib/battle/simulate';
 import { TYPES, type RaneType } from '@/lib/battle/types';
 
@@ -15,10 +15,10 @@ it(`no type wins over 60% of ${BATTLES} simulated battles`, () => {
   const typeTally = new Map<RaneType, { won: number; played: number }>(
     TYPES.map((t) => [t, { won: 0, played: 0 }]),
   );
-  const creatureTally = new Map(STARTERS.map((c) => [c.name, { won: 0, played: 0 }]));
+  const creatureTally = new Map(ROSTER.map((c) => [c.name, { won: 0, played: 0 }]));
 
   for (let i = 0; i < BATTLES; i++) {
-    const pool = [...STARTERS];
+    const pool = [...ROSTER];
     const pick = () => pool.splice(rng.int(0, pool.length - 1), 1)[0];
     const teams = [
       [pick(), pick(), pick()],

@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
-import { STARTERS } from '@/lib/battle/roster';
+import { deal, ROSTER } from '@/lib/battle/roster';
 import { addResult, getRecord, getServerRecord, subscribeRecord } from '@/lib/record';
 import { BattleScreen } from './BattleScreen';
 import { TeamPreview } from './TeamPreview';
@@ -26,8 +26,8 @@ export function Game() {
   const record = useSyncExternalStore(subscribeRecord, getRecord, getServerRecord);
 
   function start() {
-    const pool = shuffle(STARTERS);
-    setScreen({ kind: 'preview', mine: pool.slice(0, 6), theirs: pool.slice(6, 12) });
+    const [mine, theirs] = deal(shuffle(ROSTER), 6);
+    setScreen({ kind: 'preview', mine, theirs });
   }
 
   if (screen.kind === 'title') return <TitleScreen record={record} onStart={start} />;

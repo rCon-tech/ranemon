@@ -1,6 +1,7 @@
 import {
   activeBattler,
   computeDamage,
+  effectiveStat,
   legalActions,
   moveFor,
   switchTargets,
@@ -9,6 +10,7 @@ import {
   type Battler,
   type Side,
 } from './engine';
+import { moveById, type SpecialEffect } from './moves';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
@@ -27,7 +29,18 @@ function expectedDamage(user: Battler, target: Battler, index: number): number {
 }
 
 /** How much a move is worth right now, in rough HP-equivalent units. */
-function moveValue(user: Battler, target: Battler, index: number): number {
+function moveValue(state: BattleState, side: Side, index: number): number {
+  const user = activeBattler(state, side);
+  const target = activeBattler(state, other(side));
+  const move = moveFor(user, index);
+  const specials = (move.specials ?? []).reduce(
+    (sum, e) => sum + specialValue(state, side, e, move.accuracy),
+    0,
+  );
+  return effectValue(user, target, index) + specials;
+}
+
+function effectValue(user: Battler, target: Battler, index: number): number {
   const move = moveFor(user, index);
   const effect = move.effect;
   if (move.category !== 'status') {
@@ -55,19 +68,69 @@ function moveValue(user: Battler, target: Battler, index: number): number {
   }
 }
 
+/** What a special move's friend-specific effect is worth, in the same units as moveValue. */
+function specialValue(
+  state: BattleState,
+  side: Side,
+  effect: SpecialEffect,
+  accuracyPercent: number | null,
+): number {
+  const user = activeBattler(state, side);
+  const target = activeBattler(state, other(side));
+  const accuracy = accuracyPercent === null ? 1 : accuracyPercent / 100;
+  const healthy = user.hp / user.stats.hp;
+  switch (effect.kind) {
+    case 'boost': {
+      const subject = effect.target === 'self' ? user : target;
+      const mod = subject.mods[effect.stat];
+      const raising = effect.factor > 1;
+      if (raising ? mod >= 1.6 : mod <= 0.6) return 0;
+      const useful =
+        effect.stat === 'speed'
+          ? raising === (effect.target === 'self')
+            ? effectiveStat(user, 'speed') <= effectiveStat(target, 'speed')
+            : true
+          : effect.stat === 'attack' && effect.target === 'self'
+            ? user.creature.moves.some((id) => moveById(id).category === 'physical')
+            : true;
+      if (!useful) return 0;
+      const size = Math.abs(effect.factor - 1);
+      if (effect.target === 'self') return healthy > 0.6 ? target.stats.hp * size * 0.8 : 0;
+      return target.stats.hp * size * 0.5 * accuracy;
+    }
+    case 'self-damage':
+      return healthy > effect.fraction + 0.4 ? -user.stats.hp * effect.fraction * 0.5 : -Infinity;
+    case 'swap-hp': {
+      const gain = Math.min(user.stats.hp, target.hp) - user.hp;
+      const loss = target.hp - Math.min(target.stats.hp, user.hp);
+      return Math.max(0, (gain + loss) * 0.5 * accuracy);
+    }
+    case 'tag-partner': {
+      const partner = state.teams[side].battlers.find(
+        (b) => b.creature.id === effect.partner && b.hp > 0 && b !== user,
+      );
+      if (!partner) return 0;
+      return (partner.stats.hp - partner.hp) * 0.8 + target.stats.hp * 0.1;
+    }
+    case 'hit-and-run': {
+      const attacks = user.pp.map((_, i) => expectedDamage(user, target, i)).filter((d) => d > 0);
+      if (attacks.length === 0) return 0;
+      return (attacks.reduce((a, b) => a + b, 0) / attacks.length) * 0.6;
+    }
+  }
+}
+
 /** The most damage the opponent's active creature can expect to do to this battler. */
 function threatFrom(foe: Battler, target: Battler): number {
   return Math.max(...foe.pp.map((_, i) => expectedDamage(foe, target, i)));
 }
 
 function bestMove(state: BattleState, side: Side): Action {
-  const user = activeBattler(state, side);
-  const target = activeBattler(state, other(side));
   const moves = legalActions(state, side).filter((a) => a.kind === 'move');
   let best = moves[0];
   let bestValue = -Infinity;
   for (const action of moves) {
-    const value = moveValue(user, target, action.index);
+    const value = moveValue(state, side, action.index);
     if (value > bestValue) {
       best = action;
       bestValue = value;

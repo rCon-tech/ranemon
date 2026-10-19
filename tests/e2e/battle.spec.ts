@@ -53,8 +53,12 @@ test('a full 3v3 battle against the CPU, start to finish', async ({ page }) => {
   await expect(page.getByText('Record: 0W · 0L')).toHaveCount(ending?.includes('draw') ? 1 : 0);
 });
 
-test('the Ranedex lists the starter creatures', async ({ page }) => {
+test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page }) => {
   await page.goto('/ranedex');
   await expect(page.getByRole('heading', { name: 'RANEDEX' })).toBeVisible();
-  await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(12);
+  await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(16);
+  const sprite = page.getByRole('img', { name: 'Steadmon' });
+  await expect(sprite).toBeVisible();
+  expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(128);
+  await expect(page.getByText('★ Ranelads.com:')).toBeVisible();
 });

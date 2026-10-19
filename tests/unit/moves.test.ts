@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { levelStats, validateCreature, type Creature } from '@/lib/battle/creature';
-import { MOVES } from '@/lib/battle/moves';
-import { STARTERS } from '@/lib/battle/roster';
+import { MOVES, SPECIAL_MOVES } from '@/lib/battle/moves';
+import { ROSTER } from '@/lib/battle/roster';
 import { TYPES } from '@/lib/battle/types';
+import { STARTERS } from '../fixtures/placeholders';
 
 describe('move list', () => {
   it('has 36 moves with unique ids', () => {
@@ -36,9 +37,32 @@ describe('move list', () => {
   });
 });
 
+describe('special moves', () => {
+  it('gives every Ranemon exactly one, and only its own', () => {
+    for (const c of ROSTER) {
+      const own = SPECIAL_MOVES.filter((m) => m.signature === c.id);
+      expect(own.length, c.name).toBe(1);
+      expect(c.moves, c.name).toContain(own[0].id);
+    }
+    expect(SPECIAL_MOVES).toHaveLength(ROSTER.length);
+  });
+
+  it('can’t be borrowed by another Ranemon', () => {
+    const thief = { ...ROSTER[0], moves: ['mosh-pit', 'usa', 'headlock', 'flex'] };
+    expect(validateCreature(thief).join()).toMatch(/another Ranemon’s special move/);
+  });
+});
+
 describe('creatures', () => {
-  it.each(STARTERS.map((s) => [s.name, s] as const))('%s is a valid card', (_, creature) => {
-    expect(validateCreature(creature)).toEqual([]);
+  it.each([...ROSTER, ...STARTERS].map((s) => [s.name, s] as const))(
+    '%s is a valid card',
+    (_, creature) => {
+      expect(validateCreature(creature)).toEqual([]);
+    },
+  );
+
+  it('gives every Ranemon a sprite', () => {
+    for (const c of ROSTER) expect(c.sprite, c.name).toBe(`/sprites/${c.id}.png`);
   });
 
   it('turns base stats into level 50 stats', () => {
