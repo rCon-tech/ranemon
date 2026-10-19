@@ -152,8 +152,8 @@ export function describeEvent(event: BattleEvent, state: BattleState, view: View
       const foe = state.teams[foeSide].battlers[view[foeSide].active].creature.name;
       return `${name} swapped HP with ${foeSide === 0 ? foe : `Foe ${foe}`}!`;
     }
-    case 'move-failed':
-      return 'But it failed!';
+    case 'wild-partner':
+      return `${name} called in a wild ${event.partner}!`;
     case 'faint':
       return `${name} fainted!`;
   }

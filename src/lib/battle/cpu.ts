@@ -106,10 +106,11 @@ function specialValue(
       return Math.max(0, (gain + loss) * 0.5 * accuracy);
     }
     case 'tag-partner': {
-      const partner = state.teams[side].battlers.find(
-        (b) => b.creature.id === effect.partner && b.hp > 0 && b !== user,
-      );
-      if (!partner) return 0;
+      // The partner tags in if it's on the team; otherwise a wild one helps the user.
+      const partner =
+        state.teams[side].battlers.find(
+          (b) => b.creature.id === effect.partner && b.hp > 0 && b !== user,
+        ) ?? user;
       return (partner.stats.hp - partner.hp) * 0.8 + target.stats.hp * 0.1;
     }
     case 'hit-and-run': {

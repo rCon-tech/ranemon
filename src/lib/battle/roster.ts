@@ -29,7 +29,7 @@ export const ROSTER: Creature[] = [
     id: 'enda',
     name: 'Enda',
     types: ['charm'],
-    base: { hp: 100, attack: 50, defense: 85, spirit: 95, speed: 70 },
+    base: { hp: 100, attack: 55, defense: 85, spirit: 90, speed: 70 },
     moves: ['fierce-friendship', 'heartbreaker', 'prank-call', 'cold-shoulder'],
     entry: 'Makes friends so fiercely that opponents forget they came to fight.',
     colour: '#f59ac2',

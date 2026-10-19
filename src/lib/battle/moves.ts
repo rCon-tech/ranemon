@@ -28,7 +28,7 @@ export type SpecialEffect =
    * The user tags out for its partner, who comes in at full HP with Attack multiplied by
    * attackFactor. Fails if the partner isn't on the bench and able to fight.
    */
-  | { kind: 'tag-partner'; partner: string; attackFactor: number }
+  | { kind: 'tag-partner'; partner: string; partnerName: string; attackFactor: number }
   /** Uses one of the user's other damaging moves at random, then switches out. */
   | { kind: 'hit-and-run' };
 
@@ -550,27 +550,33 @@ export const SPECIAL_MOVES: Move[] = [
     id: 'helping-hand-ois',
     signature: 'oismon',
     name: 'Helping Hand',
-    flavour: 'Swaps out for Olliemon with a Monster energy drink: full HP and 20% more Attack.',
+    flavour:
+      'Swaps out for Olliemon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Olliemon hands Oismon the drink.',
     type: 'hype',
     category: 'status',
     power: 0,
     accuracy: null,
     pp: 5,
     priority: 1,
-    specials: [{ kind: 'tag-partner', partner: 'olliemon', attackFactor: 1.2 }],
+    specials: [
+      { kind: 'tag-partner', partner: 'olliemon', partnerName: 'Olliemon', attackFactor: 1.2 },
+    ],
   },
   {
     id: 'helping-hand-ollie',
     signature: 'olliemon',
     name: 'Helping Hand',
-    flavour: 'Swaps out for Oismon with a Monster energy drink: full HP and 20% more Attack.',
+    flavour:
+      'Swaps out for Oismon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Oismon hands Olliemon the drink.',
     type: 'charm',
     category: 'status',
     power: 0,
     accuracy: null,
     pp: 5,
     priority: 1,
-    specials: [{ kind: 'tag-partner', partner: 'oismon', attackFactor: 1.2 }],
+    specials: [
+      { kind: 'tag-partner', partner: 'oismon', partnerName: 'Oismon', attackFactor: 1.2 },
+    ],
   },
   {
     id: 'dark-web',

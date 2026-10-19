@@ -68,7 +68,7 @@ export type BattleEvent =
   | { kind: 'boost'; side: Side; stat: Stat; factor: number }
   | { kind: 'self-damage'; side: Side; amount: number; hp: number }
   | { kind: 'swap-hp'; side: Side; hp: [number, number] }
-  | { kind: 'move-failed'; side: Side }
+  | { kind: 'wild-partner'; side: Side; partner: string }
   | { kind: 'faint'; side: Side }
   | { kind: 'win'; winner: Side | 'draw' };
 
@@ -408,11 +408,9 @@ class Turn {
         const to = team.battlers.findIndex(
           (b, i) => b.creature.id === effect.partner && b.hp > 0 && i !== team.active,
         );
-        if (to < 0) {
-          this.events.push({ kind: 'move-failed', side });
-          return;
-        }
-        this.switchIn(side, to);
+        // No partner on the team: a wild one turns up just to hand over the drink.
+        if (to < 0) this.events.push({ kind: 'wild-partner', side, partner: effect.partnerName });
+        else this.switchIn(side, to);
         const partner = this.active(side);
         const amount = partner.stats.hp - partner.hp;
         partner.hp = partner.stats.hp;
