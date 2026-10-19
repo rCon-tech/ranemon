@@ -1,3 +1,4 @@
+import { asset } from '@/lib/asset';
 import type { Creature } from '@/lib/battle/creature';
 
 /**
@@ -10,7 +11,7 @@ export function Sprite({ creature, back = false }: { creature: Creature; back?: 
       // Sprites are tiny pixel art, so next/image's resizing would only blur them.
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={creature.sprite}
+        src={asset(creature.sprite)}
         alt={creature.name}
         draggable={false}
         className={`h-full w-full object-contain [image-rendering:pixelated] ${back ? '-scale-x-100' : ''}`}
