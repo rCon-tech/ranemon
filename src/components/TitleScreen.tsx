@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
 
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
@@ -9,7 +10,7 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
       <div className="flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo.png"
+          src={asset('/logo.png')}
           alt=""
           width={96}
           height={96}
