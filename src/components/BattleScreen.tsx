@@ -210,11 +210,12 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
         {(mode === 'switch' || mode === 'forced-switch') && (
           <div className="flex flex-col gap-2" role="group" aria-label="Your team">
             {state.teams[0].battlers.map((b, i) => {
+              if (b.left) return null;
               const out = i === state.teams[0].active;
               const allowed = switchTargets(state, 0).includes(i);
               return (
                 <button
-                  key={b.creature.id}
+                  key={i}
                   type="button"
                   className="pixel-btn flex items-center gap-3"
                   disabled={!allowed}

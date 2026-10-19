@@ -106,7 +106,8 @@ function specialValue(
       return Math.max(0, (gain + loss) * 0.5 * accuracy);
     }
     case 'tag-partner': {
-      // The partner tags in if it's on the team; otherwise a wild one helps the user.
+      // The partner tags in at full HP if it's on the team; otherwise a fresh wild one
+      // replaces the user, which is worth the HP the user had lost.
       const partner =
         state.teams[side].battlers.find(
           (b) => b.creature.id === effect.partner && b.hp > 0 && b !== user,

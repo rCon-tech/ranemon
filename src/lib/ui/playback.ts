@@ -27,6 +27,12 @@ export function applyEvent(view: View, event: BattleEvent): View {
   const next = view.map((s) => ({ ...s, hp: [...s.hp], status: [...s.status] })) as View;
   const side = next[event.side];
   switch (event.kind) {
+    case 'wild-partner':
+      side.hp[side.active] = 0;
+      side.hp.push(event.hp);
+      side.status.push(null);
+      side.shown = false;
+      break;
     case 'swap-hp':
       next[0].hp[next[0].active] = event.hp[0];
       next[1].hp[next[1].active] = event.hp[1];
@@ -152,8 +158,10 @@ export function describeEvent(event: BattleEvent, state: BattleState, view: View
       const foe = state.teams[foeSide].battlers[view[foeSide].active].creature.name;
       return `${name} swapped HP with ${foeSide === 0 ? foe : `Foe ${foe}`}!`;
     }
-    case 'wild-partner':
-      return `${name} called in a wild ${event.partner}!`;
+    case 'wild-partner': {
+      const partner = state.teams[side].battlers[event.index].creature.name;
+      return `${name} called in a wild ${partner}!`;
+    }
     case 'faint':
       return `${name} fainted!`;
   }

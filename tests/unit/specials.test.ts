@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Creature } from '@/lib/battle/creature';
-import { activeBattler, playTurn, startBattle, type Action } from '@/lib/battle/engine';
+import {
+  activeBattler,
+  playTurn,
+  startBattle,
+  switchTargets,
+  type Action,
+} from '@/lib/battle/engine';
 import { creatureById, drawTeam, ROSTER } from '@/lib/battle/roster';
-import { describeEvent, viewOf } from '@/lib/ui/playback';
+import { applyEvent, describeEvent, viewOf } from '@/lib/ui/playback';
 import { starterById } from '../fixtures/placeholders';
 
 const move = (index: number): Action => ({ kind: 'move', index });
@@ -83,23 +89,28 @@ describe('special moves', () => {
     expect(events).toContainEqual({ kind: 'send-out', side: 0, index: 2 });
   });
 
-  it('Helping Hand calls in a wild partner when the real one isn’t on the team', () => {
+  it('Helping Hand calls in a wild partner to replace the user when the real one isn’t there', () => {
     const start = battle([creatureById('oismon'), mo(), snooze()]);
     activeBattler(start, 0).hp = 10;
     const { state, events } = playTurn(start, [move(0), WAIT]);
-    expect(events).toContainEqual({ kind: 'wild-partner', side: 0, partner: 'Olliemon' });
-    const ois = activeBattler(state, 0);
-    expect(ois.creature.id).toBe('oismon');
-    expect(ois.mods.attack).toBeCloseTo(1.2);
-    // Full HP from the drink, less whatever Mo's turn did (Unbothered does no damage).
-    expect(ois.hp).toBe(ois.stats.hp);
-    expect(state.teams[0].battlers.map((b) => b.creature.id)).toEqual([
-      'oismon',
-      'mellow-mo',
-      'snooze',
-    ]);
+    expect(events).toContainEqual({ kind: 'wild-partner', side: 0, index: 3, hp: 155 });
+    expect(events).toContainEqual({ kind: 'send-out', side: 0, index: 3 });
+
+    // The wild Olliemon is in, at full HP with the Monster boost; Oismon is off the team.
+    const ollie = activeBattler(state, 0);
+    expect(ollie.creature.id).toBe('olliemon');
+    expect(ollie.hp).toBe(ollie.stats.hp);
+    expect(ollie.mods.attack).toBeCloseTo(1.2);
+    expect(ollie.pp[0]).toBe(0); // no wild Oismon in return
+    const ois = state.teams[0].battlers[0];
+    expect(ois).toMatchObject({ hp: 0, left: true });
+    expect(switchTargets(state, 0)).toEqual([1, 2]);
+
     const wild = events.find((e) => e.kind === 'wild-partner')!;
-    expect(describeEvent(wild, start, viewOf(start))).toBe('Oismon called in a wild Olliemon!');
+    const view = viewOf(start);
+    expect(describeEvent(wild, state, view)).toBe('Oismon called in a wild Olliemon!');
+    const after = applyEvent(view, wild);
+    expect(after[0].hp).toEqual([0, view[0].hp[1], view[0].hp[2], 155]);
   });
 
   it('B2B fires a random attack, then switches to the healthiest teammate', () => {

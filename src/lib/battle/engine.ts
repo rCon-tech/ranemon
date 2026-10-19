@@ -1,6 +1,7 @@
 import { levelStats, type BaseStats, type Creature } from './creature';
 import { FLAIL, moveById, type Move, type SpecialEffect, type Stat, type Status } from './moves';
 import { Rng } from './rng';
+import { creatureById } from './roster';
 import { effectiveness } from './types';
 
 export type Side = 0 | 1;
@@ -19,6 +20,8 @@ export interface Battler {
   mods: Record<Stat, number>;
   /** PP left for each of the creature's 4 moves, in order. */
   pp: number[];
+  /** Replaced by a wild partner: off the team for good, and kept at 0 HP. */
+  left?: boolean;
 }
 
 export interface Team {
@@ -68,7 +71,8 @@ export type BattleEvent =
   | { kind: 'boost'; side: Side; stat: Stat; factor: number }
   | { kind: 'self-damage'; side: Side; amount: number; hp: number }
   | { kind: 'swap-hp'; side: Side; hp: [number, number] }
-  | { kind: 'wild-partner'; side: Side; partner: string }
+  /** A wild partner joins at `index` and takes the caller's place. */
+  | { kind: 'wild-partner'; side: Side; index: number; hp: number }
   | { kind: 'faint'; side: Side }
   | { kind: 'win'; winner: Side | 'draw' };
 
@@ -408,13 +412,28 @@ class Turn {
         const to = team.battlers.findIndex(
           (b, i) => b.creature.id === effect.partner && b.hp > 0 && i !== team.active,
         );
-        // No partner on the team: a wild one turns up just to hand over the drink.
-        if (to < 0) this.events.push({ kind: 'wild-partner', side, partner: effect.partnerName });
-        else this.switchIn(side, to);
+        if (to < 0) {
+          // No partner on the team: a wild one joins with the drink and takes the caller's place.
+          const caller = this.active(side);
+          caller.hp = 0;
+          caller.left = true;
+          const wild = makeBattler(creatureById(effect.partner));
+          // The can's been drunk: the wild one can't call in another, or it would never end.
+          wild.creature.moves.forEach((id, i) => {
+            if (moveById(id).specials?.some((e) => e.kind === 'tag-partner')) wild.pp[i] = 0;
+          });
+          team.battlers.push(wild);
+          team.active = team.battlers.length - 1;
+          this.events.push({ kind: 'wild-partner', side, index: team.active, hp: wild.hp });
+          this.events.push({ kind: 'send-out', side, index: team.active });
+        } else {
+          this.switchIn(side, to);
+          const partner = this.active(side);
+          const amount = partner.stats.hp - partner.hp;
+          partner.hp = partner.stats.hp;
+          this.events.push({ kind: 'heal', side, amount, hp: partner.hp });
+        }
         const partner = this.active(side);
-        const amount = partner.stats.hp - partner.hp;
-        partner.hp = partner.stats.hp;
-        this.events.push({ kind: 'heal', side, amount, hp: partner.hp });
         partner.mods.attack = Math.min(MOD_MAX, partner.mods.attack * effect.attackFactor);
         this.events.push({ kind: 'boost', side, stat: 'attack', factor: effect.attackFactor });
         return;
