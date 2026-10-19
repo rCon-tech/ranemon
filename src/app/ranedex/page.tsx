@@ -60,8 +60,11 @@ export default function Ranedex() {
               </dl>
               <ul className="grid grid-cols-2 gap-1 text-[7px]">
                 {c.moves.map((id) => (
-                  <li key={id} className="truncate">
-                    {moveById(id).signature ? '★' : '·'} {moveById(id).name}
+                  <li
+                    key={id}
+                    className={`truncate ${moveById(id).signature ? 'text-[#b07800]' : ''}`}
+                  >
+                    {moveById(id).signature ? '*' : '·'} {moveById(id).name}
                   </li>
                 ))}
               </ul>
@@ -70,7 +73,7 @@ export default function Ranedex() {
                 .filter((m) => m.signature)
                 .map((m) => (
                   <p key={m.id} className="text-[7px] leading-relaxed">
-                    ★ {m.name}: {m.flavour}
+                    * {m.name}: {m.flavour}
                   </p>
                 ))}
             </li>

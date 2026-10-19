@@ -60,5 +60,5 @@ test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page 
   const sprite = page.getByRole('img', { name: 'Steadmon' });
   await expect(sprite).toBeVisible();
   expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(128);
-  await expect(page.getByText('★ Ranelads.com:')).toBeVisible();
+  await expect(page.getByText('* Ranelads.com:')).toBeVisible();
 });

@@ -184,7 +184,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     title={move.flavour}
                   >
                     <span className="text-[9px] leading-snug">
-                      {move.signature && <span className="text-[#d8a000]">★ </span>}
+                      {move.signature && <span className="text-[#d8a000]">* </span>}
                       {move.name}
                     </span>
                     <span className="flex justify-between text-[7px] opacity-75">
