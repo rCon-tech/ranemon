@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Creature } from '@/lib/battle/creature';
 import { activeBattler, playTurn, startBattle, type Action } from '@/lib/battle/engine';
-import { creatureById, deal, ROSTER } from '@/lib/battle/roster';
+import { creatureById, drawTeam, ROSTER } from '@/lib/battle/roster';
 import { starterById } from '../fixtures/placeholders';
 
 const move = (index: number): Action => ({ kind: 'move', index });
@@ -111,18 +111,17 @@ describe('special moves', () => {
   });
 });
 
-describe('deal', () => {
-  it('never splits Oismon and Olliemon across hands', () => {
+describe('drawTeam', () => {
+  it('never leaves Oismon or Olliemon without the other when both are available', () => {
     for (let i = 0; i < 200; i++) {
-      const shuffled = [...ROSTER].sort(() => Math.random() - 0.5);
-      const hands = deal(shuffled, 6);
-      expect(hands[0]).toHaveLength(6);
-      expect(hands[1]).toHaveLength(6);
-      expect(new Set([...hands[0], ...hands[1]]).size).toBe(12);
-      for (const hand of hands) {
-        const ids = hand.map((c) => c.id);
-        expect(ids.includes('oismon')).toBe(ids.includes('olliemon'));
-      }
+      const pool = [...ROSTER].sort(() => Math.random() - 0.5).slice(0, 10);
+      const team = drawTeam(pool, 6);
+      expect(team).toHaveLength(6);
+      expect(new Set(team).size).toBe(6);
+      for (const c of team) expect(pool).toContain(c);
+      const ids = team.map((c) => c.id);
+      const bothInPool = ['oismon', 'olliemon'].every((id) => pool.some((c) => c.id === id));
+      if (bothInPool) expect(ids.includes('oismon')).toBe(ids.includes('olliemon'));
     }
   });
 });

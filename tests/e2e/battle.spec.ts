@@ -21,21 +21,21 @@ async function playToTheEnd(page: Page) {
   throw new Error('The battle never finished');
 }
 
-test('a full 3v3 battle against the CPU, start to finish', async ({ page }) => {
+test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
   await expect(page.getByText('Record: 0W · 0L')).toBeVisible();
   await page.getByRole('button', { name: 'PRESS START' }).click();
 
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
-  await expect(roster).toHaveCount(6);
-  await expect(
-    page.getByRole('region', { name: 'Rival’s roster' }).getByRole('listitem'),
-  ).toHaveCount(6);
+  await expect(roster).toHaveCount(16);
   const start = page.getByRole('button', { name: /BATTLE!/ });
   await expect(start).toBeDisabled();
-  for (let i = 0; i < 3; i++) await roster.nth(i).click();
+  for (let i = 0; i < 7; i++) await roster.nth(i).click();
   await expect(roster.nth(0)).toContainText('LEAD');
+  // The 7th tap doesn't count: a team is 6.
+  await expect(roster.nth(6)).toHaveAttribute('aria-pressed', 'false');
+  await expect(start).toHaveText('BATTLE! (6/6)');
   await page.getByRole('button', { name: 'EASY' }).click();
   await start.click();
 

@@ -109,7 +109,7 @@ export const ROSTER: Creature[] = [
     id: 'lorcamon',
     name: 'Lorcamon',
     types: ['charm'],
-    base: { hp: 110, attack: 50, defense: 95, spirit: 65, speed: 80 },
+    base: { hp: 110, attack: 55, defense: 95, spirit: 60, speed: 80 },
     moves: ['rounds-on-me', 'dazzling-smile', 'cold-shoulder', 'group-chat-spam'],
     entry: 'Gets the rounds in. His is always the 0% one.',
     colour: '#7fa6e6',
@@ -139,7 +139,7 @@ export const ROSTER: Creature[] = [
     id: 'robinmon',
     name: 'Robinmon',
     types: ['charm'],
-    base: { hp: 105, attack: 45, defense: 90, spirit: 80, speed: 80 },
+    base: { hp: 105, attack: 55, defense: 90, spirit: 70, speed: 80 },
     moves: ['content-creation', 'dazzling-smile', 'group-chat-spam', 'prank-call'],
     entry: 'Films everything. The fans keep him going.',
     colour: '#d94fa8',
@@ -173,36 +173,23 @@ export function creatureById(id: string): Creature {
   return c;
 }
 
-/** Ranemon that only work together, so a deal never splits them up. */
+/** Ranemon that only work together, so a drawn team never splits them up. */
 const PAIRS: [string, string][] = [['oismon', 'olliemon']];
 
 /**
- * Splits a shuffled roster into two hands of `size`, moving a partner across when its pair
- * was split so Helping Hand always has someone to tag.
+ * Takes the first `size` of a shuffled pool as a team. When that splits a pair and the
+ * partner is still in the pool, the partner comes in for the last unpaired member, so
+ * Helping Hand has someone to tag.
  */
-export function deal(shuffled: Creature[], size: number): [Creature[], Creature[]] {
-  const hands: [Creature[], Creature[]] = [shuffled.slice(0, size), shuffled.slice(size, size * 2)];
-  const rest = shuffled.slice(size * 2);
+export function drawTeam(shuffled: Creature[], size: number): Creature[] {
+  const team = shuffled.slice(0, size);
+  const rest = shuffled.slice(size);
   for (const [a, b] of PAIRS) {
-    for (const [mine, theirs] of [
-      [hands[0], hands[1]],
-      [hands[1], hands[0]],
-    ]) {
-      const hasA = mine.some((c) => c.id === a);
-      const hasB = mine.some((c) => c.id === b);
-      if (hasA === hasB) continue;
-      const missing = hasA ? b : a;
-      const source = [theirs, rest].find((h) => h.some((c) => c.id === missing));
-      if (!source) continue;
-      const partner = source.splice(
-        source.findIndex((c) => c.id === missing),
-        1,
-      )[0];
-      // Give back the last creature that isn't part of this pair, keeping both hands full.
-      const out = mine.findLastIndex((c) => c.id !== a && c.id !== b);
-      const [given] = mine.splice(out, 1, partner);
-      source.push(given);
-    }
+    const hasA = team.some((c) => c.id === a);
+    if (hasA === team.some((c) => c.id === b)) continue;
+    const partner = rest.find((c) => c.id === (hasA ? b : a));
+    const out = team.findLastIndex((c) => c.id !== a && c.id !== b);
+    if (partner && out >= 0) team[out] = partner;
   }
-  return hands;
+  return team;
 }

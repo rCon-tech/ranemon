@@ -3,22 +3,24 @@
 import { useState, useSyncExternalStore } from 'react';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
-import { deal, ROSTER } from '@/lib/battle/roster';
+import { TEAM_SIZE } from '@/lib/battle/engine';
+import { drawTeam, ROSTER } from '@/lib/battle/roster';
 import { addResult, getRecord, getServerRecord, subscribeRecord } from '@/lib/record';
 import { BattleScreen } from './BattleScreen';
-import { TeamPreview } from './TeamPreview';
+import { TeamSelect } from './TeamSelect';
 import { TitleScreen } from './TitleScreen';
 
 type Screen =
   | { kind: 'title' }
-  | { kind: 'preview'; mine: Creature[]; theirs: Creature[] }
+  | { kind: 'select' }
   | { kind: 'battle'; teams: [Creature[], Creature[]]; difficulty: Difficulty; key: number };
 
 const shuffle = <T,>(xs: T[]) => [...xs].sort(() => Math.random() - 0.5);
 
-/** The CPU picks 3 of its 6 at random for now. */
-function cpuPicks(theirs: Creature[]): Creature[] {
-  return shuffle(theirs).slice(0, 3);
+/** The rival's team is drawn at random from the Ranemon you didn't pick. */
+function rivalTeam(mine: Creature[]): Creature[] {
+  const remaining = ROSTER.filter((c) => !mine.includes(c));
+  return drawTeam(shuffle(remaining), TEAM_SIZE);
 }
 
 export function Game() {
@@ -26,21 +28,19 @@ export function Game() {
   const record = useSyncExternalStore(subscribeRecord, getRecord, getServerRecord);
 
   function start() {
-    const [mine, theirs] = deal(shuffle(ROSTER), 6);
-    setScreen({ kind: 'preview', mine, theirs });
+    setScreen({ kind: 'select' });
   }
 
   if (screen.kind === 'title') return <TitleScreen record={record} onStart={start} />;
 
-  if (screen.kind === 'preview') {
+  if (screen.kind === 'select') {
     return (
-      <TeamPreview
-        mine={screen.mine}
-        theirs={screen.theirs}
+      <TeamSelect
+        roster={ROSTER}
         onReady={(picks, difficulty) =>
           setScreen({
             kind: 'battle',
-            teams: [picks, cpuPicks(screen.theirs)],
+            teams: [picks, rivalTeam(picks)],
             difficulty,
             key: Date.now(),
           })

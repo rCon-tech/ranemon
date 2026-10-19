@@ -7,12 +7,11 @@ import { TEAM_SIZE } from '@/lib/battle/engine';
 import { Sprite } from './Sprite';
 import { TypeBadge } from './TypeBadge';
 
-const PICK_SECONDS = 60;
+const PICK_SECONDS = 90;
 const LEVELS: Difficulty[] = ['easy', 'normal', 'hard'];
 
 interface Props {
-  mine: Creature[];
-  theirs: Creature[];
+  roster: Creature[];
   onReady: (picks: Creature[], difficulty: Difficulty) => void;
 }
 
@@ -33,18 +32,18 @@ function Card({ creature, children }: { creature: Creature; children?: React.Rea
   );
 }
 
-/** Both rosters of 6 side by side, then pick 3. The first pick leads. */
-export function TeamPreview({ mine, theirs, onReady }: Props) {
+/** Pick 6 from every Ranemon. The first pick leads; the rival is drawn from the rest. */
+export function TeamSelect({ roster, onReady }: Props) {
   const [picks, setPicks] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const [timeLeft, setTimeLeft] = useState(PICK_SECONDS);
 
-  const chosen = () => picks.map((id) => mine.find((c) => c.id === id)!);
+  const chosen = () => picks.map((id) => roster.find((c) => c.id === id)!);
 
   // As in Stadium, the clock fills any empty slots at random when it runs out.
   useEffect(() => {
     if (timeLeft <= 0) {
-      const rest = mine.filter((c) => !picks.includes(c.id)).sort(() => Math.random() - 0.5);
+      const rest = roster.filter((c) => !picks.includes(c.id)).sort(() => Math.random() - 0.5);
       onReady([...chosen(), ...rest].slice(0, TEAM_SIZE), difficulty);
       return;
     }
@@ -62,26 +61,17 @@ export function TeamPreview({ mine, theirs, onReady }: Props) {
   return (
     <div className="flex flex-1 flex-col gap-4 p-3 text-paper">
       <div className="flex items-center justify-between text-[10px]">
-        <h1>TEAM PREVIEW</h1>
+        <h1>CHOOSE YOUR TEAM</h1>
         <span aria-label="Time left to pick">⏱ {timeLeft}s</span>
       </div>
 
-      <section className="dialog p-3 text-ink" aria-label="Rival’s roster">
-        <h2 className="mb-2 text-[9px]">RIVAL</h2>
-        <ul className="grid grid-cols-3 gap-2">
-          {theirs.map((c) => (
-            <li key={c.id} className="flex flex-col items-center gap-1 text-center">
-              <Card creature={c} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
       <section className="dialog p-3 text-ink" aria-label="Your roster">
-        <h2 className="mb-1 text-[9px]">YOU · PICK 3</h2>
-        <p className="mb-2 text-[7px] leading-relaxed opacity-70">Your first pick leads.</p>
-        <div className="grid grid-cols-3 gap-2">
-          {mine.map((c) => {
+        <h2 className="mb-1 text-[9px]">PICK {TEAM_SIZE}</h2>
+        <p className="mb-2 text-[7px] leading-relaxed opacity-70">
+          Your first pick leads. Your rival gets {TEAM_SIZE} of the rest.
+        </p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {roster.map((c) => {
             const order = picks.indexOf(c.id);
             return (
               <button

@@ -4,7 +4,8 @@ import { Rng } from './rng';
 import { effectiveness } from './types';
 
 export type Side = 0 | 1;
-export const TEAM_SIZE = 3;
+/** Teams in the game are 6. Tests also run smaller battles, so the engine takes 1 to 6. */
+export const TEAM_SIZE = 6;
 
 export interface Battler {
   creature: Creature;
@@ -91,13 +92,15 @@ function makeBattler(creature: Creature): Battler {
   };
 }
 
-/** Starts a 3v3 battle. Each team lists its picks with the lead first. */
+/** Starts a battle. Each team lists its picks with the lead first. */
 export function startBattle(
   teams: [Creature[], Creature[]],
   seed: number,
 ): { state: BattleState; events: BattleEvent[] } {
   for (const team of teams) {
-    if (team.length !== TEAM_SIZE) throw new Error(`A team needs exactly ${TEAM_SIZE} creatures`);
+    if (team.length < 1 || team.length > TEAM_SIZE) {
+      throw new Error(`A team needs 1 to ${TEAM_SIZE} creatures`);
+    }
   }
   const state: BattleState = {
     teams: [
