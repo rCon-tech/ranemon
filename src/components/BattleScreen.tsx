@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import { legalActions, startBattle, switchTargets, type Action } from '@/lib/battle/engine';
-import { moveById } from '@/lib/battle/moves';
+import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
@@ -14,6 +14,33 @@ interface Props {
   teams: [Creature[], Creature[]];
   difficulty: Difficulty;
   onFinish: (result: Result) => void;
+}
+
+const CATEGORY_LABEL: Record<Move['category'], string> = {
+  physical: 'Physical',
+  spirit: 'Spirit',
+  status: 'Status',
+};
+
+/** What a move does, shown in the text box when it's picked and before it's used. */
+function MoveInfo({ move, pp }: { move: Move; pp: number | null }) {
+  return (
+    <span className="flex flex-col gap-1.5 text-[8px] leading-relaxed" data-testid="move-info">
+      <span className="text-[10px]">
+        {move.signature && <span className="text-[#d8a000]">* </span>}
+        {move.name}
+      </span>
+      <span>
+        {move.type ? TYPE_LABEL[move.type] : 'No type'} · {CATEGORY_LABEL[move.category]}
+        {move.priority > 0 ? ' · Goes first' : ''}
+      </span>
+      <span>
+        POW {move.power || '—'} · ACC {move.accuracy === null ? '—' : `${move.accuracy}%`}
+        {pp !== null && ` · PP ${pp}/${move.pp}`}
+      </span>
+      <span className="opacity-80">{move.flavour}</span>
+    </span>
+  );
 }
 
 /** A fresh random number for actions that need one; the reducer itself stays pure. */
@@ -28,6 +55,8 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
     startSession(startBattle(teams, newSeed()), difficulty),
   );
   const { state, view, mode, message, hits, entries, timeLeft, result, queue, pause } = session;
+  // The move picked in the FIGHT menu, for the turn it was picked in. A second tap uses it.
+  const [picked, setPicked] = useState<{ turn: number; index: number } | null>(null);
 
   // Playback: wait long enough to read the current line, then take the next step.
   useEffect(() => {
@@ -57,6 +86,11 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
   // With every move out of PP, any move button uses Flail.
   const flail = me.pp.every((p) => p === 0);
   const canSwitch = switchTargets(state, 0).length > 0;
+  const selected = mode === 'fight' && picked?.turn === state.turn ? picked.index : null;
+  const use = (index: number) => {
+    setPicked(null);
+    act({ kind: 'move', index: flail ? 0 : index });
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -127,7 +161,14 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
           aria-live="polite"
           data-testid="text-box"
         >
-          {message}
+          {selected !== null ? (
+            <MoveInfo
+              move={flail ? FLAIL : moveById(me.creature.moves[selected])}
+              pp={flail ? null : me.pp[selected]}
+            />
+          ) : (
+            message
+          )}
           {mode === 'playing' && <span className="blink ml-1 inline-block">▼</span>}
         </button>
 
@@ -180,7 +221,10 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                       borderLeft: `10px solid ${move.type ? TYPE_COLOR[move.type] : '#888'}`,
                     }}
                     disabled={!allowed && !flail}
-                    onClick={() => act({ kind: 'move', index: flail ? 0 : index })}
+                    aria-pressed={selected === index}
+                    onClick={() =>
+                      selected === index ? use(index) : setPicked({ turn: state.turn, index })
+                    }
                     title={move.flavour}
                   >
                     <span className="text-[9px] leading-snug">
@@ -197,13 +241,28 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                 );
               })}
             </div>
-            <button
-              type="button"
-              className="pixel-btn self-end text-[9px]"
-              onClick={() => setMode('menu')}
-            >
-              BACK
-            </button>
+            <div className="flex justify-between gap-2">
+              <button
+                type="button"
+                className="pixel-btn text-[9px]"
+                onClick={() => {
+                  setPicked(null);
+                  setMode('menu');
+                }}
+              >
+                BACK
+              </button>
+              <button
+                type="button"
+                className="pixel-btn flex-1 text-[9px]"
+                disabled={selected === null}
+                onClick={() => selected !== null && use(selected)}
+              >
+                {selected === null
+                  ? 'TAP A MOVE TO SEE IT'
+                  : `USE ${(flail ? FLAIL : moveById(me.creature.moves[selected])).name.toUpperCase()}`}
+              </button>
+            </div>
           </div>
         )}
 
