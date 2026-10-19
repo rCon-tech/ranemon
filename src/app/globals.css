@@ -1,0 +1,296 @@
+@import 'tailwindcss';
+
+/*
+ * Ranemon's look: a handheld monster-battle game. Pixel font, chunky outlines, a white text box
+ * with a double border, and a sky-and-grass battlefield. One committed look, so every colour is
+ * set explicitly and there is no dark variant.
+ */
+@theme {
+  --color-ink: #1d2433;
+  --color-shell: #2b3346;
+  --color-paper: #f8f8f0;
+  --color-frame: #5a6378;
+  --color-hp-high: #38c860;
+  --color-hp-mid: #f0c020;
+  --color-hp-low: #e83838;
+  --color-dex: #d8303a;
+  --font-pixel: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-shell);
+}
+
+body {
+  background: var(--color-shell);
+  color: var(--color-ink);
+  font-family: var(--font-pixel);
+  -webkit-font-smoothing: none;
+  image-rendering: pixelated;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------- shared pieces ---------- */
+
+/* The classic white box with a dark outer and blue-grey inner border. */
+.dialog {
+  background: var(--color-paper);
+  border: 4px solid var(--color-ink);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 3px var(--color-paper),
+    inset 0 0 0 6px var(--color-frame);
+}
+
+.pixel-btn {
+  appearance: none;
+  cursor: pointer;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 var(--color-ink);
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 10px 12px 8px;
+  text-align: left;
+  transition: transform 0.06s;
+}
+.pixel-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-ink);
+}
+.pixel-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.pixel-btn:focus-visible {
+  outline: 3px solid var(--color-hp-mid);
+  outline-offset: 2px;
+}
+.pixel-btn[aria-pressed='true'] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A small cursor arrow in front of the hovered or focused menu item. */
+.menu-item {
+  position: relative;
+  padding-left: 22px;
+}
+.menu-item::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  border: 5px solid transparent;
+  border-left: 7px solid var(--color-ink);
+  transform: translateY(-50%);
+  opacity: 0;
+}
+.menu-item:hover::before,
+.menu-item:focus-visible::before {
+  opacity: 1;
+}
+
+.type-badge {
+  display: inline-block;
+  font-size: 7px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 3px 4px 2px;
+  border: 2px solid var(--color-ink);
+  border-radius: 4px;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+}
+
+/* ---------- battlefield ---------- */
+
+.field {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: linear-gradient(180deg, #a8e0f8 0%, #d8f4ff 46%, #b8e890 46%, #88d068 100%);
+  border-bottom: 4px solid var(--color-ink);
+}
+
+.platform {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 40%, #c8f0a0 0%, #98d878 55%, #70b858 100%);
+  border: 3px solid #4a8a3a;
+}
+.platform-foe {
+  right: 6%;
+  top: 33%;
+  width: 40%;
+  height: 13%;
+}
+.platform-you {
+  left: -4%;
+  bottom: 4%;
+  width: 52%;
+  height: 16%;
+}
+
+.sprite-slot {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.slot-foe {
+  right: 11%;
+  top: 6%;
+  width: 30%;
+  height: 34%;
+}
+.slot-you {
+  left: 3%;
+  bottom: 9%;
+  width: 40%;
+  height: 46%;
+}
+
+.info-box {
+  position: absolute;
+  width: 50%;
+  padding: 7px 9px 6px;
+  background: var(--color-paper);
+  border: 3px solid var(--color-ink);
+  font-size: 9px;
+}
+.info-foe {
+  left: 4%;
+  top: 6%;
+  border-radius: 4px 14px 4px 14px;
+}
+.info-you {
+  right: 4%;
+  bottom: 6%;
+  border-radius: 14px 4px 14px 4px;
+}
+
+.hp-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  padding: 2px 3px;
+  border-radius: 6px;
+  background: var(--color-ink);
+}
+.hp-label {
+  color: var(--color-hp-mid);
+  font-size: 6px;
+}
+.hp-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #4a5268;
+  overflow: hidden;
+}
+.hp-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition:
+    width 0.6s linear,
+    background-color 0.2s;
+}
+
+.status-tag {
+  font-size: 6px;
+  padding: 2px 3px 1px;
+  border-radius: 3px;
+  color: #fff;
+  border: 1px solid var(--color-ink);
+}
+
+/* ---------- animations ---------- */
+
+@keyframes hit {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateX(-6px);
+    opacity: 0.2;
+  }
+  30% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(-4px);
+    opacity: 0.2;
+  }
+  60% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
+.anim-hit {
+  animation: hit 0.45s steps(6) both;
+}
+
+@keyframes slide-in-foe {
+  from {
+    transform: translateX(120%);
+  }
+}
+@keyframes slide-in-you {
+  from {
+    transform: translateX(-120%);
+  }
+}
+.anim-in-foe {
+  animation: slide-in-foe 0.35s ease-out both;
+}
+.anim-in-you {
+  animation: slide-in-you 0.35s ease-out both;
+}
+
+@keyframes faint {
+  to {
+    transform: translateY(60%);
+    opacity: 0;
+  }
+}
+.anim-faint {
+  animation: faint 0.5s ease-in both;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-hit,
+  .anim-in-foe,
+  .anim-in-you,
+  .anim-faint,
+  .blink {
+    animation-duration: 0.01s;
+    animation-iteration-count: 1;
+  }
+  .hp-fill {
+    transition: none;
+  }
+}

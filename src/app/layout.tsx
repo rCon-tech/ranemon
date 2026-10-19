@@ -1,0 +1,29 @@
+import type { Metadata, Viewport } from 'next';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: { default: 'Ranemon', template: '%s · Ranemon' },
+  description: 'A battle game where your friends are the creatures.',
+};
+
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1d2433' };
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* Press Start 2P (SIL Open Font Licence), loaded at runtime so builds don't need Google. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+        />
+      </head>
+      <body className="antialiased">
+        <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">{children}</main>
+      </body>
+    </html>
+  );
+}
