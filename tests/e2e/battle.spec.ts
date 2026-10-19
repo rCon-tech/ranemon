@@ -10,7 +10,10 @@ async function playToTheEnd(page: Page) {
     if (await proceed.isVisible()) return;
     if (await fight.isVisible()) {
       await fight.click();
+      // The first tap shows what the move does; USE confirms it.
       await moves.getByRole('button', { disabled: false }).first().click();
+      await expect(page.getByTestId('move-info')).toBeVisible();
+      await page.getByRole('button', { name: /^USE / }).click();
     } else if (await team.isVisible()) {
       await team.getByRole('button', { disabled: false }).first().click();
     } else {
