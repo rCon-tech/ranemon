@@ -9,6 +9,7 @@ import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
+import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 
@@ -96,13 +97,15 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
     act({ kind: 'move', index: flail ? 0 : index });
   };
 
+  const special = effect !== null && hasSpecialEffect(effect.moveId);
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="field" data-testid="battlefield">
         <div className="platform platform-foe" />
         <div className="platform platform-you" />
         <div className="sprite-slot slot-foe">
-          {effect?.side === 1 && <MoveEffect key={effect.n} moveId={effect.moveId} />}
+          {effect?.side === 1 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[1].shown ? (
             <div key={`in-${entries[1]}`} className="anim-in-foe h-full w-full">
               <div
@@ -127,7 +130,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
           )}
         </div>
         <div className="sprite-slot slot-you">
-          {effect?.side === 0 && <MoveEffect key={effect.n} moveId={effect.moveId} />}
+          {effect?.side === 0 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[0].shown ? (
             <div key={`in-${entries[0]}`} className="anim-in-you h-full w-full">
               <div
@@ -167,6 +170,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             mine
           />
         )}
+        {special && <SpecialEffect key={effect.n} moveId={effect.moveId} user={effect.user} />}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 bg-shell p-3">

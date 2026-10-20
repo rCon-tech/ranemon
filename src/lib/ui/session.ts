@@ -21,6 +21,8 @@ export const MS_PER_CHAR = 45;
 export const SILENT_MS = 500;
 /** How long a move's animation runs before its damage lands. */
 export const EFFECT_MS = 700;
+/** Special moves play a longer scene of their own. */
+export const SPECIAL_MS = 2200;
 
 export const messagePause = (text: string) => MESSAGE_MS + text.length * MS_PER_CHAR;
 
@@ -45,7 +47,7 @@ export interface Session {
   /** Bumped when a side attacks, to play its lunge. */
   lunges: [number, number];
   /** The move animation playing now, on the side it lands on. `n` restarts it. */
-  effect: { side: Side; moveId: string; n: number } | null;
+  effect: { side: Side; user: Side; moveId: string; n: number } | null;
   /** Bumped on each new line of text, so the same words twice still type out again. */
   line: number;
   timeLeft: number;
@@ -116,9 +118,9 @@ function step(s: Session, random: number): Session {
       const side: Side = aimsAtFoe(move) ? (event.side === 0 ? 1 : 0) : event.side;
       next = {
         ...next,
-        effect: { side, moveId: move.id, n: (s.effect?.n ?? 0) + 1 },
+        effect: { side, user: event.side, moveId: move.id, n: (s.effect?.n ?? 0) + 1 },
         lunges: move.category === 'status' ? next.lunges : bump(next.lunges, event.side),
-        pause: Math.max(next.pause, EFFECT_MS),
+        pause: Math.max(next.pause, move.signature ? SPECIAL_MS : EFFECT_MS),
       };
     }
     if (event.kind === 'damage' || event.kind === 'recoil' || event.kind === 'status-damage') {

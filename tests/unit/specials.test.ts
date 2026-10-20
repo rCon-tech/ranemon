@@ -55,10 +55,28 @@ describe('special moves', () => {
     expect(activeBattler(state, 0).mods).toMatchObject({ speed: 0.75, defense: 1.6 });
   });
 
-  it('Rounds on Me slows the foe and speeds Lorcamon up', () => {
+  it('Rounds on Me flusters the foe and speeds Lorcamon up', () => {
     const { state } = playTurn(battle([creatureById('lorcamon'), mo(), snooze()]), [move(0), WAIT]);
     expect(activeBattler(state, 0).mods.speed).toBeCloseTo(1.2);
-    expect(activeBattler(state, 1).mods.speed).toBeCloseTo(0.8);
+    expect(activeBattler(state, 1).status).toBe('flustered');
+  });
+
+  it('Jamanding raises Defense and wins back some HP', () => {
+    const start = battle([creatureById('jammon'), mo(), snooze()]);
+    activeBattler(start, 0).hp = 20;
+    const { state } = playTurn(start, [move(0), WAIT]);
+    const jam = activeBattler(state, 0);
+    expect(jam.mods.defense).toBeCloseTo(1.25);
+    expect(jam.hp).toBe(20 + Math.floor(jam.stats.hp * 0.25));
+  });
+
+  it('Dark Web hits and raises Attack', () => {
+    const { state, events } = playTurn(battle([creatureById('hugomon'), mo(), snooze()]), [
+      move(0),
+      WAIT,
+    ]);
+    expect(events.some((e) => e.kind === 'damage' && e.side === 1)).toBe(true);
+    expect(activeBattler(state, 0).mods.attack).toBeCloseTo(1.3);
   });
 
   it('Ranelads.com swaps HP with the foe', () => {

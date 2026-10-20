@@ -418,6 +418,217 @@ button {
   animation: blink 1s steps(1) infinite;
 }
 
+/* Special moves: a scene per move, drawn over the whole field in its 150 x 100 SVG space. */
+.special-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  overflow: visible;
+  animation: sfx-scene 2.2s steps(1, end) both;
+}
+@keyframes sfx-scene {
+  0% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
+  }
+}
+.sfx {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-duration: 1.6s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+.sfx-pop {
+  animation-name: sfx-pop;
+  animation-timing-function: steps(10);
+}
+@keyframes sfx-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  20%,
+  85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+.sfx-travel {
+  animation-name: sfx-travel;
+  animation-timing-function: ease-in-out;
+}
+@keyframes sfx-travel {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  8% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  55%,
+  85% {
+    opacity: 1;
+    transform: translate(var(--tx, 0), var(--ty, 0));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx, 0), var(--ty, 0));
+  }
+}
+.sfx-fly {
+  animation-name: sfx-fly;
+  animation-duration: 1.3s;
+  animation-timing-function: linear;
+}
+@keyframes sfx-fly {
+  from {
+    transform: translate(-20px, 0);
+  }
+  to {
+    transform: translate(170px, 0);
+  }
+}
+.sfx-drop {
+  animation-name: sfx-drop;
+  animation-duration: 0.6s;
+  animation-timing-function: ease-in;
+}
+@keyframes sfx-drop {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, var(--ty, 0));
+  }
+}
+.sfx-rise {
+  animation-name: sfx-rise;
+}
+@keyframes sfx-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -22px);
+  }
+}
+.sfx-spin {
+  animation-name: sfx-spin;
+  animation-duration: 0.8s;
+  animation-timing-function: steps(8);
+}
+@keyframes sfx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sfx-puff {
+  animation-name: sfx-puff;
+}
+@keyframes sfx-puff {
+  0% {
+    opacity: 0.9;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -12px) scale(2);
+  }
+}
+.sfx-blink {
+  animation-name: sfx-blink;
+  animation-duration: 0.4s;
+  animation-timing-function: steps(1);
+}
+@keyframes sfx-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.sfx-flash {
+  animation-name: sfx-flash;
+}
+@keyframes sfx-flash {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.sfx-wiggle {
+  animation-name: sfx-wiggle;
+  animation-duration: 0.16s;
+  animation-direction: alternate;
+  animation-timing-function: steps(2);
+}
+@keyframes sfx-wiggle {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+.sfx-bounce {
+  animation-name: sfx-bounce;
+  animation-duration: 0.3s;
+  animation-direction: alternate;
+  animation-timing-function: steps(3);
+}
+@keyframes sfx-bounce {
+  to {
+    transform: translate(0, -4px);
+  }
+}
+.sfx-wave {
+  animation-name: sfx-wave;
+  animation-duration: 0.4s;
+  animation-direction: alternate;
+  animation-timing-function: steps(4);
+}
+@keyframes sfx-wave {
+  from {
+    transform: skewY(-6deg);
+  }
+  to {
+    transform: skewY(6deg);
+  }
+}
+.sfx-repeat {
+  animation-iteration-count: infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-hit,
   .anim-in-foe,
@@ -426,11 +637,15 @@ button {
   .anim-lunge-you,
   .anim-lunge-foe,
   .fx-piece,
+  .sfx,
   .blink {
     animation-duration: 0.01s;
     animation-iteration-count: 1;
   }
   .hp-fill {
     transition: none;
+  }
+  .sfx-flash {
+    display: none;
   }
 }

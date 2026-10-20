@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { legalActions, startBattle } from '@/lib/battle/engine';
+import { creatureById } from '@/lib/battle/roster';
 import { STARTERS } from '../fixtures/placeholders';
 import { applyEvent, describeEvent, viewOf } from '@/lib/ui/playback';
-import { messagePause, reduce, startSession, TURN_SECONDS, type Session } from '@/lib/ui/session';
+import {
+  messagePause,
+  reduce,
+  SPECIAL_MS,
+  startSession,
+  TURN_SECONDS,
+  type Session,
+} from '@/lib/ui/session';
 
 const teams = () => [STARTERS.slice(0, 3), STARTERS.slice(3, 6)] as [never, never];
 
@@ -55,6 +63,19 @@ describe('battle session', () => {
     expect(s.lunges[0]).toBe(1);
     expect(s.pause).toBe(messagePause(s.message));
     expect(s.pause).toBeGreaterThanOrEqual(2000);
+  });
+
+  it('plays a special move’s own scene for as long as it runs', () => {
+    const team = [creatureById('steadmon'), creatureById('enda')];
+    const rivals = [creatureById('boydemon'), creatureById('gibbsmon')];
+    let s = untilInput(startSession(startBattle([team, rivals], 3), 'normal'));
+    // Steadmon leads with Ranelads.com.
+    s = reduce(s, { type: 'act', action: { kind: 'move', index: 0 }, random: 3 });
+    for (let i = 0; i < 50 && !(s.effect && s.message.includes('Ranelads')); i++) {
+      s = reduce(s, { type: 'step', random: i });
+    }
+    expect(s.effect).toMatchObject({ user: 0, moveId: 'ranelads-com' });
+    expect(s.pause).toBeGreaterThanOrEqual(SPECIAL_MS);
   });
 
   it('ignores moves while text is still playing', () => {
