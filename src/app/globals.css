@@ -1,39 +1,41 @@
 @import 'tailwindcss';
 
 /*
- * Ranemon's look: the original monochrome handheld. Everything on screen is one of 4 LCD greens,
- * text is a chunky pixel font, boxes are square with hard borders, and sprites are dithered onto
- * the same 4 shades (scripts/gb_sprite.py). Effects drawn in colour pass through the #gb-palette
- * SVG filter, which snaps them to the same greens. One committed look, so there is no dark variant.
+ * Ranemon's look: the 5th-generation handhelds (Black and White). Full-colour pixel sprites,
+ * white text boxes with a soft double border, dark glassy info panels with bright HP bars,
+ * glossy colour-coded command buttons, and a sky-and-grass battlefield that slowly drifts.
+ * One committed look, so every colour is set explicitly and there is no dark variant.
  */
 @theme {
-  /* The 4 shades, darkest to lightest. */
-  --color-gb0: #0f380f;
-  --color-gb1: #306230;
-  --color-gb2: #8bac0f;
-  --color-gb3: #9bbc0f;
-  --color-ink: #0f380f;
-  --color-frame: #306230;
-  --color-shell: #8bac0f;
-  --color-paper: #9bbc0f;
-  --color-hp-high: #0f380f;
-  --color-hp-mid: #306230;
-  --color-hp-low: #306230;
-  --color-dex: #8bac0f;
-  --font-pixel: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
+  --color-ink: #283038;
+  --color-paper: #ffffff;
+  --color-frame: #58687c;
+  --color-shell: #dfe6ee;
+  --color-mist: #edf2f7;
+  --color-bezel: #1c2026;
+  --color-panel: #2c343e;
+  --color-accent: #e0403a;
+  --color-accent2: #2f7fe0;
+  --color-gold: #f8b830;
+  --color-hp-high: #30d058;
+  --color-hp-mid: #f8c820;
+  --color-hp-low: #f04838;
+  --color-exp: #38a8f8;
+  --color-dex: #e03c3c;
+  --font-pixel: 'Pixelify Sans', ui-rounded, 'Trebuchet MS', sans-serif;
 }
 
 :root {
   color-scheme: light;
 }
 
-/* Around the screen: the dark bezel. */
+/* Around the screen: the console's dark body. */
 html {
-  background: var(--color-gb0);
+  background: var(--color-bezel);
 }
 
 body {
-  background: var(--color-gb0);
+  background: var(--color-bezel);
   color: var(--color-ink);
   font-family: var(--font-pixel);
   -webkit-font-smoothing: none;
@@ -44,65 +46,109 @@ button {
   font-family: inherit;
 }
 
-/* The screen itself, with faint LCD scanlines over everything. */
-.gb-screen {
+/* The screen: the menus' pale blue-grey with soft diagonal stripes. */
+.screen {
   position: relative;
-  background: var(--color-shell);
-}
-.gb-screen::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
   background:
-    repeating-linear-gradient(0deg, rgb(15 56 15 / 0.07) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgb(15 56 15 / 0.04) 0 1px, transparent 1px 3px);
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.4) 0 10px, transparent 10px 20px),
+    var(--color-shell);
 }
 
 /* ---------- shared pieces ---------- */
 
-/* The text box: square, a thick dark border with a light gap and a thin inner line. */
+/* The text box: white, rounded, a dark rim and a pale blue inner line. */
 .dialog {
   background: var(--color-paper);
-  border: 4px solid var(--color-ink);
-  border-radius: 0;
+  border: 2px solid var(--color-frame);
+  border-radius: 10px;
   box-shadow:
     inset 0 0 0 2px var(--color-paper),
-    inset 0 0 0 4px var(--color-frame);
+    inset 0 0 0 4px #c8d6e4,
+    0 2px 0 rgb(40 48 56 / 0.25);
 }
 
 .pixel-btn {
   appearance: none;
   cursor: pointer;
-  background: var(--color-paper);
+  background: linear-gradient(#ffffff 0 50%, #eef2f6 50% 100%);
   color: var(--color-ink);
-  border: 3px solid var(--color-ink);
-  border-radius: 0;
-  box-shadow: 3px 3px 0 var(--color-frame);
-  font-size: 11px;
-  line-height: 1.4;
-  padding: 10px 12px 8px;
+  border: 2px solid var(--color-frame);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--color-frame);
+  font-size: 15px;
+  line-height: 1.3;
+  padding: 9px 12px 8px;
   text-align: left;
 }
+.pixel-btn:hover:not(:disabled) {
+  border-color: var(--color-accent2);
+  box-shadow: 0 3px 0 var(--color-accent2);
+}
 .pixel-btn:active:not(:disabled) {
-  transform: translate(3px, 3px);
+  transform: translateY(3px);
   box-shadow: none;
 }
 .pixel-btn:disabled {
   cursor: default;
-  color: var(--color-frame);
-  border-color: var(--color-frame);
-  border-style: dashed;
+  opacity: 0.45;
   box-shadow: none;
 }
 .pixel-btn:focus-visible {
-  outline: 3px dotted var(--color-ink);
+  outline: 3px solid var(--color-accent2);
   outline-offset: 2px;
 }
 .pixel-btn[aria-pressed='true'] {
-  background: var(--color-ink);
+  background: linear-gradient(#5aa0f0 0 50%, var(--color-accent2) 50% 100%);
+  border-color: #1c4f96;
+  box-shadow: 0 3px 0 #1c4f96;
   color: var(--color-paper);
+}
+
+/*
+ * The battle commands: one glossy colour each, like the touch screen. Set data-cmd on a
+ * .pixel-btn. Move buttons take their type's colour through --type instead.
+ */
+.pixel-btn[data-cmd],
+.move-btn {
+  --dark: color-mix(in srgb, var(--fill) 55%, black);
+  color: var(--color-paper);
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+  background: linear-gradient(
+    color-mix(in srgb, var(--fill) 65%, white) 0 50%,
+    var(--fill) 50% 100%
+  );
+  border-color: var(--dark);
+  box-shadow: 0 3px 0 var(--dark);
+}
+.pixel-btn[data-cmd]:hover:not(:disabled),
+.move-btn:hover:not(:disabled) {
+  border-color: var(--dark);
+  box-shadow: 0 3px 0 var(--dark);
+  filter: brightness(1.08);
+}
+[data-cmd='fight'] {
+  --fill: #e8443a;
+}
+[data-cmd='bag'] {
+  --fill: #f0a020;
+}
+[data-cmd='party'] {
+  --fill: #38b450;
+}
+[data-cmd='run'] {
+  --fill: #2f7fe0;
+}
+.move-btn {
+  --fill: var(--type);
+}
+/* Yellow is too light for white text. */
+.move-btn[data-type='hype'] {
+  color: var(--color-ink);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.5);
+}
+.move-btn[aria-pressed='true'] {
+  outline: 3px solid var(--color-accent2);
+  outline-offset: 2px;
 }
 
 /* The ▶ cursor in front of the hovered or focused menu item. */
@@ -127,39 +173,101 @@ button {
 
 .type-badge {
   display: inline-block;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-paper);
-  background: var(--color-ink);
-  padding: 3px 4px 2px;
-}
-
-/* Anything drawn in colour (move animations, special scenes) is snapped to the 4 greens. */
-.gb-filter,
-.move-fx,
-.special-fx {
-  filter: url(#gb-palette);
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
+  border: 1px solid rgb(0 0 0 / 0.3);
+  border-radius: 4px;
+  padding: 2px 5px 2px;
 }
 
 /* ---------- battlefield ---------- */
 
+/*
+ * The scene: sky, a far tree line and the grass, with clouds drifting past. data-scene picks
+ * a different place: city streets, a gym's floor, or Trinity at night.
+ */
 .field {
+  --sky-top: #78c4f8;
+  --sky-low: #d4f0ff;
+  --far: #58a868;
+  --ground: #88d070;
+  --ground-low: #5cb850;
+  --pad: #a8e088;
+  --pad-rim: #4c9a44;
+  --cloud: rgb(255 255 255 / 0.85);
   position: relative;
   aspect-ratio: 3 / 2;
   overflow: hidden;
-  background: var(--color-paper);
-  border-bottom: 4px solid var(--color-ink);
+  border-bottom: 3px solid var(--color-bezel);
+  background:
+    radial-gradient(ellipse 14% 5% at 20% 14%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 9% 4% at 27% 11%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 12% 4% at 72% 22%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 60% 14% at 25% 50%, var(--far) 98%, transparent),
+    radial-gradient(ellipse 55% 12% at 85% 50%, var(--far) 98%, transparent),
+    linear-gradient(var(--sky-top), var(--sky-low) 48%, var(--ground) 48%, var(--ground-low));
+  background-size:
+    200% 100%,
+    200% 100%,
+    200% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  animation: drift 40s linear infinite;
+}
+@keyframes drift {
+  to {
+    background-position:
+      -200% 0,
+      -200% 0,
+      -200% 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+.field[data-scene='city'] {
+  --sky-top: #9cb8d8;
+  --sky-low: #e4ecf4;
+  --far: #8890a4;
+  --ground: #c4c8d0;
+  --ground-low: #a0a6b2;
+  --pad: #d8dce4;
+  --pad-rim: #7c8494;
+}
+.field[data-scene='gym'] {
+  --sky-top: #f0d8b0;
+  --sky-low: #f8ecd8;
+  --far: #d8b888;
+  --ground: #d89a5c;
+  --ground-low: #b87840;
+  --pad: #f4f4f4;
+  --pad-rim: #c84040;
+  --cloud: transparent;
+}
+.field[data-scene='night'] {
+  --sky-top: #1c2048;
+  --sky-low: #4a3c78;
+  --far: #2c2850;
+  --ground: #4c5a78;
+  --ground-low: #303a54;
+  --pad: #6c7ca0;
+  --pad-rim: #f8b830;
+  --cloud: rgb(255 255 255 / 0.12);
 }
 
-/* Each Ranemon stands on a flat oval of shadow, as on the original. */
+/* Each Ranemon stands on a lit oval of ground. */
 .platform {
   position: absolute;
   border-radius: 50%;
-  background: repeating-conic-gradient(var(--color-gb2) 0 25%, var(--color-paper) 0 50%) 0 0 / 4px
-    4px;
-  border: 3px solid var(--color-frame);
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.45), transparent 60%), var(--pad);
+  border: 3px solid var(--pad-rim);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 0.15);
 }
 .platform-foe {
   right: 6%;
@@ -192,26 +300,42 @@ button {
   width: 40%;
   height: 46%;
 }
+/* Sprites never stand still: a slow breath, as in the 5th generation. */
+.sprite-slot img {
+  transform-origin: 50% 100%;
+  animation: breathe 1.4s steps(2) infinite;
+}
+.slot-you img {
+  animation-delay: -0.7s;
+}
+@keyframes breathe {
+  50% {
+    transform: scaleY(1.03) scaleX(0.985);
+  }
+}
 
-/* Info boxes are open on two sides, with an L of border under them, like the original. */
+/* Info panels: dark and glassy, cut away on the side nearest the middle. */
 .info-box {
   position: absolute;
   width: 50%;
-  padding: 6px 8px 6px;
-  background: var(--color-paper);
-  font-size: 9px;
+  padding: 6px 10px 6px;
+  color: var(--color-paper);
+  background: linear-gradient(#56606e, var(--color-panel) 55%);
+  border: 2px solid var(--color-bezel);
+  font-size: 13px;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.5);
 }
 .info-foe {
-  left: 3%;
+  left: 0;
   top: 5%;
-  border-left: 3px solid var(--color-ink);
-  border-bottom: 3px solid var(--color-ink);
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
 }
 .info-you {
-  right: 3%;
+  right: 0;
   bottom: 5%;
-  border-right: 3px solid var(--color-ink);
-  border-bottom: 3px solid var(--color-ink);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
 }
 
 .hp-track {
@@ -219,22 +343,27 @@ button {
   align-items: center;
   gap: 4px;
   margin-top: 5px;
-  padding: 2px 3px;
-  background: var(--color-ink);
+  padding: 2px 3px 2px 4px;
+  background: var(--color-bezel);
+  border-radius: 6px;
 }
 .hp-label {
-  color: var(--color-paper);
-  font-size: 6px;
+  color: var(--color-gold);
+  font-size: 9px;
+  font-weight: 700;
 }
 .hp-bar {
   flex: 1;
   height: 6px;
-  background: var(--color-paper);
+  border-radius: 3px;
+  background: #4a525c;
   overflow: hidden;
 }
 .hp-fill {
   height: 100%;
-  transition: width 0.6s steps(12);
+  border-radius: 3px;
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35);
+  transition: width 0.6s ease-out;
 }
 .hp-fill.low {
   animation: blink 0.6s steps(1) infinite;
@@ -243,55 +372,58 @@ button {
 .exp-track {
   margin-top: 4px;
   height: 4px;
-  border: 1px solid var(--color-ink);
-  background: var(--color-paper);
+  border-radius: 2px;
+  background: var(--color-bezel);
 }
 .exp-fill {
   height: 100%;
-  background: var(--color-frame);
-  transition: width 0.8s steps(10);
+  border-radius: 2px;
+  background: var(--color-exp);
+  transition: width 0.8s ease-out;
 }
 
 .status-tag {
-  font-size: 6px;
-  padding: 2px 3px 1px;
+  font-size: 9px;
+  border-radius: 3px;
+  padding: 1px 4px;
   color: var(--color-paper);
-  background: var(--color-frame);
+  background: var(--color-accent);
 }
 
-/* ---------- story mode: the handheld's buttons ---------- */
+/* ---------- story mode: the console's buttons ---------- */
 
 .pad-btn {
   width: 44px;
   height: 44px;
-  background: var(--color-ink);
+  background: #3a424c;
   touch-action: none;
 }
 .pad-btn:active {
-  background: var(--color-frame);
+  background: #56606c;
 }
 .round-btn {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--color-frame);
+  background: radial-gradient(circle at 35% 30%, #ff8a80, var(--color-accent) 60%);
   color: var(--color-paper);
-  border: 3px solid var(--color-ink);
-  box-shadow: 2px 3px 0 var(--color-ink);
-  font-size: 14px;
+  border: 2px solid #8a1c1c;
+  box-shadow: 0 3px 0 #8a1c1c;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
   touch-action: manipulation;
 }
 .round-btn:active {
-  transform: translate(2px, 3px);
+  transform: translateY(3px);
   box-shadow: none;
 }
 .start-btn {
-  padding: 6px 10px;
+  padding: 5px 12px;
   border-radius: 10px;
-  background: var(--color-frame);
+  background: #3a424c;
   color: var(--color-paper);
-  border: 2px solid var(--color-ink);
-  transform: rotate(-20deg);
+  border: 2px solid var(--color-bezel);
 }
 
 /* A wild Ranemon: the screen flashes before the battle. */
@@ -299,17 +431,82 @@ button {
   0%,
   40%,
   80% {
-    background: var(--color-gb0);
+    background: #000;
   }
   20%,
   60%,
   100% {
-    background: transparent;
+    background: rgb(255 255 255 / 0.6);
   }
 }
 .encounter-flash {
   z-index: 30;
   animation: encounter-flash 0.65s steps(1) both;
+}
+
+/* Evolution: the old and new forms trade places in a white glow, faster and faster. */
+.evolve-scene {
+  background: radial-gradient(circle, #ffffff 0 20%, #c8e8ff 45%, #2c3460 100%);
+}
+.evolve-old,
+.evolve-new {
+  grid-area: 1 / 1;
+}
+.evolve-old {
+  animation: evolve-out 2.4s steps(1) both;
+}
+.evolve-new {
+  animation: evolve-in 2.4s steps(1) both;
+}
+.evolving .evolve-old,
+.evolving .evolve-new {
+  filter: brightness(0) invert(1);
+}
+@keyframes evolve-out {
+  0%,
+  20%,
+  40%,
+  55%,
+  67%,
+  77%,
+  85%,
+  91% {
+    opacity: 1;
+  }
+  12%,
+  32%,
+  49%,
+  62%,
+  73%,
+  82%,
+  89%,
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes evolve-in {
+  0%,
+  20%,
+  40%,
+  55%,
+  67%,
+  77%,
+  85%,
+  91% {
+    opacity: 0;
+  }
+  12%,
+  32%,
+  49%,
+  62%,
+  73%,
+  82%,
+  89%,
+  95%,
+  100% {
+    opacity: 1;
+  }
 }
 
 /* ---------- animations ---------- */

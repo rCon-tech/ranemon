@@ -32,10 +32,10 @@ export function Panel({
 }) {
   return (
     <div className="dialog absolute inset-0 z-20 flex flex-col gap-2 overflow-y-auto p-3 text-ink">
-      <div className="flex items-center justify-between text-[10px]">
+      <div className="-mx-3 -mt-3 mb-1 flex items-center justify-between rounded-t-lg bg-panel px-3 py-1.5 text-[15px] font-bold text-paper">
         <h2>{title}</h2>
         {onClose && (
-          <button type="button" className="pixel-btn px-2 py-1 text-[8px]" onClick={onClose}>
+          <button type="button" className="pixel-btn px-2 py-1 text-[11px]" onClick={onClose}>
             BACK
           </button>
         )}
@@ -47,10 +47,13 @@ export function Panel({
 
 function Bar({ value, label }: { value: number; label: string }) {
   return (
-    <span className="flex items-center gap-1 text-[6px]">
+    <span className="flex items-center gap-1 text-[8px]">
       {label}
-      <span className="h-1.5 flex-1 border border-ink bg-paper">
-        <span className="block h-full bg-ink" style={{ width: `${Math.round(value * 100)}%` }} />
+      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bezel">
+        <span
+          className={`block h-full rounded-full ${label === 'EXP' ? 'bg-exp' : 'bg-hp-high'}`}
+          style={{ width: `${Math.round(value * 100)}%` }}
+        />
       </span>
     </span>
   );
@@ -81,12 +84,12 @@ export function MemberRow({
         <Sprite creature={creatureOf(m)} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex justify-between text-[8px]">
+        <span className="flex justify-between text-[11px]">
           <span className="truncate">{speciesById(m.species).name}</span>
           <span>Lv{m.level}</span>
         </span>
         <Bar value={m.hp / max} label="HP" />
-        <span className="flex justify-between text-[6px]">
+        <span className="flex justify-between text-[8px]">
           <span>
             {m.hp === 0 ? 'FAINTED' : `${m.hp}/${max}`}
             {m.status ? ` · ${m.status.toUpperCase()}` : ''}
@@ -110,14 +113,14 @@ export function PartyPanel({
   const [open, setOpen] = useState<number | null>(null);
   return (
     <Panel title="PARTY" onClose={onClose}>
-      <p className="text-[7px] leading-relaxed">
+      <p className="text-[10px] leading-relaxed">
         The first Ranemon leads in battle and walks behind you.
       </p>
       {game.party.map((m, i) => (
         <div key={m.uid} className="flex flex-col gap-1">
           <MemberRow m={m} onClick={() => setOpen(open === i ? null : i)} pressed={open === i} />
           {open === i && (
-            <div className="flex flex-col gap-1 border-2 border-ink p-2 text-[7px]">
+            <div className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist p-2 text-[10px]">
               <span className="flex gap-1">
                 {speciesById(m.species).types.map((t) => (
                   <TypeBadge key={t} type={t} />
@@ -137,7 +140,7 @@ export function PartyPanel({
               {i > 0 && (
                 <button
                   type="button"
-                  className="pixel-btn menu-item mt-1 text-[8px]"
+                  className="pixel-btn menu-item mt-1 text-[11px]"
                   onClick={() => {
                     onLead(i);
                     setOpen(null);
@@ -169,7 +172,7 @@ export function BagPanel({
     const item = itemById(pick);
     return (
       <Panel title={item.name.toUpperCase()} onClose={() => setPick(null)}>
-        <p className="text-[7px] leading-relaxed">Use it on which Ranemon?</p>
+        <p className="text-[10px] leading-relaxed">Use it on which Ranemon?</p>
         {game.party.map((m, i) => (
           <MemberRow
             key={m.uid}
@@ -186,7 +189,7 @@ export function BagPanel({
   }
   return (
     <Panel title="BAG" onClose={onClose}>
-      {items.length === 0 && <p className="text-[8px]">The bag is empty.</p>}
+      {items.length === 0 && <p className="text-[11px]">The bag is empty.</p>}
       {items.map((i) => (
         <button
           key={i.id}
@@ -195,11 +198,11 @@ export function BagPanel({
           disabled={i.use.kind === 'pint'}
           onClick={() => setPick(i.id)}
         >
-          <span className="flex justify-between text-[8px]">
+          <span className="flex justify-between text-[11px]">
             <span>{i.name}</span>
             <span>×{game.bag[i.id]}</span>
           </span>
-          <span className="text-[6px] leading-relaxed">
+          <span className="text-[8px] leading-relaxed">
             {i.about}
             {i.use.kind === 'pint' ? ' Use it in a wild battle.' : ''}
           </span>
@@ -221,7 +224,7 @@ export function ShopPanel({
   const county = mapById(game.map).county;
   return (
     <Panel title="CORNER SHOP" onClose={onClose}>
-      <p className="text-[8px]">Money: €{game.money}</p>
+      <p className="text-[11px]">Money: €{game.money}</p>
       {shopStock(county).map((i) => (
         <button
           key={i.id}
@@ -230,11 +233,11 @@ export function ShopPanel({
           disabled={game.money < (i.price ?? Infinity)}
           onClick={() => onBuy(i.id)}
         >
-          <span className="flex justify-between text-[8px]">
+          <span className="flex justify-between text-[11px]">
             <span>{i.name}</span>
             <span>€{i.price}</span>
           </span>
-          <span className="text-[6px] leading-relaxed">
+          <span className="text-[8px] leading-relaxed">
             {i.about} You have {game.bag[i.id] ?? 0}.
           </span>
         </button>
@@ -256,18 +259,18 @@ export function GroupChatPanel({
 }) {
   return (
     <Panel title="GROUP CHAT" onClose={onClose}>
-      <p className="text-[7px] leading-relaxed">
+      <p className="text-[10px] leading-relaxed">
         Tap a party member to send them to the chat, or someone in the chat to bring them along.
         They come back fully rested.
       </p>
-      <h3 className="text-[8px]">
+      <h3 className="text-[11px]">
         PARTY {game.party.length}/{PARTY_SIZE}
       </h3>
       {game.party.map((m, i) => (
         <MemberRow key={m.uid} m={m} disabled={game.party.length <= 1} onClick={() => onSend(i)} />
       ))}
-      <h3 className="text-[8px]">IN THE CHAT ({game.box.length})</h3>
-      {game.box.length === 0 && <p className="text-[7px]">Nobody yet.</p>}
+      <h3 className="text-[11px]">IN THE CHAT ({game.box.length})</h3>
+      {game.box.length === 0 && <p className="text-[10px]">Nobody yet.</p>}
       {game.box.map((m, i) => (
         <MemberRow
           key={m.uid}
@@ -283,17 +286,20 @@ export function GroupChatPanel({
 export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
   return (
     <Panel title="RANEDEX" onClose={onClose}>
-      <p className="text-[8px]">
+      <p className="text-[11px]">
         Seen {game.seen.length} · Befriended {game.caught.length} / {DEX.length}
       </p>
       <div className="grid grid-cols-4 gap-1.5">
         {DEX.map((c, i) => {
           const seen = game.seen.includes(c.id);
           return (
-            <div key={c.id} className="flex flex-col items-center gap-1 border-2 border-ink p-1">
-              <span className="text-[6px]">{String(i + 1).padStart(3, '0')}</span>
+            <div
+              key={c.id}
+              className="flex flex-col items-center gap-1 rounded-lg border-2 border-frame bg-mist p-1"
+            >
+              <span className="text-[8px]">{String(i + 1).padStart(3, '0')}</span>
               <span className="h-10 w-10">{seen ? <Sprite creature={c} /> : null}</span>
-              <span className="text-[6px]">
+              <span className="text-[8px]">
                 {seen ? c.name : '?????'}
                 {game.caught.includes(c.id) ? ' ●' : ''}
               </span>
@@ -308,7 +314,7 @@ export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () 
 export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
-      <p className="text-[8px] leading-relaxed">
+      <p className="text-[11px] leading-relaxed">
         Money €{game.money}
         <br />
         Ranedex {game.caught.length}
@@ -323,7 +329,7 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
           return (
             <div
               key={id}
-              className={`flex flex-col items-center gap-1 border-2 border-ink p-1 text-[6px] ${won ? 'bg-ink text-paper' : ''}`}
+              className={`flex flex-col items-center gap-1 rounded-lg border-2 border-frame p-1 text-[8px] ${won ? 'bg-gold text-ink' : 'bg-mist'}`}
               title={name}
             >
               <Jersey filled={won} />
@@ -355,7 +361,7 @@ export function StarterPanel({ onChoose }: { onChoose: (species: string) => void
   const c = pick ? speciesById(pick) : null;
   return (
     <Panel title="PICK YOUR RANEMON">
-      <p className="text-[7px] leading-relaxed">
+      <p className="text-[10px] leading-relaxed">
         Sixteen pints on the table, one for each Ranemon. Whoever you pick starts at Lv
         {START_LEVEL}.
       </p>
@@ -371,13 +377,13 @@ export function StarterPanel({ onChoose }: { onChoose: (species: string) => void
             <span className="h-10 w-10">
               <Sprite creature={r} />
             </span>
-            <span className="text-[6px]">{r.name}</span>
+            <span className="text-[8px]">{r.name}</span>
           </button>
         ))}
       </div>
       {c && (
-        <div className="flex flex-col gap-1.5 border-2 border-ink p-2 text-[7px] leading-relaxed">
-          <span className="flex items-center gap-1 text-[9px]">
+        <div className="flex flex-col gap-1.5 rounded-lg border-2 border-frame bg-mist p-2 text-[10px] leading-relaxed">
+          <span className="flex items-center gap-1 text-[13px]">
             {c.name}
             {c.types.map((t) => (
               <TypeBadge key={t} type={t} />
@@ -393,7 +399,7 @@ export function StarterPanel({ onChoose }: { onChoose: (species: string) => void
           </span>
           <button
             type="button"
-            className="pixel-btn menu-item text-[9px]"
+            className="pixel-btn menu-item text-[13px]"
             onClick={() => onChoose(c.id)}
           >
             CHOOSE {c.name.toUpperCase()}
@@ -419,13 +425,13 @@ export function Choice({
   onNo: () => void;
 }) {
   return (
-    <div className="dialog absolute inset-x-0 bottom-0 z-20 flex flex-col gap-2 p-3 text-[9px] leading-relaxed">
+    <div className="dialog absolute inset-x-0 bottom-0 z-20 flex flex-col gap-2 p-3 text-[13px] leading-relaxed">
       <p>{question}</p>
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" className="pixel-btn menu-item text-[9px]" onClick={onYes}>
+        <button type="button" className="pixel-btn menu-item text-[13px]" onClick={onYes}>
           {yes}
         </button>
-        <button type="button" className="pixel-btn menu-item text-[9px]" onClick={onNo}>
+        <button type="button" className="pixel-btn menu-item text-[13px]" onClick={onNo}>
           {no}
         </button>
       </div>
@@ -437,7 +443,7 @@ export function Choice({
 export function EndingPanel({ game, onDone }: { game: StoryState; onDone: () => void }) {
   return (
     <Panel title="CHAMPIONS OF IRELAND">
-      <p className="text-[8px] leading-relaxed">
+      <p className="text-[11px] leading-relaxed">
         In Front Square, Michael D presents the title. The Campanile bells ring out over Dublin.
       </p>
       <div className="flex flex-wrap justify-center gap-1">
@@ -447,16 +453,16 @@ export function EndingPanel({ game, onDone }: { game: StoryState; onDone: () => 
           </span>
         ))}
       </div>
-      <ol className="flex flex-col gap-1 text-[7px]">
+      <ol className="flex flex-col gap-1 text-[10px]">
         {[...COUNTIES, 'dublin', 'trinity'].map((id) => (
           <li key={id}>▶ {mapById(id).name}</li>
         ))}
       </ol>
-      <p className="text-[7px] leading-relaxed">
+      <p className="text-[10px] leading-relaxed">
         THE END. Thanks for playing Ranemon. B&S want a rematch at level 60: find them in the Long
         Room.
       </p>
-      <button type="button" className="pixel-btn menu-item text-[9px]" onClick={onDone}>
+      <button type="button" className="pixel-btn menu-item text-[13px]" onClick={onDone}>
         CONTINUE
       </button>
     </Panel>

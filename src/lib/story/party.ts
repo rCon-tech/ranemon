@@ -34,7 +34,7 @@ export const BOSS: Creature = {
   moves: ['last-orders', 'mosh-pit', 'shopping-trolley', 'hype-train'],
   entry: 'Ranemon Champions of Ireland. Seven lads, one photo, no mercy.',
   colour: '#306230',
-  sprite: '/sprites/gb/bns.png',
+  sprite: '/sprites/bw/bns.png',
 };
 
 const SPECIES = new Map([...ROSTER, ...EVOLVED, BOSS].map((c) => [c.id, c]));
@@ -187,4 +187,19 @@ export function expProgress(m: Member): number {
   if (m.level >= MAX_LEVEL) return 1;
   const from = expAt(m.level);
   return Math.max(0, Math.min(1, (m.exp - from) / (expAt(m.level + 1) - from)));
+}
+
+const BY_NAME = new Map([...SPECIES.values()].map((c) => [c.name, c]));
+
+/**
+ * The evolution a line of text announces, for the evolution scene: `done` once it has
+ * happened. Null for any other line.
+ */
+export function evolutionIn(text: string): { from: Creature; to: Creature; done: boolean } | null {
+  const starting = /^What\? (.+) is evolving!$/.exec(text);
+  const finished = /^(.+) evolved into (.+)!$/.exec(text);
+  const from = BY_NAME.get((starting ?? finished)?.[1] ?? '');
+  const evo = from && evolutionOf(from.id);
+  if (!from || !evo) return null;
+  return { from, to: speciesById(evo.id), done: !!finished };
 }

@@ -62,7 +62,7 @@ describe('creatures', () => {
   );
 
   it('gives every Ranemon a sprite', () => {
-    for (const c of ROSTER) expect(c.sprite, c.name).toBe(`/sprites/gb/${c.id}.png`);
+    for (const c of ROSTER) expect(c.sprite, c.name).toBe(`/sprites/bw/${c.id}.png`);
   });
 
   it('turns base stats into level 50 stats', () => {

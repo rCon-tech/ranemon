@@ -24,13 +24,14 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 
 - **The road**: 11 maps (Clare, Limerick, Tipperary, Kilkenny, Laois, Offaly, Westmeath, Meath, Kildare, Dublin, Trinity), each with a pub that heals, a corner shop and a gym. A Garda at each county line lets you through once you have that county's jersey.
 - **The story**: Michael D Higgins gives you your first Ranemon (any of the 16) in Newmarket-on-Fergus, your rival from the village picks the one that beats yours, and B&S wait under the Campanile with a boss Ranemon made from their group photo.
+- **Evolutions** (`src/lib/battle/evolutions.ts`): every Ranemon evolves once at Lv30, into a pun on a Gen 1 or 2 Pokémon (Conemon into Conix). The evolved form keeps its types and moves with a bigger stat budget (460 against 400). Wild and trainer Ranemon from Lv30 are already evolved, and evolved ones are harder to befriend.
 - **Rules** (`src/lib/story/`): levels 5 to 60 by the main-series stat formula (level 50 gives battle mode's numbers), EXP on an L³ curve, moves learnt weakest first with the special move at 20, pints of Guinness to befriend wild Ranemon, Blue Ghosts for +1 level, a party of 6 with the rest in the Group Chat, and a save in this browser.
 - **Content** (`src/content/story/`): the maps as one character per tile, trainers, gyms and wild tables. `tests/unit/story-maps.test.ts` checks every door, person and exit can be reached, and `pnpm simulate` also plays each gym with a typical party and checks it is winnable but not a walkover.
 - **Controls**: D-pad, A, B (hold to ride the bike) and START on screen; arrow keys, Z, X and Enter on a keyboard.
 
 ## Look
 
-The whole game uses the original handheld's 4 greens. `scripts/gb_sprite.py` dithers the photo sprites onto that palette (`public/sprites/gb/`, and 12-pixel heads for the Ranemon that follows you), and move animations pass through an SVG filter that snaps their colours to the same greens.
+The 5th-generation handhelds (Black and White): full-colour pixel sprites that breathe, dark info panels with bright HP bars, white text boxes with a soft double border, glossy colour-coded FIGHT, BAG, RANEMON and RUN buttons, move buttons in their type's colour, and a battlefield whose clouds drift past (fields, Dublin's streets, a gym floor, or Trinity at night for B&S). The overworld gives each kind of tile its own colours. `scripts/sprites.py` builds the sprites from the photo cut-outs: 96-pixel, 32-colour versions in `public/sprites/bw/`, 14-pixel heads for the Ranemon that follows you, and the evolved forms in `public/sprites/evo/`, each with a type-coloured aura and a costume piece from its Pokémon.
 
 ## Not yet
 
@@ -57,4 +58,4 @@ pnpm dev          # http://localhost:3000
 
 ## Art and sound
 
-Sprites are made from the friends' own photos, so keep the repo and any shared links private. All other art, names and fonts are original or openly licensed. The pixel font is Press Start 2P, under the SIL Open Font Licence. The game uses no Pokémon names, logos, sprites or music.
+Sprites are made from the friends' own photos, so keep the repo and any shared links private. All other art, names and fonts are original or openly licensed. The pixel font is Pixelify Sans, under the SIL Open Font Licence. The game uses no Pokémon logos, sprites or music; the evolved forms' names are parodies of Pokémon names.

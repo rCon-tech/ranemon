@@ -1,13 +1,17 @@
 import type { Dir, Look } from '@/lib/story/world';
 
 /**
- * The overworld's pixel art, as text: one character per pixel, `0` to `3` for the 4 greens from
- * darkest to lightest and `.` for clear. Tiles are 16×16. People use letters for the parts that
- * change between them (hair, skin, clothes, trousers), filled in per look.
+ * The overworld's pixel art, as text: one character per pixel, `0` to `3` for 4 shades from
+ * darkest to lightest and `.` for clear. Tiles are 16×16, and each tile kind has its own 4
+ * colours (TILE_PALETTE), so the same art language gives green grass, red roofs and blue water.
+ * People use letters for the parts that change between them (hair, skin, clothes, trousers),
+ * filled in per look.
  */
 
-export const SHADES = ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'];
 export const TILE = 16;
+/** Outlines, and the overworld's own text and markers. */
+export const INK = '#283038';
+export const LIGHT = '#ffffff';
 
 const GRASS = [
   '3333333333333333',
@@ -359,6 +363,35 @@ export const TILE_ART: Record<string, string[][]> = {
   K: [CAMPANILE],
 };
 
+const GRASS_GREENS = ['#2f6a2e', '#48a040', '#6cc050', '#8ed868'];
+const CREAM = '#f4ecdc';
+
+/** Each tile kind's 4 colours, darkest to lightest, for the `0` to `3` in its art. */
+export const TILE_PALETTE: Record<string, string[]> = {
+  '.': GRASS_GREENS,
+  ',': ['#1e4a22', '#2f7a32', '#4aa040', '#6cc050'],
+  b: ['#2e2418', '#5a4630', '#8a7a3a', '#b8a868'],
+  '"': ['#2f6a2e', '#e85060', '#f8d848', '#8ed868'],
+  '=': ['#7a6040', '#b09060', '#dcc494', '#eedcb4'],
+  ':': ['#4a4a52', '#7c7c86', '#b0b0b8', '#d8d8dc'],
+  T: ['#163a1e', '#2a6a30', '#48a040', '#8ed868'],
+  '~': ['#1c4a8a', '#3070c8', '#58a0e8', '#90d0f8'],
+  B: ['#4a2e14', '#7a5028', '#b07840', '#d8a868'],
+  '#': ['#4a4038', '#a89880', '#88c8f0', CREAM],
+  '^': ['#4a1818', '#a02828', '#d84838', '#f08060'],
+  // Doors: the pub's green, the shop's blue, the gym's red, and plain wood for houses.
+  P: ['#14301c', '#1f6a3a', '#38a058', CREAM],
+  M: ['#14244a', '#2a58a8', '#4a88d8', CREAM],
+  G: ['#4a1414', '#c03030', '#e04040', CREAM],
+  H: ['#2a1c10', '#7a4a24', '#a06838', CREAM],
+  L: ['#2a1c10', '#7a4a24', '#a06838', CREAM],
+  S: ['#3a2410', '#6a4a2a', '#e8c890', '#8ed868'],
+  f: ['#7a5028', '#000000', '#c8a070', '#8ed868'],
+  w: ['#3a3a42', '#6c6c76', '#a8a8b0', '#c8c8d0'],
+  F: ['#000000', '#000000', '#a87048', '#d8a068'],
+  K: ['#3a3a42', '#8c8c96', '#c8c8d0', '#e8e8ec'],
+};
+
 /** What each door's building says over it. */
 export const DOOR_LABEL: Record<string, string> = { P: 'PUB', M: 'SHOP', G: 'GYM' };
 
@@ -437,33 +470,45 @@ export const PERSON: Record<Dir, string[][]> = {
   right: [mirror(LEFT), mirror(LEFT_STEP), mirror(LEFT), mirror(LEFT_STEP)],
 };
 
+const SKIN = '#f8d0a8';
+/** People's outlines; their parts come from their look. */
+export const PEOPLE = [INK, INK, INK, INK];
+
 /** Hair, skin, clothes and trousers for each kind of person. */
 export const LOOKS: Record<Look | 'player', Record<'h' | 's' | 'c' | 'p', string>> = {
-  player: { h: '1', s: '3', c: '0', p: '1' },
-  mam: { h: '1', s: '3', c: '2', p: '2' },
-  higgins: { h: '3', s: '3', c: '0', p: '0' },
-  rival: { h: '2', s: '3', c: '1', p: '0' },
-  farmer: { h: '0', s: '3', c: '2', p: '1' },
-  lad: { h: '2', s: '3', c: '3', p: '1' },
-  leader: { h: '0', s: '3', c: '1', p: '0' },
-  trainer: { h: '1', s: '3', c: '2', p: '1' },
-  guard: { h: '0', s: '3', c: '0', p: '0' },
-  scholar: { h: '1', s: '3', c: '0', p: '1' },
-  bns: { h: '0', s: '2', c: '0', p: '1' },
-  local: { h: '1', s: '3', c: '3', p: '2' },
+  // A red cap and a blue jacket, like the 5th generation's hero.
+  player: { h: '#e03c3a', s: SKIN, c: '#3878d8', p: '#283048' },
+  mam: { h: '#a05828', s: SKIN, c: '#e87898', p: '#58607c' },
+  higgins: { h: '#eeeeee', s: SKIN, c: '#383c48', p: '#282830' },
+  rival: { h: '#f0b830', s: SKIN, c: '#38a048', p: '#283048' },
+  farmer: { h: '#6a6058', s: SKIN, c: '#7a8a4a', p: '#4a3a2a' },
+  lad: { h: '#6a4a2a', s: SKIN, c: '#f0a020', p: '#3a4a6a' },
+  leader: { h: '#202020', s: SKIN, c: '#c83030', p: '#202028' },
+  trainer: { h: '#8a5a30', s: SKIN, c: '#4a90d8', p: '#3a3a48' },
+  // The Gardaí's hi-vis over navy.
+  guard: { h: '#1c2848', s: SKIN, c: '#d8e030', p: '#1c2848' },
+  scholar: { h: '#4a3a30', s: SKIN, c: '#202020', p: '#202020' },
+  bns: { h: '#202020', s: '#f0c098', c: '#202020', p: '#3a3a48' },
+  local: { h: '#a87038', s: SKIN, c: '#58a058', p: '#5a6a8a' },
 };
 
-/** Draws pixel art into a new 16×16 canvas. `fill` turns letters into shades. */
-export function paint(art: string[], fill: Record<string, string> = {}): HTMLCanvasElement {
+/**
+ * Draws pixel art into a new canvas. Digits pick from `palette`; `fill` gives letters their
+ * colours.
+ */
+export function paint(
+  art: string[],
+  palette: string[],
+  fill: Record<string, string> = {},
+): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = art[0].length;
   canvas.height = art.length;
   const ctx = canvas.getContext('2d')!;
   art.forEach((row, y) =>
     [...row].forEach((ch, x) => {
-      const shade = fill[ch] ?? ch;
-      if (shade === '.') return;
-      ctx.fillStyle = SHADES[Number(shade)];
+      if (ch === '.') return;
+      ctx.fillStyle = fill[ch] ?? palette[Number(ch)];
       ctx.fillRect(x, y, 1, 1);
     }),
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
+import { speciesById } from '@/lib/story/party';
 import {
   canEnter,
   DELTA,
@@ -12,7 +13,18 @@ import {
   type Dir,
   type GameMap,
 } from '@/lib/story/world';
-import { DOOR_LABEL, LOOKS, paint, PERSON, SHADES, TILE, TILE_ART } from './pixels';
+import {
+  DOOR_LABEL,
+  INK,
+  LIGHT,
+  LOOKS,
+  paint,
+  PEOPLE,
+  PERSON,
+  TILE,
+  TILE_ART,
+  TILE_PALETTE,
+} from './pixels';
 
 /** The original handheld's screen: 10 × 9 tiles. */
 export const SCREEN_W = 160;
@@ -66,7 +78,9 @@ function head(species: string): HTMLImageElement {
   let img = heads.get(species);
   if (!img) {
     img = new Image();
-    img.src = asset(`/sprites/gb/mini/${species}.png`);
+    // Each sprite has a 14-pixel version in mini/ beside it.
+    const sprite = speciesById(species).sprite ?? '';
+    img.src = asset(sprite.replace(/\/([^/]+)$/, '/mini/$1'));
     heads.set(species, img);
   }
   return img;
@@ -165,7 +179,7 @@ export function Overworld(props: Props) {
       const camX = Math.round(clamp(px + 8 - SCREEN_W / 2, mapW, SCREEN_W));
       const camY = Math.round(clamp(py + 8 - SCREEN_H / 2, mapH, SCREEN_H));
 
-      c.fillStyle = SHADES[0];
+      c.fillStyle = INK;
       c.fillRect(0, 0, SCREEN_W, SCREEN_H);
       const waterFrame = Math.floor(now / 500) % 2;
       const x0 = Math.floor(camX / TILE);
@@ -174,10 +188,11 @@ export function Overworld(props: Props) {
         for (let tx = x0; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
           if (ty < 0 || tx < 0 || ty >= map.rows.length || tx >= map.rows[0].length) continue;
           const tile = tileAt(map, tx, ty);
-          const frames = TILE_ART[tile] ?? TILE_ART.T;
+          const kind = TILE_ART[tile] ? tile : 'T';
+          const frames = TILE_ART[kind];
           const f = frames.length > 1 ? waterFrame : 0;
           c.drawImage(
-            sprite(`t:${tile}:${f}`, () => paint(frames[f])),
+            sprite(`t:${kind}:${f}`, () => paint(frames[f], TILE_PALETTE[kind])),
             tx * TILE - camX,
             ty * TILE - camY,
           );
@@ -185,23 +200,24 @@ export function Overworld(props: Props) {
       }
 
       // Shop signs over the doors.
-      c.font = '8px "Press Start 2P", monospace';
+      c.font = '700 9px "Pixelify Sans", sans-serif';
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       for (const [door, label] of Object.entries(DOOR_LABEL)) {
         for (const d of find(map, door)) {
           const lx = d.x * TILE + 8 - camX;
           const ly = (d.y - 1) * TILE + 8 - camY;
-          c.fillStyle = SHADES[0];
-          c.fillRect(lx - label.length * 4 - 2, ly - 6, label.length * 8 + 4, 12);
-          c.fillStyle = SHADES[3];
+          c.fillStyle = INK;
+          const w = Math.ceil(c.measureText(label).width) + 6;
+          c.fillRect(Math.round(lx - w / 2), ly - 5, w, 11);
+          c.fillStyle = LIGHT;
           c.fillText(label, lx, ly + 1);
         }
       }
 
       // Blue Ghosts glint every so often.
       if (Math.floor(now / 400) % 3 === 0) {
-        c.fillStyle = SHADES[0];
+        c.fillStyle = '#58b8f8';
         for (const g of p.ghosts) {
           const gx = g.x * TILE - camX + 8;
           const gy = g.y * TILE - camY + 8;
@@ -215,12 +231,18 @@ export function Overworld(props: Props) {
       const person = (look: keyof typeof LOOKS, dir: Dir, frame: number, sx: number, sy: number) =>
         drawn.push({
           y: sy,
-          paint: () =>
+          paint: () => {
+            // A soft shadow under everyone, as in the 5th generation.
+            c.fillStyle = 'rgb(0 0 0 / 0.2)';
+            c.fillRect(Math.round(sx - camX) + 4, Math.round(sy - camY) + 10, 8, 2);
             c.drawImage(
-              sprite(`p:${look}:${dir}:${frame}`, () => paint(PERSON[dir][frame], LOOKS[look])),
+              sprite(`p:${look}:${dir}:${frame}`, () =>
+                paint(PERSON[dir][frame], PEOPLE, LOOKS[look]),
+              ),
               Math.round(sx - camX),
               Math.round(sy - camY - 4),
-            ),
+            );
+          },
         });
 
       for (const n of npcsOf(map)) {
@@ -232,11 +254,11 @@ export function Overworld(props: Props) {
             paint: () => {
               const bx = n.x * TILE - camX + 3;
               const by = n.y * TILE - camY - 18;
-              c.fillStyle = SHADES[3];
+              c.fillStyle = LIGHT;
               c.fillRect(bx, by, 10, 12);
-              c.strokeStyle = SHADES[0];
+              c.strokeStyle = INK;
               c.strokeRect(bx + 0.5, by + 0.5, 9, 11);
-              c.fillStyle = SHADES[0];
+              c.fillStyle = '#e03c3a';
               c.fillRect(bx + 4, by + 2, 2, 5);
               c.fillRect(bx + 4, by + 8, 2, 2);
             },
@@ -256,11 +278,11 @@ export function Overworld(props: Props) {
           paint: () => {
             const sx = Math.round(fx - camX);
             const sy = Math.round(fy - camY - 4);
-            c.fillStyle = SHADES[0];
+            c.fillStyle = INK;
             c.fillRect(sx + 4, sy + 11, 8, 3);
             c.fillRect(sx + 4, sy + 14 - bob, 3, 2);
             c.fillRect(sx + 9, sy + 13 + bob, 3, 2);
-            if (img.complete && img.naturalWidth) c.drawImage(img, sx + 2, sy + bob);
+            if (img.complete && img.naturalWidth) c.drawImage(img, sx + 1, sy - 1 + bob);
             else c.fillRect(sx + 3, sy + 1, 10, 10);
           },
         });

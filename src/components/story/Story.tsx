@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { BattleScreen, type BagEntry } from '@/components/BattleScreen';
+import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
+import { Sprite } from '@/components/Sprite';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { mapById } from '@/content/story/maps';
 import { teamOf, trainerById } from '@/content/story/trainers';
@@ -13,6 +14,7 @@ import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
 import {
   blueGhost,
   catchRate,
+  evolutionIn,
   expProgress,
   makeMember,
   speciesById,
@@ -53,6 +55,7 @@ import {
   spottedBy,
   tileAt,
   type Dir,
+  type GameMap,
   type Step,
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
@@ -109,6 +112,37 @@ const challenge = (trainer: string): Run[] => [
   { do: 'say', text: trainerById(trainer).before },
   { do: 'battle', trainer },
 ];
+
+/** While the text announces an evolution: the two forms trading places in a white glow. */
+function EvolutionScene({ text }: { text: string }) {
+  const evo = evolutionIn(text);
+  if (!evo) return null;
+  return (
+    <div
+      className={`evolve-scene absolute inset-0 z-[5] grid place-items-center pb-[30%] ${evo.done ? '' : 'evolving'}`}
+      data-testid="evolution"
+    >
+      <div className="grid h-32 w-32">
+        {!evo.done && (
+          <span className="evolve-old">
+            <Sprite creature={evo.from} />
+          </span>
+        )}
+        <span className={evo.done ? '' : 'evolve-new'}>
+          <Sprite creature={evo.to} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** The battlefield's backdrop: B&S at night, gyms indoors, Dublin's streets, or the fields. */
+function sceneOf(map: GameMap, trainer: string | null): Scene {
+  if (trainer?.startsWith('bns')) return 'night';
+  if (trainer && map.gym?.trainer === trainer) return 'gym';
+  if (map.id === 'dublin' || map.id === 'trinity') return 'city';
+  return 'field';
+}
 
 export function Story() {
   const [game, setGame] = useState<StoryState | null>(null);
@@ -474,12 +508,12 @@ export function Story() {
   if (!game) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
-        <h1 className="text-[22px] leading-snug [text-shadow:3px_3px_0_#8bac0f]">
+        <h1 className="text-[31px] leading-snug [text-shadow:3px_3px_0_#8bac0f]">
           RANEMON
           <br />
           STORY
         </h1>
-        <p className="text-[8px] leading-relaxed text-frame">
+        <p className="text-[11px] leading-relaxed text-frame">
           From Co. Clare to Trinity College Dublin.
           <br />
           Nine jerseys. One pint at a time.
@@ -488,7 +522,7 @@ export function Story() {
           {saved && (
             <button
               type="button"
-              className="pixel-btn menu-item text-[10px]"
+              className="pixel-btn menu-item text-[14px]"
               onClick={() => {
                 setGame(saved);
                 startGame(saved, false);
@@ -499,7 +533,7 @@ export function Story() {
           )}
           <button
             type="button"
-            className="pixel-btn menu-item text-[10px]"
+            className="pixel-btn menu-item text-[14px]"
             onClick={() => {
               const g = newGame();
               persist(g);
@@ -510,14 +544,14 @@ export function Story() {
             {saved ? 'NEW GAME' : 'START'}
           </button>
           {saved && (
-            <p className="text-[6px] leading-relaxed text-frame">
+            <p className="text-[8px] leading-relaxed text-frame">
               A new game replaces your save ({saved.party.length} Ranemon,{' '}
               {saved.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all').length}{' '}
               jerseys).
             </p>
           )}
         </div>
-        <Link href="/" className="text-[8px] text-frame underline underline-offset-4">
+        <Link href="/" className="text-[11px] text-frame underline underline-offset-4">
           BATTLE MODE
         </Link>
       </div>
@@ -532,6 +566,7 @@ export function Story() {
         teams={fight.teams}
         difficulty={fight.ai}
         foe={fight.foe}
+        scene={sceneOf(mapById(game.map), fight.trainer)}
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,
@@ -550,7 +585,10 @@ export function Story() {
 
   return (
     <div className="flex flex-1 flex-col gap-3 p-3">
-      <div className="relative border-4 border-ink bg-ink" style={{ aspectRatio: '10 / 9' }}>
+      <div
+        className="relative overflow-hidden rounded-md border-4 border-bezel bg-bezel"
+        style={{ aspectRatio: '10 / 9' }}
+      >
         <Overworld
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
@@ -568,14 +606,15 @@ export function Story() {
             if (['P', 'M', 'G', 'H', 'L'].includes(tileAt(map, x, y))) interact(x, y, face, true);
           }}
         />
-        <div className="pointer-events-none absolute left-1 top-1 bg-paper px-1 text-[6px] text-ink">
+        <div className="pointer-events-none absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper">
           {map.name}
         </div>
         {flash && <div className="encounter-flash absolute inset-0" />}
+        {line && <EvolutionScene text={line.text} />}
         {line && (
           <button
             type="button"
-            className="dialog absolute inset-x-0 bottom-0 z-10 min-h-[38%] px-3 py-2 text-left text-[9px] leading-[1.8]"
+            className="dialog absolute inset-x-0 bottom-0 z-10 min-h-[38%] px-3 py-2 text-left text-[13px] leading-[1.8]"
             onClick={advance}
             data-testid="story-text"
           >
@@ -729,13 +768,13 @@ function StartMenu({
         <button
           key={id}
           type="button"
-          className="menu-item py-1.5 text-left text-[9px]"
+          className="menu-item py-1.5 text-left text-[13px]"
           onClick={() => onPick(id)}
         >
           {label}
         </button>
       ))}
-      <button type="button" className="menu-item py-1.5 text-left text-[9px]" onClick={onClose}>
+      <button type="button" className="menu-item py-1.5 text-left text-[13px]" onClick={onClose}>
         EXIT
       </button>
     </div>
@@ -769,7 +808,7 @@ function Controls({
     onPointerLeave: () => onDir(dir, false),
     onPointerCancel: () => onDir(dir, false),
   });
-  const arrow = 'pad-btn flex items-center justify-center text-[10px] text-paper';
+  const arrow = 'pad-btn flex items-center justify-center text-[14px] text-paper';
   return (
     <div
       className="flex select-none items-center justify-between px-2 py-2"
@@ -794,7 +833,7 @@ function Controls({
         </button>
         <span />
       </div>
-      <button type="button" className="start-btn text-[7px]" onClick={onStart}>
+      <button type="button" className="start-btn text-[10px]" onClick={onStart}>
         START
       </button>
       <div className="flex items-center gap-3">

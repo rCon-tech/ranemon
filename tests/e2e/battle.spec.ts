@@ -62,7 +62,7 @@ test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page 
   await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(16);
   const sprite = page.getByRole('img', { name: 'Steadmon' });
   await expect(sprite).toBeVisible();
-  // The Game Boy versions: 64 pixels, dithered onto the 4 greens.
-  expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(64);
-  await expect(page.getByText('* Ranelads.com:')).toBeVisible();
+  // The full-colour pixel versions: 96 pixels, cut down to 32 colours.
+  expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(96);
+  await expect(page.getByText('★ Ranelads.com:')).toBeVisible();
 });
