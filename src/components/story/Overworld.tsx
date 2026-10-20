@@ -405,9 +405,9 @@ export function Overworld(props: Props) {
       }
 
       // Light: slow cloud shadows drifting over the land, warm sun from the top left, and a
-      // soft vignette.
+      // soft vignette. Indoors, just the lamplight and the vignette.
       c.fillStyle = 'rgb(20 40 60 / 0.08)';
-      for (let i = 0; i < 2; i++) {
+      for (let i = 0; i < (map.inside ? 0 : 2); i++) {
         const span = mapW + 120;
         const cx = ((now / 160 + i * span * 0.55) % span) - 60;
         const cy = (i ? 0.7 : 0.25) * mapH;
@@ -415,7 +415,7 @@ export function Overworld(props: Props) {
         c.ellipse(sx(cx), sy(cy), 46, 20, 0, 0, Math.PI * 2);
         c.fill();
       }
-      c.fillStyle = sun;
+      c.fillStyle = map.inside ? 'rgb(255 200 120 / 0.06)' : sun;
       c.fillRect(0, 0, SCREEN_W, SCREEN_H);
       c.fillStyle = vignette;
       c.fillRect(0, 0, SCREEN_W, SCREEN_H);

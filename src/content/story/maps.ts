@@ -1,4 +1,5 @@
 import type { GameMap } from '@/lib/story/world';
+import { interiorsOf } from './interiors';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -703,12 +704,18 @@ export const MAPS: GameMap[] = [
   },
 ];
 
-const BY_ID = new Map(MAPS.map((m) => [m.id, m]));
+/** The rooms behind every door. */
+export const INTERIORS = MAPS.flatMap(interiorsOf);
+
+const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {
   const m = BY_ID.get(id);
   if (!m) throw new Error(`Unknown map: ${id}`);
   return m;
 }
+
+/** The map you're on, or the one outside if you're in a building. */
+export const outsideOf = (map: GameMap) => (map.inside ? mapById(map.inside.map) : map);
 
 export const COUNTIES = MAPS.slice(0, 9).map((m) => m.id);
 
