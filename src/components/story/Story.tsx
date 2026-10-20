@@ -508,7 +508,7 @@ export function Story() {
   if (!game) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
-        <h1 className="text-[31px] leading-snug [text-shadow:3px_3px_0_#8bac0f]">
+        <h1 className="text-[40px] font-bold leading-tight text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
           RANEMON
           <br />
           STORY

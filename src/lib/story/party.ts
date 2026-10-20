@@ -33,7 +33,7 @@ export const BOSS: Creature = {
   base: { hp: 100, attack: 85, defense: 70, spirit: 70, speed: 75 },
   moves: ['last-orders', 'mosh-pit', 'shopping-trolley', 'hype-train'],
   entry: 'Ranemon Champions of Ireland. Seven lads, one photo, no mercy.',
-  colour: '#306230',
+  colour: '#c8288f',
   sprite: '/sprites/bw/bns.png',
 };
 
