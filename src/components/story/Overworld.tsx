@@ -432,6 +432,8 @@ export function Overworld(props: Props) {
       height={SCREEN_H * RES}
       className="block h-auto w-full [image-rendering:pixelated]"
       data-testid="overworld"
+      data-x={props.pos.x}
+      data-y={props.pos.y}
       aria-label={`${props.map.name}. Use the arrow keys or the D-pad to walk.`}
     />
   );

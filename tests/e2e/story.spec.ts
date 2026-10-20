@@ -13,9 +13,10 @@ test('story mode: Michael D hands over a starter in Clare', async ({ page }) => 
   for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
   await expect(text).toHaveCount(0);
 
-  // Walk east along the lane to Michael D and talk to him.
+  // Walk east along the lane until Michael D blocks the way, then talk to him. Waiting on the
+  // position rather than a fixed time keeps this steady on slow machines.
   await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(16 * 250 + 100);
+  await expect(page.getByTestId('overworld')).toHaveAttribute('data-x', '19', { timeout: 30_000 });
   await page.keyboard.up('ArrowRight');
   await page.waitForTimeout(400);
   await page.keyboard.press('z');
