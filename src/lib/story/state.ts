@@ -36,6 +36,8 @@ export interface StoryState {
   uid: number;
   starter?: string;
   steps: number;
+  /** Exp Share: every Ranemon in the party gets the EXP, not only the ones that fought. */
+  expShare?: boolean;
   /** When it was last saved, to pick the newer of a browser save and an online one. */
   savedAt?: number;
 }
@@ -135,8 +137,9 @@ export const follower = (s: StoryState) => s.party.find((m) => m.hp > 0) ?? null
 
 /**
  * What a finished battle leaves behind: HP, PP and status copied back, EXP for every foe that
- * fainted (shared by the Ranemon that fought it, and half for the rest with The Round), and the
- * catch or the blackout.
+ * fainted, and the catch or the blackout. The Ranemon that fought a foe share its EXP. The rest
+ * of the party still standing get nothing, half with The Round, or the same as a fighter with
+ * Exp Share on.
  */
 export function settleBattle(
   s: StoryState,
@@ -158,10 +161,16 @@ export function settleBattle(
         party = party.map((m, j) => (j === i ? member : m));
         lines.push(...more);
       };
-      for (const i of fighters) shareOut(i, Math.max(1, Math.floor(total / fighters.length)));
-      if (hasFlag(s, 'round')) {
+      const each = Math.max(1, Math.floor(total / Math.max(1, fighters.length)));
+      for (const i of fighters) shareOut(i, each);
+      const bench = s.expShare
+        ? each
+        : hasFlag(s, 'round')
+          ? Math.max(1, Math.floor(total / 2))
+          : 0;
+      if (bench) {
         party.forEach((m, i) => {
-          if (!fighters.includes(i) && m.hp > 0) shareOut(i, Math.max(1, Math.floor(total / 2)));
+          if (!fighters.includes(i) && m.hp > 0) shareOut(i, bench);
         });
       }
     }
@@ -188,6 +197,8 @@ export function settleBattle(
   }
   return { state, lines };
 }
+
+export const toggleExpShare = (s: StoryState): StoryState => ({ ...s, expShare: !s.expShare });
 
 /** Swaps a member to the front of the party, so it leads in battle and walks behind you. */
 export function makeLead(s: StoryState, index: number): StoryState {

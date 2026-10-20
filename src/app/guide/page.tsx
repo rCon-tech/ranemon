@@ -196,6 +196,11 @@ export default function Guide() {
             away. Every Ranemon evolves once, at level 30.
           </li>
           <li>
+            <b>Exp Share</b> is in the START menu, and starts off. Turn it on and every Ranemon in
+            your party that’s still standing gets the same EXP as the one that fought, so the whole
+            team levels up together. Turn it off to train one Ranemon at a time.
+          </li>
+          <li>
             <b>Your rival</b> is Margaret Thatcher, who picks the Ranemon that beats yours and turns
             up all along the road. Don’t let her win.
           </li>

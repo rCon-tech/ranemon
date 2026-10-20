@@ -98,6 +98,7 @@ The damage formula's fixed 22 becomes (2L/5 + 2), which is 22 again at level 50.
 - Every Ranemon uses one growth curve: total EXP to reach level L is L³ (the main series' Medium Fast). All 16 have the same 400 stat budget, so one curve is fair.
 - A win gives floor(140 × foe level ÷ 7) EXP, ×1.5 against a trainer, split between the Ranemon that fought.
 - The Round (key item from Kilkenny) gives every party member who didn't fight half that amount too.
+- Exp Share (a START menu option, off to begin with and kept in the save) gives every party member still standing the same EXP as a fighter. While it's on, The Round makes no difference.
 - Reaching level 5 → 12 takes about 20 wild battles, matching the pace of the early games.
 
 ### Moves
