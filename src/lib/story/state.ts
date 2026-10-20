@@ -44,13 +44,16 @@ export const SAVE_KEY = 'ranemon.story.v1';
 /** The trainer name last used in this browser. */
 export const PLAYER_KEY = 'ranemon.player';
 
-/** A trainer name as saves are filed under it: case and extra spaces don't matter. */
+/**
+ * A trainer name as saves are filed under it: case and extra spaces don't matter, and spaces
+ * become dashes so it can name a database document.
+ */
 export function playerId(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9 _-]/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9_-]/g, '')
     .slice(0, 20);
 }
 

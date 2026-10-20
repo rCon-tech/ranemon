@@ -242,7 +242,7 @@ describe('story state', () => {
     expect(newer(a, b)).toBe(b);
     expect(newer(b, a)).toBe(b);
     expect(newer(null, a)).toBe(a);
-    expect(playerId('  Rich  O’Brien!! ')).toBe('rich obrien');
+    expect(playerId('  Rich  O’Brien!! ')).toBe('rich-obrien');
   });
 
   it('picks wild Ranemon by weight and level range', () => {
