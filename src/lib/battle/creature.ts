@@ -25,19 +25,26 @@ export interface Creature {
   colour: string;
 }
 
+/** Battle mode's level. Story mode runs from 5 to MAX_LEVEL. */
 export const LEVEL = 50;
+export const MIN_LEVEL = 1;
+export const MAX_LEVEL = 60;
 export const STAT_BUDGET = 400;
 export const BASE_MIN = 30;
 export const BASE_MAX = 130;
 
-/** Stats at level 50: HP is base + 60, the rest are base + 5. */
-export function levelStats(base: BaseStats): BaseStats {
+/**
+ * Stats at a level, by the main-series formula without IVs or EVs. At level 50 that is exactly
+ * HP = base + 60 and the rest base + 5, so battle mode's numbers are unchanged.
+ */
+export function levelStats(base: BaseStats, level: number = LEVEL): BaseStats {
+  const stat = (b: number) => Math.floor((2 * b * level) / 100) + 5;
   return {
-    hp: base.hp + 60,
-    attack: base.attack + 5,
-    defense: base.defense + 5,
-    spirit: base.spirit + 5,
-    speed: base.speed + 5,
+    hp: Math.floor((2 * base.hp * level) / 100) + level + 10,
+    attack: stat(base.attack),
+    defense: stat(base.defense),
+    spirit: stat(base.spirit),
+    speed: stat(base.speed),
   };
 }
 

@@ -23,7 +23,7 @@ export function InfoBox({ battler, hp, status, mine }: Props) {
     >
       <div className="flex items-baseline justify-between gap-1">
         <span className="truncate">{battler.creature.name}</span>
-        <span className="shrink-0 text-[7px]">Lv50</span>
+        <span className="shrink-0 text-[7px]">Lv{battler.level}</span>
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1">
         {battler.creature.types.map((t) => (

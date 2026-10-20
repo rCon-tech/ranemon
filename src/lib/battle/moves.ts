@@ -734,7 +734,24 @@ export const SPECIAL_MOVES: Move[] = [
   },
 ];
 
-const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, FLAIL].map((m) => [m.id, m]));
+/** Moves only story mode's bosses know. Named by Rich later; these are placeholders. */
+export const BOSS_MOVES: Move[] = [
+  {
+    id: 'last-orders',
+    signature: 'bns',
+    name: 'Last Orders',
+    flavour: 'Calls last orders and the whole bar charges at once. Cuts the foe’s Speed by 30%.',
+    type: 'chaos',
+    category: 'physical',
+    power: 85,
+    accuracy: 100,
+    pp: 5,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
+  },
+];
+
+const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, FLAIL].map((m) => [m.id, m]));
 
 export function moveById(id: string): Move {
   const move = BY_ID.get(id);
