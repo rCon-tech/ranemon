@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
+import { scaled } from '@/lib/speed';
 import { speciesById } from '@/lib/story/party';
 import {
   canEnter,
@@ -191,7 +192,7 @@ export function Overworld(props: Props) {
           w.x = nx;
           w.y = ny;
           w.t0 = now;
-          w.dur = p.bike && p.held.current?.b ? BIKE_MS : WALK_MS;
+          w.dur = scaled(p.bike && p.held.current?.b ? BIKE_MS : WALK_MS);
           w.frame++;
         } else if (now - w.lastBump > 350) {
           w.lastBump = now;

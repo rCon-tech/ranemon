@@ -326,12 +326,22 @@ function plaster(c: Ctx, r: () => number, around: Around) {
     c.fillRect(0, 0, T, 7);
   }
   if (around.s !== '#' && !(around.s in DOORS)) {
-    px(c, 0, T - 4, T, 4, '#b8a890');
-    px(c, 0, T - 4, T, 1, '#d4c4a8');
-    px(c, 0, T - 1, T, 1, '#6a5a48');
+    // A stone plinth along the bottom of the wall.
+    px(c, 0, T - 6, T, 6, '#a89c88');
+    for (let x = (r() * 6) | 0; x < T; x += 7) px(c, x, T - 6, 1, 6, '#857a68');
+    px(c, 0, T - 6, T, 1, '#d4c8b0');
+    px(c, 0, T - 1, T, 1, '#5a4e40');
   }
-  if (around.w !== '#' && !(around.w in DOORS)) px(c, 0, 0, 2, T, '#d4c4a8');
-  if (around.e !== '#' && !(around.e in DOORS)) px(c, T - 2, 0, 2, T, '#b8a890');
+  // Dressed stone at the corners, alternating long and short.
+  const quoins = (x: number) => {
+    for (let y = 0; y < T - 6; y += 8) {
+      const w = (y / 8) % 2 ? 4 : 7;
+      px(c, x === 0 ? 0 : T - w, y, w, 7, '#d8ccb4');
+      px(c, x === 0 ? 0 : T - w, y + 6, w, 1, '#9a8e78');
+    }
+  };
+  if (around.w !== '#' && !(around.w in DOORS)) quoins(0);
+  if (around.e !== '#' && !(around.e in DOORS)) quoins(T);
 }
 
 function wall(c: Ctx, r: () => number, around: Around) {
@@ -347,8 +357,20 @@ function wall(c: Ctx, r: () => number, around: Around) {
   px(c, 9, 13, 14, 2, '#f8f8f8');
   for (let i = 0; i < 4; i++) px(c, 10 + i, 12 - i, 1, 1, '#e8f6ff');
   px(c, 19, 17, 3, 1, '#e8f6ff');
-  px(c, 7, 21, 18, 2, '#e0d4c0');
-  px(c, 7, 23, 18, 1, '#9a8a74');
+  // Shutters each side, and a window box of flowers.
+  px(c, 4, 7, 3, 14, '#2f7a4a');
+  px(c, 25, 7, 3, 14, '#2f7a4a');
+  for (let y = 9; y < 20; y += 3) {
+    px(c, 4, y, 3, 1, '#1f5a34');
+    px(c, 25, y, 3, 1, '#1f5a34');
+  }
+  px(c, 7, 21, 18, 4, '#8a5a30');
+  px(c, 7, 21, 18, 1, '#a87040');
+  const blooms = ['#e84050', '#f8d048', '#f070b0', '#ffffff'];
+  for (let x = 8; x < 24; x += 3) {
+    px(c, x, 19, 2, 2, blooms[(x + ((r() * 4) | 0)) % 4]);
+    px(c, x + 1, 21, 1, 1, '#3a8a36');
+  }
 }
 
 function door(c: Ctx, r: () => number, around: Around, kind: string) {
@@ -384,23 +406,45 @@ function door(c: Ctx, r: () => number, around: Around, kind: string) {
 function roof(c: Ctx, around: Around, colour: [string, string, string, string]) {
   const [base, light, dark, deep] = colour;
   px(c, 0, 0, T, T, base);
-  for (let y = 2; y < T; y += 6) {
-    px(c, 0, y, T, 1, dark);
-    px(c, 0, y + 1, T, 1, light);
+  // Rows of shingles, staggered, each lit along its top and shaded at its bottom edge.
+  for (let y = 0; y < T; y += 6) {
     const off = (y / 6) % 2 ? 4 : 0;
-    for (let x = off; x < T; x += 8) px(c, x, y + 1, 1, 5, dark);
+    for (let x = off - 8; x < T; x += 8) {
+      px(c, x + 1, y + 1, 7, 1, light);
+      px(c, x + 1, y + 5, 7, 1, dark);
+      px(c, x, y, 1, 6, deep);
+    }
   }
   if (around.n !== '^') {
-    px(c, 0, 0, T, 4, light);
+    // The ridge: a rounded cap.
+    px(c, 0, 0, T, 5, light);
+    px(c, 0, 1, T, 1, '#ffffff40');
     px(c, 0, 0, T, 1, deep);
-    px(c, 0, 4, T, 1, dark);
+    px(c, 0, 5, T, 1, deep);
+    for (let x = 3; x < T; x += 8) px(c, x, 1, 1, 4, dark);
   }
   if (around.s !== '^') {
-    px(c, 0, T - 5, T, 5, deep);
-    px(c, 0, T - 5, T, 1, light);
+    // Eaves: a fascia board and the dark overhang.
+    px(c, 0, T - 6, T, 3, deep);
+    px(c, 0, T - 3, T, 2, '#f0e8d8');
+    px(c, 0, T - 1, T, 1, '#6a5a48');
   }
-  if (around.w !== '^') px(c, 0, 0, 2, T, deep);
-  if (around.e !== '^') px(c, T - 2, 0, 2, T, deep);
+  if (around.w !== '^') {
+    px(c, 0, 0, 3, T, deep);
+    px(c, 1, 0, 1, T, light);
+  }
+  if (around.e !== '^') {
+    px(c, T - 3, 0, 3, T, deep);
+    px(c, T - 2, 0, 1, T, dark);
+  }
+  if (around.n !== '^' && around.e !== '^') {
+    // A chimney at the right-hand end of the ridge.
+    px(c, 18, 0, 9, 13, '#5a3a2a');
+    px(c, 19, 2, 7, 10, '#a85a3a');
+    for (let y = 4; y < 12; y += 3) px(c, 19, y, 7, 1, '#7a3a24');
+    px(c, 17, 0, 11, 3, '#8a8478');
+    px(c, 17, 0, 11, 1, '#b8b0a4');
+  }
 }
 
 // ---------- things on the grass ----------
@@ -1180,6 +1224,28 @@ export function groundOverlay(
     }
   }
   c.putImageData(img, 0, 0);
+
+  // Buildings throw a shadow down and to the right onto the ground.
+  const building = (t: string) => '#^PMGHLw'.includes(t);
+  for (let ty = 0; ty < height; ty++) {
+    for (let tx = 0; tx < width; tx++) {
+      if (!building(at(tx, ty))) continue;
+      if (!building(at(tx, ty + 1)) && at(tx, ty) !== '^') {
+        const g = c.createLinearGradient(0, (ty + 1) * T, 0, (ty + 1) * T + 8);
+        g.addColorStop(0, 'rgb(20 40 30 / 0.3)');
+        g.addColorStop(1, 'rgb(20 40 30 / 0)');
+        c.fillStyle = g;
+        c.fillRect(tx * T + 4, (ty + 1) * T, T, 8);
+      }
+      if (!building(at(tx + 1, ty))) {
+        const g = c.createLinearGradient((tx + 1) * T, 0, (tx + 1) * T + 7, 0);
+        g.addColorStop(0, 'rgb(20 40 30 / 0.28)');
+        g.addColorStop(1, 'rgb(20 40 30 / 0)');
+        c.fillStyle = g;
+        c.fillRect((tx + 1) * T, ty * T + 6, 7, T);
+      }
+    }
+  }
 
   // Cast shadows, down and to the right of each tree, and fallen leaves around autumn ones.
   for (let ty = 0; ty < height; ty++) {

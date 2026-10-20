@@ -42,9 +42,14 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
           STORY MODE
         </Link>
-        <Link href="/ranedex" className="underline underline-offset-4">
-          RANEDEX
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/guide" className="underline underline-offset-4">
+            HOW TO PLAY
+          </Link>
+          <Link href="/ranedex" className="underline underline-offset-4">
+            RANEDEX
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -29,6 +29,8 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Content** (`src/content/story/`): the maps as one character per tile, trainers, gyms and wild tables. `tests/unit/story-maps.test.ts` checks every door, person and exit can be reached, and `pnpm simulate` also plays each gym with a typical party and checks it is winnable but not a walkover.
 - **Saves**: you enter a trainer name on the title screen, and the save is filed under it (any case), so friends can share a browser. On the shared play link, saves also go to the page's own database, so the same name carries on from another device or after the browser is cleared. The static site has no server, so there they stay in the browser (`src/lib/story/cloud.ts` is where a server would plug in).
 - **Controls**: D-pad, A, B (hold to ride the bike) and START on screen; arrow keys, Z, X and Enter on a keyboard.
+- **Speed**: the ▶ button on the map and in battles cycles 1×, 2× and 4×. Walking, text, battle playback and animations all speed up (`src/lib/speed.ts`).
+- **How to play** (`/guide`, on the title screen): the game, the six types and the full type chart, battles, statuses and story mode, for new players.
 
 ## Password
 

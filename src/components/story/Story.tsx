@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import Link from 'next/link';
 import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
 import { Sprite } from '@/components/Sprite';
+import { SpeedButton } from '@/components/SpeedButton';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
+import { scaled } from '@/lib/speed';
 import { mapById, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { teamOf, trainerById } from '@/content/story/trainers';
@@ -285,7 +287,7 @@ export function Story() {
   /** A, or tapping the text box: finish typing the line, then go on to the next. */
   const advance = useCallback(() => {
     if (!game || !line) return;
-    if (!line.full && Date.now() - line.n < line.text.length * MS_PER_CHAR) {
+    if (!line.full && Date.now() - line.n < scaled(line.text.length * MS_PER_CHAR)) {
       setLine({ ...line, full: true });
       return;
     }
@@ -340,7 +342,7 @@ export function Story() {
       setTimeout(() => {
         setExclaim(null);
         run(g, challenge(spotter.item.trainer!));
-      }, 700);
+      }, scaled(700));
       return;
     }
 
@@ -365,7 +367,7 @@ export function Story() {
           trainer: null,
           key: Date.now(),
         });
-      }, 650);
+      }, scaled(650));
       return;
     }
     setGame(g);
@@ -720,6 +722,7 @@ export function Story() {
         <div className="pointer-events-none absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper">
           {map.name}
         </div>
+        <SpeedButton className="absolute right-1 top-1" />
         {flash && <div className="encounter-flash absolute inset-0" />}
         {line && <EvolutionScene text={line.text} />}
         {line && (
