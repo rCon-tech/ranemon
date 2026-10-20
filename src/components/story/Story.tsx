@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
 import { Sprite } from '@/components/Sprite';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
-import { mapById } from '@/content/story/maps';
+import { mapById, outsideOf } from '@/content/story/maps';
+import { interiorId } from '@/content/story/interiors';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
@@ -48,6 +49,9 @@ import {
 import {
   DELTA,
   doorIndex,
+  doorStep,
+  DOORS,
+  EXIT,
   ENCOUNTER_RATE,
   ENCOUNTER_TILES,
   find,
@@ -144,7 +148,8 @@ function EvolutionScene({ text }: { text: string }) {
 function sceneOf(map: GameMap, trainer: string | null): Scene {
   if (trainer?.startsWith('bns')) return 'night';
   if (trainer && map.gym?.trainer === trainer) return 'gym';
-  if (map.id === 'dublin' || map.id === 'trinity') return 'city';
+  const outside = outsideOf(map).id;
+  if (outside === 'dublin' || outside === 'trinity') return 'city';
   return 'field';
 }
 
@@ -367,50 +372,65 @@ export function Story() {
     if (npc && !bumped) {
       setFaces({ [npc.index]: OPPOSITE[face] });
       const t = npc.item.trainer;
-      if (t && !hasFlag(game, beatFlag(t))) return run(game, challenge(t));
-      if (npc.item.talk) return run(game, npc.item.talk);
-      if (t) return run(game, [{ do: 'say', text: trainerById(t).after }]);
-      return;
-    }
-    const i = doorIndex(map, x, y);
-    switch (tile) {
-      case 'S':
-        if (!bumped) run(game, [{ do: 'say', text: map.signs?.[i] ?? '…' }]);
-        return;
-      case 'P':
-        return run(game, [{ do: 'pub' }]);
-      case 'M':
-        return run(game, [{ do: 'say', text: 'SHOPKEEPER: What can I get you?' }, { do: 'shop' }]);
-      case 'H':
-        return run(game, map.houses?.[i] ?? []);
-      case 'L':
-        return run(game, map.landmarks?.[i] ?? []);
-      case 'G': {
-        if (!map.gym) return;
-        const leader = trainerById(map.gym.trainer);
-        if (hasFlag(game, beatFlag(leader.id)))
-          return run(game, [{ do: 'say', text: leader.after }]);
+      if (t && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
           return run(game, [
             { do: 'say', text: 'Your Ranemon are too tired. Heal them in the pub first!' },
           ]);
         }
+        return run(game, challenge(t));
+      }
+      if (npc.item.talk) return run(game, npc.item.talk);
+      if (t) return run(game, [{ do: 'say', text: trainerById(t).after }]);
+      return;
+    }
+    if (!bumped && map.things?.[tile]) return run(game, [{ do: 'say', text: map.things[tile] }]);
+    if (DOORS.has(tile)) return goInside(map, x, y, tile);
+    switch (tile) {
+      case 'S':
+        if (!bumped) run(game, [{ do: 'say', text: map.signs?.[doorIndex(map, x, y)] ?? '…' }]);
+        return;
+      case EXIT: {
+        if (!map.inside) return;
+        const outside = mapById(map.inside.map);
+        const g: StoryState = {
+          ...game,
+          map: outside.id,
+          ...doorStep(outside, map.inside.x, map.inside.y),
+        };
+        return run(g, []);
+      }
+      case 'X': {
+        // A gym's statues name the gym and its leader.
+        if (bumped || !map.gym) return;
+        const leader = trainerById(map.gym.trainer);
+        const won = hasFlag(game, beatFlag(leader.id)) ? ` You’ve beaten this gym.` : '';
         return run(game, [
           {
             do: 'say',
-            text: `${map.gym.place.toUpperCase()} GYM. Leader: ${leader.name}.`,
+            text: `${map.gym.place.toUpperCase()} GYM. Leader: ${leader.name}.${won}`,
           },
-          ...challenge(leader.id),
         ]);
       }
     }
+  }
+
+  /** Through a door: into the room behind it, facing in. */
+  function goInside(map: GameMap, x: number, y: number, kind: string) {
+    if (!game) return;
+    const room = mapById(interiorId(map.id, kind, doorIndex(map, x, y)));
+    const g: StoryState = { ...game, map: room.id, ...marker(room, '@'), face: 'up' };
+    run(g, room.arrive ?? []);
   }
 
   function pressA() {
     if (line) return advance();
     if (!game || busy) return;
     const [dx, dy] = DELTA[game.face];
-    interact(game.x + dx, game.y + dy, game.face, false);
+    const map = mapById(game.map);
+    // Talk across a counter to whoever is behind it.
+    const across = tileAt(map, game.x + dx, game.y + dy) === 'C' ? 2 : 1;
+    interact(game.x + dx * across, game.y + dy * across, game.face, false);
   }
 
   function pressB() {
@@ -681,7 +701,8 @@ export function Story() {
           onStep={onStep}
           onTurn={(face) => setGame((g) => (g ? { ...g, face } : g))}
           onBump={(x, y, face) => {
-            if (['P', 'M', 'G', 'H', 'L'].includes(tileAt(map, x, y))) interact(x, y, face, true);
+            const tile = tileAt(map, x, y);
+            if (DOORS.has(tile) || tile === EXIT) interact(x, y, face, true);
           }}
         />
         <div className="pointer-events-none absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper">

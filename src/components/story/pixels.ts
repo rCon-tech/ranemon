@@ -107,6 +107,9 @@ export const LOOKS: Record<Look | 'player', Record<'h' | 's' | 'c' | 'p', string
   scholar: { h: '#4a3a30', s: SKIN, c: '#202020', p: '#202020' },
   bns: { h: '#202020', s: '#f0c098', c: '#202020', p: '#3a3a48' },
   local: { h: '#a87038', s: SKIN, c: '#58a058', p: '#5a6a8a' },
+  // A white shirt and black waistcoat behind the bar; a green shop coat.
+  barman: { h: '#3a2a20', s: SKIN, c: '#f4f4f4', p: '#202028' },
+  shopkeeper: { h: '#c8c8c8', s: SKIN, c: '#2f8a4a', p: '#3a3a48' },
 };
 
 /** Shifts a hex colour toward black (k < 1) or white (k > 1). */

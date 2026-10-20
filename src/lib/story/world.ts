@@ -20,14 +20,17 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  * `B` bridge, `F` floor. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
  * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
+ * Indoors (see content/story/interiors.ts): `g` gym floor and `r` rug are walkable, and `E` is
+ * the way out, blocked like a door.
  * Markers that are grass underneath: `@` arrival from the west (and the start), `>` arrival from
  * the east, `*` a hidden Blue Ghost, `1`-`9` the map's people in order.
  */
 export type Tile = string;
 
-const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F']);
+const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r']);
 export const ENCOUNTER_TILES = new Set([',', 'b']);
 export const DOORS = new Set(['P', 'M', 'G', 'H', 'L']);
+export const EXIT = 'E';
 
 export type Look =
   | 'mam'
@@ -40,7 +43,9 @@ export type Look =
   | 'guard'
   | 'scholar'
   | 'bns'
-  | 'local';
+  | 'local'
+  | 'barman'
+  | 'shopkeeper';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -110,6 +115,12 @@ export interface GameMap {
   east?: string;
   /** Run once, the first time you arrive. */
   enter?: Step[];
+  /** A room: the map and door outside it. */
+  inside?: { map: string; x: number; y: number };
+  /** Run every time you come in, such as Mam's welcome. */
+  arrive?: Step[];
+  /** What the things in a room say when you look at them, by tile. */
+  things?: Record<string, string>;
 }
 
 export interface Placed<T> {
@@ -173,6 +184,18 @@ export const isWalkable = (t: Tile) => WALKABLE.has(t);
 export function canEnter(map: GameMap, x: number, y: number, flags: ReadonlySet<string>): boolean {
   if (!isWalkable(tileAt(map, x, y))) return false;
   return !npcsOf(map).some((n) => n.x === x && n.y === y && isPresent(n.item, flags));
+}
+
+/**
+ * Where you come out of a door: the tile in front of it, or beside it if that's blocked.
+ * Facing away from the door.
+ */
+export function doorStep(map: GameMap, x: number, y: number): { x: number; y: number; face: Dir } {
+  for (const face of ['down', 'left', 'right', 'up'] as Dir[]) {
+    const [dx, dy] = DELTA[face];
+    if (isWalkable(tileAt(map, x + dx, y + dy))) return { x: x + dx, y: y + dy, face };
+  }
+  return { x, y: y + 1, face: 'down' };
 }
 
 /** The text of the sign, house or landmark door at a position. */

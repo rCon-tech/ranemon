@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { MAPS, mapById } from '@/content/story/maps';
+import { HOME_ID, interiorId } from '@/content/story/interiors';
+import { INTERIORS, MAPS, mapById } from '@/content/story/maps';
 import { teamOf, TRAINERS, trainerById } from '@/content/story/trainers';
 import { speciesById } from '@/lib/story/party';
 import {
   DELTA,
+  doorStep,
   DOORS,
+  EXIT,
   find,
   isWalkable,
   marker,
@@ -141,5 +144,59 @@ describe('trainers', () => {
       ...MAPS.map((m) => m.gym?.trainer),
     ]);
     for (const t of TRAINERS) expect(met.has(t.id), t.id).toBe(true);
+  });
+});
+
+describe('rooms', () => {
+  it('every door leads into a room that leads back out to it', () => {
+    for (const map of MAPS) {
+      for (const kind of DOORS) {
+        find(map, kind).forEach((door, i) => {
+          const room = mapById(interiorId(map.id, kind, i));
+          expect(room.inside).toEqual({ map: map.id, ...door });
+          expect(room.county).toBe(map.county);
+          const out = doorStep(map, door.x, door.y);
+          expect(isWalkable(tileAt(map, out.x, out.y)), `${room.id} way out`).toBe(true);
+        });
+      }
+    }
+    expect(INTERIORS.length).toBe(
+      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0),
+    );
+  });
+
+  describe.each(INTERIORS.map((m) => [m.id, m]))('room %s', (_, room) => {
+    it('fits together: a rectangle, everyone placed, the way out under where you come in', () => {
+      const width = room.rows[0].length;
+      for (const row of room.rows) expect(row.length, row).toBe(width);
+      expect(npcsOf(room)).toHaveLength(room.npcs.length);
+      const start = marker(room, '@');
+      expect(room.rows[start.y + 1][start.x]).toBe(EXIT);
+    });
+
+    it('can reach everyone and everything you can look at', () => {
+      const seen = reachable(room, marker(room, '@'));
+      for (const n of npcsOf(room)) {
+        // People behind a counter are talked to across it.
+        const across = Object.values(DELTA).some(
+          ([dx, dy]) =>
+            tileAt(room, n.x + dx, n.y + dy) === 'C' && seen.has(`${n.x + 2 * dx},${n.y + 2 * dy}`),
+        );
+        expect(nextTo(seen, n.x, n.y) || across, `person ${n.index + 1}`).toBe(true);
+      }
+      for (const tile of Object.keys(room.things ?? {})) {
+        expect(
+          find(room, tile).some((p) => nextTo(seen, p.x, p.y)),
+          `${tile} in ${room.id}`,
+        ).toBe(true);
+      }
+    });
+  });
+
+  it('puts the Ocean Linen couch in your own house, and nowhere else', () => {
+    const home = mapById(HOME_ID);
+    expect(home.things?.Z).toBe('A lovely Ocean Linen couch.');
+    expect(find(home, 'Z')).toHaveLength(2);
+    for (const room of INTERIORS) if (room.id !== HOME_ID) expect(find(room, 'Z')).toHaveLength(0);
   });
 });

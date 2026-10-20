@@ -36,6 +36,7 @@ const DOORS: Record<string, [string, string, string]> = {
 
 /** How many frames each animated tile has, and how long each lasts. */
 export function frameOf(tile: string, now: number): number {
+  if (tile === 'J') return Math.floor(now / 160) % 4;
   if (tile === '~' || tile === 'B' || tile === 'b') return Math.floor(now / 220) % 4;
   if (tile === ',' || tile === '"') return Math.floor(now / 600) % 2;
   return 0;
@@ -493,6 +494,313 @@ function campanile(): HTMLCanvasElement {
   return cv;
 }
 
+// ---------- indoors ----------
+
+/** Walls and the dark beyond them, for joining up wall tiles. */
+const WALLISH = new Set(['W', 'O', 'J', 'E', 'T', 'Y', 'V', 'A']);
+/** Walls only, without the shelves standing against them. */
+const BACK_WALL = new Set(['W', 'O', 'J', 'T']);
+
+/** The floor under a piece of furniture: the gym's boards in a gym, floorboards elsewhere. */
+function ground(c: Ctx, r: () => number, around: Around) {
+  if (Object.values(around).includes('g')) gymFloor(c);
+  else floor(c, r);
+}
+
+/** The wallpaper face of a back wall: green stripes, a dado rail and a skirting board. */
+function wallpaper(c: Ctx, r: () => number) {
+  px(c, 0, 0, T, T, '#cfe0c4');
+  for (let x = 0; x < T; x += 8) px(c, x + 2, 0, 3, 20, '#bcd2ae');
+  for (let i = 0; i < 10; i++) px(c, (r() * T) | 0, (r() * 20) | 0, 1, 1, '#b4c8a6');
+  px(c, 0, 18, T, 2, '#8a6a48');
+  px(c, 0, 18, T, 1, '#b08a60');
+  px(c, 0, 20, T, 7, '#e8dcc4');
+  px(c, 0, 26, T, 3, '#8a6a48');
+  px(c, 0, 26, T, 1, '#b08a60');
+  px(c, 0, 29, T, 3, '#5a4430');
+}
+
+/** A wall seen from above: the dark band round the edge of a room. */
+function wallTop(c: Ctx, around: Around) {
+  px(c, 0, 0, T, T, '#3a3444');
+  px(c, 2, 2, T - 4, T - 4, '#4a4458');
+  if (!WALLISH.has(around.n)) px(c, 0, 0, T, 3, '#6a6278');
+  if (!WALLISH.has(around.e)) px(c, T - 3, 0, 3, T, '#6a6278');
+  if (!WALLISH.has(around.w)) px(c, 0, 0, 3, T, '#6a6278');
+}
+
+function room(c: Ctx, r: () => number, around: Around) {
+  if (!WALLISH.has(around.s)) wallpaper(c, r);
+  else wallTop(c, around);
+}
+
+function window_(c: Ctx, r: () => number) {
+  wallpaper(c, r);
+  px(c, 6, 2, 20, 15, '#6a4a2a');
+  const g = c.createLinearGradient(0, 3, 0, 16);
+  g.addColorStop(0, '#bfe6ff');
+  g.addColorStop(1, '#7cc0f0');
+  c.fillStyle = g;
+  c.fillRect(7, 3, 18, 13);
+  px(c, 15, 3, 2, 13, '#6a4a2a');
+  // Lace curtains.
+  px(c, 7, 3, 4, 13, '#f8f4ec');
+  px(c, 21, 3, 4, 13, '#f8f4ec');
+  for (let y = 4; y < 16; y += 3) {
+    px(c, 10, y, 1, 1, '#d8d0c4');
+    px(c, 21, y, 1, 1, '#d8d0c4');
+  }
+  px(c, 12, 5, 2, 1, '#ffffff');
+  px(c, 5, 16, 22, 2, '#e0d4c0');
+}
+
+/** A fireplace: a stone surround and a turf fire that flickers. */
+function fire(c: Ctx, r: () => number, frame: number) {
+  wallpaper(c, r);
+  px(c, 3, 4, 26, 26, '#8a8478');
+  px(c, 3, 4, 26, 3, '#b4ac9c');
+  px(c, 1, 3, 30, 2, '#6a4a2a');
+  px(c, 8, 10, 16, 20, '#201814');
+  // Sods of turf, glowing.
+  px(c, 9, 25, 14, 4, '#4a3020');
+  px(c, 10, 24, 5, 2, '#5a3a24');
+  px(c, 16, 24, 6, 2, '#5a3a24');
+  const flick = [0, 1, 2, 1][frame];
+  const flames: [number, number, number, string][] = [
+    [10, 6 + flick, 4, '#e85020'],
+    [14, 9 - flick, 5, '#f07828'],
+    [19, 7 + (flick % 2), 4, '#e85020'],
+    [12, 4 + flick, 3, '#f8b040'],
+    [17, 5 - (flick % 2), 3, '#f8d060'],
+  ];
+  for (const [x, h, w, colour] of flames) px(c, x, 24 - h, w, h, colour);
+  px(c, 0, 30, T, 2, '#5a4430');
+}
+
+/** Shelves of books (`Y`), bottles behind a bar (`V`) or a shop's crisps and cans (`A`). */
+function shelves(c: Ctx, r: () => number, around: Around, kind: string) {
+  if (BACK_WALL.has(around.n)) wallpaper(c, r);
+  else ground(c, r, around);
+  px(c, 2, 2, 28, 28, '#5a3a20');
+  px(c, 3, 3, 26, 26, '#7a5230');
+  const books = ['#d04838', '#3a70c8', '#f0c030', '#2f8a4a', '#e8e0d0', '#8a3aa0', '#204a30'];
+  const bottles = ['#2f6a3a', '#7a4a1a', '#c88a28', '#e8e0c8', '#3a5a2a'];
+  const goods = ['#e03c3a', '#f0c030', '#f08a20', '#3a70c8', '#2f8a4a', '#f4f4f4'];
+  for (const y of [4, 13, 22]) {
+    px(c, 3, y + 7, 26, 2, '#4a2e18');
+    let x = 4;
+    while (x < 27) {
+      if (kind === 'V') {
+        // A bottle: body, shoulder and neck, with a shine.
+        const colour = bottles[(r() * bottles.length) | 0];
+        if (x + 3 > 28) break;
+        px(c, x, y + 3, 3, 4, colour);
+        px(c, x + 1, y, 1, 3, colour);
+        px(c, x, y + 3, 1, 3, 'rgb(255 255 255 / 0.35)');
+        x += 4;
+        continue;
+      }
+      const w = kind === 'A' ? 3 + ((r() * 2) | 0) : 2 + ((r() * 3) | 0);
+      const h = kind === 'A' ? 3 + ((r() * 4) | 0) : 4 + ((r() * 3) | 0);
+      if (x + w > 28) break;
+      const colour = (kind === 'A' ? goods : books)[
+        (r() * (kind === 'A' ? goods : books).length) | 0
+      ];
+      px(c, x, y + 7 - h, w, h, colour);
+      px(c, x, y + 7 - h, 1, h, 'rgb(255 255 255 / 0.25)');
+      x += w + (r() < 0.2 ? 2 : 1);
+    }
+  }
+  px(c, 2, 30, 28, 2, 'rgb(0 0 0 / 0.25)');
+}
+
+/** A bar or shop counter, joined up along its length. */
+function counter(c: Ctx, r: () => number, around: Around) {
+  floor(c, r);
+  const left = around.w !== 'C' ? 2 : 0;
+  const right = around.e !== 'C' ? 2 : 0;
+  px(c, left, 4, T - left - right, 26, '#5a3418');
+  px(c, left, 4, T - left - right, 8, '#a8743c');
+  px(c, left, 4, T - left - right, 2, '#d0a060');
+  px(c, left, 12, T - left - right, 1, '#3a2010');
+  for (let x = left + 3; x < T - right; x += 8) px(c, x, 15, 5, 12, '#6a4020');
+  px(c, left, 30, T - left - right, 2, 'rgb(0 0 0 / 0.3)');
+}
+
+/** A wooden table, any size, with its legs along the front. */
+function table(c: Ctx, r: () => number, around: Around) {
+  floor(c, r);
+  const n = around.n === 'U';
+  const s = around.s === 'U';
+  const w = around.w === 'U';
+  const e = around.e === 'U';
+  const x0 = w ? 0 : 3;
+  const x1 = e ? T : T - 3;
+  const y0 = n ? 0 : 6;
+  const y1 = s ? T : 24;
+  px(c, x0, y0, x1 - x0, y1 - y0, '#9a6a38');
+  for (let y = y0 + 4; y < y1; y += 6) px(c, x0, y, x1 - x0, 1, '#8a5c30');
+  if (!n) px(c, x0, y0, x1 - x0, 2, '#c08850');
+  if (!s) {
+    px(c, x0, y1, x1 - x0, 3, '#6a4422');
+    if (!w) px(c, x0 + 1, y1 + 3, 2, 4, '#4a2e18');
+    if (!e) px(c, x1 - 3, y1 + 3, 2, 4, '#4a2e18');
+    px(c, x0, y1 + 3, x1 - x0, 1, 'rgb(0 0 0 / 0.2)');
+  }
+  if (!n && !w) {
+    // A cup of tea.
+    px(c, 8, 10, 5, 4, '#f8f8f8');
+    px(c, 9, 10, 3, 1, '#8a5a30');
+  }
+}
+
+function plant(c: Ctx, r: () => number, around: Around) {
+  ground(c, r, around);
+  ellipse(c, 16, 29, 8, 2, 'rgb(0 0 0 / 0.25)');
+  px(c, 10, 20, 12, 9, '#b0583a');
+  px(c, 10, 20, 12, 2, '#d07a50');
+  for (const [x, y, rx, ry, colour] of [
+    [16, 12, 9, 7, '#2f7a3a'],
+    [12, 10, 5, 5, '#3a9a48'],
+    [20, 9, 5, 6, '#3a9a48'],
+    [16, 6, 4, 4, '#58b860'],
+  ] as const)
+    ellipse(c, x, y, rx, ry, colour);
+}
+
+/** A bed: a pillow at the head, a patchwork quilt below. */
+function bed(c: Ctx, r: () => number, around: Around) {
+  floor(c, r);
+  const head = around.n !== 'Q';
+  const foot = around.s !== 'Q';
+  px(c, 3, head ? 2 : 0, 26, (foot ? 28 : T) - (head ? 2 : 0), '#6a4422');
+  px(c, 4, head ? 3 : 0, 24, (foot ? 26 : T) - (head ? 3 : 0), '#f4f0e8');
+  if (head) {
+    px(c, 7, 5, 18, 8, '#ffffff');
+    px(c, 7, 12, 18, 1, '#d8d0c4');
+  }
+  const top = head ? 15 : 0;
+  const bottom = foot ? 26 : T;
+  for (let y = top; y < bottom; y += 6)
+    for (let x = 4; x < 28; x += 6)
+      px(c, x, y, 6, Math.min(6, bottom - y), (x + y) % 12 ? '#3a8a58' : '#d04838');
+  if (foot) px(c, 3, 28, 26, 3, '#4a2e18');
+}
+
+/** A statue on a plinth, holding up the All-Ireland cup. */
+function statue(c: Ctx, r: () => number, around: Around) {
+  ground(c, r, around);
+  ellipse(c, 16, 29, 11, 2.5, 'rgb(0 0 0 / 0.25)');
+  px(c, 5, 18, 22, 11, '#8a8478');
+  px(c, 5, 18, 22, 2, '#c8c0b0');
+  px(c, 7, 22, 18, 4, '#6a6458');
+  // The cup.
+  px(c, 11, 4, 10, 8, '#c8a030');
+  px(c, 12, 5, 8, 6, '#f0d060');
+  px(c, 13, 5, 2, 5, '#fff4b0');
+  px(c, 8, 5, 3, 4, '#c8a030');
+  px(c, 21, 5, 3, 4, '#c8a030');
+  px(c, 14, 12, 4, 3, '#a87810');
+  px(c, 11, 15, 10, 3, '#c8a030');
+}
+
+/** Floorboards, or the polished boards and court lines of a gym. */
+function gymFloor(c: Ctx) {
+  px(c, 0, 0, T, T, '#e2c48e');
+  for (let x = 0; x < T; x += 6) px(c, x, 0, 1, T, '#d0ae74');
+  px(c, 0, 0, T, 1, '#f0dcb0');
+  px(c, 3, 14, 2, 2, '#ffffff');
+}
+
+/** A rug: red with a gold border where it meets the floor. */
+function rug(c: Ctx, around: Around, gym: boolean) {
+  px(c, 0, 0, T, T, gym ? '#c83030' : '#a83a3a');
+  for (let i = 0; i < T; i += 4) px(c, i, (i * 3) % T, 2, 2, gym ? '#d84848' : '#b84a48');
+  const gold = '#e8b840';
+  if (around.n !== 'r') px(c, 0, 0, T, 2, gold);
+  if (around.s !== 'r') px(c, 0, T - 2, T, 2, gold);
+  if (around.w !== 'r') px(c, 0, 0, 2, T, gold);
+  if (around.e !== 'r') px(c, T - 2, 0, 2, T, gold);
+}
+
+/** The way out: a doormat in a gap in the wall. */
+function exit(c: Ctx, r: () => number) {
+  floor(c, r);
+  px(c, 0, 0, T, T, 'rgb(0 0 0 / 0.15)');
+  px(c, 3, 4, 26, 18, '#7a3020');
+  px(c, 4, 5, 24, 16, '#a84a2c');
+  for (let y = 7; y < 20; y += 3) px(c, 6, y, 20, 1, '#c06a40');
+  // A strip of daylight under the door.
+  const g = c.createLinearGradient(0, 22, 0, T);
+  g.addColorStop(0, 'rgb(255 248 220 / 0)');
+  g.addColorStop(1, 'rgb(255 248 220 / 0.6)');
+  c.fillStyle = g;
+  c.fillRect(0, 22, T, 10);
+}
+
+/**
+ * The couch in your house: a three-seater in Ocean Linen, blue-grey slubbed linen with rolled
+ * arms, a long seat cushion, two back cushions, a scatter cushion at each end and a skirt down to
+ * the floor. It's two tiles wide; each tile draws its own half.
+ */
+function couch(): HTMLCanvasElement {
+  const [cv, c] = canvas(T * 2, T);
+  const base = '#4e7096';
+  const light = '#6f92b8';
+  const dark = '#3c5a7c';
+  const deep = '#2a4260';
+  const ink = '#1c2c40';
+  ellipse(c, T, 30, 30, 2.5, 'rgb(0 0 0 / 0.28)');
+  // Back cushions.
+  px(c, 6, 1, 52, 14, ink);
+  px(c, 7, 2, 24, 12, base);
+  px(c, 33, 2, 24, 12, base);
+  px(c, 7, 2, 24, 2, light);
+  px(c, 33, 2, 24, 2, light);
+  px(c, 31, 2, 2, 12, deep);
+  // Seat and skirt.
+  px(c, 4, 14, 56, 15, ink);
+  px(c, 5, 15, 54, 6, light);
+  px(c, 5, 15, 54, 1, '#8aaccc');
+  px(c, 5, 21, 54, 1, deep);
+  px(c, 5, 22, 54, 6, dark);
+  px(c, 5, 27, 54, 1, deep);
+  // Rolled arms, lower than the back and flaring out at the top.
+  for (const [x, out] of [
+    [1, -1],
+    [53, 1],
+  ]) {
+    px(c, x, 9, 10, 20, ink);
+    px(c, x + 1, 10, 8, 18, base);
+    px(c, x + (out < 0 ? -1 : 2), 8, 9, 4, ink);
+    px(c, x + (out < 0 ? 0 : 2), 9, 7, 2, light);
+    px(c, x + 2, 12, 6, 1, dark);
+    px(c, x + 1, 26, 8, 2, deep);
+  }
+  // Scatter cushions, leaning out against the arms.
+  for (const [x, lean] of [
+    [10, -1],
+    [46, 1],
+  ]) {
+    for (let i = 0; i < 9; i++) {
+      const sx = x + lean * Math.round((8 - i) / 3);
+      px(c, sx, 5 + i, 9, 1, ink);
+      if (i && i < 8) px(c, sx + 1, 5 + i, 7, 1, i < 3 ? '#8aaccc' : light);
+    }
+  }
+  // Linen slub: a few lighter and darker flecks.
+  const r = rng(42);
+  for (let i = 0; i < 70; i++) {
+    const x = 6 + ((r() * 52) | 0);
+    const y = 3 + ((r() * 24) | 0);
+    px(c, x, y, 1, 1, r() < 0.5 ? 'rgb(255 255 255 / 0.12)' : 'rgb(0 0 30 / 0.12)');
+  }
+  // Little dark feet.
+  px(c, 6, 29, 3, 2, ink);
+  px(c, 55, 29, 3, 2, ink);
+  return cv;
+}
+
 // ---------- the public side ----------
 
 const ROOFS: Record<string, [string, string, string, string]> = {
@@ -545,6 +853,50 @@ export function tileImage(
       case 'F':
         floor(c, r);
         break;
+      case 'g':
+        gymFloor(c);
+        break;
+      case 'r':
+        rug(c, around, Object.values(around).includes('g'));
+        break;
+      case 'W':
+        room(c, r, around);
+        break;
+      case 'O':
+        window_(c, r);
+        break;
+      case 'J':
+        fire(c, r, frame);
+        break;
+      case 'Y':
+      case 'V':
+      case 'A':
+        shelves(c, r, around, tile);
+        break;
+      case 'C':
+        counter(c, r, around);
+        break;
+      case 'U':
+        table(c, r, around);
+        break;
+      case 'N':
+        plant(c, r, around);
+        break;
+      case 'Q':
+        bed(c, r, around);
+        break;
+      case 'X':
+        statue(c, r, around);
+        break;
+      case 'E':
+        exit(c, r);
+        break;
+      case 'Z': {
+        floor(c, r);
+        const half = around.e === 'Z' ? 0 : 1;
+        c.drawImage(kept('Z:couch', couch), half * T, 0, T, T, 0, 0, T, T);
+        break;
+      }
       case '#':
         wall(c, r, around);
         break;
