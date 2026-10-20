@@ -2,7 +2,7 @@ import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/worl
 
 /**
  * The insides of buildings. Every door on the road leads into a room of its own, built here from
- * one layout per kind of building, so a new town gets its pub, shop and gym for free.
+ * one layout per kind of building, so a new town gets its McGrattans, Vapes and gym for free.
  *
  * Indoor tiles: `F` floor, `g` gym floor, `r` rug (walkable). `W` wall, `O` window, `J` fire,
  * `Y` bookshelves, `V` a bar's bottles, `A` a shop's shelves, `C` counter (talk across it), `U` table, `N` plant, `Q` bed, `X` statue or display,
@@ -127,7 +127,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
     case 'P':
       return {
         ...base,
-        name: `The pub, ${town}`,
+        name: `McGrattans, ${town}`,
         rows: LAYOUTS.P,
         npcs: [
           { look: 'barman', face: 'down', talk: [{ do: 'pub' }] },
@@ -145,23 +145,26 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
         things: {
           V: 'Every whiskey in Ireland, and a bottle of something from Scotland nobody orders.',
           U: 'A sticky table. Someone has left half a pint and a packet of Tayto.',
-          J: 'A turf fire. The whole pub smells of it.',
+          J: 'A turf fire. All of McGrattans smells of it.',
         },
       };
     case 'M':
       return {
         ...base,
-        name: `Corner shop, ${town}`,
+        name: `Vapes, ${town}`,
         rows: LAYOUTS.M,
         npcs: [
           {
             look: 'shopkeeper',
             face: 'down',
-            talk: [{ do: 'say', text: 'SHOPKEEPER: What can I get you?' }, { do: 'shop' }],
+            talk: [
+              { do: 'say', text: 'SHOPKEEPER: Welcome to Vapes. What can I get you?' },
+              { do: 'shop' },
+            ],
           },
         ],
         things: {
-          A: 'Tayto, Club Orange, Brennans bread and a fridge full of Blue Ghosts.',
+          A: 'Vapes in every flavour, Tayto, Club Orange, Brennans bread and a fridge full of Blue Ghosts.',
         },
       };
     case 'G': {
@@ -179,7 +182,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
             talk: [
               {
                 do: 'say',
-                text: 'GYM GUIDE: Howya, champ in the making! The leader is at the top of the hall. Heal up in the pub first if you need to.',
+                text: 'GYM GUIDE: Howya, champ in the making! The leader is at the top of the hall. Heal up in McGrattans first if you need to.',
               },
             ],
           },

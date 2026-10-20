@@ -183,7 +183,7 @@ export function settleBattle(
     const town = outsideOf(mapById(s.pub.map)).name.split(',')[0];
     lines.push(
       'You’re out of Ranemon that can fight!',
-      `You come round in ${town}, with a bar tab of €${tab}.`,
+      `You come round in McGrattans, ${town}, with a bar tab of €${tab}.`,
     );
   }
   return { state, lines };

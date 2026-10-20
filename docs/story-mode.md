@@ -6,7 +6,7 @@ Plan only, written 20 October 2026. Building starts once the battle game is fini
 
 Story mode is a top-down, early-Pokémon-style adventure that walks the player from Co. Clare to Trinity College Dublin, beating a gym in each of 9 counties and then B&S at Trinity. It runs on the existing battle engine with three additions: levels, wild battles you can catch from, and HP/PP that carry over between fights.
 
-The core loop is: walk a county route, fight wild Ranemon in the long grass, throw a pint of Guinness to befriend them, build a party of 6, heal at the pub, beat the county gym for its county jersey (the badge), and move on.
+The core loop is: walk a county route, fight wild Ranemon in the long grass, throw a pint of Guinness to befriend them, build a party of 6, heal at McGrattans (the pub), beat the county gym for its county jersey (the badge), and move on.
 
 | Brief from Rich                                       | How the plan handles it                                                                             |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -155,7 +155,7 @@ The target is that a player who catches as they go, without grinding, arrives at
 
 ## Items
 
-Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at the corner shop in each town. Items used in battle take your turn, like a switch.
+Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at Vapes, the corner shop in each town. Items used in battle take your turn, like a switch.
 
 | Item                | Kind   | Effect                                                      | Where                         | Price    |
 | ------------------- | ------ | ----------------------------------------------------------- | ----------------------------- | -------- |
@@ -177,7 +177,7 @@ Money is euro, won from trainers (leader's ace level × €40, route trainers ×
 | Hi-Vis Vest         | Field  | No weaker wild encounters for 200 steps                     | Shops from Limerick           | €350     |
 | Taxi Home           | Field  | Back to the last pub                                        | Every shop                    | €550     |
 
-**Key items** (never used up): Ranedex, Group Chat (storage, at pubs), High Nelly bike (double speed), Wellies (bog roads), The Round (EXP share), Currach (water), Ordnance Survey map (fly to any visited pub), and the 9 county jerseys shown on the trainer card. **Pubs** do what Pokémon Centres do: the barman heals the party for free and the Group Chat is on the wall.
+**Key items** (never used up): Ranedex, Group Chat (storage, at pubs), High Nelly bike (double speed), Wellies (bog roads), The Round (EXP share), Currach (water), Ordnance Survey map (fly to any visited pub), and the 9 county jerseys shown on the trainer card. **Pubs** (every one is called McGrattans) do what Pokémon Centres do: the barman heals the party for free and the Group Chat is on the wall.
 
 ## Overworld, tiles and sprites
 

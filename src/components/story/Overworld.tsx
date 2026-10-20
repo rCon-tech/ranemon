@@ -269,9 +269,18 @@ export function Overworld(props: Props) {
       c.textBaseline = 'middle';
       for (const [door, label] of Object.entries(DOOR_LABEL)) {
         for (const d of find(map, door)) {
-          const lx = sx(d.x * TILE + 8);
-          const ly = sy((d.y - 1) * TILE + 8);
           const width = Math.ceil(c.measureText(label).width) + 6;
+          // Centred over the door, but kept on the building's front when it's long.
+          const row = map.rows[d.y];
+          let x0 = d.x;
+          let x1 = d.x;
+          while ('#PMGHL'.includes(row[x0 - 1] ?? '.')) x0--;
+          while ('#PMGHL'.includes(row[x1 + 1] ?? '.')) x1++;
+          const lo = x0 * TILE + width / 2;
+          const hi = (x1 + 1) * TILE - width / 2;
+          const centre = d.x * TILE + 8;
+          const lx = sx(lo <= hi ? Math.min(hi, Math.max(lo, centre)) : (lo + hi) / 2);
+          const ly = sy((d.y - 1) * TILE + 8);
           c.fillStyle = INK;
           c.fillRect(lx - width / 2 - 0.5, ly - 5, width + 1, 10);
           c.fillStyle = SIGN_COLOUR[door];

@@ -12,7 +12,7 @@ export const INK = '#283038';
 export const LIGHT = '#ffffff';
 
 /** What each door's building says over it. */
-export const DOOR_LABEL: Record<string, string> = { P: 'PUB', M: 'SHOP', G: 'GYM' };
+export const DOOR_LABEL: Record<string, string> = { P: 'McGRATTANS', M: 'VAPES', G: 'GYM' };
 
 // ---------- people ----------
 

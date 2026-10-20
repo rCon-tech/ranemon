@@ -375,7 +375,7 @@ export function Story() {
       if (t && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
           return run(game, [
-            { do: 'say', text: 'Your Ranemon are too tired. Heal them in the pub first!' },
+            { do: 'say', text: 'Your Ranemon are too tired. Heal them in McGrattans first!' },
           ]);
         }
         return run(game, challenge(t));
