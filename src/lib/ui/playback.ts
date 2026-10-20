@@ -1,6 +1,15 @@
 import type { BattleEvent, BattleState, Side } from '../battle/engine';
 import { moveById, type Stat, type Status } from '../battle/moves';
 
+/** Who the player is up against, which changes how the text box talks about the other side. */
+export interface Foe {
+  kind: 'rival' | 'trainer' | 'wild';
+  /** A trainer's name, such as "Nóra". */
+  name?: string;
+}
+
+export const RIVAL: Foe = { kind: 'rival' };
+
 /** What the battle screen shows, rebuilt one event at a time so HP bars and text stay in step. */
 export interface SideView {
   active: number;
@@ -89,21 +98,32 @@ export const STATUS_TAG: Record<Status, string> = {
  * The text-box line for an event, or null for events that only animate. `view` is the view
  * before the event, so names refer to the creature that was out when it happened.
  */
-export function describeEvent(event: BattleEvent, state: BattleState, view: View): string | null {
+export function describeEvent(
+  event: BattleEvent,
+  state: BattleState,
+  view: View,
+  foe: Foe = RIVAL,
+): string | null {
+  const trainer = foe.kind === 'trainer' ? (foe.name ?? 'The trainer') : 'Your rival';
   if (event.kind === 'win') {
     if (event.winner === 'draw') return 'It’s a draw!';
-    return event.winner === 0 ? 'You won the battle!' : 'You lost the battle…';
+    if (event.winner === 1) return 'You lost the battle…';
+    if (foe.kind === 'wild') return null;
+    return foe.kind === 'trainer' ? `You beat ${trainer}!` : 'You won the battle!';
   }
   const side: Side = event.side;
   const index = event.kind === 'send-out' ? event.index : view[side].active;
   const creature = state.teams[side].battlers[index].creature.name;
-  const name = side === 0 ? creature : `Foe ${creature}`;
+  const name = side === 0 ? creature : `${foe.kind === 'wild' ? 'Wild' : 'Foe'} ${creature}`;
 
   switch (event.kind) {
     case 'send-out':
-      return side === 0 ? `Go! ${creature}!` : `Your rival sent out ${creature}!`;
+      if (side === 0) return `Go! ${creature}!`;
+      return foe.kind === 'wild'
+        ? `A wild ${creature} appeared!`
+        : `${trainer} sent out ${creature}!`;
     case 'withdraw':
-      return side === 0 ? `${creature}, come back!` : `Your rival withdrew ${creature}!`;
+      return side === 0 ? `${creature}, come back!` : `${trainer} withdrew ${creature}!`;
     case 'move':
       return `${name} used ${moveById(event.moveId).name}!`;
     case 'miss':
@@ -155,8 +175,9 @@ export function describeEvent(event: BattleEvent, state: BattleState, view: View
       return `${name} paid for it with some HP!`;
     case 'swap-hp': {
       const foeSide: Side = side === 0 ? 1 : 0;
-      const foe = state.teams[foeSide].battlers[view[foeSide].active].creature.name;
-      return `${name} swapped HP with ${foeSide === 0 ? foe : `Foe ${foe}`}!`;
+      const other = state.teams[foeSide].battlers[view[foeSide].active].creature.name;
+      const label = foeSide === 0 ? other : `${foe.kind === 'wild' ? 'Wild' : 'Foe'} ${other}`;
+      return `${name} swapped HP with ${label}!`;
     }
     case 'wild-partner': {
       const partner = state.teams[side].battlers[event.index].creature.name;

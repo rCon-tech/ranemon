@@ -1,32 +1,41 @@
 @import 'tailwindcss';
 
 /*
- * Ranemon's look: a handheld monster-battle game. Pixel font, chunky outlines, a white text box
- * with a double border, and a sky-and-grass battlefield. One committed look, so every colour is
- * set explicitly and there is no dark variant.
+ * Ranemon's look: the 5th-generation handhelds (Black and White). Full-colour pixel sprites,
+ * white text boxes with a soft double border, dark glassy info panels with bright HP bars,
+ * glossy colour-coded command buttons, and a sky-and-grass battlefield that slowly drifts.
+ * One committed look, so every colour is set explicitly and there is no dark variant.
  */
 @theme {
-  --color-ink: #1d2433;
-  --color-shell: #2b3346;
-  --color-paper: #f8f8f0;
-  --color-frame: #5a6378;
-  --color-hp-high: #38c860;
-  --color-hp-mid: #f0c020;
-  --color-hp-low: #e83838;
-  --color-dex: #d8303a;
-  --font-pixel: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
+  --color-ink: #283038;
+  --color-paper: #ffffff;
+  --color-frame: #58687c;
+  --color-shell: #dfe6ee;
+  --color-mist: #edf2f7;
+  --color-bezel: #1c2026;
+  --color-panel: #2c343e;
+  --color-accent: #e0403a;
+  --color-accent2: #2f7fe0;
+  --color-gold: #f8b830;
+  --color-hp-high: #30d058;
+  --color-hp-mid: #f8c820;
+  --color-hp-low: #f04838;
+  --color-exp: #38a8f8;
+  --color-dex: #e03c3c;
+  --font-pixel: 'Pixelify Sans', ui-rounded, 'Trebuchet MS', sans-serif;
 }
 
 :root {
   color-scheme: light;
 }
 
+/* Around the screen: the console's dark body. */
 html {
-  background: var(--color-shell);
+  background: var(--color-bezel);
 }
 
 body {
-  background: var(--color-shell);
+  background: var(--color-bezel);
   color: var(--color-ink);
   font-family: var(--font-pixel);
   -webkit-font-smoothing: none;
@@ -37,50 +46,112 @@ button {
   font-family: inherit;
 }
 
+/* The screen: the menus' pale blue-grey with soft diagonal stripes. */
+.screen {
+  position: relative;
+  background:
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.4) 0 10px, transparent 10px 20px),
+    var(--color-shell);
+}
+
 /* ---------- shared pieces ---------- */
 
-/* The classic white box with a dark outer and blue-grey inner border. */
+/* The text box: white, rounded, a dark rim and a pale blue inner line. */
 .dialog {
   background: var(--color-paper);
-  border: 4px solid var(--color-ink);
+  border: 2px solid var(--color-frame);
   border-radius: 10px;
   box-shadow:
-    inset 0 0 0 3px var(--color-paper),
-    inset 0 0 0 6px var(--color-frame);
+    inset 0 0 0 2px var(--color-paper),
+    inset 0 0 0 4px #c8d6e4,
+    0 2px 0 rgb(40 48 56 / 0.25);
 }
 
 .pixel-btn {
   appearance: none;
   cursor: pointer;
-  background: var(--color-paper);
+  background: linear-gradient(#ffffff 0 50%, #eef2f6 50% 100%);
   color: var(--color-ink);
-  border: 3px solid var(--color-ink);
-  border-radius: 8px;
-  box-shadow: 0 4px 0 var(--color-ink);
-  font-size: 11px;
-  line-height: 1.4;
-  padding: 10px 12px 8px;
+  border: 2px solid var(--color-frame);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--color-frame);
+  font-size: 15px;
+  line-height: 1.3;
+  padding: 9px 12px 8px;
   text-align: left;
-  transition: transform 0.06s;
+}
+.pixel-btn:hover:not(:disabled) {
+  border-color: var(--color-accent2);
+  box-shadow: 0 3px 0 var(--color-accent2);
 }
 .pixel-btn:active:not(:disabled) {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--color-ink);
+  box-shadow: none;
 }
 .pixel-btn:disabled {
-  opacity: 0.45;
   cursor: default;
+  opacity: 0.45;
+  box-shadow: none;
 }
 .pixel-btn:focus-visible {
-  outline: 3px solid var(--color-hp-mid);
+  outline: 3px solid var(--color-accent2);
   outline-offset: 2px;
 }
 .pixel-btn[aria-pressed='true'] {
-  background: var(--color-ink);
+  background: linear-gradient(#5aa0f0 0 50%, var(--color-accent2) 50% 100%);
+  border-color: #1c4f96;
+  box-shadow: 0 3px 0 #1c4f96;
   color: var(--color-paper);
 }
 
-/* A small cursor arrow in front of the hovered or focused menu item. */
+/*
+ * The battle commands: one glossy colour each, like the touch screen. Set data-cmd on a
+ * .pixel-btn. Move buttons take their type's colour through --type instead.
+ */
+.pixel-btn[data-cmd],
+.move-btn {
+  --dark: color-mix(in srgb, var(--fill) 55%, black);
+  color: var(--color-paper);
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+  background: linear-gradient(
+    color-mix(in srgb, var(--fill) 65%, white) 0 50%,
+    var(--fill) 50% 100%
+  );
+  border-color: var(--dark);
+  box-shadow: 0 3px 0 var(--dark);
+}
+.pixel-btn[data-cmd]:hover:not(:disabled),
+.move-btn:hover:not(:disabled) {
+  border-color: var(--dark);
+  box-shadow: 0 3px 0 var(--dark);
+  filter: brightness(1.08);
+}
+[data-cmd='fight'] {
+  --fill: #e8443a;
+}
+[data-cmd='bag'] {
+  --fill: #f0a020;
+}
+[data-cmd='party'] {
+  --fill: #38b450;
+}
+[data-cmd='run'] {
+  --fill: #2f7fe0;
+}
+.move-btn {
+  --fill: var(--type);
+}
+/* Yellow is too light for white text. */
+.move-btn[data-type='hype'] {
+  color: var(--color-ink);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.5);
+}
+.move-btn[aria-pressed='true'] {
+  outline: 3px solid var(--color-accent2);
+  outline-offset: 2px;
+}
+
+/* The ▶ cursor in front of the hovered or focused menu item. */
 .menu-item {
   position: relative;
   padding-left: 22px;
@@ -88,10 +159,10 @@ button {
 .menu-item::before {
   content: '';
   position: absolute;
-  left: 8px;
+  left: 7px;
   top: 50%;
   border: 5px solid transparent;
-  border-left: 7px solid var(--color-ink);
+  border-left: 7px solid currentColor;
   transform: translateY(-50%);
   opacity: 0;
 }
@@ -102,32 +173,101 @@ button {
 
 .type-badge {
   display: inline-block;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #fff;
-  padding: 3px 4px 2px;
-  border: 2px solid var(--color-ink);
+  color: var(--color-paper);
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
+  border: 1px solid rgb(0 0 0 / 0.3);
   border-radius: 4px;
-  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+  padding: 2px 5px 2px;
 }
 
 /* ---------- battlefield ---------- */
 
+/*
+ * The scene: sky, a far tree line and the grass, with clouds drifting past. data-scene picks
+ * a different place: city streets, a gym's floor, or Trinity at night.
+ */
 .field {
+  --sky-top: #78c4f8;
+  --sky-low: #d4f0ff;
+  --far: #58a868;
+  --ground: #88d070;
+  --ground-low: #5cb850;
+  --pad: #a8e088;
+  --pad-rim: #4c9a44;
+  --cloud: rgb(255 255 255 / 0.85);
   position: relative;
   aspect-ratio: 3 / 2;
   overflow: hidden;
-  background: linear-gradient(180deg, #a8e0f8 0%, #d8f4ff 46%, #b8e890 46%, #88d068 100%);
-  border-bottom: 4px solid var(--color-ink);
+  border-bottom: 3px solid var(--color-bezel);
+  background:
+    radial-gradient(ellipse 14% 5% at 20% 14%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 9% 4% at 27% 11%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 12% 4% at 72% 22%, var(--cloud) 98%, transparent),
+    radial-gradient(ellipse 60% 14% at 25% 50%, var(--far) 98%, transparent),
+    radial-gradient(ellipse 55% 12% at 85% 50%, var(--far) 98%, transparent),
+    linear-gradient(var(--sky-top), var(--sky-low) 48%, var(--ground) 48%, var(--ground-low));
+  background-size:
+    200% 100%,
+    200% 100%,
+    200% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  animation: drift 40s linear infinite;
+}
+@keyframes drift {
+  to {
+    background-position:
+      -200% 0,
+      -200% 0,
+      -200% 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+}
+.field[data-scene='city'] {
+  --sky-top: #9cb8d8;
+  --sky-low: #e4ecf4;
+  --far: #8890a4;
+  --ground: #c4c8d0;
+  --ground-low: #a0a6b2;
+  --pad: #d8dce4;
+  --pad-rim: #7c8494;
+}
+.field[data-scene='gym'] {
+  --sky-top: #f0d8b0;
+  --sky-low: #f8ecd8;
+  --far: #d8b888;
+  --ground: #d89a5c;
+  --ground-low: #b87840;
+  --pad: #f4f4f4;
+  --pad-rim: #c84040;
+  --cloud: transparent;
+}
+.field[data-scene='night'] {
+  --sky-top: #1c2048;
+  --sky-low: #4a3c78;
+  --far: #2c2850;
+  --ground: #4c5a78;
+  --ground-low: #303a54;
+  --pad: #6c7ca0;
+  --pad-rim: #f8b830;
+  --cloud: rgb(255 255 255 / 0.12);
 }
 
+/* Each Ranemon stands on a lit oval of ground. */
 .platform {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 40%, #c8f0a0 0%, #98d878 55%, #70b858 100%);
-  border: 3px solid #4a8a3a;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.45), transparent 60%), var(--pad);
+  border: 3px solid var(--pad-rim);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 0.15);
 }
 .platform-foe {
   right: 6%;
@@ -160,24 +300,42 @@ button {
   width: 40%;
   height: 46%;
 }
+/* Sprites never stand still: a slow breath, as in the 5th generation. */
+.sprite-slot img {
+  transform-origin: 50% 100%;
+  animation: breathe 1.4s steps(2) infinite;
+}
+.slot-you img {
+  animation-delay: -0.7s;
+}
+@keyframes breathe {
+  50% {
+    transform: scaleY(1.03) scaleX(0.985);
+  }
+}
 
+/* Info panels: dark and glassy, cut away on the side nearest the middle. */
 .info-box {
   position: absolute;
   width: 50%;
-  padding: 7px 9px 6px;
-  background: var(--color-paper);
-  border: 3px solid var(--color-ink);
-  font-size: 9px;
+  padding: 6px 10px 6px;
+  color: var(--color-paper);
+  background: linear-gradient(#56606e, var(--color-panel) 55%);
+  border: 2px solid var(--color-bezel);
+  font-size: 13px;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.5);
 }
 .info-foe {
-  left: 4%;
-  top: 6%;
-  border-radius: 4px 14px 4px 14px;
+  left: 0;
+  top: 5%;
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
 }
 .info-you {
-  right: 4%;
-  bottom: 6%;
-  border-radius: 14px 4px 14px 4px;
+  right: 0;
+  bottom: 5%;
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
 }
 
 .hp-track {
@@ -185,35 +343,170 @@ button {
   align-items: center;
   gap: 4px;
   margin-top: 5px;
-  padding: 2px 3px;
+  padding: 2px 3px 2px 4px;
+  background: var(--color-bezel);
   border-radius: 6px;
-  background: var(--color-ink);
 }
 .hp-label {
-  color: var(--color-hp-mid);
-  font-size: 6px;
+  color: var(--color-gold);
+  font-size: 9px;
+  font-weight: 700;
 }
 .hp-bar {
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: #4a5268;
+  background: #4a525c;
   overflow: hidden;
 }
 .hp-fill {
   height: 100%;
   border-radius: 3px;
-  transition:
-    width 0.6s linear,
-    background-color 0.2s;
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35);
+  transition: width 0.6s ease-out;
+}
+.hp-fill.low {
+  animation: blink 0.6s steps(1) infinite;
+}
+
+.exp-track {
+  margin-top: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-bezel);
+}
+.exp-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-exp);
+  transition: width 0.8s ease-out;
 }
 
 .status-tag {
-  font-size: 6px;
-  padding: 2px 3px 1px;
+  font-size: 9px;
   border-radius: 3px;
-  color: #fff;
-  border: 1px solid var(--color-ink);
+  padding: 1px 4px;
+  color: var(--color-paper);
+  background: var(--color-accent);
+}
+
+/* ---------- story mode: the console's buttons ---------- */
+
+.pad-btn {
+  width: 44px;
+  height: 44px;
+  background: #3a424c;
+  touch-action: none;
+}
+.pad-btn:active {
+  background: #56606c;
+}
+.round-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8a80, var(--color-accent) 60%);
+  color: var(--color-paper);
+  border: 2px solid #8a1c1c;
+  box-shadow: 0 3px 0 #8a1c1c;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
+  touch-action: manipulation;
+}
+.round-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.start-btn {
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: #3a424c;
+  color: var(--color-paper);
+  border: 2px solid var(--color-bezel);
+}
+
+/* A wild Ranemon: the screen flashes before the battle. */
+@keyframes encounter-flash {
+  0%,
+  40%,
+  80% {
+    background: #000;
+  }
+  20%,
+  60%,
+  100% {
+    background: rgb(255 255 255 / 0.6);
+  }
+}
+.encounter-flash {
+  z-index: 30;
+  animation: encounter-flash 0.65s steps(1) both;
+}
+
+/* Evolution: the old and new forms trade places in a white glow, faster and faster. */
+.evolve-scene {
+  background: radial-gradient(circle, #ffffff 0 20%, #c8e8ff 45%, #2c3460 100%);
+}
+.evolve-old,
+.evolve-new {
+  grid-area: 1 / 1;
+}
+.evolve-old {
+  animation: evolve-out 2.4s steps(1) both;
+}
+.evolve-new {
+  animation: evolve-in 2.4s steps(1) both;
+}
+.evolving .evolve-old,
+.evolving .evolve-new {
+  filter: brightness(0) invert(1);
+}
+@keyframes evolve-out {
+  0%,
+  20%,
+  40%,
+  55%,
+  67%,
+  77%,
+  85%,
+  91% {
+    opacity: 1;
+  }
+  12%,
+  32%,
+  49%,
+  62%,
+  73%,
+  82%,
+  89%,
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes evolve-in {
+  0%,
+  20%,
+  40%,
+  55%,
+  67%,
+  77%,
+  85%,
+  91% {
+    opacity: 0;
+  }
+  12%,
+  32%,
+  49%,
+  62%,
+  73%,
+  82%,
+  89%,
+  95%,
+  100% {
+    opacity: 1;
+  }
 }
 
 /* ---------- animations ---------- */

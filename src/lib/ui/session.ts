@@ -1,8 +1,9 @@
 import { chooseAction, chooseReplacement, type Difficulty } from '../battle/cpu';
-import { moveById } from '../battle/moves';
+import { moveById, type Status } from '../battle/moves';
 import {
   activeBattler,
   aimsAtFoe,
+  effectiveStat,
   legalActions,
   playTurn,
   replaceFainted,
@@ -12,7 +13,7 @@ import {
   type Side,
 } from '../battle/engine';
 import { Rng, seedFrom } from '../battle/rng';
-import { applyEvent, describeEvent, viewOf, type View } from './playback';
+import { applyEvent, describeEvent, RIVAL, viewOf, type Foe, type View } from './playback';
 
 export const TURN_SECONDS = 45;
 /** Each line stays up long enough to type out and then read; tapping the box skips ahead. */
@@ -27,16 +28,39 @@ export const SPECIAL_MS = 2200;
 export const messagePause = (text: string) => MESSAGE_MS + text.length * MS_PER_CHAR;
 
 export type Mode =
-  'playing' | 'menu' | 'fight' | 'switch' | 'forced-switch' | 'confirm-run' | 'over';
-export type Result = 'win' | 'loss' | 'draw';
+  'playing' | 'menu' | 'fight' | 'switch' | 'bag' | 'forced-switch' | 'confirm-run' | 'over';
+export type Result = 'win' | 'loss' | 'draw' | 'caught' | 'fled';
+type MenuMode = 'menu' | 'fight' | 'switch' | 'bag' | 'confirm-run';
+
+/** What a healing item does to one of your Ranemon. The story's bag decides who it can target. */
+export type ItemEffect =
+  | { kind: 'heal'; amount: number }
+  /** Full HP and no status. */
+  | { kind: 'restore' }
+  | { kind: 'revive'; fraction: number }
+  | { kind: 'cure'; status: Status };
+
+/** A pint thrown at a wild Ranemon. */
+export interface Pint {
+  name: string;
+  /** Multiplies the catch chance; Infinity always works. */
+  multiplier: number;
+}
+
+/** Lines the session itself adds between engine events, and the end of a caught or fled battle. */
+export type Line = { kind: 'say'; text: string } | { kind: 'end'; result: Result };
+export type QueueItem = BattleEvent | Line;
 
 /** Everything the battle screen shows, driven one step at a time by `reduce`. */
 export interface Session {
   /** The engine's state after every event so far, including ones not yet played back. */
   state: BattleState;
   difficulty: Difficulty;
+  foe: Foe;
+  /** Battle mode runs a turn timer; story mode lets you take your time. */
+  timer: boolean;
   view: View;
-  queue: BattleEvent[];
+  queue: QueueItem[];
   message: string;
   mode: Mode;
   /** How long to wait before the next step, so each line can be read. */
@@ -52,13 +76,20 @@ export interface Session {
   line: number;
   timeLeft: number;
   result: Result | null;
+  /** Your Ranemon that have been out this battle, for sharing EXP. */
+  fought: number[];
+  /** Failed attempts to run, which make the next one likelier. */
+  runs: number;
 }
 
 export type SessionAction =
   | { type: 'step'; random: number }
   | { type: 'act'; action: Action; random: number }
   | { type: 'replace'; to: number }
-  | { type: 'open'; mode: 'menu' | 'fight' | 'switch' | 'confirm-run' }
+  | { type: 'open'; mode: MenuMode }
+  | { type: 'item'; name: string; effect: ItemEffect; target: number; random: number }
+  | { type: 'pint'; pint: Pint; rate: number; random: number }
+  | { type: 'run'; random: number }
   | { type: 'forfeit' }
   | { type: 'tick'; random: number };
 
@@ -71,9 +102,15 @@ function randomFrom(seed: number): () => number {
 const bump = (pair: [number, number], side: Side): [number, number] =>
   side === 0 ? [pair[0] + 1, pair[1]] : [pair[0], pair[1] + 1];
 
+export interface SessionOptions {
+  foe?: Foe;
+  timer?: boolean;
+}
+
 export function startSession(
   start: { state: BattleState; events: BattleEvent[] },
   difficulty: Difficulty,
+  options: SessionOptions = {},
 ): Session {
   const view = viewOf(start.state);
   view[0].shown = false;
@@ -81,6 +118,8 @@ export function startSession(
   return {
     state: start.state,
     difficulty,
+    foe: options.foe ?? RIVAL,
+    timer: options.timer ?? true,
     view,
     queue: start.events,
     message: '',
@@ -93,18 +132,67 @@ export function startSession(
     line: 0,
     timeLeft: TURN_SECONDS,
     result: null,
+    fought: [],
+    runs: 0,
   };
 }
 
-function playEvents(s: Session, state: BattleState, events: BattleEvent[]): Session {
+/**
+ * The befriend chance for a pint, from the main series' catch formula: lower HP and a status make
+ * it likelier. `rate` is 120 for most Ranemon and 45 for the rare ones.
+ */
+export function catchChance(
+  maxHp: number,
+  hp: number,
+  rate: number,
+  multiplier: number,
+  status: Status | null,
+): number {
+  if (multiplier === Infinity) return 1;
+  const bonus = status === 'asleep' ? 2 : status ? 1.5 : 1;
+  return Math.min(1, ((3 * maxHp - 2 * hp) * rate * multiplier * bonus) / (3 * maxHp * 255));
+}
+
+/**
+ * How many sips the Ranemon takes, 0 to 3. Each sip passes with the cube root of the chance, so
+ * finishing all 3 (befriending it) happens with exactly the chance.
+ */
+export function sips(chance: number, random: () => number): number {
+  const each = Math.cbrt(chance);
+  let n = 0;
+  while (n < 3 && random() < each) n++;
+  return n;
+}
+
+const PUSHED_AWAY = [
+  'Oh no! It pushed the pint away!',
+  'Aww! It only took one sip!',
+  'Argh! It nearly finished it!',
+];
+
+function say(text: string): Line {
+  return { kind: 'say', text };
+}
+
+function playEvents(s: Session, state: BattleState, events: QueueItem[]): Session {
   return { ...s, state, queue: [...s.queue, ...events], mode: 'playing', pause: 0 };
 }
 
 /** Plays the next queued event, or decides what comes next once the queue is empty. */
 function step(s: Session, random: number): Session {
   const [event, ...rest] = s.queue;
+  if (event?.kind === 'end') return { ...s, queue: [], mode: 'over', result: event.result };
+  if (event?.kind === 'say') {
+    return {
+      ...s,
+      queue: rest,
+      message: event.text,
+      line: s.line + 1,
+      pause: messagePause(event.text),
+    };
+  }
   if (event) {
-    const text = describeEvent(event, s.state, s.view);
+    const text = describeEvent(event, s.state, s.view, s.foe);
     let next: Session = {
       ...s,
       queue: rest,
@@ -126,7 +214,12 @@ function step(s: Session, random: number): Session {
     if (event.kind === 'damage' || event.kind === 'recoil' || event.kind === 'status-damage') {
       next = { ...next, hits: bump(next.hits, event.side) };
     }
-    if (event.kind === 'send-out') next = { ...next, entries: bump(next.entries, event.side) };
+    if (event.kind === 'send-out') {
+      next = { ...next, entries: bump(next.entries, event.side) };
+      if (event.side === 0 && !next.fought.includes(event.index)) {
+        next = { ...next, fought: [...next.fought, event.index] };
+      }
+    }
     return next;
   }
 
@@ -151,14 +244,88 @@ function step(s: Session, random: number): Session {
   };
 }
 
-function act(s: Session, action: Action, random: number): Session {
+function act(s: Session, action: Action, random: number, before: QueueItem[] = []): Session {
   const foe = chooseAction(s.state, 1, s.difficulty, randomFrom(random));
   const next = playTurn(s.state, [action, foe]);
-  return playEvents(s, next.state, next.events);
+  return playEvents({ ...s, queue: [...s.queue, ...before] }, next.state, next.events);
+}
+
+/** Uses an item on one of your Ranemon; it takes your turn, as a switch does. */
+function applyItemAction(s: Session, a: Extract<SessionAction, { type: 'item' }>): Session {
+  const state = structuredClone(s.state);
+  const b = state.teams[0].battlers[a.target];
+  const name = b.creature.name;
+  const before = b.hp;
+  const lines: QueueItem[] = [say(`You used a ${a.name}!`)];
+  switch (a.effect.kind) {
+    case 'heal':
+      b.hp = Math.min(b.stats.hp, b.hp + a.effect.amount);
+      break;
+    case 'restore':
+      b.hp = b.stats.hp;
+      b.status = null;
+      break;
+    case 'revive':
+      b.hp = Math.max(1, Math.floor(b.stats.hp * a.effect.fraction));
+      lines.push(say(`${name} is back on its feet!`));
+      break;
+    case 'cure':
+      if (b.status === a.effect.status) b.status = null;
+      break;
+  }
+  const cured = s.state.teams[0].battlers[a.target].status !== null && b.status === null;
+  if (cured) lines.push(say(`${name} feels like itself again.`));
+  const view = s.view.map((v) => ({ ...v, hp: [...v.hp], status: [...v.status] })) as View;
+  view[0].hp[a.target] = b.hp;
+  view[0].status[a.target] = b.status;
+  if (b.hp > before && a.effect.kind !== 'revive') {
+    lines.push(say(`${name} regained ${b.hp - before} HP!`));
+  }
+  return act({ ...s, state, view }, { kind: 'pass' }, a.random, lines);
+}
+
+/** Throws a pint at a wild Ranemon: 3 sips and it's your friend, or it pushes it away. */
+function throwPint(s: Session, a: Extract<SessionAction, { type: 'pint' }>): Session {
+  const target = activeBattler(s.state, 1);
+  const chance = catchChance(target.stats.hp, target.hp, a.rate, a.pint.multiplier, target.status);
+  const n = sips(chance, randomFrom(a.random));
+  const lines: QueueItem[] = [say(`You threw a ${a.pint.name}!`)];
+  for (let i = 1; i <= n; i++) lines.push(say(['Sip…', ...Array(i - 1).fill('sip…')].join(' ')));
+  if (n === 3) {
+    lines.push(say(`Gotcha! ${target.creature.name} finished the pint and joined you!`));
+    return {
+      ...s,
+      queue: [...s.queue, ...lines, { kind: 'end', result: 'caught' }],
+      mode: 'playing',
+      pause: 0,
+    };
+  }
+  lines.push(say(PUSHED_AWAY[n]));
+  return act(s, { kind: 'pass' }, a.random + 1, lines);
+}
+
+/** Running from a wild Ranemon: certain when you're faster, and likelier with each try. */
+function run(s: Session, random: number): Session {
+  const mine = effectiveStat(activeBattler(s.state, 0), 'speed');
+  const theirs = effectiveStat(activeBattler(s.state, 1), 'speed');
+  const odds = mine >= theirs ? 1 : ((mine * 128) / theirs + 30 * (s.runs + 1)) / 256;
+  if (randomFrom(random)() < odds) {
+    return {
+      ...s,
+      queue: [say('Got away safely!'), { kind: 'end', result: 'fled' }],
+      mode: 'playing',
+      pause: 0,
+    };
+  }
+  return act({ ...s, runs: s.runs + 1 }, { kind: 'pass' }, random + 1, [say('Can’t escape!')]);
 }
 
 export const isChoosing = (mode: Mode) =>
-  mode === 'menu' || mode === 'fight' || mode === 'switch' || mode === 'confirm-run';
+  mode === 'menu' ||
+  mode === 'fight' ||
+  mode === 'switch' ||
+  mode === 'bag' ||
+  mode === 'confirm-run';
 
 export function reduce(s: Session, a: SessionAction): Session {
   switch (a.type) {
@@ -173,6 +340,21 @@ export function reduce(s: Session, a: SessionAction): Session {
     }
     case 'open':
       return isChoosing(s.mode) ? { ...s, mode: a.mode } : s;
+    case 'item':
+      return isChoosing(s.mode) ? applyItemAction(s, a) : s;
+    case 'pint':
+      return isChoosing(s.mode) && s.foe.kind === 'wild' ? throwPint(s, a) : s;
+    case 'run':
+      if (!isChoosing(s.mode)) return s;
+      if (s.foe.kind !== 'wild') {
+        return {
+          ...s,
+          mode: 'menu',
+          message: 'No running from a trainer battle!',
+          line: s.line + 1,
+        };
+      }
+      return run(s, a.random);
     case 'forfeit':
       return {
         ...s,
@@ -182,7 +364,7 @@ export function reduce(s: Session, a: SessionAction): Session {
         message: 'You forfeited the battle.',
       };
     case 'tick': {
-      if (!isChoosing(s.mode)) return s;
+      if (!s.timer || !isChoosing(s.mode)) return s;
       if (s.timeLeft > 1) return { ...s, timeLeft: s.timeLeft - 1 };
       // Out of time: a random legal move is used.
       const moves = legalActions(s.state, 0).filter((x) => x.kind === 'move');

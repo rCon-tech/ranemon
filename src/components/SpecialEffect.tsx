@@ -60,7 +60,7 @@ function Label({
       y={at.y}
       fontSize={size}
       textAnchor="middle"
-      fontFamily="'Press Start 2P', monospace"
+      fontFamily="'Pixelify Sans', sans-serif"
       fill={colour}
       stroke={INK}
       strokeWidth={size / 3.5}
@@ -167,7 +167,7 @@ const SCENES: Record<string, Scene> = {
             x={c.x - 14}
             y={c.y - 10.4}
             fontSize="3"
-            fontFamily="'Press Start 2P', monospace"
+            fontFamily="'Pixelify Sans', sans-serif"
             fill={INK}
           >
             ranelads.com
@@ -218,7 +218,7 @@ const SCENES: Record<string, Scene> = {
             x={8 + i * 15}
             y={-6 - (i % 3) * 8}
             fontSize="4"
-            fontFamily="'Press Start 2P', monospace"
+            fontFamily="'Pixelify Sans', sans-serif"
             fill="#3ef07a"
           >
             {i % 2 ? '1011' : '0110'}
@@ -294,7 +294,7 @@ const SCENES: Record<string, Scene> = {
             y={b.y + 1.5}
             fontSize="3.6"
             textAnchor="middle"
-            fontFamily="'Press Start 2P', monospace"
+            fontFamily="'Pixelify Sans', sans-serif"
             fill={INK}
           >
             I DESERVE IT!

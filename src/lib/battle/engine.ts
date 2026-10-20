@@ -1,7 +1,7 @@
-import { levelStats, type BaseStats, type Creature } from './creature';
+import { LEVEL, levelStats, type BaseStats, type Creature } from './creature';
 import { FLAIL, moveById, type Move, type SpecialEffect, type Stat, type Status } from './moves';
 import { Rng } from './rng';
-import { creatureById } from './roster';
+import { formById, lineOf, sameStage } from './evolutions';
 import { effectiveness } from './types';
 
 export type Side = 0 | 1;
@@ -10,6 +10,7 @@ export const TEAM_SIZE = 6;
 
 export interface Battler {
   creature: Creature;
+  level: number;
   stats: BaseStats;
   hp: number;
   status: Status | null;
@@ -42,7 +43,24 @@ export interface BattleState {
   rng: number;
 }
 
-export type Action = { kind: 'move'; index: number } | { kind: 'switch'; to: number };
+/**
+ * `pass` spends the turn without acting: using an item, throwing a pint or failing to run away.
+ * The story layer applies what happened; the engine only lets the foe have its turn.
+ */
+export type Action =
+  { kind: 'move'; index: number } | { kind: 'switch'; to: number } | { kind: 'pass' };
+
+/**
+ * A creature joining a battle. A bare Creature is level 50 at full health, as in battle mode;
+ * story mode passes its level and the HP, PP and status carried over from the last fight.
+ */
+export interface Entrant {
+  creature: Creature;
+  level?: number;
+  hp?: number;
+  pp?: number[];
+  status?: Status | null;
+}
 
 export type BattleEvent =
   | { kind: 'send-out'; side: Side; index: number }
@@ -82,23 +100,29 @@ const NO_MODS: Record<Stat, number> = { attack: 1, defense: 1, spirit: 1, speed:
 export const MOD_MIN = 0.4;
 export const MOD_MAX = 3;
 
-function makeBattler(creature: Creature): Battler {
-  const stats = levelStats(creature.base);
+const isEntrant = (x: Creature | Entrant): x is Entrant => 'creature' in x;
+
+function makeBattler(entry: Creature | Entrant): Battler {
+  const e: Entrant = isEntrant(entry) ? entry : { creature: entry };
+  const level = e.level ?? LEVEL;
+  const stats = levelStats(e.creature.base, level);
+  const status = e.status ?? null;
   return {
-    creature,
+    creature: e.creature,
+    level,
     stats,
-    hp: stats.hp,
-    status: null,
-    sleepTurns: 0,
+    hp: Math.max(0, Math.min(stats.hp, e.hp ?? stats.hp)),
+    status,
+    sleepTurns: status === 'asleep' ? 2 : 0,
     stages: { attack: 0, defense: 0, spirit: 0, speed: 0 },
     mods: { ...NO_MODS },
-    pp: creature.moves.map((id) => moveById(id).pp),
+    pp: e.pp ? [...e.pp] : e.creature.moves.map((id) => moveById(id).pp),
   };
 }
 
 /** Starts a battle. Each team lists its picks with the lead first. */
 export function startBattle(
-  teams: [Creature[], Creature[]],
+  teams: [(Creature | Entrant)[], (Creature | Entrant)[]],
   seed: number,
 ): { state: BattleState; events: BattleEvent[] } {
   for (const team of teams) {
@@ -106,10 +130,16 @@ export function startBattle(
       throw new Error(`A team needs 1 to ${TEAM_SIZE} creatures`);
     }
   }
+  const lead = (battlers: Battler[]) =>
+    Math.max(
+      0,
+      battlers.findIndex((b) => b.hp > 0),
+    );
+  const sides = teams.map((t) => t.map(makeBattler));
   const state: BattleState = {
     teams: [
-      { battlers: teams[0].map(makeBattler), active: 0 },
-      { battlers: teams[1].map(makeBattler), active: 0 },
+      { battlers: sides[0], active: lead(sides[0]) },
+      { battlers: sides[1], active: lead(sides[1]) },
     ],
     turn: 1,
     phase: { kind: 'choose' },
@@ -118,8 +148,8 @@ export function startBattle(
   return {
     state,
     events: [
-      { kind: 'send-out', side: 1, index: 0 },
-      { kind: 'send-out', side: 0, index: 0 },
+      { kind: 'send-out', side: 1, index: state.teams[1].active },
+      { kind: 'send-out', side: 0, index: state.teams[0].active },
     ],
   };
 }
@@ -178,6 +208,7 @@ export function legalActions(state: BattleState, side: Side): Action[] {
 }
 
 function isLegal(state: BattleState, side: Side, action: Action): boolean {
+  if (action.kind === 'pass') return true;
   return legalActions(state, side).some(
     (a) =>
       a.kind === action.kind &&
@@ -187,7 +218,7 @@ function isLegal(state: BattleState, side: Side, action: Action): boolean {
   );
 }
 
-/** Damage for one hit, following the main-series formula fixed at level 50. */
+/** Damage for one hit, following the main-series formula. At level 50 the level factor is 22. */
 export function computeDamage(
   attacker: Battler,
   defender: Battler,
@@ -198,7 +229,8 @@ export function computeDamage(
   const physical = move.category === 'physical';
   const a = effectiveStat(attacker, physical ? 'attack' : 'spirit');
   const d = effectiveStat(defender, physical ? 'defense' : 'spirit');
-  const base = (22 * move.power * (a / d)) / 50 + 2;
+  const levelFactor = (2 * attacker.level) / 5 + 2;
+  const base = (levelFactor * move.power * (a / d)) / 50 + 2;
   const stab =
     move.type !== null && (attacker.creature.types as string[]).includes(move.type) ? 1.5 : 1;
   const type = effectiveness(move.type, defender.creature.types);
@@ -416,14 +448,15 @@ class Turn {
       case 'tag-partner': {
         const team = this.state.teams[side];
         const to = team.battlers.findIndex(
-          (b, i) => b.creature.id === effect.partner && b.hp > 0 && i !== team.active,
+          (b, i) => lineOf(b.creature.id) === effect.partner && b.hp > 0 && i !== team.active,
         );
         if (to < 0) {
           // No partner on the team: a wild one joins with the drink and takes the caller's place.
           const caller = this.active(side);
           caller.hp = 0;
           caller.left = true;
-          const wild = makeBattler(creatureById(effect.partner));
+          const creature = formById(sameStage(effect.partner, caller.creature.id));
+          const wild = makeBattler({ creature, level: caller.level });
           // The can's been drunk: the wild one can't call in another, or it would never end.
           wild.creature.moves.forEach((id, i) => {
             if (moveById(id).specials?.some((e) => e.kind === 'tag-partner')) wild.pp[i] = 0;
@@ -518,7 +551,7 @@ function pushFaints(turn: Turn, fainted: Set<Side>) {
 function actionOrder(turn: Turn, actions: [Action, Action]): Side[] {
   const key = (side: Side): [number, number] => {
     const action = actions[side];
-    if (action.kind === 'switch') return [10, effectiveStat(turn.active(side), 'speed')];
+    if (action.kind !== 'move') return [10, effectiveStat(turn.active(side), 'speed')];
     const move = moveFor(turn.active(side), action.index);
     return [move.priority, effectiveStat(turn.active(side), 'speed')];
   };
@@ -547,7 +580,7 @@ export function playTurn(
   for (const side of actionOrder(turn, actions)) {
     const action = actions[side];
     if (action.kind === 'switch') turn.switchIn(side, action.to);
-    else turn.useMove(side, action.index);
+    else if (action.kind === 'move') turn.useMove(side, action.index);
     pushFaints(turn, fainted);
     if (turn.state.teams.some((t) => t.battlers.every((b) => b.hp === 0))) break;
   }

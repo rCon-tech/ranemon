@@ -13,7 +13,7 @@ export const ROSTER: Creature[] = [
     moves: ['nozzy-call', 'mosh-pit', 'shopping-trolley', 'headlock'],
     entry: 'One Nozzy Call and he’s already halfway to the bar.',
     colour: '#f5cf3a',
-    sprite: '/sprites/carlmon.png',
+    sprite: '/sprites/bw/carlmon.png',
   },
   {
     id: 'steadmon',
@@ -23,7 +23,7 @@ export const ROSTER: Creature[] = [
     moves: ['ranelads-com', 'well-actually', 'cold-shoulder', 'quick-fact'],
     entry: 'Ruler of Ranelads.com. Rewrites the rules of reality when he’s losing.',
     colour: '#9b7be8',
-    sprite: '/sprites/steadmon.png',
+    sprite: '/sprites/bw/steadmon.png',
   },
   {
     id: 'enda',
@@ -33,7 +33,7 @@ export const ROSTER: Creature[] = [
     moves: ['fierce-friendship', 'heartbreaker', 'prank-call', 'cold-shoulder'],
     entry: 'Makes friends so fiercely that opponents forget they came to fight.',
     colour: '#f59ac2',
-    sprite: '/sprites/enda.png',
+    sprite: '/sprites/bw/enda.png',
   },
   {
     id: 'oismon',
@@ -43,7 +43,7 @@ export const ROSTER: Creature[] = [
     moves: ['helping-hand-ois', 'mosh-pit', 'gym-bro-punch', 'hype-train'],
     entry: 'Always has a Monster in his pocket for Olliemon.',
     colour: '#e8a33a',
-    sprite: '/sprites/oismon.png',
+    sprite: '/sprites/bw/oismon.png',
   },
   {
     id: 'olliemon',
@@ -53,7 +53,7 @@ export const ROSTER: Creature[] = [
     moves: ['helping-hand-ollie', 'slam-dunk', 'headlock', 'dazzling-smile'],
     entry: 'Tags in for Oismon with an energy drink. Never seen without him.',
     colour: '#e58fd8',
-    sprite: '/sprites/olliemon.png',
+    sprite: '/sprites/bw/olliemon.png',
   },
   {
     id: 'hugomon',
@@ -63,7 +63,7 @@ export const ROSTER: Creature[] = [
     moves: ['dark-web', 'calculated-hit', 'shopping-trolley', 'cheap-shot'],
     entry: 'Logs onto the Dark Web, hides his identity, and hits harder for it.',
     colour: '#6b5bb8',
-    sprite: '/sprites/hugomon.png',
+    sprite: '/sprites/bw/hugomon.png',
   },
   {
     id: 'gibbsmon',
@@ -73,7 +73,7 @@ export const ROSTER: Creature[] = [
     moves: ['military-force', 'gym-bro-punch', 'mosh-pit', 'flex'],
     entry: 'Has the army on speed dial. The bombers arrive in waves.',
     colour: '#7d8b4f',
-    sprite: '/sprites/gibbsmon.png',
+    sprite: '/sprites/bw/gibbsmon.png',
   },
   {
     id: 'jammon',
@@ -83,7 +83,7 @@ export const ROSTER: Creature[] = [
     moves: ['jamanding', 'slow-clap', 'gym-bro-punch', 'shopping-trolley'],
     entry: 'Demands what he deserves, and digs in until he gets it.',
     colour: '#58a6a6',
-    sprite: '/sprites/jammon.png',
+    sprite: '/sprites/bw/jammon.png',
   },
   {
     id: 'boydemon',
@@ -93,7 +93,7 @@ export const ROSTER: Creature[] = [
     moves: ['paddy-pimblett', 'headlock', 'shopping-trolley', 'cheap-shot'],
     entry: 'Learnt his MMA from the family. Nobody asks for a rematch.',
     colour: '#f08a5d',
-    sprite: '/sprites/boydemon.png',
+    sprite: '/sprites/bw/boydemon.png',
   },
   {
     id: 'killemon',
@@ -103,7 +103,7 @@ export const ROSTER: Creature[] = [
     moves: ['this-ones-for-africa', 'mosh-pit', 'hype-train', 'slow-clap'],
     entry: 'Breaks into a tribal dance from the wilds of Africa and comes back stronger.',
     colour: '#d9822b',
-    sprite: '/sprites/killemon.png',
+    sprite: '/sprites/bw/killemon.png',
   },
   {
     id: 'lorcamon',
@@ -113,7 +113,7 @@ export const ROSTER: Creature[] = [
     moves: ['rounds-on-me', 'dazzling-smile', 'cold-shoulder', 'group-chat-spam'],
     entry: 'Gets the rounds in. His is always the 0% one.',
     colour: '#7fa6e6',
-    sprite: '/sprites/lorcamon.png',
+    sprite: '/sprites/bw/lorcamon.png',
   },
   {
     id: 'owemon',
@@ -123,7 +123,7 @@ export const ROSTER: Creature[] = [
     moves: ['usa', 'mosh-pit', 'calculated-hit', 'steal-their-chips'],
     entry: 'Brings the full might of the US military to a pub argument.',
     colour: '#c94f4f',
-    sprite: '/sprites/owemon.png',
+    sprite: '/sprites/bw/owemon.png',
   },
   {
     id: 'conemon',
@@ -133,7 +133,7 @@ export const ROSTER: Creature[] = [
     moves: ['try-hard', 'mosh-pit', 'gym-bro-punch', 'shopping-trolley'],
     entry: 'Tries far too hard for the lads, and it costs him.',
     colour: '#f2a541',
-    sprite: '/sprites/conemon.png',
+    sprite: '/sprites/bw/conemon.png',
   },
   {
     id: 'robinmon',
@@ -143,7 +143,7 @@ export const ROSTER: Creature[] = [
     moves: ['content-creation', 'dazzling-smile', 'group-chat-spam', 'prank-call'],
     entry: 'Films everything. The fans keep him going.',
     colour: '#d94fa8',
-    sprite: '/sprites/robinmon.png',
+    sprite: '/sprites/bw/robinmon.png',
   },
   {
     id: 'simomon',
@@ -153,7 +153,7 @@ export const ROSTER: Creature[] = [
     moves: ['blaze-up', 'avalanche-of-vibes', 'cold-shoulder', 'well-actually'],
     entry: 'Slows right down and becomes very, very hard to bother.',
     colour: '#6cc4a0',
-    sprite: '/sprites/simomon.png',
+    sprite: '/sprites/bw/simomon.png',
   },
   {
     id: 'thilomon',
@@ -163,7 +163,7 @@ export const ROSTER: Creature[] = [
     moves: ['b2b', 'shopping-trolley', 'mosh-pit', 'cheap-shot'],
     entry: 'Goes back to back: fires one off, then he’s gone before you notice.',
     colour: '#b45cc9',
-    sprite: '/sprites/thilomon.png',
+    sprite: '/sprites/bw/thilomon.png',
   },
 ];
 

@@ -1,11 +1,20 @@
 'use client';
 
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useState, type CSSProperties } from 'react';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
-import { legalActions, startBattle, switchTargets, type Action } from '@/lib/battle/engine';
+import {
+  legalActions,
+  startBattle,
+  switchTargets,
+  type Action,
+  type BattleState,
+  type Entrant,
+} from '@/lib/battle/engine';
 import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
+import { canUse, type ItemUse } from '@/lib/story/items';
+import type { Foe } from '@/lib/ui/playback';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
@@ -13,10 +22,36 @@ import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 
+/** One kind of item in the story bag, as the battle screen shows it. */
+export interface BagEntry {
+  id: string;
+  name: string;
+  count: number;
+  use: ItemUse;
+}
+
+/** What story mode adds to a battle: the bag, catching, and EXP bars. */
+export interface StoryBattle {
+  bag: BagEntry[];
+  /** The befriend rate of the wild Ranemon. */
+  rate: number;
+  /** Called when an item is used, so the story can take it out of the bag. */
+  onUse: (id: string) => void;
+  /** How far through its level each of your Ranemon is, 0 to 1. */
+  expOf: (index: number) => number;
+}
+
+export type Scene = 'field' | 'city' | 'gym' | 'night';
+
 interface Props {
-  teams: [Creature[], Creature[]];
+  teams: [(Creature | Entrant)[], (Creature | Entrant)[]];
   difficulty: Difficulty;
-  onFinish: (result: Result) => void;
+  /** Battle mode fights the rival; story mode passes the trainer or a wild Ranemon. */
+  foe?: Foe;
+  story?: StoryBattle;
+  /** Where the fight is, for the battlefield's backdrop. */
+  scene?: Scene;
+  onFinish: (result: Result, state: BattleState, fought: number[]) => void;
 }
 
 const CATEGORY_LABEL: Record<Move['category'], string> = {
@@ -28,9 +63,9 @@ const CATEGORY_LABEL: Record<Move['category'], string> = {
 /** What a move does, shown in the text box when it's picked and before it's used. */
 function MoveInfo({ move, pp }: { move: Move; pp: number | null }) {
   return (
-    <span className="flex flex-col gap-1.5 text-[8px] leading-relaxed" data-testid="move-info">
-      <span className="text-[10px]">
-        {move.signature && <span className="text-[#d8a000]">* </span>}
+    <span className="flex flex-col gap-1.5 text-[11px] leading-relaxed" data-testid="move-info">
+      <span className="text-[14px]">
+        {move.signature && <span className="text-accent">★ </span>}
         {move.name}
       </span>
       <span>
@@ -53,10 +88,20 @@ function newSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] | 0;
 }
 
-export function BattleScreen({ teams, difficulty, onFinish }: Props) {
+export function BattleScreen({
+  teams,
+  difficulty,
+  foe: against,
+  story,
+  scene = 'field',
+  onFinish,
+}: Props) {
   const [session, dispatch] = useReducer(reduce, null, () =>
-    startSession(startBattle(teams, newSeed()), difficulty),
+    startSession(startBattle(teams, newSeed()), difficulty, { foe: against, timer: !story }),
   );
+  // The bag item picked in the BAG menu, waiting for a Ranemon to use it on.
+  const [bagPick, setBagPick] = useState<BagEntry | null>(null);
+  const [bagNote, setBagNote] = useState<string | null>(null);
   const { state, view, mode, message, hits, entries, lunges, effect, line, timeLeft, result } =
     session;
   const { queue, pause } = session;
@@ -81,8 +126,31 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
   const act = (action: Action) => dispatch({ type: 'act', action, random: roll() });
   const advance = () => dispatch({ type: 'step', random: roll() });
   const replace = (to: number) => dispatch({ type: 'replace', to });
-  const setMode = (m: 'menu' | 'fight' | 'switch' | 'confirm-run') =>
+  const setMode = (m: 'menu' | 'fight' | 'switch' | 'bag' | 'confirm-run') => {
+    setBagPick(null);
+    setBagNote(null);
     dispatch({ type: 'open', mode: m });
+  };
+  const run = () => dispatch({ type: 'run', random: roll() });
+  const spendEntry = (entry: BagEntry, target: number) => {
+    if (entry.use.kind !== 'heal') return;
+    story?.onUse(entry.id);
+    setBagPick(null);
+    dispatch({ type: 'item', name: entry.name, effect: entry.use.effect, target, random: roll() });
+  };
+  const pickEntry = (entry: BagEntry) => {
+    if (entry.use.kind === 'pint') {
+      if (session.foe.kind !== 'wild') {
+        setBagNote('That’s someone else’s Ranemon. Get your own round in.');
+        return;
+      }
+      story?.onUse(entry.id);
+      dispatch({ type: 'pint', pint: entry.use.pint, rate: story?.rate ?? 120, random: roll() });
+      return;
+    }
+    setBagNote(null);
+    setBagPick(entry);
+  };
   const forfeit = () => dispatch({ type: 'forfeit' });
 
   const me = state.teams[0].battlers[view[0].active];
@@ -101,7 +169,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="field" data-testid="battlefield">
+      <div className="field" data-scene={scene} data-testid="battlefield">
         <div className="platform platform-foe" />
         <div className="platform platform-you" />
         <div className="sprite-slot slot-foe">
@@ -168,6 +236,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             hp={view[0].hp[view[0].active]}
             status={view[0].status[view[0].active]}
             mine
+            exp={story?.expOf(view[0].active)}
           />
         )}
         {special && <SpecialEffect key={effect.n} moveId={effect.moveId} user={effect.user} />}
@@ -176,12 +245,16 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
       <div className="flex flex-1 flex-col gap-3 bg-shell p-3">
         <button
           type="button"
-          className="dialog min-h-[76px] w-full px-4 py-3 text-left text-[11px] leading-[1.9]"
+          className="dialog min-h-[76px] w-full px-4 py-3 text-left text-[15px] leading-[1.9]"
           onClick={mode === 'playing' ? advance : undefined}
           aria-live="polite"
           data-testid="text-box"
         >
-          {selected !== null ? (
+          {bagNote && mode === 'bag' ? (
+            bagNote
+          ) : bagPick && mode === 'bag' ? (
+            `Use the ${bagPick.name} on which Ranemon?`
+          ) : selected !== null ? (
             <MoveInfo
               move={flail ? FLAIL : moveById(me.creature.moves[selected])}
               pp={flail ? null : me.pp[selected]}
@@ -193,17 +266,18 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
         </button>
 
         {choosing && (
-          <div className="flex items-center justify-between text-[8px] text-paper">
+          <div className="flex items-center justify-between text-[11px] text-ink">
             <span>Turn {state.turn}</span>
-            <span aria-label="Time left this turn">⏱ {timeLeft}s</span>
+            {session.timer && <span aria-label="Time left this turn">⏱ {timeLeft}s</span>}
           </div>
         )}
 
-        {mode === 'menu' && (
+        {mode === 'menu' && story && (
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Actions">
             <button
               type="button"
-              className="pixel-btn menu-item col-span-2"
+              className="pixel-btn menu-item"
+              data-cmd="fight"
               onClick={() => setMode('fight')}
             >
               FIGHT
@@ -211,6 +285,100 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             <button
               type="button"
               className="pixel-btn menu-item"
+              data-cmd="bag"
+              onClick={() => setMode('bag')}
+            >
+              BAG
+            </button>
+            <button
+              type="button"
+              className="pixel-btn menu-item"
+              data-cmd="party"
+              disabled={!canSwitch}
+              onClick={() => setMode('switch')}
+            >
+              RANEMON
+            </button>
+            <button type="button" className="pixel-btn menu-item" data-cmd="run" onClick={run}>
+              RUN
+            </button>
+          </div>
+        )}
+
+        {mode === 'bag' && (
+          <div className="flex flex-col gap-2" role="group" aria-label="Bag">
+            {!bagPick &&
+              (story?.bag ?? [])
+                .filter((e) => e.count > 0 && e.use.kind !== 'level')
+                .map((e) => (
+                  <button
+                    key={e.id}
+                    type="button"
+                    className="pixel-btn menu-item flex justify-between text-[13px]"
+                    onClick={() => pickEntry(e)}
+                  >
+                    <span>{e.name}</span>
+                    <span>×{e.count}</span>
+                  </button>
+                ))}
+            {bagPick &&
+              state.teams[0].battlers.map((b, i) => {
+                if (b.left) return null;
+                const ok = canUse(bagPick.use, {
+                  hp: b.hp,
+                  maxHp: b.stats.hp,
+                  status: b.status,
+                  level: b.level,
+                });
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    className="pixel-btn flex items-center gap-3"
+                    disabled={!ok}
+                    onClick={() => spendEntry(bagPick, i)}
+                  >
+                    <span className="h-9 w-9 shrink-0">
+                      <Sprite creature={b.creature} />
+                    </span>
+                    <span className="flex flex-1 flex-col gap-1">
+                      <span className="text-[13px]">
+                        {b.creature.name} Lv{b.level}
+                      </span>
+                      <span className="text-[10px] opacity-75">
+                        {b.hp === 0 ? 'Fainted' : `HP ${b.hp}/${b.stats.hp}`}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            {(story?.bag ?? []).every((e) => e.count === 0 || e.use.kind === 'level') && (
+              <p className="text-[13px] text-ink">The bag is empty.</p>
+            )}
+            <button
+              type="button"
+              className="pixel-btn self-end text-[13px]"
+              onClick={() => (bagPick ? setBagPick(null) : setMode('menu'))}
+            >
+              BACK
+            </button>
+          </div>
+        )}
+
+        {mode === 'menu' && !story && (
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Actions">
+            <button
+              type="button"
+              className="pixel-btn menu-item col-span-2"
+              data-cmd="fight"
+              onClick={() => setMode('fight')}
+            >
+              FIGHT
+            </button>
+            <button
+              type="button"
+              className="pixel-btn menu-item"
+              data-cmd="party"
               disabled={!canSwitch}
               onClick={() => setMode('switch')}
             >
@@ -219,6 +387,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             <button
               type="button"
               className="pixel-btn menu-item"
+              data-cmd="run"
               onClick={() => setMode('confirm-run')}
             >
               RUN
@@ -236,10 +405,11 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                   <button
                     key={id}
                     type="button"
-                    className="pixel-btn flex flex-col gap-1.5"
-                    style={{
-                      borderLeft: `10px solid ${move.type ? TYPE_COLOR[move.type] : '#888'}`,
-                    }}
+                    className="pixel-btn move-btn flex flex-col gap-1.5"
+                    style={
+                      { '--type': move.type ? TYPE_COLOR[move.type] : '#8890a0' } as CSSProperties
+                    }
+                    data-type={move.type ?? undefined}
                     disabled={!allowed && !flail}
                     aria-pressed={selected === index}
                     onClick={() =>
@@ -247,11 +417,11 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     }
                     title={move.flavour}
                   >
-                    <span className="text-[9px] leading-snug">
-                      {move.signature && <span className="text-[#d8a000]">* </span>}
+                    <span className="text-[13px] leading-snug">
+                      {move.signature && <span className="text-gold">★ </span>}
                       {move.name}
                     </span>
-                    <span className="flex justify-between text-[7px] opacity-75">
+                    <span className="flex justify-between text-[10px] opacity-90">
                       <span>{move.type ? TYPE_LABEL[move.type] : '—'}</span>
                       <span>
                         PP {me.pp[index]}/{move.pp}
@@ -264,7 +434,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             <div className="flex justify-between gap-2">
               <button
                 type="button"
-                className="pixel-btn text-[9px]"
+                className="pixel-btn text-[13px]"
                 onClick={() => {
                   setPicked(null);
                   setMode('menu');
@@ -274,7 +444,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
               </button>
               <button
                 type="button"
-                className="pixel-btn flex-1 text-[9px]"
+                className="pixel-btn flex-1 text-[13px]"
                 disabled={selected === null}
                 onClick={() => selected !== null && use(selected)}
               >
@@ -306,8 +476,8 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     <Sprite creature={b.creature} />
                   </span>
                   <span className="flex flex-1 flex-col gap-1">
-                    <span className="text-[9px]">{b.creature.name}</span>
-                    <span className="text-[7px] opacity-75">
+                    <span className="text-[13px]">{b.creature.name}</span>
+                    <span className="text-[10px] opacity-75">
                       {b.hp === 0 ? 'Fainted' : `HP ${b.hp}/${b.stats.hp}`}
                       {out && b.hp > 0 ? ' · In battle' : ''}
                     </span>
@@ -318,7 +488,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             {mode === 'switch' && (
               <button
                 type="button"
-                className="pixel-btn self-end text-[9px]"
+                className="pixel-btn self-end text-[13px]"
                 onClick={() => setMode('menu')}
               >
                 BACK
@@ -329,7 +499,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
 
         {mode === 'confirm-run' && (
           <div className="flex flex-col gap-2">
-            <p className="text-[9px] leading-relaxed text-paper">Forfeit? It counts as a loss.</p>
+            <p className="text-[13px] leading-relaxed text-ink">Forfeit? It counts as a loss.</p>
             <div className="grid grid-cols-2 gap-2">
               <button type="button" className="pixel-btn menu-item" onClick={forfeit}>
                 YES
@@ -342,7 +512,11 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
         )}
 
         {mode === 'over' && result && (
-          <button type="button" className="pixel-btn menu-item" onClick={() => onFinish(result)}>
+          <button
+            type="button"
+            className="pixel-btn menu-item"
+            onClick={() => onFinish(result, state, session.fought)}
+          >
             CONTINUE
           </button>
         )}

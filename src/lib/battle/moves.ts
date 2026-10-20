@@ -556,7 +556,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'oismon',
     name: 'Helping Hand',
     flavour:
-      'Swaps out for Olliemon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Olliemon takes Oismon’s place.',
+      'Swaps out for his partner Olliemon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild one takes his place.',
     type: 'hype',
     category: 'status',
     power: 0,
@@ -570,7 +570,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'olliemon',
     name: 'Helping Hand',
     flavour:
-      'Swaps out for Oismon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Oismon takes Olliemon’s place.',
+      'Swaps out for his partner Oismon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild one takes his place.',
     type: 'charm',
     category: 'status',
     power: 0,
@@ -652,7 +652,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'lorcamon',
     name: 'Rounds on Me',
     flavour:
-      'Buys a round: his is 0%, theirs isn’t. The opponent gets flustered and Lorcamon’s Speed goes up 20%.',
+      'Buys a round: his is 0%, theirs isn’t. The opponent gets flustered and his Speed goes up 20%.',
     type: 'charm',
     category: 'status',
     power: 0,
@@ -734,7 +734,24 @@ export const SPECIAL_MOVES: Move[] = [
   },
 ];
 
-const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, FLAIL].map((m) => [m.id, m]));
+/** Moves only story mode's bosses know. Named by Rich later; these are placeholders. */
+export const BOSS_MOVES: Move[] = [
+  {
+    id: 'last-orders',
+    signature: 'bns',
+    name: 'Last Orders',
+    flavour: 'Calls last orders and the whole bar charges at once. Cuts the foe’s Speed by 30%.',
+    type: 'chaos',
+    category: 'physical',
+    power: 85,
+    accuracy: 100,
+    pp: 5,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
+  },
+];
+
+const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, FLAIL].map((m) => [m.id, m]));
 
 export function moveById(id: string): Move {
   const move = BY_ID.get(id);

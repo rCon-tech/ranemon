@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 
-const MS_PER_CHAR = 28;
+export const MS_PER_CHAR = 28;
 
 /**
  * Types a line out a letter at a time, like the handhelds. The rest of the line is laid out
  * but hidden, so the box never reflows and the full text is always in the page for readers.
  * Give it a new `key` for each line.
  */
-export function TypedText({ text }: { text: string }) {
+export function TypedText({ text, instant = false }: { text: string; instant?: boolean }) {
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
@@ -20,6 +20,7 @@ export function TypedText({ text }: { text: string }) {
     }, MS_PER_CHAR);
     return () => clearInterval(id);
   }, [text]);
+  if (instant) return <span>{text}</span>;
   return (
     <>
       <span>{text.slice(0, shown)}</span>

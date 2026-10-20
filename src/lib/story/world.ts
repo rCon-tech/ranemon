@@ -1,0 +1,225 @@
+import type { Difficulty } from '../battle/cpu';
+import type { ItemId } from './items';
+
+/**
+ * The overworld's rules: maps made of one character per 16×16 tile, the people standing on them,
+ * and the scripts they run. Pure data and pure functions, so it all tests without a browser.
+ */
+
+export type Dir = 'up' | 'down' | 'left' | 'right';
+export const DELTA: Record<Dir, [number, number]> = {
+  up: [0, -1],
+  down: [0, 1],
+  left: [-1, 0],
+  right: [1, 0],
+};
+export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right', right: 'left' };
+
+/**
+ * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
+ * `B` bridge, `F` floor. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
+ * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock. Doors are blocked too, and walking
+ * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
+ * Markers that are grass underneath: `@` arrival from the west (and the start), `>` arrival from
+ * the east, `*` a hidden Blue Ghost, `1`-`9` the map's people in order.
+ */
+export type Tile = string;
+
+const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F']);
+export const ENCOUNTER_TILES = new Set([',', 'b']);
+export const DOORS = new Set(['P', 'M', 'G', 'H', 'L']);
+
+export type Look =
+  | 'mam'
+  | 'higgins'
+  | 'rival'
+  | 'farmer'
+  | 'lad'
+  | 'leader'
+  | 'trainer'
+  | 'guard'
+  | 'scholar'
+  | 'bns'
+  | 'local';
+
+/** One step of a script. Scripts are run by the story screen, one step at a time. */
+export type Step =
+  | { do: 'say'; text: string }
+  | { do: 'battle'; trainer: string }
+  | { do: 'give'; item: ItemId; count?: number }
+  | { do: 'flag'; flag: string }
+  | { do: 'if'; flag: string; then: Step[]; else?: Step[] }
+  | { do: 'heal' }
+  | { do: 'starter' }
+  | { do: 'pub' }
+  | { do: 'shop' }
+  | { do: 'ending' };
+
+export interface Trainer {
+  id: string;
+  name: string;
+  /** Species and level, lead first. The rival's team is worked out from your starter instead. */
+  team: [string, number][];
+  ai: Difficulty;
+  /** Euro won. */
+  prize: number;
+  before: string;
+  after: string;
+  /** Run after winning, once. */
+  reward?: Step[];
+  rival?: boolean;
+  /** A first battle you can lose: no blackout, and the story carries on either way. */
+  friendly?: boolean;
+}
+
+export interface Npc {
+  look: Look;
+  face: Dir;
+  /** What talking to them does. A trainer's battle comes first if it hasn't been won. */
+  talk?: Step[];
+  trainer?: string;
+  /** Tiles a trainer can see along its facing; walking into view starts the battle. */
+  sight?: number;
+  /** Only there while this flag is set / not set. */
+  showIf?: string;
+  hideIf?: string;
+}
+
+export interface Wild {
+  min: number;
+  max: number;
+  /** Species and weight. */
+  table: [string, number][];
+}
+
+export interface GameMap {
+  id: string;
+  name: string;
+  /** Route index: 0 is Clare, 9 Dublin, 10 Trinity. Decides what the shop sells. */
+  county: number;
+  rows: string[];
+  wild?: Wild;
+  npcs: Npc[];
+  /** Text of each `S`, `H` and `L`, in reading order. */
+  signs?: string[];
+  houses?: Step[][];
+  landmarks?: Step[][];
+  /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
+  gym?: { trainer: string; place: string };
+  west?: string;
+  east?: string;
+  /** Run once, the first time you arrive. */
+  enter?: Step[];
+}
+
+export interface Placed<T> {
+  x: number;
+  y: number;
+  index: number;
+  item: T;
+}
+
+const MARKERS = new Set(['@', '>', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+
+/**
+ * The tile under a position; outside the map counts as a tree. A marker takes the ground of the
+ * nearest plain tile in its row, so a person stands on floor indoors and on road on the road.
+ */
+export function tileAt(map: GameMap, x: number, y: number): Tile {
+  const row = map.rows[y];
+  const c = row?.[x];
+  if (c === undefined) return 'T';
+  if (!MARKERS.has(c)) return c;
+  for (let d = 1; d < row.length; d++) {
+    for (const n of [row[x - d], row[x + d]]) {
+      if (n !== undefined && !MARKERS.has(n) && isWalkable(n)) return n;
+    }
+  }
+  return '.';
+}
+
+/** Every position of a character, in reading order. */
+export function find(map: GameMap, c: string): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
+  map.rows.forEach((row, y) => [...row].forEach((ch, x) => ch === c && out.push({ x, y })));
+  return out;
+}
+
+export function marker(map: GameMap, c: '@' | '>'): { x: number; y: number } {
+  const at = find(map, c)[0];
+  if (!at) throw new Error(`${map.id} has no ${c}`);
+  return at;
+}
+
+export function npcsOf(map: GameMap): Placed<Npc>[] {
+  return map.npcs.map((npc, i) => {
+    const at = find(map, String(i + 1))[0];
+    if (!at) throw new Error(`${map.id} has no slot ${i + 1}`);
+    return { ...at, index: i, item: npc };
+  });
+}
+
+export const npcId = (map: GameMap, index: number) => `${map.id}:${index}`;
+
+export function isPresent(npc: Npc, flags: ReadonlySet<string>): boolean {
+  if (npc.showIf && !flags.has(npc.showIf)) return false;
+  if (npc.hideIf && flags.has(npc.hideIf)) return false;
+  return true;
+}
+
+export const isWalkable = (t: Tile) => WALKABLE.has(t);
+
+/** Whether the player could stand at a tile: walkable and nobody standing there. */
+export function canEnter(map: GameMap, x: number, y: number, flags: ReadonlySet<string>): boolean {
+  if (!isWalkable(tileAt(map, x, y))) return false;
+  return !npcsOf(map).some((n) => n.x === x && n.y === y && isPresent(n.item, flags));
+}
+
+/** The text of the sign, house or landmark door at a position. */
+export function doorIndex(map: GameMap, x: number, y: number): number {
+  const c = map.rows[y][x];
+  return find(map, c).findIndex((p) => p.x === x && p.y === y);
+}
+
+/**
+ * A trainer that can see the player standing at (x, y): one not yet beaten, facing them, with
+ * nothing in between and the player within its sight.
+ */
+export function spottedBy(
+  map: GameMap,
+  x: number,
+  y: number,
+  flags: ReadonlySet<string>,
+  beaten: (trainer: string) => boolean,
+): Placed<Npc> | null {
+  for (const n of npcsOf(map)) {
+    const npc = n.item;
+    if (!npc.trainer || !npc.sight || !isPresent(npc, flags) || beaten(npc.trainer)) continue;
+    const [dx, dy] = DELTA[npc.face];
+    for (let d = 1; d <= npc.sight; d++) {
+      const tx = n.x + dx * d;
+      const ty = n.y + dy * d;
+      if (tx === x && ty === y) return n;
+      if (!canEnter(map, tx, ty, flags)) break;
+    }
+  }
+  return null;
+}
+
+/** Picks a wild Ranemon from a table, given two random numbers in [0, 1). */
+export function pickWild(wild: Wild, r1: number, r2: number): { species: string; level: number } {
+  const total = wild.table.reduce((s, [, w]) => s + w, 0);
+  let roll = r1 * total;
+  let species = wild.table[0][0];
+  for (const [id, w] of wild.table) {
+    if (roll < w) {
+      species = id;
+      break;
+    }
+    roll -= w;
+  }
+  return { species, level: wild.min + Math.floor(r2 * (wild.max - wild.min + 1)) };
+}
+
+/** 1 step in 10 on long grass or bog starts a wild battle. */
+export const ENCOUNTER_RATE = 0.1;

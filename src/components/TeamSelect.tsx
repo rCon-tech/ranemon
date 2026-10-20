@@ -21,7 +21,7 @@ function Card({ creature, children }: { creature: Creature; children?: React.Rea
       <span className="h-12 w-12">
         <Sprite creature={creature} />
       </span>
-      <span className="text-[8px] leading-tight">{creature.name}</span>
+      <span className="text-[11px] leading-tight">{creature.name}</span>
       <span className="flex flex-wrap justify-center gap-0.5">
         {creature.types.map((t) => (
           <TypeBadge key={t} type={t} />
@@ -59,15 +59,15 @@ export function TeamSelect({ roster, onReady }: Props) {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-3 text-paper">
-      <div className="flex items-center justify-between text-[10px]">
+    <div className="flex flex-1 flex-col gap-4 p-3 text-ink">
+      <div className="flex items-center justify-between text-[14px]">
         <h1>CHOOSE YOUR TEAM</h1>
         <span aria-label="Time left to pick">⏱ {timeLeft}s</span>
       </div>
 
       <section className="dialog p-3 text-ink" aria-label="Your roster">
-        <h2 className="mb-1 text-[9px]">PICK {TEAM_SIZE}</h2>
-        <p className="mb-2 text-[7px] leading-relaxed opacity-70">
+        <h2 className="mb-1 text-[13px]">PICK {TEAM_SIZE}</h2>
+        <p className="mb-2 text-[10px] leading-relaxed opacity-70">
           Your first pick leads. Your rival gets {TEAM_SIZE} of the rest.
         </p>
         <div className="grid grid-cols-4 gap-1.5">
@@ -82,7 +82,7 @@ export function TeamSelect({ roster, onReady }: Props) {
                 onClick={() => toggle(c.id)}
               >
                 <Card creature={c}>
-                  <span className="h-2.5 text-[7px]">
+                  <span className="h-2.5 text-[10px]">
                     {order === 0 ? 'LEAD' : order > 0 ? `#${order + 1}` : ''}
                   </span>
                 </Card>
@@ -97,7 +97,7 @@ export function TeamSelect({ roster, onReady }: Props) {
           <button
             key={level}
             type="button"
-            className="pixel-btn text-center text-[9px]"
+            className="pixel-btn text-center text-[13px]"
             aria-pressed={difficulty === level}
             onClick={() => setDifficulty(level)}
           >
@@ -109,6 +109,7 @@ export function TeamSelect({ roster, onReady }: Props) {
       <button
         type="button"
         className="pixel-btn menu-item"
+        data-cmd="fight"
         disabled={picks.length !== TEAM_SIZE}
         onClick={() => onReady(chosen(), difficulty)}
       >

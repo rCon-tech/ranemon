@@ -4,30 +4,44 @@ import Link from 'next/link';
 import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
 
+/** The title: the black-and-white split of the 5th generation's box art, with a gold logo. */
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-10 px-4 py-12 text-center text-paper">
-      <div className="flex flex-col items-center gap-4">
+    <div className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-4 py-12 text-center">
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[linear-gradient(160deg,#f4f7fa_0_48%,#1c2026_48%_100%)]"
+      />
+      <div className="relative flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={asset('/logo.png')}
           alt=""
           width={96}
           height={96}
-          className="[image-rendering:pixelated]"
+          className="rounded-full border-4 border-bezel bg-paper [image-rendering:pixelated]"
         />
-        <h1 className="text-[34px] leading-none tracking-wide text-[#f8d030] [text-shadow:4px_4px_0_#3060b0,-2px_-2px_0_#3060b0,2px_-2px_0_#3060b0,-2px_2px_0_#3060b0]">
+        <h1 className="text-[56px] font-bold leading-none tracking-wide text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_5px_0_#1c4f96,0_7px_0_#1c2026]">
           RANEMON
         </h1>
-        <p className="text-[9px] leading-relaxed text-[#a8b4cc]">Your friends. Their moves.</p>
+        <p className="rounded-full bg-bezel px-3 py-1 text-[14px] text-paper">
+          Your friends. Their moves.
+        </p>
       </div>
-      <button type="button" className="blink text-[13px] text-paper" onClick={onStart}>
+      <button
+        type="button"
+        className="blink relative text-[22px] font-bold text-paper [text-shadow:2px_2px_0_#000]"
+        onClick={onStart}
+      >
         PRESS START
       </button>
-      <div className="flex flex-col items-center gap-4 text-[8px] text-[#a8b4cc]">
+      <div className="relative flex flex-col items-center gap-4 text-[14px] text-[#c8d4e0]">
         <p>
           Record: {record.wins}W · {record.losses}L
         </p>
+        <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
+          STORY MODE
+        </Link>
         <Link href="/ranedex" className="underline underline-offset-4">
           RANEDEX
         </Link>

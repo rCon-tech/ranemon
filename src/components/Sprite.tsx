@@ -61,7 +61,7 @@ export function Sprite({ creature, back = false }: { creature: Creature; back?: 
           fontSize="22"
           fill="#1d2433"
           opacity="0.35"
-          fontFamily="'Press Start 2P', monospace"
+          fontFamily="'Pixelify Sans', sans-serif"
         >
           {initial}
         </text>
