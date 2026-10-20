@@ -517,8 +517,10 @@ function stoneWall(c: Ctx, r: () => number, around: Around) {
 const TREE_SPREAD = 5;
 const TREE_RISE = 14;
 
-/** One in four trees has turned for autumn. */
-export const isAutumn = (variant: number) => ((variant >>> 5) & 3) === 0;
+/** About two trees in five are pines; one broadleaf in four has turned for autumn. */
+export const isPine = (variant: number) => (variant >>> 9) % 5 < 2;
+export const isAutumn = (variant: number) => !isPine(variant) && ((variant >>> 5) & 3) === 0;
+const PINE_RISE = 22;
 
 const LEAVES = {
   green: ['#173c1c', '#24602a', '#3a8a36', '#5cae46', '#9ce070'],
@@ -567,6 +569,51 @@ function treeTop(r: () => number, autumn: boolean): HTMLCanvasElement {
       // A scalloped lower edge: the dark under each clump.
       for (let k = -rad + 3; k < rad - 2; k += 4) px(c, x + k, y + rad - 3, 3, 1, ink);
     }
+  }
+  return cv;
+}
+
+const NEEDLES = ['#123a30', '#1e5a40', '#2c7a4e', '#46a060', '#7cc87a'];
+
+/**
+ * A pine like the 5th generation's forests: stacked tiers of drooping, jagged boughs in deep
+ * blue-greens, narrowing to a point, on a short trunk. Taller than the broadleaf trees.
+ */
+function pineTop(r: () => number): HTMLCanvasElement {
+  const sp = TREE_SPREAD * RES;
+  const rise = PINE_RISE * RES;
+  const w = T + sp * 2;
+  const [cv, c] = canvas(w, T + rise);
+  const [ink, dark, mid, light, shine] = NEEDLES;
+  const cx = w / 2;
+  const bottom = rise + T - 8;
+  px(c, cx - 3, bottom - 8, 6, 12, '#4a2e14');
+  px(c, cx - 3, bottom - 8, 2, 12, '#6a4422');
+  // Tiers from the top down; each is a triangle of boughs whose edge droops in spikes.
+  const tiers = 5;
+  for (let i = 0; i < tiers; i++) {
+    const top = 2 + i * 11;
+    const height = 16;
+    const half = 7 + i * 4.2;
+    for (let y = 0; y < height; y++) {
+      const spread = (half * (y + 1)) / height;
+      const jag = y > height - 5 ? (((y * 7 + i * 3) % 4) - 1) * 1.5 : 0;
+      const x0 = Math.round(cx - spread - jag);
+      const x1 = Math.round(cx + spread + jag);
+      px(c, x0 - 1, top + y, x1 - x0 + 2, 1, ink);
+      px(c, x0, top + y, x1 - x0, 1, dark);
+      // Lit from the left: the left half of each tier is lighter.
+      px(c, x0 + 1, top + y, Math.round((x1 - x0) * 0.45), 1, mid);
+      if (y > 2) px(c, x0 + 2, top + y, Math.round((x1 - x0) * 0.2), 1, light);
+    }
+    // Spiky drooping tips along the bottom edge.
+    for (let x = Math.round(cx - half); x < cx + half; x += 3) {
+      const tip = 2 + ((x + i) % 2);
+      px(c, x, top + height, 2, tip, x < cx ? mid : dark);
+      px(c, x, top + height + tip, 1, 1, ink);
+    }
+    for (let k = 0; k < 4 + i; k++)
+      px(c, cx - half + ((r() * half) | 0), top + 6 + ((r() * 8) | 0), 2, 1, shine);
   }
   return cv;
 }
@@ -1044,6 +1091,13 @@ export function tallImage(
 ): { image: HTMLCanvasElement; rise: number; spread: number } {
   if (tile === 'K') return { image: kept('K:top', campanile), rise: TILE, spread: 0 };
   const v = variant % 4;
+  if (isPine(variant)) {
+    return {
+      image: kept(`T:pine:${v}`, () => pineTop(rng(v * 71 + 3))),
+      rise: PINE_RISE,
+      spread: TREE_SPREAD,
+    };
+  }
   const autumn = isAutumn(variant);
   return {
     image: kept(`T:top:${v}:${autumn}`, () => treeTop(rng(v * 131 + 7), autumn)),
