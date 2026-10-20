@@ -16,7 +16,16 @@ import {
   statsOf,
   toEntrant,
 } from '@/lib/story/party';
-import { load, newer, newGame, playerId, recruit, save, settleBattle } from '@/lib/story/state';
+import {
+  load,
+  newer,
+  newGame,
+  playerId,
+  recruit,
+  save,
+  settleBattle,
+  toggleExpShare,
+} from '@/lib/story/state';
 import { pickWild } from '@/lib/story/world';
 import { catchChance, reduce, sips, startSession, type Session } from '@/lib/ui/session';
 
@@ -220,6 +229,26 @@ describe('story state', () => {
     expect(out.state.money).toBe(500);
     expect(out.state.map).toBe('clare');
     expect(out.state.party[0].hp).toBe(statsOf(s.party[0]).hp);
+  });
+
+  it('gives the bench EXP with Exp Share on, and none with it off', () => {
+    let s = recruit(newGame(), 'carlmon', 5).state;
+    s = recruit(s, 'enda', 5).state;
+    s = recruit(s, 'jammon', 5).state;
+    s = { ...s, party: s.party.map((m, i) => (i === 2 ? { ...m, hp: 0 } : m)) };
+    const foe = creatureById('olliemon');
+    const { state } = startBattle([s.party.map(toEntrant), [{ creature: foe, level: 5 }]], 1);
+    const won = structuredClone(state);
+    won.teams[1].battlers[0].hp = 0;
+    const gain = (g: typeof s) => {
+      const out = settleBattle(g, won, 'win', [0], false).state;
+      return out.party.map((m, i) => m.exp - g.party[i].exp);
+    };
+    const full = expYield(5, false);
+    expect(gain(s)).toEqual([full, 0, 0]);
+    expect(gain(toggleExpShare(s))).toEqual([full, full, 0]);
+    expect(toggleExpShare(toggleExpShare(s)).expShare).toBe(false);
+    expect(gain({ ...s, flags: ['round'] })).toEqual([full, Math.floor(full / 2), 0]);
   });
 
   it('saves and loads under a trainer name, and survives a broken save', () => {

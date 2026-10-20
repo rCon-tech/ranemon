@@ -34,6 +34,7 @@ import {
   healParty,
   load,
   makeLead,
+  toggleExpShare,
   newer,
   newGame,
   parseSave,
@@ -778,8 +779,13 @@ export function Story() {
         )}
         {overlay === 'menu' && (
           <StartMenu
+            expShare={!!game.expShare}
             onPick={(o) => {
-              if (o === 'save') {
+              if (o === 'share') {
+                const g = toggleExpShare(game);
+                persist(g);
+                setGame(g);
+              } else if (o === 'save') {
                 persist(game);
                 setOverlay(null);
                 run(game, [{ do: 'say', text: 'Saved. Your progress is kept in this browser.' }]);
@@ -919,10 +925,12 @@ export function Story() {
 }
 
 function StartMenu({
+  expShare,
   onPick,
   onClose,
 }: {
-  onPick: (o: 'party' | 'bag' | 'dex' | 'card' | 'save') => void;
+  expShare: boolean;
+  onPick: (o: 'party' | 'bag' | 'dex' | 'card' | 'share' | 'save') => void;
   onClose: () => void;
 }) {
   const items = [
@@ -930,6 +938,7 @@ function StartMenu({
     ['bag', 'BAG'],
     ['dex', 'RANEDEX'],
     ['card', 'JERSEYS'],
+    ['share', `EXP SHARE: ${expShare ? 'ON' : 'OFF'}`],
     ['save', 'SAVE'],
   ] as const;
   return (
