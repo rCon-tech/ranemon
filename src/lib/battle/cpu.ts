@@ -10,6 +10,7 @@ import {
   type Battler,
   type Side,
 } from './engine';
+import { lineOf } from './evolutions';
 import { moveById, type SpecialEffect } from './moves';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
@@ -117,7 +118,7 @@ function specialValue(
       // replaces the user, which is worth the HP the user had lost.
       const partner =
         state.teams[side].battlers.find(
-          (b) => b.creature.id === effect.partner && b.hp > 0 && b !== user,
+          (b) => lineOf(b.creature.id) === effect.partner && b.hp > 0 && b !== user,
         ) ?? user;
       return (partner.stats.hp - partner.hp) * 0.8 + target.stats.hp * 0.1;
     }

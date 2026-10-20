@@ -556,7 +556,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'oismon',
     name: 'Helping Hand',
     flavour:
-      'Swaps out for Olliemon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Olliemon takes Oismon’s place.',
+      'Swaps out for his partner Olliemon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild one takes his place.',
     type: 'hype',
     category: 'status',
     power: 0,
@@ -570,7 +570,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'olliemon',
     name: 'Helping Hand',
     flavour:
-      'Swaps out for Oismon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild Oismon takes Olliemon’s place.',
+      'Swaps out for his partner Oismon with a Monster energy drink: full HP and 20% more Attack. Without him, a wild one takes his place.',
     type: 'charm',
     category: 'status',
     power: 0,
@@ -652,7 +652,7 @@ export const SPECIAL_MOVES: Move[] = [
     signature: 'lorcamon',
     name: 'Rounds on Me',
     flavour:
-      'Buys a round: his is 0%, theirs isn’t. The opponent gets flustered and Lorcamon’s Speed goes up 20%.',
+      'Buys a round: his is 0%, theirs isn’t. The opponent gets flustered and his Speed goes up 20%.',
     type: 'charm',
     category: 'status',
     power: 0,

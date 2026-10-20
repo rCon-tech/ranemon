@@ -1,0 +1,176 @@
+import { STAT_KEYS, type BaseStats, type Creature } from './creature';
+import { ROSTER } from './roster';
+
+/**
+ * Story mode's evolutions: every Ranemon evolves once, into a pun on a Gen 1 or 2 Pokémon.
+ * The evolved form keeps its types and moves, and has a bigger stat budget.
+ */
+export interface Evolution {
+  from: string;
+  id: string;
+  name: string;
+  level: number;
+  entry: string;
+}
+
+export const EVOLUTION_LEVEL = 30;
+export const EVOLVED_BUDGET = 460;
+
+export const EVOLUTIONS: Evolution[] = [
+  {
+    from: 'carlmon',
+    id: 'carlizard',
+    name: 'Carlizard',
+    entry: 'Flies over the crowd to the bar. The Nozzy Call can be heard from Ennis.',
+  },
+  {
+    from: 'steadmon',
+    id: 'steadakazam',
+    name: 'Steadakazam',
+    entry: 'Has read every page of Ranelads.com, and some that were never written.',
+  },
+  {
+    from: 'enda',
+    id: 'clefenda',
+    name: 'Clefenda',
+    entry: 'Glows on nights out. Nobody has ever left one of his parties early.',
+  },
+  {
+    from: 'oismon',
+    id: 'hitmonois',
+    name: 'Hitmonois',
+    entry: 'Kicks like a mule after a Monster. Still won’t go anywhere without Hitmonollie.',
+  },
+  {
+    from: 'olliemon',
+    id: 'hitmonollie',
+    name: 'Hitmonollie',
+    entry: 'Punches above his weight, and always has a can ready for Hitmonois.',
+  },
+  {
+    from: 'hugomon',
+    id: 'hugengar',
+    name: 'Hugengar',
+    entry: 'Lives in the shadows of the Dark Web. Grins from your phone at 3am.',
+  },
+  {
+    from: 'gibbsmon',
+    id: 'gyaragibbs',
+    name: 'Gyaragibbs',
+    entry: 'No longer calls the army. He is the army.',
+  },
+  {
+    from: 'jammon',
+    id: 'jamchamp',
+    name: 'Jamchamp',
+    entry: 'Four arms, and every one of them out for what he’s owed.',
+  },
+  {
+    from: 'boydemon',
+    id: 'primeboyd',
+    name: 'Primeboyd',
+    entry: 'Wakes up angry and gets angrier. The whole family trained him.',
+  },
+  {
+    from: 'killemon',
+    id: 'killigatr',
+    name: 'Killigatr',
+    entry: 'The dance is now a stomp. The floor of every venue is cracked.',
+  },
+  {
+    from: 'lorcamon',
+    id: 'lorchu',
+    name: 'Lorchu',
+    entry: 'Fully charged and fully buying. His is still the 0% one.',
+  },
+  {
+    from: 'owemon',
+    id: 'fearowe',
+    name: 'Fearowe',
+    entry: 'Circles the pub at altitude, calling in air support for every argument.',
+  },
+  {
+    from: 'conemon',
+    id: 'conix',
+    name: 'Conix',
+    entry: 'Tries so hard for the lads he turned to solid rock. It still costs him.',
+  },
+  {
+    from: 'robinmon',
+    id: 'robinsey',
+    name: 'Robinsey',
+    entry: 'Patches up the whole crew between takes. The fans never stop watching.',
+  },
+  {
+    from: 'simomon',
+    id: 'weezimo',
+    name: 'Weezimo',
+    entry: 'Floats in a haze of his own calm. Nothing reaches him through it.',
+  },
+  {
+    from: 'thilomon',
+    id: 'thilotrode',
+    name: 'Thilotrode',
+    entry: 'Goes back to back so fast he explodes. Then he’s gone.',
+  },
+].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
+
+/** Scales a base budget up to EVOLVED_BUDGET, keeping the shape; the largest stat takes the rounding. */
+export function evolvedStats(base: BaseStats): BaseStats {
+  const total = STAT_KEYS.reduce((sum, k) => sum + base[k], 0);
+  const out = { ...base };
+  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * EVOLVED_BUDGET) / total);
+  const top = STAT_KEYS.reduce((a, b) => (base[b] > base[a] ? b : a));
+  out[top] += EVOLVED_BUDGET - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
+  return out;
+}
+
+const BASE_FORMS = new Map(ROSTER.map((c) => [c.id, c]));
+
+export const EVOLVED: Creature[] = EVOLUTIONS.map((e) => {
+  const from = BASE_FORMS.get(e.from);
+  if (!from) throw new Error(`Unknown Ranemon: ${e.from}`);
+  return {
+    ...from,
+    id: e.id,
+    name: e.name,
+    base: evolvedStats(from.base),
+    entry: e.entry,
+    sprite: `/sprites/evo/${e.id}.png`,
+  };
+});
+
+const BY_FROM = new Map(EVOLUTIONS.map((e) => [e.from, e]));
+const BY_ID = new Map(EVOLUTIONS.map((e) => [e.id, e]));
+
+/** What a species evolves into, or undefined once it's fully evolved. */
+export const evolutionOf = (species: string) => BY_FROM.get(species);
+
+/** The first form of a species' line: an evolved form's base form, or the species itself. */
+export const lineOf = (species: string) => BY_ID.get(species)?.from ?? species;
+
+/** The form a species takes at a level, for trainers' and wild Ranemon. */
+export function formAt(species: string, level: number): string {
+  const evo = evolutionOf(species);
+  return evo && level >= evo.level ? evo.id : species;
+}
+
+const FORMS = new Map([...ROSTER, ...EVOLVED].map((c) => [c.id, c]));
+
+/** Any Ranemon, base or evolved. */
+export function formById(id: string): Creature {
+  const c = FORMS.get(id);
+  if (!c) throw new Error(`Unknown creature: ${id}`);
+  return c;
+}
+
+/** `species` at the same stage as `like`: evolved if `like` is. */
+export function sameStage(species: string, like: string): string {
+  return lineOf(like) === like ? species : (evolutionOf(species)?.id ?? species);
+}
+
+/** The Ranedex order: each Ranemon followed by its evolution. */
+export const DEX: Creature[] = ROSTER.flatMap((c) => {
+  const evo = evolutionOf(c.id);
+  return evo ? [c, formById(evo.id)] : [c];
+});

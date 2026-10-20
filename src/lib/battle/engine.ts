@@ -1,7 +1,7 @@
 import { LEVEL, levelStats, type BaseStats, type Creature } from './creature';
 import { FLAIL, moveById, type Move, type SpecialEffect, type Stat, type Status } from './moves';
 import { Rng } from './rng';
-import { creatureById } from './roster';
+import { formById, lineOf, sameStage } from './evolutions';
 import { effectiveness } from './types';
 
 export type Side = 0 | 1;
@@ -448,14 +448,15 @@ class Turn {
       case 'tag-partner': {
         const team = this.state.teams[side];
         const to = team.battlers.findIndex(
-          (b, i) => b.creature.id === effect.partner && b.hp > 0 && i !== team.active,
+          (b, i) => lineOf(b.creature.id) === effect.partner && b.hp > 0 && i !== team.active,
         );
         if (to < 0) {
           // No partner on the team: a wild one joins with the drink and takes the caller's place.
           const caller = this.active(side);
           caller.hp = 0;
           caller.left = true;
-          const wild = makeBattler({ creature: creatureById(effect.partner), level: caller.level });
+          const creature = formById(sameStage(effect.partner, caller.creature.id));
+          const wild = makeBattler({ creature, level: caller.level });
           // The can's been drunk: the wild one can't call in another, or it would never end.
           wild.creature.moves.forEach((id, i) => {
             if (moveById(id).specials?.some((e) => e.kind === 'tag-partner')) wild.pp[i] = 0;

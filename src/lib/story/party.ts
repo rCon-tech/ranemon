@@ -1,5 +1,6 @@
 import { levelStats, MAX_LEVEL, type BaseStats, type Creature } from '../battle/creature';
 import type { Battler, Entrant } from '../battle/engine';
+import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
 import { ROSTER } from '../battle/roster';
 
@@ -36,7 +37,7 @@ export const BOSS: Creature = {
   sprite: '/sprites/gb/bns.png',
 };
 
-const SPECIES = new Map([...ROSTER, BOSS].map((c) => [c.id, c]));
+const SPECIES = new Map([...ROSTER, ...EVOLVED, BOSS].map((c) => [c.id, c]));
 
 export function speciesById(id: string): Creature {
   const c = SPECIES.get(id);
@@ -46,7 +47,11 @@ export function speciesById(id: string): Creature {
 
 /** Ranemon that are harder to befriend. Everyone else has the common rate. */
 const RARE = ['gibbsmon', 'thilomon', 'oismon', 'olliemon'];
-export const catchRate = (species: string) => (RARE.includes(species) ? 45 : 120);
+/** Evolved Ranemon are harder again. */
+export function catchRate(species: string): number {
+  const rate = RARE.includes(lineOf(species)) ? 45 : 120;
+  return lineOf(species) === species ? rate : Math.round(rate * 0.6);
+}
 
 /** Every Ranemon grows on one curve: reaching level L takes L³ EXP in total. */
 export const expAt = (level: number) => level ** 3;
@@ -76,7 +81,9 @@ export function statsOf(m: Member): BaseStats {
   return levelStats(speciesById(m.species).base, m.level);
 }
 
-export function makeMember(species: string, level: number, uid: number): Member {
+/** A new member at a level; a Ranemon met at or past its evolution level comes evolved. */
+export function makeMember(base: string, level: number, uid: number): Member {
+  const species = formAt(base, level);
   const moves = movesAt(speciesById(species), level);
   const member: Member = {
     uid,
@@ -139,7 +146,20 @@ function levelUp(m: Member, lines: string[]): Member {
         : `${name} learned ${move.name}!`,
     );
   }
+  const evo = evolutionOf(next.species);
+  if (evo && next.level >= evo.level) next = evolve(next, lines);
   return next;
+}
+
+/** Turns a member into its evolved form, keeping the HP it has lost. */
+function evolve(m: Member, lines: string[]): Member {
+  const evo = evolutionOf(m.species)!;
+  const name = speciesById(m.species).name;
+  const before = statsOf(m).hp;
+  const next: Member = { ...m, species: evo.id };
+  const gained = statsOf(next).hp - before;
+  lines.push(`What? ${name} is evolving!`, `${name} evolved into ${evo.name}!`);
+  return { ...next, hp: m.hp > 0 ? m.hp + gained : 0 };
 }
 
 /** Adds EXP and applies any level-ups. Returns the lines to show. */

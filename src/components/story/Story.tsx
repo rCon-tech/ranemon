@@ -7,6 +7,7 @@ import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { mapById } from '@/content/story/maps';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '@/lib/battle/cpu';
+import { formAt } from '@/lib/battle/evolutions';
 import type { BattleState, Entrant } from '@/lib/battle/engine';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
 import {
@@ -284,7 +285,9 @@ export function Story() {
       canFight(g) &&
       Math.random() < ENCOUNTER_RATE
     ) {
-      const { species, level } = pickWild(map.wild, Math.random(), Math.random());
+      const wild = pickWild(map.wild, Math.random(), Math.random());
+      const { level } = wild;
+      const species = formAt(wild.species, level);
       g = see(g, species);
       setGame(g);
       setFlash(true);

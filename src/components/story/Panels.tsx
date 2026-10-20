@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
+import { DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
 import { canUseOn, ITEMS, itemById, shopStock, type ItemId } from '@/lib/story/items';
 import {
@@ -283,10 +284,10 @@ export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () 
   return (
     <Panel title="RANEDEX" onClose={onClose}>
       <p className="text-[8px]">
-        Seen {game.seen.length} · Befriended {game.caught.length} / {ROSTER.length}
+        Seen {game.seen.length} · Befriended {game.caught.length} / {DEX.length}
       </p>
       <div className="grid grid-cols-4 gap-1.5">
-        {ROSTER.map((c, i) => {
+        {DEX.map((c, i) => {
           const seen = game.seen.includes(c.id);
           return (
             <div key={c.id} className="flex flex-col items-center gap-1 border-2 border-ink p-1">

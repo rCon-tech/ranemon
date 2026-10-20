@@ -92,8 +92,8 @@ export function recruit(
   from?: Partial<Member>,
 ): { state: StoryState; line: string | null } {
   const member: Member = { ...makeMember(species, level, s.uid), ...from, uid: s.uid };
-  const caught = s.caught.includes(species) ? s.caught : [...s.caught, species];
-  const next = { ...see(s, species), uid: s.uid + 1, caught };
+  const caught = s.caught.includes(member.species) ? s.caught : [...s.caught, member.species];
+  const next = { ...see(s, member.species), uid: s.uid + 1, caught };
   if (s.party.length < PARTY_SIZE) {
     return { state: { ...next, party: [...s.party, member] }, line: null };
   }
