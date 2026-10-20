@@ -1,6 +1,6 @@
 # Ranemon
 
-A turn-based monster-battle game in the style of the classic handhelds, where every creature is one of your friends. V1 is battles only: pick 6 of the 16 Ranemon, your rival gets 6 of the rest, and you fight 6v6 until one side has no creatures left.
+A turn-based monster-battle game in the style of the classic handhelds, where every creature is one of your friends. Battle mode: pick 6 of the 16 Ranemon, your rival gets 6 of the rest, and you fight 6v6 until one side has no creatures left. Story mode walks you from Co. Clare to Trinity College Dublin.
 
 The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and milestones) is the **Ranemon V1 Game Plan** doc in the project.
 
@@ -17,6 +17,20 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Screens**: title screen, team select with a 90-second pick-6 from all 16, the battle screen and the Ranedex. The battle screen has info boxes, a text box, FIGHT, RANEMON and RUN, a 45-second turn timer, text that types out and can be tapped past, an animation for every move in its type's style, a scene of its own for each special move, and hit, send-out and faint animations.
 - **Roster**: the 16 lads from the Ranemon sheet (`roster.ts`), each with a pixel sprite cut from their photo and their own special move. The rival's 6 are drawn at random from the 10 you didn't pick, and Oismon and Olliemon are kept together when both are left. The sheet gives no types or stats, so those are a first pass tuned with the simulator.
 - **Record**: your wins and losses, kept in this browser until accounts arrive.
+
+## Story mode
+
+`/story` (STORY MODE on the title screen) is a top-down adventure from Co. Clare to Trinity College Dublin, following `docs/story-mode.md`.
+
+- **The road**: 11 maps (Clare, Limerick, Tipperary, Kilkenny, Laois, Offaly, Westmeath, Meath, Kildare, Dublin, Trinity), each with a pub that heals, a corner shop and a gym. A Garda at each county line lets you through once you have that county's jersey.
+- **The story**: Michael D Higgins gives you your first Ranemon (any of the 16) in Newmarket-on-Fergus, your rival from the village picks the one that beats yours, and B&S wait under the Campanile with a boss Ranemon made from their group photo.
+- **Rules** (`src/lib/story/`): levels 5 to 60 by the main-series stat formula (level 50 gives battle mode's numbers), EXP on an L³ curve, moves learnt weakest first with the special move at 20, pints of Guinness to befriend wild Ranemon, Blue Ghosts for +1 level, a party of 6 with the rest in the Group Chat, and a save in this browser.
+- **Content** (`src/content/story/`): the maps as one character per tile, trainers, gyms and wild tables. `tests/unit/story-maps.test.ts` checks every door, person and exit can be reached, and `pnpm simulate` also plays each gym with a typical party and checks it is winnable but not a walkover.
+- **Controls**: D-pad, A, B (hold to ride the bike) and START on screen; arrow keys, Z, X and Enter on a keyboard.
+
+## Look
+
+The whole game uses the original handheld's 4 greens. `scripts/gb_sprite.py` dithers the photo sprites onto that palette (`public/sprites/gb/`, and 12-pixel heads for the Ranemon that follows you), and move animations pass through an SVG filter that snaps their colours to the same greens.
 
 ## Not yet
 

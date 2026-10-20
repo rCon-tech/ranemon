@@ -104,7 +104,8 @@ export interface GameMap {
   signs?: string[];
   houses?: Step[][];
   landmarks?: Step[][];
-  gym?: { trainer: string };
+  /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
+  gym?: { trainer: string; place: string };
   west?: string;
   east?: string;
   /** Run once, the first time you arrive. */

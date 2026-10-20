@@ -344,7 +344,7 @@ export function Story() {
         return run(game, [
           {
             do: 'say',
-            text: `${map.name.split(',')[0].toUpperCase()} GYM. Leader: ${leader.name}.`,
+            text: `${map.gym.place.toUpperCase()} GYM. Leader: ${leader.name}.`,
           },
           ...challenge(leader.id),
         ]);
