@@ -16,7 +16,7 @@ import {
   statsOf,
   toEntrant,
 } from '@/lib/story/party';
-import { load, newGame, recruit, save, settleBattle } from '@/lib/story/state';
+import { load, newer, newGame, playerId, recruit, save, settleBattle } from '@/lib/story/state';
 import { pickWild } from '@/lib/story/world';
 import { catchChance, reduce, sips, startSession, type Session } from '@/lib/ui/session';
 
@@ -222,17 +222,27 @@ describe('story state', () => {
     expect(out.state.party[0].hp).toBe(statsOf(s.party[0]).hp);
   });
 
-  it('saves and loads, and survives a broken save', () => {
+  it('saves and loads under a trainer name, and survives a broken save', () => {
     const store = new Map<string, string>();
     const storage = {
       getItem: (k: string) => store.get(k) ?? null,
       setItem: (k: string, v: string) => void store.set(k, v),
     };
     const s = recruit(newGame(), 'enda', 5).state;
-    expect(save(storage, s)).toBe(true);
-    expect(load(storage)).toEqual(s);
-    store.set('ranemon.story.v1', '{nope');
-    expect(load(storage)).toBeNull();
+    expect(save(storage, s, 'Rich')).toBeTruthy();
+    expect(load(storage, '  rich ')).toEqual({ ...s, savedAt: expect.any(Number) });
+    expect(load(storage, 'Seán')).toBeNull();
+    store.set('ranemon.story.v1:rich', '{nope');
+    expect(load(storage, 'Rich')).toBeNull();
+  });
+
+  it('keeps the newer of a browser save and an online one', () => {
+    const a = { ...newGame(), savedAt: 1, money: 1 };
+    const b = { ...newGame(), savedAt: 2, money: 2 };
+    expect(newer(a, b)).toBe(b);
+    expect(newer(b, a)).toBe(b);
+    expect(newer(null, a)).toBe(a);
+    expect(playerId('  Rich  O’Brien!! ')).toBe('rich obrien');
   });
 
   it('picks wild Ranemon by weight and level range', () => {
@@ -254,7 +264,8 @@ describe('older saves', () => {
     const s = newGame();
     const old = { ...makeMember('carlmon', 8, 1), moves: ['headlock'], pp: [20] };
     const raw = JSON.stringify({ ...s, party: [old] });
-    const loaded = load({ getItem: () => raw });
+    // Saved before trainer names, under the one old key.
+    const loaded = load({ getItem: (k) => (k === 'ranemon.story.v1' ? raw : null) }, 'Rich');
     expect(loaded?.party[0].moves).toContain('nozzy-call');
     expect(loaded?.party[0].pp).toHaveLength(loaded!.party[0].moves.length);
   });

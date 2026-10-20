@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { unlock } from './helpers';
 
 test('story mode: Michael D hands over a starter in Clare', async ({ page }) => {
+  await unlock(page);
   await page.goto('/story');
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByTestId('trainer-name').fill('Rich');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByText('No save under “Rich” yet.')).toBeVisible();
+  await page.getByRole('button', { name: 'NEW GAME' }).click();
   const text = page.getByTestId('story-text');
   // Mam's wake-up call: tap twice per line (finish typing, then next).
   for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
@@ -27,7 +30,16 @@ test('story mode: Michael D hands over a starter in Clare', async ({ page }) => 
   for (let i = 0; i < 12 && (await text.count()); i++) await text.click();
   await expect(text).toHaveCount(0);
 
-  const save = await page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1')!));
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:rich')!),
+  );
   expect(save.party[0].species).toBe('enda');
   expect(save.party[0].level).toBe(5);
+
+  // Back on the title screen, the same name (any case) carries on from the save.
+  await page.reload();
+  await expect(page.getByTestId('trainer-name')).toHaveValue('Rich');
+  await page.getByTestId('trainer-name').fill('rich');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
 });

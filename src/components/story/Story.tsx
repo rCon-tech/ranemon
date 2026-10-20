@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
 import { Sprite } from '@/components/Sprite';
@@ -10,6 +10,7 @@ import { teamOf, trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
 import type { BattleState, Entrant } from '@/lib/battle/engine';
+import { flushOnline, hasCloudSaves, loadOnline, saveOnline } from '@/lib/story/cloud';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
 import {
   blueGhost,
@@ -30,10 +31,13 @@ import {
   healParty,
   load,
   makeLead,
+  newer,
   newGame,
+  parseSave,
+  PLAYER_KEY,
+  playerId,
   recruit,
   save,
-  SAVE_KEY,
   see,
   setFlag,
   settleBattle,
@@ -146,22 +150,27 @@ function sceneOf(map: GameMap, trainer: string | null): Scene {
 
 export function Story() {
   const [game, setGame] = useState<StoryState | null>(null);
-  // The save as stored. Read through the store so the server render (no save) hydrates cleanly.
-  const raw = useSyncExternalStore(
+  // The trainer name last used here. Read through the store so the server render hydrates.
+  const remembered = useSyncExternalStore(
     noSubscribe,
     () => {
       try {
-        return storage()?.getItem(SAVE_KEY) ?? null;
+        return storage()?.getItem(PLAYER_KEY) ?? '';
       } catch {
-        return null;
+        return '';
       }
     },
     () => undefined,
   );
-  const saved = useMemo(
-    () => (raw === undefined ? undefined : load({ getItem: () => raw })),
-    [raw],
-  );
+  const [typed, setTyped] = useState<string | null>(null);
+  const name = typed ?? remembered ?? '';
+  /** The trainer playing: whose save every change goes to. */
+  const player = useRef('');
+  const [title, setTitle] = useState<{ busy: boolean; note: string | null; replace: boolean }>({
+    busy: false,
+    note: null,
+    replace: false,
+  });
   const [queue, setQueue] = useState<Run[]>([]);
   /** The line in the text box: `n` restarts the typing, `full` skips to the end of it. */
   const [line, setLine] = useState<{ text: string; n: number; full?: boolean } | null>(null);
@@ -173,7 +182,15 @@ export function Story() {
   const held = useRef<Held>({ dir: null, b: false });
 
   const persist = useCallback((g: StoryState) => {
-    save(storage(), g);
+    const raw = save(storage(), g, player.current);
+    if (raw) saveOnline(player.current, raw);
+  }, []);
+
+  // Don't lose the last online save when the tab goes away.
+  useEffect(() => {
+    const hide = () => document.visibilityState === 'hidden' && flushOnline();
+    document.addEventListener('visibilitychange', hide);
+    return () => document.removeEventListener('visibilitychange', hide);
   }, []);
 
   /** Runs script steps until one needs the player: a line of text, a battle or a menu. */
@@ -503,9 +520,60 @@ export function Story() {
 
   // ---------- screens ----------
 
-  if (saved === undefined) return <div className="flex-1" />;
+  if (remembered === undefined) return <div className="flex-1" />;
+
+  /** Finds the trainer's save: the newer of this browser's and the online one. */
+  async function findSave(trainer: string) {
+    const local = load(storage(), trainer);
+    const online = parseSave(await loadOnline(trainer));
+    return newer(local, online);
+  }
+
+  function begin(trainer: string, g: StoryState, fresh: boolean) {
+    player.current = trainer.trim();
+    try {
+      storage()?.setItem(PLAYER_KEY, player.current);
+    } catch {
+      // Private windows can refuse storage; the game still runs.
+    }
+    persist(g);
+    setGame(g);
+    startGame(g, fresh);
+  }
+
+  async function onContinue() {
+    setTitle({ busy: true, note: null, replace: false });
+    const found = await findSave(name);
+    if (found) begin(name, found, false);
+    else
+      setTitle({
+        busy: false,
+        note: `No save under “${name.trim()}” yet. Check the spelling, or start a new game.`,
+        replace: false,
+      });
+  }
+
+  async function onNew() {
+    if (!title.replace) {
+      setTitle({ busy: true, note: null, replace: false });
+      const found = await findSave(name);
+      if (found) {
+        const jerseys = found.flags.filter(
+          (f) => f.startsWith('jersey:') && f !== 'jersey:all',
+        ).length;
+        setTitle({
+          busy: false,
+          note: `“${name.trim()}” already has a save (${found.party.length} Ranemon, ${jerseys} jerseys). Tap NEW GAME again to replace it.`,
+          replace: true,
+        });
+        return;
+      }
+    }
+    begin(name, newGame(), true);
+  }
 
   if (!game) {
+    const ready = playerId(name).length > 0 && !title.busy;
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
         <h1 className="text-[40px] font-bold leading-tight text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
@@ -518,39 +586,49 @@ export function Story() {
           <br />
           Nine jerseys. One pint at a time.
         </p>
-        <div className="flex w-full max-w-[260px] flex-col gap-2">
-          {saved && (
-            <button
-              type="button"
-              className="pixel-btn menu-item text-[14px]"
-              onClick={() => {
-                setGame(saved);
-                startGame(saved, false);
+        <form
+          className="flex w-full max-w-[260px] flex-col gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (ready) onContinue();
+          }}
+        >
+          <label className="flex flex-col gap-1 text-left text-[12px]">
+            TRAINER NAME
+            <input
+              className="dialog px-3 py-2 text-[16px] outline-none focus:border-accent2"
+              value={name}
+              maxLength={20}
+              autoComplete="username"
+              autoCapitalize="words"
+              placeholder="e.g. Rich"
+              onChange={(e) => {
+                setTyped(e.target.value);
+                setTitle({ busy: false, note: null, replace: false });
               }}
-            >
-              CONTINUE
-            </button>
-          )}
+              data-testid="trainer-name"
+            />
+          </label>
+          <button type="submit" className="pixel-btn menu-item text-[14px]" disabled={!ready}>
+            CONTINUE
+          </button>
           <button
             type="button"
             className="pixel-btn menu-item text-[14px]"
-            onClick={() => {
-              const g = newGame();
-              persist(g);
-              setGame(g);
-              startGame(g, true);
-            }}
+            disabled={!ready}
+            onClick={onNew}
           >
-            {saved ? 'NEW GAME' : 'START'}
+            NEW GAME
           </button>
-          {saved && (
-            <p className="text-[8px] leading-relaxed text-frame">
-              A new game replaces your save ({saved.party.length} Ranemon,{' '}
-              {saved.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all').length}{' '}
-              jerseys).
-            </p>
-          )}
-        </div>
+          <p className="text-[10px] leading-relaxed text-frame" aria-live="polite">
+            {title.busy
+              ? 'Looking for your save…'
+              : (title.note ??
+                (hasCloudSaves()
+                  ? 'Your save follows this name, so you can carry on from any device.'
+                  : 'Your save is kept in this browser under this name.'))}
+          </p>
+        </form>
         <Link href="/" className="text-[11px] text-frame underline underline-offset-4">
           BATTLE MODE
         </Link>

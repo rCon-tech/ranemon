@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { unlock } from './helpers';
 
 /** Taps through a whole battle: always the first usable move, the first healthy replacement. */
 async function playToTheEnd(page: Page) {
@@ -24,7 +25,20 @@ async function playToTheEnd(page: Page) {
   throw new Error('The battle never finished');
 }
 
+test('the game asks for the password once per browser', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('password').fill('wrong');
+  await page.getByRole('button', { name: 'ENTER' }).click();
+  await expect(page.getByText('That’s not it.')).toBeVisible();
+  await page.getByTestId('password').fill('Ranelads');
+  await page.getByRole('button', { name: 'ENTER' }).click();
+  await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('PRESS START')).toBeVisible();
+});
+
 test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }) => {
+  await unlock(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
   await expect(page.getByText('Record: 0W · 0L')).toBeVisible();
@@ -57,6 +71,7 @@ test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }
 });
 
 test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page }) => {
+  await unlock(page);
   await page.goto('/ranedex');
   await expect(page.getByRole('heading', { name: 'RANEDEX' })).toBeVisible();
   await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(16);

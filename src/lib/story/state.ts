@@ -36,9 +36,26 @@ export interface StoryState {
   uid: number;
   starter?: string;
   steps: number;
+  /** When it was last saved, to pick the newer of a browser save and an online one. */
+  savedAt?: number;
 }
 
 export const SAVE_KEY = 'ranemon.story.v1';
+/** The trainer name last used in this browser. */
+export const PLAYER_KEY = 'ranemon.player';
+
+/** A trainer name as saves are filed under it: case and extra spaces don't matter. */
+export function playerId(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9 _-]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 20);
+}
+
+/** Where a trainer's save lives in this browser. */
+export const saveKey = (name: string) => `${SAVE_KEY}:${playerId(name)}`;
 export const START_MONEY = 3000;
 
 export function newGame(): StoryState {
@@ -194,10 +211,9 @@ export function fromGroupChat(s: StoryState, index: number): StoryState {
   };
 }
 
-/** Reads the save, or null if there is none or it can't be read. */
-export function load(storage: Pick<Storage, 'getItem'> | null): StoryState | null {
+/** A save read back from its JSON, or null if it isn't one. Older saves catch up on moves. */
+export function parseSave(raw: string | null | undefined): StoryState | null {
   try {
-    const raw = storage?.getItem(SAVE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as StoryState;
     if (data.version !== 1 || !Array.isArray(data.party)) return null;
@@ -208,11 +224,35 @@ export function load(storage: Pick<Storage, 'getItem'> | null): StoryState | nul
   }
 }
 
-export function save(storage: Pick<Storage, 'setItem'> | null, s: StoryState): boolean {
+/**
+ * Reads a trainer's save from this browser, or null if there is none or it can't be read.
+ * Saves from before trainer names were kept under one key, so the first name to look finds it.
+ */
+export function load(storage: Pick<Storage, 'getItem'> | null, name: string): StoryState | null {
   try {
-    storage?.setItem(SAVE_KEY, JSON.stringify(s));
-    return storage !== null;
+    return parseSave(storage?.getItem(saveKey(name))) ?? parseSave(storage?.getItem(SAVE_KEY));
   } catch {
-    return false;
+    return null;
+  }
+}
+
+/** The newer of two saves, either of which may be missing. */
+export function newer(a: StoryState | null, b: StoryState | null): StoryState | null {
+  if (!a || !b) return a ?? b;
+  return (b.savedAt ?? 0) > (a.savedAt ?? 0) ? b : a;
+}
+
+/** Saves to this browser under the trainer's name. Returns the JSON written, or null. */
+export function save(
+  storage: Pick<Storage, 'setItem'> | null,
+  s: StoryState,
+  name: string,
+): string | null {
+  try {
+    const raw = JSON.stringify({ ...s, savedAt: Date.now() });
+    storage?.setItem(saveKey(name), raw);
+    return storage ? raw : null;
+  } catch {
+    return null;
   }
 }

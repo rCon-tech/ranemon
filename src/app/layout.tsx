@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Gate } from '@/components/Gate';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased">
         <main className="screen mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">
-          {children}
+          <Gate>{children}</Gate>
         </main>
       </body>
     </html>

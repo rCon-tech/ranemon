@@ -27,7 +27,12 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Evolutions** (`src/lib/battle/evolutions.ts`): every Ranemon evolves once at Lv30, into a pun on a Gen 1 or 2 Pokémon (Conemon into Conix). The evolved form keeps its types and moves with a bigger stat budget (460 against 400). Wild and trainer Ranemon from Lv30 are already evolved, and evolved ones are harder to befriend.
 - **Rules** (`src/lib/story/`): levels 5 to 60 by the main-series stat formula (level 50 gives battle mode's numbers), EXP on an L³ curve, every Ranemon knows its special move from the start, with its other moves learnt weakest first, pints of Guinness to befriend wild Ranemon, Blue Ghosts for +1 level, a party of 6 with the rest in the Group Chat, and a save in this browser.
 - **Content** (`src/content/story/`): the maps as one character per tile, trainers, gyms and wild tables. `tests/unit/story-maps.test.ts` checks every door, person and exit can be reached, and `pnpm simulate` also plays each gym with a typical party and checks it is winnable but not a walkover.
+- **Saves**: you enter a trainer name on the title screen, and the save is filed under it (any case), so friends can share a browser. On the shared play link, saves also go to the page's own database, so the same name carries on from another device or after the browser is cleared. The static site has no server, so there they stay in the browser (`src/lib/story/cloud.ts` is where a server would plug in).
 - **Controls**: D-pad, A, B (hold to ride the bike) and START on screen; arrow keys, Z, X and Enter on a keyboard.
+
+## Password
+
+The game asks for the word once per browser (`src/components/Gate.tsx`). Only a SHA-256 hash of it is in the code, but the site is static, so this keeps out casual visitors rather than anyone determined.
 
 ## Look
 
