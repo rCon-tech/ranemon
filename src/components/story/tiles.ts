@@ -24,7 +24,7 @@ export const TALL = new Set(['T', 'K']);
 /** Tall grass: its front blades are drawn again over whoever stands in it. */
 export const TALL_GRASS = ',';
 
-const GRASSY = new Set(['.', ',', '"', 'T', 'S', 'f', ':', 'b']);
+const GRASSY = new Set(['.', ',', '"', 'T', 'S', 'f', ':', 'b', 'h']);
 const DOORS: Record<string, [string, string, string]> = {
   // Base, light, dark: the pub's green, the shop's blue, the gym's red, and plain wood.
   P: ['#2f8a4a', '#4cb46a', '#1c5a30'],
@@ -417,19 +417,80 @@ function sign(c: Ctx, r: () => number) {
   px(c, 8, 12, 12, 1, '#7a5028');
 }
 
+/** A white picket fence, joined up with the fence next to it. */
 function fence(c: Ctx, r: () => number) {
   grass(c, r);
-  px(c, 0, 22, T, 2, 'rgb(0 0 0 / 0.12)');
-  for (const y of [11, 18]) {
-    px(c, 0, y, T, 3, '#c8a070');
-    px(c, 0, y, T, 1, '#e0c090');
-    px(c, 0, y + 2, T, 1, '#8a6a40');
+  px(c, 0, 25, T, 3, 'rgb(20 50 20 / 0.22)');
+  for (const y of [11, 19]) {
+    px(c, 0, y, T, 3, '#e8eef4');
+    px(c, 0, y + 2, T, 1, '#9aa8b8');
   }
-  for (const x of [5, 22]) {
-    px(c, x, 7, 5, 17, '#a07848');
-    px(c, x, 7, 5, 1, '#c8a070');
-    px(c, x + 3, 7, 2, 17, '#7a5830');
+  for (let x = 1; x < T; x += 6) {
+    px(c, x, 7, 4, 18, '#f8fafc');
+    px(c, x + 3, 7, 1, 18, '#b8c4d0');
+    px(c, x + 1, 5, 2, 2, '#f8fafc');
+    px(c, x + 1, 4, 1, 1, '#dce4ec');
+    px(c, x, 24, 4, 1, '#8a98a8');
   }
+}
+
+/** A clipped hedge of leafy squares, like the gardens in the 5th generation's towns. */
+function hedge(c: Ctx, r: () => number, around: Around) {
+  px(c, 0, 0, T, T, '#24521f');
+  for (let y = 0; y < T; y += 8) {
+    for (let x = 0; x < T; x += 8) {
+      px(c, x + 1, y + 1, 7, 7, '#3f8a34');
+      px(c, x + 1, y + 1, 6, 2, '#6cb84a');
+      px(c, x + 1, y + 1, 2, 6, '#58a840');
+      if (r() < 0.5) px(c, x + 3, y + 3, 2, 1, '#9ce070');
+    }
+  }
+  if (around.n !== 'h') px(c, 0, 0, T, 2, '#8ad464');
+  if (around.s !== 'h') {
+    px(c, 0, T - 4, T, 4, '#1c4019');
+    px(c, 0, T - 1, T, 1, 'rgb(0 0 0 / 0.3)');
+  }
+}
+
+/** An earth bank between two levels of ground: a grass lip and a streaked dirt face. */
+function ledge(c: Ctx, r: () => number, around: Around) {
+  grass(c, r);
+  const open = (side: string) => side !== 'e' && side !== 's';
+  for (let x = 0; x < T; x++) {
+    // The lip wobbles, and each end slopes down into the grass.
+    const left = open(around.w) ? Math.max(0, 8 - x) : 0;
+    const right = open(around.e) ? Math.max(0, x - (T - 9)) : 0;
+    const top = 8 + ((x * 7) % 3) + left + right;
+    const g = c.createLinearGradient(0, top, 0, T);
+    g.addColorStop(0, '#c8925a');
+    g.addColorStop(1, '#8a5a32');
+    c.fillStyle = g;
+    c.fillRect(x, top, 1, T - 3 - top);
+    px(c, x, top, 1, 2, '#7a4e28');
+    px(c, x, top - 2, 1, 2, '#9ce070');
+    if ((x * 13) % 5 === 0) px(c, x, top + 4 + ((x * 3) % 7), 1, 5, '#a06a3a');
+    px(c, x, T - 3, 1, 3, '#5a3a1e');
+  }
+  for (let i = 0; i < 5; i++) px(c, 3 + ((r() * 26) | 0), 14 + ((r() * 10) | 0), 2, 1, '#dcae78');
+}
+
+/** Stone steps up a bank, with a rail on each side where the bank meets them. */
+function stairs(c: Ctx, around: Around) {
+  px(c, 0, 0, T, T, '#a8a094');
+  for (let y = 0; y < T; y += 6) {
+    px(c, 4, y, T - 8, 4, '#dcd4c8');
+    px(c, 4, y, T - 8, 1, '#f0e8dc');
+    px(c, 4, y + 4, T - 8, 2, '#8a8478');
+  }
+  for (const [x, side] of [
+    [0, around.w],
+    [T - 4, around.e],
+  ] as const) {
+    px(c, x, 0, 4, T, side === 'e' ? '#d88a80' : '#b8b0a4');
+    px(c, x, 0, 1, T, side === 'e' ? '#f0b0a4' : '#d0c8bc');
+    px(c, x + 3, 0, 1, T, side === 'e' ? '#a05a50' : '#8a8478');
+  }
+  if (around.n === '.' || around.n === ',') px(c, 0, 0, T, 2, '#7cc858');
 }
 
 function stoneWall(c: Ctx, r: () => number, around: Around) {
@@ -452,25 +513,60 @@ function stoneWall(c: Ctx, r: () => number, around: Around) {
 
 // ---------- tall things, drawn with people ----------
 
-/** A tree: grass and a shadow on its own tile, and a round canopy that rises half a tile above. */
-function treeTop(r: () => number): HTMLCanvasElement {
-  const [cv, c] = canvas(T, T + T / 2);
-  const o = T / 2;
-  px(c, 13, o + 18, 6, 10, '#7a5028');
-  px(c, 16, o + 18, 3, 10, '#5a3818');
-  const shift = ((r() * 3) | 0) - 1;
-  const blobs: [number, number, number][] = [
-    [16 + shift, o + 4, 12],
-    [9, o + 11, 8],
-    [23, o + 11, 8],
+/** How far a tree's canopy spreads past its tile on each side, and rises above it. */
+const TREE_SPREAD = 5;
+const TREE_RISE = 14;
+
+/** One in four trees has turned for autumn. */
+export const isAutumn = (variant: number) => ((variant >>> 5) & 3) === 0;
+
+const LEAVES = {
+  green: ['#173c1c', '#24602a', '#3a8a36', '#5cae46', '#9ce070'],
+  autumn: ['#4a1e0c', '#8a3416', '#c4561c', '#e8892c', '#f8c860'],
+};
+
+/**
+ * A tree in the style of the 5th generation: a big canopy built up in tiers of scalloped leaf
+ * clumps, lit from the top left, on a short trunk. It spreads past its tile and rises above it.
+ */
+function treeTop(r: () => number, autumn: boolean): HTMLCanvasElement {
+  const sp = TREE_SPREAD * RES;
+  const rise = TREE_RISE * RES;
+  const [cv, c] = canvas(T + sp * 2, T + rise);
+  const [ink, dark, mid, light, shine] = autumn ? LEAVES.autumn : LEAVES.green;
+  const cx = (T + sp * 2) / 2;
+  const bottom = rise + T - 10;
+  // The trunk, with roots spreading into the grass.
+  px(c, cx - 4, bottom - 8, 8, 16, '#5a3818');
+  px(c, cx - 4, bottom - 8, 3, 16, '#7a5028');
+  px(c, cx - 7, bottom + 6, 14, 2, '#4a2e14');
+  // One dark mass for the whole canopy, so the clumps read as a single tree.
+  ellipse(c, cx, 28, 23, 24, ink);
+  ellipse(c, cx, 27, 22, 23, dark);
+  // Tiers from the back (top) to the front (bottom), each a row of clumps.
+  const tiers: [number, number, number][] = [
+    [8, 2, 9],
+    [20, 3, 10],
+    [33, 4, 10],
+    [44, 3, 9],
   ];
-  for (const [x, y, rad] of blobs) disc(c, x, y, rad + 1, '#1e4a24');
-  for (const [x, y, rad] of blobs) disc(c, x, y, rad, '#2a6a30');
-  for (const [x, y, rad] of blobs) disc(c, x - 1, y - 2, rad - 2, '#3f8f3a');
-  for (const [x, y, rad] of blobs) disc(c, x - 3, y - 4, Math.max(2, rad - 6), '#5fb048');
-  for (let i = 0; i < 6; i++) {
-    const [x, y, rad] = blobs[(r() * 3) | 0];
-    px(c, x - rad / 2 + ((r() * rad) | 0), y - rad / 2 + ((r() * rad) | 0), 2, 1, '#9ce070');
+  for (const [ty, n, rad] of tiers) {
+    const y = ty + ((r() * 3) | 0) - 1;
+    const width = n === 4 ? 40 : n === 3 ? 34 : 20;
+    for (let i = 0; i < n; i++) {
+      const x = cx - width / 2 + (width / (n - 1 || 1)) * i + ((r() * 3) | 0) - 1;
+      disc(c, x, y + 1, rad + 1, ink);
+    }
+    for (let i = 0; i < n; i++) {
+      const x = cx - width / 2 + (width / (n - 1 || 1)) * i;
+      disc(c, x, y, rad, dark);
+      disc(c, x - 1, y - 2, rad - 2, mid);
+      disc(c, x - 3, y - 4, Math.max(2, rad - 6), light);
+      for (let k = 0; k < 3; k++)
+        px(c, x - rad / 2 + ((r() * rad) | 0), y - rad / 2 + ((r() * rad * 0.6) | 0), 2, 1, shine);
+      // A scalloped lower edge: the dark under each clump.
+      for (let k = -rad + 3; k < rad - 2; k += 4) px(c, x + k, y + rad - 3, 3, 1, ink);
+    }
   }
   return cv;
 }
@@ -916,6 +1012,15 @@ export function tileImage(
       case 'f':
         fence(c, r);
         break;
+      case 'h':
+        hedge(c, r, around);
+        break;
+      case 'e':
+        ledge(c, r, around);
+        break;
+      case 's':
+        stairs(c, around);
+        break;
       case 'w':
         stoneWall(c, r, around);
         break;
@@ -924,7 +1029,6 @@ export function tileImage(
         break;
       case 'T':
         grass(c, r);
-        ellipse(c, 16, 27, 14, 5, 'rgb(20 50 20 / 0.3)');
         break;
       default:
         grass(c, r);
@@ -937,10 +1041,15 @@ export function tileImage(
 export function tallImage(
   tile: string,
   variant: number,
-): { image: HTMLCanvasElement; rise: number } {
-  if (tile === 'K') return { image: kept('K:top', campanile), rise: TILE };
+): { image: HTMLCanvasElement; rise: number; spread: number } {
+  if (tile === 'K') return { image: kept('K:top', campanile), rise: TILE, spread: 0 };
   const v = variant % 4;
-  return { image: kept(`T:top:${v}`, () => treeTop(rng(v * 131 + 7))), rise: TILE / 2 };
+  const autumn = isAutumn(variant);
+  return {
+    image: kept(`T:top:${v}:${autumn}`, () => treeTop(rng(v * 131 + 7), autumn)),
+    rise: TREE_RISE,
+    spread: TREE_SPREAD,
+  };
 }
 
 /** The front blades of tall grass, drawn over the lower half of whoever stands in it. */
@@ -950,4 +1059,104 @@ export function grassFront(frame: number) {
     tallGrass(c, frame, true);
     return cv;
   });
+}
+
+/** A smooth random field over the map: value noise on a grid of `cell` device pixels. */
+function noise(seed: number, cell: number) {
+  const at = (gx: number, gy: number) => {
+    let h = (gx * 374761393 + gy * 668265263 + seed * 2654435761) >>> 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    return (h & 0xffff) / 0xffff;
+  };
+  const ease = (t: number) => t * t * (3 - 2 * t);
+  return (x: number, y: number) => {
+    const gx = Math.floor(x / cell);
+    const gy = Math.floor(y / cell);
+    const fx = ease(x / cell - gx);
+    const fy = ease(y / cell - gy);
+    const top = at(gx, gy) + (at(gx + 1, gy) - at(gx, gy)) * fx;
+    const bottom = at(gx, gy + 1) + (at(gx + 1, gy + 1) - at(gx, gy + 1)) * fx;
+    return top + (bottom - top) * fy;
+  };
+}
+
+const PLAIN = new Set(['.', 'T', 'S', 'f']);
+const overlays = new Map<string, HTMLCanvasElement>();
+
+/**
+ * The detail laid over a whole outdoor map once: broad light and shade across the grass, worn
+ * dirt patches, the trees' cast shadows, and fallen leaves under the autumn trees. Drawn after
+ * the ground and before anything that stands up.
+ */
+export function groundOverlay(
+  id: string,
+  width: number,
+  height: number,
+  at: (x: number, y: number) => string,
+): HTMLCanvasElement {
+  const done = overlays.get(id);
+  if (done) return done;
+  const [cv, c] = canvas(width * T, height * T);
+  overlays.set(id, cv);
+  const seed = [...id].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 7);
+  const shade = noise(seed, 56);
+  const dirt = noise(seed + 1, 40);
+  const r = rng(seed);
+  const img = c.createImageData(width * T, height * T);
+  const d = img.data;
+  for (let y = 0; y < height * T; y++) {
+    for (let x = 0; x < width * T; x++) {
+      const tile = at((x / T) | 0, (y / T) | 0);
+      if (!PLAIN.has(tile) && tile !== ',') continue;
+      const i = (y * width * T + x) * 4;
+      const v = shade(x, y);
+      if (v > 0.64) {
+        // Sunlit patches, a little yellow.
+        d.set([240, 248, 150, Math.min(48, (v - 0.64) * 200)], i);
+      } else if (v < 0.34) {
+        d.set([20, 70, 30, Math.min(40, (0.34 - v) * 200)], i);
+      }
+      if (tile === '.') {
+        const w = dirt(x, y) + (((x * 7 + y * 13) % 5) - 2) * 0.012;
+        if (w > 0.8) {
+          const edge = w < 0.825;
+          d.set(edge ? [176, 160, 96, 150] : [214, 194, 138, 235], i);
+        }
+      }
+    }
+  }
+  c.putImageData(img, 0, 0);
+
+  // Cast shadows, down and to the right of each tree, and fallen leaves around autumn ones.
+  for (let ty = 0; ty < height; ty++) {
+    for (let tx = 0; tx < width; tx++) {
+      if (at(tx, ty) !== 'T') continue;
+      if (at(tx, ty + 1) !== 'T') {
+        ellipse(c, tx * T + 22, ty * T + 30, 24, 9, 'rgb(20 50 30 / 0.22)');
+        ellipse(c, tx * T + 20, ty * T + 28, 16, 6, 'rgb(20 50 30 / 0.12)');
+      }
+      if (!isAutumn(variantAt(tx, ty))) continue;
+      for (const [dx, dy] of [
+        [0, 1],
+        [-1, 1],
+        [1, 1],
+        [-1, 0],
+        [1, 0],
+      ]) {
+        const nx = tx + dx;
+        const ny = ty + dy;
+        if (at(nx, ny) !== '.') continue;
+        const pile = dy === 1 && dx === 0 && r() < 0.5;
+        const n = pile ? 90 : 14;
+        for (let k = 0; k < n; k++) {
+          const lx = nx * T + ((r() * (T - 2)) | 0);
+          const ly = ny * T + ((r() * (pile ? T - 2 : 14)) | 0);
+          const colour = LEAVES.autumn[2 + ((r() * 3) | 0)];
+          px(c, lx, ly, 2, 2, colour);
+          if (r() < 0.3) px(c, lx, ly + 2, 2, 1, LEAVES.autumn[1]);
+        }
+      }
+    }
+  }
+  return cv;
 }

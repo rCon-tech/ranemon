@@ -17,6 +17,7 @@ import { DOOR_LABEL, INK, LIGHT, LOOKS, paintPerson, PERSON, TILE } from './pixe
 import {
   frameOf,
   grassFront,
+  groundOverlay,
   RES,
   TALL,
   TALL_GRASS,
@@ -235,7 +236,7 @@ export function Overworld(props: Props) {
 
       // Visible rows plus one below, so a tree's canopy can rise into view.
       for (let ty = y0; ty <= y0 + SCREEN_H / TILE + 2; ty++) {
-        for (let tx = x0; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
+        for (let tx = x0 - 1; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
           if (!inMap(tx, ty)) continue;
           const tile = at(tx, ty);
           const around = {
@@ -254,13 +255,27 @@ export function Overworld(props: Props) {
           );
           c.drawImage(image, sx(tx * TILE), sy(ty * TILE), TILE, TILE);
           if (TALL.has(tile)) {
-            const { image: top, rise } = tallImage(tile, variant);
+            const { image: top, rise, spread } = tallImage(tile, variant);
             drawn.push({
               y: ty * TILE,
-              paint: () => c.drawImage(top, sx(tx * TILE), sy(ty * TILE - rise), TILE, TILE + rise),
+              paint: () =>
+                c.drawImage(
+                  top,
+                  sx(tx * TILE - spread),
+                  sy(ty * TILE - rise),
+                  TILE + spread * 2,
+                  TILE + rise,
+                ),
             });
           }
         }
+      }
+
+      // Light and shade, worn patches, tree shadows and fallen leaves, laid over the ground.
+      if (!map.inside) {
+        const rows = map.rows.length;
+        const cols = map.rows[0].length;
+        c.drawImage(groundOverlay(map.id, cols, rows, at), sx(0), sy(0), mapW, mapH);
       }
 
       // Shop signs over the doors, in the door's own colour.
