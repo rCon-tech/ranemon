@@ -251,7 +251,7 @@ function act(s: Session, action: Action, random: number, before: QueueItem[] = [
 }
 
 /** Uses an item on one of your Ranemon; it takes your turn, as a switch does. */
-function useItem(s: Session, a: Extract<SessionAction, { type: 'item' }>): Session {
+function applyItemAction(s: Session, a: Extract<SessionAction, { type: 'item' }>): Session {
   const state = structuredClone(s.state);
   const b = state.teams[0].battlers[a.target];
   const name = b.creature.name;
@@ -341,7 +341,7 @@ export function reduce(s: Session, a: SessionAction): Session {
     case 'open':
       return isChoosing(s.mode) ? { ...s, mode: a.mode } : s;
     case 'item':
-      return isChoosing(s.mode) ? useItem(s, a) : s;
+      return isChoosing(s.mode) ? applyItemAction(s, a) : s;
     case 'pint':
       return isChoosing(s.mode) && s.foe.kind === 'wild' ? throwPint(s, a) : s;
     case 'run':
