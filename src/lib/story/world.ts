@@ -45,7 +45,9 @@ export type Look =
   | 'bns'
   | 'local'
   | 'barman'
-  | 'shopkeeper';
+  | 'shopkeeper'
+  | 'saoirse'
+  | 'oldman';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -54,6 +56,8 @@ export type Step =
   | { do: 'give'; item: ItemId; count?: number }
   | { do: 'flag'; flag: string }
   | { do: 'if'; flag: string; then: Step[]; else?: Step[] }
+  /** A yes or no question; the answer picks which steps run next. */
+  | { do: 'ask'; text: string; yes?: Step[]; no?: Step[] }
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }
@@ -90,6 +94,15 @@ export interface Npc {
   hideIf?: string;
 }
 
+export interface Gym {
+  trainer: string;
+  place: string;
+  /** How the leader looks, if not like the other leaders. */
+  look?: Look;
+  /** A door that stays shut until a flag is set, such as an HM. */
+  lock?: { flag: string; locked: string; opened: string };
+}
+
 export interface Wild {
   min: number;
   max: number;
@@ -110,7 +123,7 @@ export interface GameMap {
   houses?: Step[][];
   landmarks?: Step[][];
   /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
-  gym?: { trainer: string; place: string };
+  gym?: Gym;
   west?: string;
   east?: string;
   /** Run once, the first time you arrive. */

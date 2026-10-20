@@ -92,3 +92,96 @@ test('story mode: the couch at home is a lovely Ocean Linen couch', async ({ pag
   await page.keyboard.press('z');
   await expect(text).toContainText('A lovely Ocean Linen couch.');
 });
+
+test('story mode: the old man’s HM opens the Semple Stadium gym', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:hm')) return;
+    localStorage.setItem(
+      'ranemon.story.v1:hm',
+      JSON.stringify({
+        version: 1,
+        map: 'tipperary',
+        x: 19,
+        y: 11,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 20,
+            exp: 8000,
+            hp: 70,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:tipperary', 'jersey:clare', 'jersey:limerick'],
+        seen: [],
+        caught: [],
+        pub: { map: 'tipperary', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('HM');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const text = page.getByTestId('story-text');
+  const world = page.getByTestId('overworld');
+  const tap = async (key: string) => {
+    await page.keyboard.down(key);
+    await page.waitForTimeout(80);
+    await page.keyboard.up(key);
+    await page.waitForTimeout(400);
+  };
+  const walk = async (key: string, x: number, y: number) => {
+    for (let i = 0; i < 8; i++) {
+      if (
+        (await world.getAttribute('data-x')) === String(x) &&
+        (await world.getAttribute('data-y')) === String(y)
+      )
+        return;
+      await tap(key);
+    }
+    await expect(world).toHaveAttribute('data-x', String(x));
+    await expect(world).toHaveAttribute('data-y', String(y));
+  };
+  await expect(world).toBeVisible();
+
+  // Locked without the HM.
+  await tap('ArrowUp');
+  await expect(text).toContainText('pattern lock');
+  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+
+  // The old man, up by the gym: five questions, any answers.
+  await walk('ArrowRight', 22, 11);
+  await walk('ArrowUp', 22, 8);
+  await walk('ArrowLeft', 21, 8);
+  await tap('ArrowUp');
+  await page.keyboard.press('z');
+  for (let asked = 0; asked < 5;) {
+    if (await page.getByText(/QUESTION \d OF 5/).count()) {
+      await page.getByRole('button', { name: asked % 2 ? 'NO' : 'YES' }).click();
+      asked++;
+    } else await text.click();
+  }
+  await expect(text).toContainText('OLD MAN:');
+  for (let i = 0; i < 30 && !(await text.filter({ hasText: 'DONKEY BRAINS' }).count()); i++)
+    await text.click();
+  for (let i = 0; i < 12 && (await text.count()); i++) await text.click();
+  await expect(text).toHaveCount(0);
+
+  // Now the door opens.
+  await walk('ArrowRight', 22, 8);
+  await walk('ArrowDown', 22, 11);
+  await walk('ArrowLeft', 19, 11);
+  await tap('ArrowUp');
+  await expect(world).toHaveAttribute('aria-label', /Semple Stadium gym/);
+  await expect(text).toContainText('You used HM NEURODIVERGENT!');
+});

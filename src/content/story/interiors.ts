@@ -175,7 +175,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
         rows: LAYOUTS.G,
         gym,
         npcs: [
-          { look: 'leader', face: 'down', trainer: gym.trainer },
+          { look: gym.look ?? 'leader', face: 'down', trainer: gym.trainer },
           {
             look: 'trainer',
             face: 'left',

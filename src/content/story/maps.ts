@@ -1,4 +1,5 @@
-import type { GameMap } from '@/lib/story/world';
+import { CERT, HM } from '@/lib/story/keys';
+import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
 
 /**
@@ -24,6 +25,94 @@ const garda = (county: string, jersey: string) => ({
     },
   ],
 });
+
+/**
+ * The old man in Thurles, a retired donkey vet, who asks you five questions and certifies you
+ * with Donkey Brains: the highest honour in Tipperary. His HM opens the gym's pattern lock.
+ * The questions are loosely after the screening ones, and every answer is a good one.
+ */
+const question = (n: number, text: string, yes: string, no: string): Step => ({
+  do: 'ask',
+  text: `QUESTION ${n} OF 5. ${text}`,
+  yes: [{ do: 'say', text: `OLD MAN: ${yes}` }],
+  no: [{ do: 'say', text: `OLD MAN: ${no}` }],
+});
+
+const DONKEY_VET: Step[] = [
+  {
+    do: 'if',
+    flag: HM,
+    then: [
+      {
+        do: 'say',
+        text: 'OLD MAN: Did you frame the certificate? Donkey Brains. There’s only a handful of us in the whole county.',
+      },
+    ],
+    else: [
+      {
+        do: 'say',
+        text: 'OLD MAN: You’re after the gym? Saoirse put a pattern lock on the door. Nobody in Thurles can work it out.',
+      },
+      {
+        do: 'say',
+        text: 'OLD MAN: I was a donkey vet for forty years. Cleverest animals in Ireland, donkeys. They notice everything, and they never forget a field.',
+      },
+      {
+        do: 'say',
+        text: 'OLD MAN: Answer me five questions and we’ll see if you’ve the brains of a donkey. There are no wrong answers, mind.',
+      },
+      question(
+        1,
+        'Do you often notice small sounds other people don’t, like the fridge humming in McGrattans?',
+        'So do donkeys. Their ears are enormous.',
+        'Lucky. That fridge has been humming since 1994.',
+      ),
+      question(
+        2,
+        'Would you rather spend Saturday night in the library than at the disco in Thurles?',
+        'The library has better lighting, in fairness.',
+        'Grand. The disco shut in 2003, so it’s the library either way.',
+      ),
+      question(
+        3,
+        'Do you notice number plates, or patterns in things, all the time?',
+        'Then you’ll have seen that every second car in Tipperary is a 2008 Corolla.',
+        'No harm. Every second car in Tipperary is a 2008 Corolla anyway.',
+      ),
+      question(
+        4,
+        'If someone interrupts you, can you go straight back to what you were doing?',
+        'Good, because I’ve forgotten what I was… ah no, here we are.',
+        'Me neither. I’ve been halfway through the same crossword since 1979.',
+      ),
+      question(
+        5,
+        'Have you one big interest you could talk about for hours? Every Munster hurling final, say?',
+        'Same here. Ask me about 1991. Actually, don’t, we’ll be here all day.',
+        'Ah, you’ll find one. Mine is donkeys. And hurling. And the crossword.',
+      ),
+      {
+        do: 'say',
+        text: 'OLD MAN: (He writes on the back of a Tayto packet for a long time, then looks up, delighted.)',
+      },
+      {
+        do: 'say',
+        text: 'OLD MAN: Well now. Those are the most interesting answers I’ve heard since 1987. I hereby certify you…',
+      },
+      { do: 'say', text: '…with DONKEY BRAINS! You got the Donkey Brains certificate!' },
+      { do: 'flag', flag: CERT },
+      {
+        do: 'say',
+        text: 'OLD MAN: And take this. HM NEURODIVERGENT. It lets you see the patterns the rest of us walk straight past. That lock won’t stand a chance.',
+      },
+      {
+        do: 'say',
+        text: 'You got HM NEURODIVERGENT! Use it from the BAG to notice everything around you.',
+      },
+      { do: 'flag', flag: HM },
+    ],
+  },
+];
 
 export const MAPS: GameMap[] = [
   {
@@ -223,7 +312,7 @@ export const MAPS: GameMap[] = [
       '@.......===========....T',
       'TeeeeeeeseeeeeeeeeeeeeeT',
       'TT..1...=.....,,,,,.*..T',
-      'T^^^^...=.....,,,,,....T',
+      'T^^^^...=.....,,,,,..4.T',
       'T#P##...=..^^^.........T',
       'T.......=..#M#...^^^^^.T',
       'T.......=........##G##.T',
@@ -244,8 +333,9 @@ export const MAPS: GameMap[] = [
       { look: 'trainer', face: 'right', trainer: 'tipp-hurler', sight: 3 },
       { look: 'lad', face: 'up', trainer: 'lads-gav', sight: 3 },
       garda('Tipperary', 'jersey:tipperary'),
+      { look: 'oldman', face: 'down', talk: DONKEY_VET },
     ],
-    signs: ['THURLES. Semple Stadium, home of hurling.'],
+    signs: ['THURLES. Semple Stadium, home of hurling. Gym door locked: see the old man.'],
     houses: [
       [
         {
@@ -262,7 +352,18 @@ export const MAPS: GameMap[] = [
         },
       ],
     ],
-    gym: { trainer: 'gym-tipperary', place: 'Semple Stadium' },
+    gym: {
+      trainer: 'gym-tipperary',
+      place: 'Semple Stadium',
+      look: 'saoirse',
+      lock: {
+        flag: HM,
+        locked:
+          'The gym door has a pattern lock: 400 little coloured tiles. Nobody in Thurles has ever worked it out. Maybe the old man by the gym knows something.',
+        opened:
+          'You used HM NEURODIVERGENT! You spot the pattern in the tiles straight away. The door clicks open.',
+      },
+    },
     west: 'limerick',
     east: 'kilkenny',
   },
