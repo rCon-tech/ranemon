@@ -59,7 +59,7 @@ export function TeamSelect({ roster, onReady }: Props) {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-3 text-paper">
+    <div className="flex flex-1 flex-col gap-4 p-3 text-ink">
       <div className="flex items-center justify-between text-[10px]">
         <h1>CHOOSE YOUR TEAM</h1>
         <span aria-label="Time left to pick">⏱ {timeLeft}s</span>

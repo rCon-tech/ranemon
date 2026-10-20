@@ -5,7 +5,7 @@ import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import { legalActions, startBattle, switchTargets, type Action } from '@/lib/battle/engine';
 import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
-import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
+import { TYPE_LABEL } from '@/lib/battle/types';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
@@ -30,7 +30,7 @@ function MoveInfo({ move, pp }: { move: Move; pp: number | null }) {
   return (
     <span className="flex flex-col gap-1.5 text-[8px] leading-relaxed" data-testid="move-info">
       <span className="text-[10px]">
-        {move.signature && <span className="text-[#d8a000]">* </span>}
+        {move.signature && <span className="text-frame">* </span>}
         {move.name}
       </span>
       <span>
@@ -193,7 +193,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
         </button>
 
         {choosing && (
-          <div className="flex items-center justify-between text-[8px] text-paper">
+          <div className="flex items-center justify-between text-[8px] text-ink">
             <span>Turn {state.turn}</span>
             <span aria-label="Time left this turn">⏱ {timeLeft}s</span>
           </div>
@@ -237,9 +237,6 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     key={id}
                     type="button"
                     className="pixel-btn flex flex-col gap-1.5"
-                    style={{
-                      borderLeft: `10px solid ${move.type ? TYPE_COLOR[move.type] : '#888'}`,
-                    }}
                     disabled={!allowed && !flail}
                     aria-pressed={selected === index}
                     onClick={() =>
@@ -248,7 +245,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
                     title={move.flavour}
                   >
                     <span className="text-[9px] leading-snug">
-                      {move.signature && <span className="text-[#d8a000]">* </span>}
+                      {move.signature && <span className="text-frame">* </span>}
                       {move.name}
                     </span>
                     <span className="flex justify-between text-[7px] opacity-75">
@@ -329,7 +326,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
 
         {mode === 'confirm-run' && (
           <div className="flex flex-col gap-2">
-            <p className="text-[9px] leading-relaxed text-paper">Forfeit? It counts as a loss.</p>
+            <p className="text-[9px] leading-relaxed text-ink">Forfeit? It counts as a loss.</p>
             <div className="grid grid-cols-2 gap-2">
               <button type="button" className="pixel-btn menu-item" onClick={forfeit}>
                 YES

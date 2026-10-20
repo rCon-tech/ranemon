@@ -1,19 +1,25 @@
 @import 'tailwindcss';
 
 /*
- * Ranemon's look: a handheld monster-battle game. Pixel font, chunky outlines, a white text box
- * with a double border, and a sky-and-grass battlefield. One committed look, so every colour is
- * set explicitly and there is no dark variant.
+ * Ranemon's look: the original monochrome handheld. Everything on screen is one of 4 LCD greens,
+ * text is a chunky pixel font, boxes are square with hard borders, and sprites are dithered onto
+ * the same 4 shades (scripts/gb_sprite.py). Effects drawn in colour pass through the #gb-palette
+ * SVG filter, which snaps them to the same greens. One committed look, so there is no dark variant.
  */
 @theme {
-  --color-ink: #1d2433;
-  --color-shell: #2b3346;
-  --color-paper: #f8f8f0;
-  --color-frame: #5a6378;
-  --color-hp-high: #38c860;
-  --color-hp-mid: #f0c020;
-  --color-hp-low: #e83838;
-  --color-dex: #d8303a;
+  /* The 4 shades, darkest to lightest. */
+  --color-gb0: #0f380f;
+  --color-gb1: #306230;
+  --color-gb2: #8bac0f;
+  --color-gb3: #9bbc0f;
+  --color-ink: #0f380f;
+  --color-frame: #306230;
+  --color-shell: #8bac0f;
+  --color-paper: #9bbc0f;
+  --color-hp-high: #0f380f;
+  --color-hp-mid: #306230;
+  --color-hp-low: #306230;
+  --color-dex: #8bac0f;
   --font-pixel: 'Press Start 2P', ui-monospace, 'Courier New', monospace;
 }
 
@@ -21,12 +27,13 @@
   color-scheme: light;
 }
 
+/* Around the screen: the dark bezel. */
 html {
-  background: var(--color-shell);
+  background: var(--color-gb0);
 }
 
 body {
-  background: var(--color-shell);
+  background: var(--color-gb0);
   color: var(--color-ink);
   font-family: var(--font-pixel);
   -webkit-font-smoothing: none;
@@ -37,16 +44,32 @@ button {
   font-family: inherit;
 }
 
+/* The screen itself, with faint LCD scanlines over everything. */
+.gb-screen {
+  position: relative;
+  background: var(--color-shell);
+}
+.gb-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    repeating-linear-gradient(0deg, rgb(15 56 15 / 0.07) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(15 56 15 / 0.04) 0 1px, transparent 1px 3px);
+}
+
 /* ---------- shared pieces ---------- */
 
-/* The classic white box with a dark outer and blue-grey inner border. */
+/* The text box: square, a thick dark border with a light gap and a thin inner line. */
 .dialog {
   background: var(--color-paper);
   border: 4px solid var(--color-ink);
-  border-radius: 10px;
+  border-radius: 0;
   box-shadow:
-    inset 0 0 0 3px var(--color-paper),
-    inset 0 0 0 6px var(--color-frame);
+    inset 0 0 0 2px var(--color-paper),
+    inset 0 0 0 4px var(--color-frame);
 }
 
 .pixel-btn {
@@ -55,24 +78,26 @@ button {
   background: var(--color-paper);
   color: var(--color-ink);
   border: 3px solid var(--color-ink);
-  border-radius: 8px;
-  box-shadow: 0 4px 0 var(--color-ink);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--color-frame);
   font-size: 11px;
   line-height: 1.4;
   padding: 10px 12px 8px;
   text-align: left;
-  transition: transform 0.06s;
 }
 .pixel-btn:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--color-ink);
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 .pixel-btn:disabled {
-  opacity: 0.45;
   cursor: default;
+  color: var(--color-frame);
+  border-color: var(--color-frame);
+  border-style: dashed;
+  box-shadow: none;
 }
 .pixel-btn:focus-visible {
-  outline: 3px solid var(--color-hp-mid);
+  outline: 3px dotted var(--color-ink);
   outline-offset: 2px;
 }
 .pixel-btn[aria-pressed='true'] {
@@ -80,7 +105,7 @@ button {
   color: var(--color-paper);
 }
 
-/* A small cursor arrow in front of the hovered or focused menu item. */
+/* The ▶ cursor in front of the hovered or focused menu item. */
 .menu-item {
   position: relative;
   padding-left: 22px;
@@ -88,10 +113,10 @@ button {
 .menu-item::before {
   content: '';
   position: absolute;
-  left: 8px;
+  left: 7px;
   top: 50%;
   border: 5px solid transparent;
-  border-left: 7px solid var(--color-ink);
+  border-left: 7px solid currentColor;
   transform: translateY(-50%);
   opacity: 0;
 }
@@ -106,11 +131,16 @@ button {
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--color-paper);
+  background: var(--color-ink);
   padding: 3px 4px 2px;
-  border: 2px solid var(--color-ink);
-  border-radius: 4px;
-  text-shadow: 1px 1px 0 rgb(0 0 0 / 0.45);
+}
+
+/* Anything drawn in colour (move animations, special scenes) is snapped to the 4 greens. */
+.gb-filter,
+.move-fx,
+.special-fx {
+  filter: url(#gb-palette);
 }
 
 /* ---------- battlefield ---------- */
@@ -119,15 +149,17 @@ button {
   position: relative;
   aspect-ratio: 3 / 2;
   overflow: hidden;
-  background: linear-gradient(180deg, #a8e0f8 0%, #d8f4ff 46%, #b8e890 46%, #88d068 100%);
+  background: var(--color-paper);
   border-bottom: 4px solid var(--color-ink);
 }
 
+/* Each Ranemon stands on a flat oval of shadow, as on the original. */
 .platform {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 40%, #c8f0a0 0%, #98d878 55%, #70b858 100%);
-  border: 3px solid #4a8a3a;
+  background: repeating-conic-gradient(var(--color-gb2) 0 25%, var(--color-paper) 0 50%) 0 0 / 4px
+    4px;
+  border: 3px solid var(--color-frame);
 }
 .platform-foe {
   right: 6%;
@@ -161,23 +193,25 @@ button {
   height: 46%;
 }
 
+/* Info boxes are open on two sides, with an L of border under them, like the original. */
 .info-box {
   position: absolute;
   width: 50%;
-  padding: 7px 9px 6px;
+  padding: 6px 8px 6px;
   background: var(--color-paper);
-  border: 3px solid var(--color-ink);
   font-size: 9px;
 }
 .info-foe {
-  left: 4%;
-  top: 6%;
-  border-radius: 4px 14px 4px 14px;
+  left: 3%;
+  top: 5%;
+  border-left: 3px solid var(--color-ink);
+  border-bottom: 3px solid var(--color-ink);
 }
 .info-you {
-  right: 4%;
-  bottom: 6%;
-  border-radius: 14px 4px 14px 4px;
+  right: 3%;
+  bottom: 5%;
+  border-right: 3px solid var(--color-ink);
+  border-bottom: 3px solid var(--color-ink);
 }
 
 .hp-track {
@@ -186,34 +220,43 @@ button {
   gap: 4px;
   margin-top: 5px;
   padding: 2px 3px;
-  border-radius: 6px;
   background: var(--color-ink);
 }
 .hp-label {
-  color: var(--color-hp-mid);
+  color: var(--color-paper);
   font-size: 6px;
 }
 .hp-bar {
   flex: 1;
   height: 6px;
-  border-radius: 3px;
-  background: #4a5268;
+  background: var(--color-paper);
   overflow: hidden;
 }
 .hp-fill {
   height: 100%;
-  border-radius: 3px;
-  transition:
-    width 0.6s linear,
-    background-color 0.2s;
+  transition: width 0.6s steps(12);
+}
+.hp-fill.low {
+  animation: blink 0.6s steps(1) infinite;
+}
+
+.exp-track {
+  margin-top: 4px;
+  height: 4px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-paper);
+}
+.exp-fill {
+  height: 100%;
+  background: var(--color-frame);
+  transition: width 0.8s steps(10);
 }
 
 .status-tag {
   font-size: 6px;
   padding: 2px 3px 1px;
-  border-radius: 3px;
-  color: #fff;
-  border: 1px solid var(--color-ink);
+  color: var(--color-paper);
+  background: var(--color-frame);
 }
 
 /* ---------- animations ---------- */

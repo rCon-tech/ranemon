@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { GbPalette } from '@/components/GbPalette';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   description: 'A battle game where your friends are the creatures.',
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1d2433' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0f380f' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,7 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="antialiased">
-        <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">{children}</main>
+        <GbPalette />
+        <main className="gb-screen mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">
+          {children}
+        </main>
       </body>
     </html>
   );

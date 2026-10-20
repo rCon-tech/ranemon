@@ -17,8 +17,8 @@ const STAT_LABEL = {
 
 export default function Ranedex() {
   return (
-    <div className="flex flex-1 flex-col gap-3 bg-dex p-3">
-      <div className="flex items-center justify-between text-[10px] text-paper">
+    <div className="flex flex-1 flex-col gap-3 bg-shell p-3">
+      <div className="flex items-center justify-between text-[10px] text-ink">
         <h1>RANEDEX</h1>
         <Link href="/" className="text-[8px] underline underline-offset-4">
           BACK
@@ -30,7 +30,7 @@ export default function Ranedex() {
           return (
             <li key={c.id} className="dialog flex flex-col gap-3 p-3">
               <div className="flex gap-3">
-                <div className="h-16 w-16 shrink-0 rounded border-2 border-ink bg-[#d8f4ff] p-1">
+                <div className="h-16 w-16 shrink-0 border-2 border-ink bg-gb2 p-1">
                   <Sprite creature={c} />
                 </div>
                 <div className="flex min-w-0 flex-col gap-1.5">
@@ -48,9 +48,9 @@ export default function Ranedex() {
                 {STAT_KEYS.map((k) => (
                   <div key={k} className="contents">
                     <dt>{STAT_LABEL[k]}</dt>
-                    <dd className="h-1.5 rounded bg-[#d0d4dc]">
+                    <dd className="h-1.5 bg-gb2">
                       <div
-                        className="h-full rounded bg-ink"
+                        className="h-full bg-ink"
                         style={{ width: `${(c.base[k] / 130) * 100}%` }}
                       />
                     </dd>
@@ -60,10 +60,7 @@ export default function Ranedex() {
               </dl>
               <ul className="grid grid-cols-2 gap-1 text-[7px]">
                 {c.moves.map((id) => (
-                  <li
-                    key={id}
-                    className={`truncate ${moveById(id).signature ? 'text-[#b07800]' : ''}`}
-                  >
+                  <li key={id} className={`truncate ${moveById(id).signature ? 'text-frame' : ''}`}>
                     {moveById(id).signature ? '*' : '·'} {moveById(id).name}
                   </li>
                 ))}

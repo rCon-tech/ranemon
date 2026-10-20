@@ -3,12 +3,6 @@ import type { Status } from '@/lib/battle/moves';
 import { STATUS_TAG } from '@/lib/ui/playback';
 import { TypeBadge } from './TypeBadge';
 
-const STATUS_COLOUR: Record<Status, string> = {
-  flustered: '#c8a020',
-  hangry: '#e05828',
-  asleep: '#7888a0',
-};
-
 interface Props {
   battler: Battler;
   hp: number;
@@ -35,11 +29,7 @@ export function InfoBox({ battler, hp, status, mine }: Props) {
         {battler.creature.types.map((t) => (
           <TypeBadge key={t} type={t} />
         ))}
-        {status && (
-          <span className="status-tag" style={{ background: STATUS_COLOUR[status] }}>
-            {STATUS_TAG[status]}
-          </span>
-        )}
+        {status && <span className="status-tag">{STATUS_TAG[status]}</span>}
       </div>
       <div
         className="hp-track"
@@ -51,7 +41,10 @@ export function InfoBox({ battler, hp, status, mine }: Props) {
       >
         <span className="hp-label">HP</span>
         <div className="hp-bar">
-          <div className="hp-fill" style={{ width: `${pct}%`, background: colour }} />
+          <div
+            className={`hp-fill ${pct <= 20 ? 'low' : ''}`}
+            style={{ width: `${pct}%`, background: colour }}
+          />
         </div>
       </div>
       {mine && (
