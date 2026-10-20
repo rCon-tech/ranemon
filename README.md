@@ -13,8 +13,8 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
   - 36 moves (6 per type), PP, accuracy, priority, and effects: statuses, stat stages (±3), recoil, healing and multi-hit. Flail kicks in when every move is out of PP.
   - 16 special moves, one per Ranemon, that no one else can learn. Their percentage boosts stack on top of stages and wear off when the Ranemon switches out. Some swap HP, tag in a partner, or attack and then switch out.
   - Three statuses: Flustered, Hangry and Asleep.
-  - A CPU at three levels. Easy picks moves at random, Normal picks the best expected value, and Hard also switches out of bad matchups.
-- **Screens**: title screen, team select with a 90-second pick-6 from all 16, the battle screen and the Ranedex. The battle screen has info boxes, a text box, FIGHT, RANEMON and RUN, a 45-second turn timer, and hit, send-out and faint animations.
+  - A CPU at three levels. Easy picks moves at random, Normal picks the best move about half the time, and Hard always picks the best move and also switches out of bad matchups.
+- **Screens**: title screen, team select with a 90-second pick-6 from all 16, the battle screen and the Ranedex. The battle screen has info boxes, a text box, FIGHT, RANEMON and RUN, a 45-second turn timer, text that types out and can be tapped past, an animation for every move in its type's style, a scene of its own for each special move, and hit, send-out and faint animations.
 - **Roster**: the 16 lads from the Ranemon sheet (`roster.ts`), each with a pixel sprite cut from their photo and their own special move. The rival's 6 are drawn at random from the 10 you didn't pick, and Oismon and Olliemon are kept together when both are left. The sheet gives no types or stats, so those are a first pass tuned with the simulator.
 - **Record**: your wins and losses, kept in this browser until accounts arrive.
 

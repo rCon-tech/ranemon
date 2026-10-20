@@ -14,6 +14,9 @@ import { moveById, type SpecialEffect } from './moves';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
+/** How often Normal picks a random move instead of its best one. */
+export const NORMAL_SLIP = 0.5;
+
 /** A float in [0, 1). */
 export type Random = () => number;
 
@@ -85,25 +88,29 @@ function specialValue(
       const mod = subject.mods[effect.stat];
       const raising = effect.factor > 1;
       if (raising ? mod >= 1.6 : mod <= 0.6) return 0;
-      const useful =
-        effect.stat === 'speed'
-          ? raising === (effect.target === 'self')
-            ? effectiveStat(user, 'speed') <= effectiveStat(target, 'speed')
-            : true
-          : effect.stat === 'attack' && effect.target === 'self'
-            ? user.creature.moves.some((id) => moveById(id).category === 'physical')
-            : true;
-      if (!useful) return 0;
       const size = Math.abs(effect.factor - 1);
-      if (effect.target === 'self') return healthy > 0.6 ? target.stats.hp * size * 0.8 : 0;
-      return target.stats.hp * size * 0.5 * accuracy;
+      // Rough worth over the next couple of turns: more damage dealt, or less taken.
+      const dealt = Math.max(...user.pp.map((_, i) => expectedDamage(user, target, i)));
+      const taken = threatFrom(target, user);
+      const faster = effectiveStat(user, 'speed') > effectiveStat(target, 'speed');
+      if (effect.target === 'self') {
+        if (healthy <= (effect.stat === 'defense' ? 0.3 : 0.5) || !raising) return 0;
+        if (effect.stat === 'speed') return faster ? 0 : dealt * 0.8;
+        if (effect.stat === 'defense') return taken * size * 2;
+        const uses = effect.stat === 'attack' ? 'physical' : 'spirit';
+        if (!user.creature.moves.some((id) => moveById(id).category === uses)) return 0;
+        return dealt * size * 2;
+      }
+      if (effect.stat === 'speed') return faster ? 0 : dealt * 0.6 * accuracy;
+      if (effect.stat === 'defense') return dealt * size * 1.5 * accuracy;
+      return taken * size * 1.5 * accuracy;
     }
     case 'self-damage':
       return healthy > effect.fraction + 0.4 ? -user.stats.hp * effect.fraction * 0.5 : -Infinity;
     case 'swap-hp': {
       const gain = Math.min(user.stats.hp, target.hp) - user.hp;
       const loss = target.hp - Math.min(target.stats.hp, user.hp);
-      return Math.max(0, (gain + loss) * 0.5 * accuracy);
+      return Math.max(0, (gain + loss) * accuracy);
     }
     case 'tag-partner': {
       // The partner tags in at full HP if it's on the team; otherwise a fresh wild one
@@ -117,7 +124,10 @@ function specialValue(
     case 'hit-and-run': {
       const attacks = user.pp.map((_, i) => expectedDamage(user, target, i)).filter((d) => d > 0);
       if (attacks.length === 0) return 0;
-      return (attacks.reduce((a, b) => a + b, 0) / attacks.length) * 0.6;
+      // A hit, then out of harm's way when the foe threatens a lot.
+      const average = attacks.reduce((a, b) => a + b, 0) / attacks.length;
+      const threat = threatFrom(target, user);
+      return average * 0.9 + (threat >= user.hp * 0.5 ? threat * 0.4 : 0);
     }
   }
 }
@@ -152,6 +162,11 @@ export function chooseAction(
     const moves = legalActions(state, side).filter((a) => a.kind === 'move');
     return moves[Math.floor(random() * moves.length)];
   }
+  // Normal slips up now and then, picking any move instead of the best one.
+  if (difficulty === 'normal' && random() < NORMAL_SLIP) {
+    const moves = legalActions(state, side).filter((a) => a.kind === 'move');
+    return moves[Math.floor(random() * moves.length)];
+  }
   const move = bestMove(state, side);
   if (difficulty === 'hard') {
     const team = state.teams[side];
@@ -177,7 +192,9 @@ export function chooseReplacement(
   random: Random,
 ): number {
   const options = switchTargets(state, side);
-  if (difficulty === 'easy') return options[Math.floor(random() * options.length)];
+  if (difficulty === 'easy' || (difficulty === 'normal' && random() < NORMAL_SLIP)) {
+    return options[Math.floor(random() * options.length)];
+  }
   const foe = activeBattler(state, other(side));
   const team = state.teams[side];
   const score = (i: number) => {

@@ -8,6 +8,9 @@ import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
+import { MoveEffect } from './MoveEffect';
+import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
+import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 
 interface Props {
@@ -54,7 +57,9 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
   const [session, dispatch] = useReducer(reduce, null, () =>
     startSession(startBattle(teams, newSeed()), difficulty),
   );
-  const { state, view, mode, message, hits, entries, timeLeft, result, queue, pause } = session;
+  const { state, view, mode, message, hits, entries, lunges, effect, line, timeLeft, result } =
+    session;
+  const { queue, pause } = session;
   // The move picked in the FIGHT menu, for the turn it was picked in. A second tap uses it.
   const [picked, setPicked] = useState<{ turn: number; index: number } | null>(null);
 
@@ -92,19 +97,27 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
     act({ kind: 'move', index: flail ? 0 : index });
   };
 
+  const special = effect !== null && hasSpecialEffect(effect.moveId);
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="field" data-testid="battlefield">
         <div className="platform platform-foe" />
         <div className="platform platform-you" />
         <div className="sprite-slot slot-foe">
+          {effect?.side === 1 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[1].shown ? (
             <div key={`in-${entries[1]}`} className="anim-in-foe h-full w-full">
               <div
-                key={`hit-${hits[1]}`}
-                className={hits[1] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
+                key={`lunge-${lunges[1]}`}
+                className={lunges[1] > 0 ? 'anim-lunge-foe h-full w-full' : 'h-full w-full'}
               >
-                <Sprite creature={foe.creature} />
+                <div
+                  key={`hit-${hits[1]}`}
+                  className={hits[1] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
+                >
+                  <Sprite creature={foe.creature} />
+                </div>
               </div>
             </div>
           ) : (
@@ -117,13 +130,19 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
           )}
         </div>
         <div className="sprite-slot slot-you">
+          {effect?.side === 0 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[0].shown ? (
             <div key={`in-${entries[0]}`} className="anim-in-you h-full w-full">
               <div
-                key={`hit-${hits[0]}`}
-                className={hits[0] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
+                key={`lunge-${lunges[0]}`}
+                className={lunges[0] > 0 ? 'anim-lunge-you h-full w-full' : 'h-full w-full'}
               >
-                <Sprite creature={me.creature} back />
+                <div
+                  key={`hit-${hits[0]}`}
+                  className={hits[0] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
+                >
+                  <Sprite creature={me.creature} back />
+                </div>
               </div>
             </div>
           ) : (
@@ -151,6 +170,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
             mine
           />
         )}
+        {special && <SpecialEffect key={effect.n} moveId={effect.moveId} user={effect.user} />}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 bg-shell p-3">
@@ -167,7 +187,7 @@ export function BattleScreen({ teams, difficulty, onFinish }: Props) {
               pp={flail ? null : me.pp[selected]}
             />
           ) : (
-            message
+            <TypedText key={line} text={message} />
           )}
           {mode === 'playing' && <span className="blink ml-1 inline-block">▼</span>}
         </button>
