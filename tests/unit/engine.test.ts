@@ -211,15 +211,20 @@ describe('whole battles', () => {
     }
   });
 
-  it('a Hard CPU beats an Easy one most of the time', () => {
-    let hardWins = 0;
+  // Each level should clearly beat the one below it, so Normal sits between Easy and Hard.
+  it.each([
+    ['hard', 'easy'],
+    ['hard', 'normal'],
+    ['normal', 'easy'],
+  ] as const)('a %s CPU beats an %s one most of the time', (better, worse) => {
+    let wins = 0;
     const games = 200;
     for (let seed = 0; seed < games; seed++) {
-      const a = [0, 1, 2].map((i) => ROSTER[(seed + i * 3) % ROSTER.length]);
-      const b = [0, 1, 2].map((i) => ROSTER[(seed + 8 + i * 3) % ROSTER.length]);
-      const { state } = simulateBattle([a, b], seed, ['hard', 'easy']);
-      if (state.phase.kind === 'over' && state.phase.winner === 0) hardWins++;
+      const a = [0, 1, 2, 3, 4, 5].map((i) => ROSTER[(seed + i * 5) % ROSTER.length]);
+      const b = [0, 1, 2, 3, 4, 5].map((i) => ROSTER[(seed + 2 + i * 5) % ROSTER.length]);
+      const { state } = simulateBattle([a, b], seed, [better, worse]);
+      if (state.phase.kind === 'over' && state.phase.winner === 0) wins++;
     }
-    expect(hardWins / games).toBeGreaterThan(0.6);
+    expect(wins / games).toBeGreaterThan(0.6);
   });
 });

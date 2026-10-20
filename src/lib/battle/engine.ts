@@ -124,6 +124,18 @@ export function startBattle(
   };
 }
 
+/** Whether a move is aimed at the opponent (so it can miss), rather than only at its user. */
+export function aimsAtFoe(move: Move): boolean {
+  return (
+    move.category !== 'status' ||
+    move.effect?.kind === 'status' ||
+    (move.effect?.kind === 'stat' && move.effect.target === 'foe') ||
+    (move.specials ?? []).some(
+      (e) => e.kind === 'swap-hp' || (e.kind === 'boost' && e.target === 'foe'),
+    )
+  );
+}
+
 export function activeBattler(state: BattleState, side: Side): Battler {
   const team = state.teams[side];
   return team.battlers[team.active];
@@ -263,13 +275,7 @@ class Turn {
     const user = this.active(side);
     const foeSide = other(side);
     const foe = this.active(foeSide);
-    const targetsFoe =
-      move.category !== 'status' ||
-      move.effect?.kind === 'status' ||
-      (move.effect?.kind === 'stat' && move.effect.target === 'foe') ||
-      (move.specials ?? []).some(
-        (e) => e.kind === 'swap-hp' || (e.kind === 'boost' && e.target === 'foe'),
-      );
+    const targetsFoe = aimsAtFoe(move);
 
     if (targetsFoe && foe.hp === 0) return;
     if (move.accuracy !== null && targetsFoe && !this.rng.chance(move.accuracy / 100)) {

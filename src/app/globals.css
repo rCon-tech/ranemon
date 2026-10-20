@@ -272,6 +272,143 @@ button {
   animation: faint 0.5s ease-in both;
 }
 
+/* Attacker lunges toward the foe. */
+@keyframes lunge-you {
+  40% {
+    transform: translate(14%, -10%);
+  }
+}
+@keyframes lunge-foe {
+  40% {
+    transform: translate(-14%, 10%);
+  }
+}
+.anim-lunge-you {
+  animation: lunge-you 0.3s steps(4) both;
+}
+.anim-lunge-foe {
+  animation: lunge-foe 0.3s steps(4) both;
+}
+
+/* Move effects: pixel pieces over the Ranemon a move lands on. --dx/--dy are % of the slot. */
+.move-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.fx-piece {
+  position: absolute;
+  left: calc(50% + var(--dx) * 1%);
+  top: calc(50% + var(--dy) * 1%);
+  width: var(--size);
+  height: auto;
+  translate: -50% -50%;
+  opacity: 0;
+  animation-duration: 0.7s;
+  animation-delay: var(--delay);
+  animation-fill-mode: both;
+  animation-timing-function: steps(7);
+}
+.fx-burst .fx-piece {
+  animation-name: fx-burst;
+}
+@keyframes fx-burst {
+  0% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * -3%), calc(var(--dy) * -3%)) scale(0.3);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 3%), calc(var(--dy) * 3%)) scale(1.2) rotate(90deg);
+  }
+}
+.fx-rise .fx-piece {
+  animation-name: fx-rise;
+}
+@keyframes fx-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(150%) scale(0.6);
+  }
+  25%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-200%) scale(1.1);
+  }
+}
+.fx-fall .fx-piece {
+  animation-name: fx-fall;
+}
+@keyframes fx-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-250%) rotate(0deg);
+  }
+  25%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(150%) rotate(180deg);
+  }
+}
+.fx-ring .fx-piece {
+  left: 50%;
+  top: 50%;
+  animation-name: fx-ring;
+}
+@keyframes fx-ring {
+  0% {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+.fx-impact .fx-piece {
+  animation-name: fx-impact;
+}
+@keyframes fx-impact {
+  0% {
+    opacity: 1;
+    transform: scale(0) rotate(-20deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.3) rotate(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(0deg);
+  }
+}
+.fx-spin .fx-piece {
+  animation-name: fx-spin;
+}
+@keyframes fx-spin {
+  0% {
+    opacity: 1;
+    transform: rotate(0deg) scale(0.4);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 2%), calc(var(--dy) * 2%)) rotate(540deg) scale(1.1);
+  }
+}
+
 @keyframes blink {
   50% {
     opacity: 0;
@@ -286,6 +423,9 @@ button {
   .anim-in-foe,
   .anim-in-you,
   .anim-faint,
+  .anim-lunge-you,
+  .anim-lunge-foe,
+  .fx-piece,
   .blink {
     animation-duration: 0.01s;
     animation-iteration-count: 1;

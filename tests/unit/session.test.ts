@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { legalActions, startBattle } from '@/lib/battle/engine';
 import { STARTERS } from '../fixtures/placeholders';
 import { applyEvent, describeEvent, viewOf } from '@/lib/ui/playback';
-import { reduce, startSession, TURN_SECONDS, type Session } from '@/lib/ui/session';
+import { messagePause, reduce, startSession, TURN_SECONDS, type Session } from '@/lib/ui/session';
 
 const teams = () => [STARTERS.slice(0, 3), STARTERS.slice(3, 6)] as [never, never];
 
@@ -42,6 +42,19 @@ describe('battle session', () => {
     expect(s.mode).toBe('over');
     expect(s.result).not.toBeNull();
     expect(s.message).toMatch(/You (won|lost) the battle|draw/);
+  });
+
+  it('plays an attack’s animation on the target, and holds each line long enough to read', () => {
+    let s = untilInput(fresh());
+    // Prof Pip leads; Galaxy Brain is a damaging Brains move.
+    s = reduce(s, { type: 'act', action: { kind: 'move', index: 0 }, random: 3 });
+    for (let i = 0; i < 50 && !(s.effect && s.message.includes('Galaxy Brain')); i++) {
+      s = reduce(s, { type: 'step', random: i });
+    }
+    expect(s.effect).toMatchObject({ side: 1, moveId: 'galaxy-brain' });
+    expect(s.lunges[0]).toBe(1);
+    expect(s.pause).toBe(messagePause(s.message));
+    expect(s.pause).toBeGreaterThanOrEqual(2000);
   });
 
   it('ignores moves while text is still playing', () => {

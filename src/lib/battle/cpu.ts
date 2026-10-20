@@ -14,6 +14,9 @@ import { moveById, type SpecialEffect } from './moves';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
+/** How often Normal picks a random move instead of its best one. */
+export const NORMAL_SLIP = 0.5;
+
 /** A float in [0, 1). */
 export type Random = () => number;
 
@@ -152,6 +155,11 @@ export function chooseAction(
     const moves = legalActions(state, side).filter((a) => a.kind === 'move');
     return moves[Math.floor(random() * moves.length)];
   }
+  // Normal slips up now and then, picking any move instead of the best one.
+  if (difficulty === 'normal' && random() < NORMAL_SLIP) {
+    const moves = legalActions(state, side).filter((a) => a.kind === 'move');
+    return moves[Math.floor(random() * moves.length)];
+  }
   const move = bestMove(state, side);
   if (difficulty === 'hard') {
     const team = state.teams[side];
@@ -177,7 +185,9 @@ export function chooseReplacement(
   random: Random,
 ): number {
   const options = switchTargets(state, side);
-  if (difficulty === 'easy') return options[Math.floor(random() * options.length)];
+  if (difficulty === 'easy' || (difficulty === 'normal' && random() < NORMAL_SLIP)) {
+    return options[Math.floor(random() * options.length)];
+  }
   const foe = activeBattler(state, other(side));
   const team = state.teams[side];
   const score = (i: number) => {

@@ -1,6 +1,8 @@
 import { chooseAction, chooseReplacement, type Difficulty } from '../battle/cpu';
+import { moveById } from '../battle/moves';
 import {
   activeBattler,
+  aimsAtFoe,
   legalActions,
   playTurn,
   replaceFainted,
@@ -13,8 +15,14 @@ import { Rng, seedFrom } from '../battle/rng';
 import { applyEvent, describeEvent, viewOf, type View } from './playback';
 
 export const TURN_SECONDS = 45;
-export const MESSAGE_MS = 1100;
-export const SILENT_MS = 450;
+/** Each line stays up long enough to type out and then read; tapping the box skips ahead. */
+export const MESSAGE_MS = 1500;
+export const MS_PER_CHAR = 45;
+export const SILENT_MS = 500;
+/** How long a move's animation runs before its damage lands. */
+export const EFFECT_MS = 700;
+
+export const messagePause = (text: string) => MESSAGE_MS + text.length * MS_PER_CHAR;
 
 export type Mode =
   'playing' | 'menu' | 'fight' | 'switch' | 'forced-switch' | 'confirm-run' | 'over';
@@ -34,6 +42,12 @@ export interface Session {
   /** Bumped on each hit and each send-out, to restart that side's animation. */
   hits: [number, number];
   entries: [number, number];
+  /** Bumped when a side attacks, to play its lunge. */
+  lunges: [number, number];
+  /** The move animation playing now, on the side it lands on. `n` restarts it. */
+  effect: { side: Side; moveId: string; n: number } | null;
+  /** Bumped on each new line of text, so the same words twice still type out again. */
+  line: number;
   timeLeft: number;
   result: Result | null;
 }
@@ -72,6 +86,9 @@ export function startSession(
     pause: 300,
     hits: [0, 0],
     entries: [0, 0],
+    lunges: [0, 0],
+    effect: null,
+    line: 0,
     timeLeft: TURN_SECONDS,
     result: null,
   };
@@ -91,8 +108,19 @@ function step(s: Session, random: number): Session {
       queue: rest,
       view: applyEvent(s.view, event),
       message: text ?? s.message,
-      pause: text ? MESSAGE_MS : SILENT_MS,
+      line: text ? s.line + 1 : s.line,
+      pause: text ? messagePause(text) : SILENT_MS,
     };
+    if (event.kind === 'move') {
+      const move = moveById(event.moveId);
+      const side: Side = aimsAtFoe(move) ? (event.side === 0 ? 1 : 0) : event.side;
+      next = {
+        ...next,
+        effect: { side, moveId: move.id, n: (s.effect?.n ?? 0) + 1 },
+        lunges: move.category === 'status' ? next.lunges : bump(next.lunges, event.side),
+        pause: Math.max(next.pause, EFFECT_MS),
+      };
+    }
     if (event.kind === 'damage' || event.kind === 'recoil' || event.kind === 'status-damage') {
       next = { ...next, hits: bump(next.hits, event.side) };
     }
