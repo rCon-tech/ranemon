@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { levelStats } from '@/lib/battle/creature';
 import { computeDamage, playTurn, startBattle } from '@/lib/battle/engine';
 import { moveById } from '@/lib/battle/moves';
-import { creatureById } from '@/lib/battle/roster';
+import { creatureById, ROSTER } from '@/lib/battle/roster';
 import { applyItem, canUseOn, itemById } from '@/lib/story/items';
 import {
   blueGhost,
@@ -82,13 +82,18 @@ describe('levels', () => {
 });
 
 describe('party', () => {
-  it('learns 2 moves to start, a third at 12 and the special at 20', () => {
+  it('starts with its weakest attack and its special move, then learns at 12 and 20', () => {
     const carl = creatureById('carlmon');
     expect(learnset(carl).map((l) => l.level)).toEqual([1, 1, 12, 20]);
-    expect(movesAt(carl, 5)).toHaveLength(2);
-    expect(movesAt(carl, 12)).toHaveLength(3);
-    expect(movesAt(carl, 20).at(-1)).toBe('nozzy-call');
+    expect(movesAt(carl, 5)).toEqual([expect.any(String), 'nozzy-call']);
     expect(moveById(movesAt(carl, 5)[0]).signature).toBeUndefined();
+    expect(movesAt(carl, 12)).toHaveLength(3);
+    for (const c of ROSTER) {
+      expect(
+        movesAt(c, 1).some((id) => moveById(id).signature === c.id),
+        c.name,
+      ).toBe(true);
+    }
   });
 
   it('levels up on L³ EXP and learns on the way', () => {
@@ -106,7 +111,7 @@ describe('party', () => {
     const { member, lines } = blueGhost(m);
     expect(member.level).toBe(20);
     expect(member.exp).toBe(expAt(20));
-    expect(lines.join(' ')).toMatch(/special move, Nozzy Call/);
+    expect(lines.join(' ')).toMatch(/grew to Lv20.*learned/);
   });
 
   it('takes about 20 wild battles to go from 5 to 12', () => {
@@ -241,5 +246,16 @@ describe('story state', () => {
     };
     expect(pickWild(wild, 0.1, 0)).toEqual({ species: 'enda', level: 2 });
     expect(pickWild(wild, 0.9, 0.999)).toEqual({ species: 'carlmon', level: 6 });
+  });
+});
+
+describe('older saves', () => {
+  it('teach the special move to Ranemon saved before it came at Lv1', () => {
+    const s = newGame();
+    const old = { ...makeMember('carlmon', 8, 1), moves: ['headlock'], pp: [20] };
+    const raw = JSON.stringify({ ...s, party: [old] });
+    const loaded = load({ getItem: () => raw });
+    expect(loaded?.party[0].moves).toContain('nozzy-call');
+    expect(loaded?.party[0].pp).toHaveLength(loaded!.party[0].moves.length);
   });
 });

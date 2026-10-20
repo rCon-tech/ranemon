@@ -100,7 +100,7 @@ The damage formula's fixed 22 becomes (2L/5 + 2), which is 22 again at level 50.
 
 ### Moves
 
-Each Ranemon keeps its 4 moves from the battle game, learnt in this order: 2 at level 1, the third at 12, and its special move at 20. The special move arriving at 20 is a moment: "Carlmon has found his Nozzy Call!" A Barman in Dublin teaches any of the 36 shared moves for a fee, so late-game teams can be tuned.
+Each Ranemon keeps its 4 moves from the battle game, learnt in this order: its weakest attack and its special move at level 1, then the other two at 12 and 20. Every Ranemon is itself from the first fight. A Barman in Dublin teaches any of the 36 shared moves for a fee, so late-game teams can be tuned.
 
 ### Catching with a pint of Guinness
 

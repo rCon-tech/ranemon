@@ -9,6 +9,7 @@ import {
   heal,
   makeMember,
   PARTY_SIZE,
+  catchUp,
   speciesById,
   type Member,
 } from './party';
@@ -201,7 +202,7 @@ export function load(storage: Pick<Storage, 'getItem'> | null): StoryState | nul
     const data = JSON.parse(raw) as StoryState;
     if (data.version !== 1 || !Array.isArray(data.party)) return null;
     mapById(data.map);
-    return data;
+    return { ...data, party: data.party.map(catchUp), box: data.box.map(catchUp) };
   } catch {
     return null;
   }

@@ -57,9 +57,9 @@ export function catchRate(species: string): number {
 export const expAt = (level: number) => level ** 3;
 
 /**
- * The order a Ranemon learns its 4 battle-mode moves: two to start, the third at 12, and its
- * special move at 20. It starts with its weakest attack and grows into the big hitters, so early
- * fights aren't decided by one lucky hit.
+ * The order a Ranemon learns its 4 battle-mode moves: its weakest attack and its own special
+ * move to start, then the rest at 12 and 20, weakest first. Every Ranemon has its special
+ * move from Lv1, so it's itself from the first fight.
  */
 export function learnset(c: Creature): { level: number; move: string }[] {
   const plain = c.moves
@@ -68,7 +68,10 @@ export function learnset(c: Creature): { level: number; move: string }[] {
   const firstAttack = plain.find((id) => moveById(id).power > 0);
   const order = firstAttack ? [firstAttack, ...plain.filter((id) => id !== firstAttack)] : plain;
   const special = c.moves.filter((id) => moveById(id).signature);
-  return [...order, ...special].map((move, i) => ({ level: [1, 1, 12, 20][i] ?? 20, move }));
+  const [first, ...rest] = order;
+  return [first, ...special, ...rest]
+    .filter(Boolean)
+    .map((move, i) => ({ level: [1, 1, 12, 20][i] ?? 20, move }));
 }
 
 export function movesAt(c: Creature, level: number): string[] {
@@ -96,6 +99,17 @@ export function makeMember(base: string, level: number, uid: number): Member {
     moves,
   };
   return { ...member, hp: statsOf(member).hp };
+}
+
+/** Adds any move the member should know by now: saves from when special moves came at 20. */
+export function catchUp(m: Member): Member {
+  const missing = movesAt(speciesById(m.species), m.level).filter((id) => !m.moves.includes(id));
+  if (missing.length === 0) return m;
+  return {
+    ...m,
+    moves: [...m.moves, ...missing],
+    pp: [...m.pp, ...missing.map((id) => moveById(id).pp)],
+  };
 }
 
 /** The member as the engine sees it: the species with only the moves it knows so far. */
@@ -140,11 +154,7 @@ function levelUp(m: Member, lines: string[]): Member {
     if (learnt.level !== next.level || next.moves.includes(learnt.move)) continue;
     const move = moveById(learnt.move);
     next = { ...next, moves: [...next.moves, move.id], pp: [...next.pp, move.pp] };
-    lines.push(
-      move.signature
-        ? `${name} unlocked its special move, ${move.name}!`
-        : `${name} learned ${move.name}!`,
-    );
+    lines.push(`${name} learned ${move.name}!`);
   }
   const evo = evolutionOf(next.species);
   if (evo && next.level >= evo.level) next = evolve(next, lines);
