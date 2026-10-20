@@ -53,12 +53,17 @@ export const expAt = (level: number) => level ** 3;
 
 /**
  * The order a Ranemon learns its 4 battle-mode moves: two to start, the third at 12, and its
- * special move at 20.
+ * special move at 20. It starts with its weakest attack and grows into the big hitters, so early
+ * fights aren't decided by one lucky hit.
  */
 export function learnset(c: Creature): { level: number; move: string }[] {
-  const plain = c.moves.filter((id) => !moveById(id).signature);
+  const plain = c.moves
+    .filter((id) => !moveById(id).signature)
+    .sort((a, b) => moveById(a).power - moveById(b).power);
+  const firstAttack = plain.find((id) => moveById(id).power > 0);
+  const order = firstAttack ? [firstAttack, ...plain.filter((id) => id !== firstAttack)] : plain;
   const special = c.moves.filter((id) => moveById(id).signature);
-  return [...plain, ...special].map((move, i) => ({ level: [1, 1, 12, 20][i] ?? 20, move }));
+  return [...order, ...special].map((move, i) => ({ level: [1, 1, 12, 20][i] ?? 20, move }));
 }
 
 export function movesAt(c: Creature, level: number): string[] {

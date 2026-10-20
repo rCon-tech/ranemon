@@ -259,6 +259,59 @@ button {
   background: var(--color-frame);
 }
 
+/* ---------- story mode: the handheld's buttons ---------- */
+
+.pad-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--color-ink);
+  touch-action: none;
+}
+.pad-btn:active {
+  background: var(--color-frame);
+}
+.round-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-frame);
+  color: var(--color-paper);
+  border: 3px solid var(--color-ink);
+  box-shadow: 2px 3px 0 var(--color-ink);
+  font-size: 14px;
+  touch-action: manipulation;
+}
+.round-btn:active {
+  transform: translate(2px, 3px);
+  box-shadow: none;
+}
+.start-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--color-frame);
+  color: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  transform: rotate(-20deg);
+}
+
+/* A wild Ranemon: the screen flashes before the battle. */
+@keyframes encounter-flash {
+  0%,
+  40%,
+  80% {
+    background: var(--color-gb0);
+  }
+  20%,
+  60%,
+  100% {
+    background: transparent;
+  }
+}
+.encounter-flash {
+  z-index: 30;
+  animation: encounter-flash 0.65s steps(1) both;
+}
+
 /* ---------- animations ---------- */
 
 @keyframes hit {

@@ -122,11 +122,12 @@ describe('trainers', () => {
     }
   });
 
-  it('gym aces rise 4 levels a gym, from 12 to 44', () => {
+  it('gym aces rise about 4 levels a gym, up to 44', () => {
     const aces = MAPS.filter((m) => m.gym).map((m) =>
       Math.max(...trainerById(m.gym!.trainer).team.map(([, l]) => l)),
     );
-    expect(aces).toEqual([12, 16, 20, 24, 28, 32, 36, 40, 44]);
+    // Tuned by the route simulator (tests/sim/story.test.ts): Clare's ace is 11, not 12.
+    expect(aces).toEqual([11, 16, 20, 24, 28, 32, 36, 40, 44]);
   });
 
   it('gives the rival a starter that beats yours', () => {

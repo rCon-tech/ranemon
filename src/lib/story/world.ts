@@ -68,6 +68,8 @@ export interface Trainer {
   /** Run after winning, once. */
   reward?: Step[];
   rival?: boolean;
+  /** A first battle you can lose: no blackout, and the story carries on either way. */
+  friendly?: boolean;
 }
 
 export interface Npc {

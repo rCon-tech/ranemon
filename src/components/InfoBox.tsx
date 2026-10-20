@@ -8,9 +8,11 @@ interface Props {
   hp: number;
   status: Status | null;
   mine: boolean;
+  /** Story mode's EXP bar: how far through its level, 0 to 1. */
+  exp?: number;
 }
 
-export function InfoBox({ battler, hp, status, mine }: Props) {
+export function InfoBox({ battler, hp, status, mine, exp }: Props) {
   const max = battler.stats.hp;
   const pct = Math.max(0, Math.min(100, (hp / max) * 100));
   const colour =
@@ -50,6 +52,11 @@ export function InfoBox({ battler, hp, status, mine }: Props) {
       {mine && (
         <div className="mt-1 text-right text-[8px]">
           {hp}/ {max}
+        </div>
+      )}
+      {exp !== undefined && (
+        <div className="exp-track" aria-label="EXP">
+          <div className="exp-fill" style={{ width: `${Math.round(exp * 100)}%` }} />
         </div>
       )}
     </div>

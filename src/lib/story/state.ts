@@ -159,9 +159,10 @@ export function settleBattle(
   if (result === 'loss' || result === 'draw') {
     const tab = Math.floor(state.money / 2);
     state = { ...healParty(state), money: state.money - tab, ...s.pub, face: 'down' };
+    const town = mapById(s.pub.map).name.split(',')[0];
     lines.push(
       'You’re out of Ranemon that can fight!',
-      `You wake up in the pub. The bar tab for the night came to €${tab}.`,
+      `You come round in ${town}, with a bar tab of €${tab}.`,
     );
   }
   return { state, lines };

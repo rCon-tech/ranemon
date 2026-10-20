@@ -1,4 +1,5 @@
 import { MAX_LEVEL } from '../battle/creature';
+import type { Status } from '../battle/moves';
 import type { ItemEffect, Pint } from '../ui/session';
 import { statsOf, type Member } from './party';
 
@@ -139,23 +140,33 @@ export const itemById = (id: ItemId): Item => BY_ID.get(id)!;
 export const shopStock = (county: number) =>
   ITEMS.filter((i) => i.price !== null && i.from <= county);
 
-/** Whether an item would do anything for this member right now. */
-export function canUseOn(item: Item, m: Member): boolean {
-  if (item.use.kind === 'level') return m.level < MAX_LEVEL;
-  if (item.use.kind === 'pint') return false;
-  const max = statsOf(m).hp;
-  const e = item.use.effect;
+/** What an item needs to know about a Ranemon, in or out of battle. */
+export interface Target {
+  hp: number;
+  maxHp: number;
+  status: Status | null;
+  level: number;
+}
+
+/** Whether an item would do anything for this Ranemon right now. */
+export function canUse(use: ItemUse, t: Target): boolean {
+  if (use.kind === 'level') return t.level < MAX_LEVEL;
+  if (use.kind === 'pint') return false;
+  const e = use.effect;
   switch (e.kind) {
     case 'heal':
-      return m.hp > 0 && m.hp < max;
+      return t.hp > 0 && t.hp < t.maxHp;
     case 'restore':
-      return m.hp > 0 && (m.hp < max || m.status !== null);
+      return t.hp > 0 && (t.hp < t.maxHp || t.status !== null);
     case 'revive':
-      return m.hp === 0;
+      return t.hp === 0;
     case 'cure':
-      return m.hp > 0 && m.status === e.status;
+      return t.hp > 0 && t.status === e.status;
   }
 }
+
+export const canUseOn = (item: Item, m: Member) =>
+  canUse(item.use, { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level });
 
 /** Applies a healing item outside battle. */
 export function applyItem(item: Item, m: Member): Member {

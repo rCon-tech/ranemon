@@ -1,13 +1,20 @@
 import { chooseAction, chooseReplacement, type Difficulty } from './cpu';
 import type { Creature } from './creature';
-import { playTurn, replaceFainted, startBattle, type BattleState, type Side } from './engine';
+import {
+  playTurn,
+  replaceFainted,
+  startBattle,
+  type BattleState,
+  type Entrant,
+  type Side,
+} from './engine';
 import { Rng } from './rng';
 
 const MAX_TURNS = 300;
 
 /** Plays a whole battle between two CPUs. Used for balance checks and tests. */
 export function simulateBattle(
-  teams: [Creature[], Creature[]],
+  teams: [(Creature | Entrant)[], (Creature | Entrant)[]],
   seed: number,
   difficulty: [Difficulty, Difficulty] = ['normal', 'normal'],
 ): { state: BattleState; turns: number } {

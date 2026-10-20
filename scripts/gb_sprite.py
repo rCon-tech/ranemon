@@ -2,8 +2,9 @@
 
     python3 -m pip install pillow numpy
     python3 scripts/gb_sprite.py public/sprites/*.png --out public/sprites/gb [--size 64]
+    python3 scripts/gb_sprite.py public/sprites/*.png --out public/sprites/gb/mini --size 12 --contrast 1.6
 
-Each sprite is shrunk to --size pixels (the original handheld's sprites were 56), turned to
+The 12-pixel minis are the heads of the Ranemon that follow you in story mode. Each sprite is shrunk to --size pixels (the original handheld's sprites were 56), turned to
 lightness, and each pixel is snapped to one of the 4 greens with a 4x4 Bayer matrix, so the
 in-between tones come out as the checkerboard dither the hardware used. Transparency is kept.
 """
@@ -41,11 +42,12 @@ def main() -> None:
     parser.add_argument("sprites", nargs="+")
     parser.add_argument("--out", required=True)
     parser.add_argument("--size", type=int, default=64)
+    parser.add_argument("--contrast", type=float, default=1.25)
     args = parser.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     for path in map(Path, args.sprites):
-        to_gb(Image.open(path), args.size).save(out / path.name)
+        to_gb(Image.open(path), args.size, args.contrast).save(out / path.name)
         print(out / path.name)
 
 

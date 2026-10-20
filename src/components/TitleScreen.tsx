@@ -28,6 +28,9 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <p>
           Record: {record.wins}W · {record.losses}L
         </p>
+        <Link href="/story" className="pixel-btn menu-item text-[10px]">
+          STORY MODE
+        </Link>
         <Link href="/ranedex" className="underline underline-offset-4">
           RANEDEX
         </Link>
