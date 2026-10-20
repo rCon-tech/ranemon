@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { scaled } from '@/lib/speed';
 
 export const MS_PER_CHAR = 28;
 
@@ -17,7 +18,7 @@ export function TypedText({ text, instant = false }: { text: string; instant?: b
         if (n >= text.length) clearInterval(id);
         return Math.min(n + 1, text.length);
       });
-    }, MS_PER_CHAR);
+    }, scaled(MS_PER_CHAR));
     return () => clearInterval(id);
   }, [text]);
   if (instant) return <span>{text}</span>;

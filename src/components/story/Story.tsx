@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import Link from 'next/link';
 import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
 import { Sprite } from '@/components/Sprite';
+import { SpeedButton } from '@/components/SpeedButton';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
+import { scaled } from '@/lib/speed';
 import { mapById, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { teamOf, trainerById } from '@/content/story/trainers';
@@ -114,6 +116,15 @@ const storage = (): Storage | null => {
 };
 
 const noSubscribe = () => () => {};
+
+/** Dua Lipa works the bar in McGrattans, and has a line for every visit. */
+const DUA_LINES = [
+  'DUA LIPA: Welcome to McGrattans! Sit down there and I’ll look after your lot.',
+  'DUA LIPA: New rules. One: don’t pick up the phone. Two: hand me your Ranemon. Three: have a pint.',
+  'DUA LIPA: Don’t start now, I’ve only just healed the last lot! Go on, give them here.',
+  'DUA LIPA: Levitating? No, that’s just the Guinness. Leave your Ranemon with me.',
+  'DUA LIPA: Physical, physical… they’re all in great shape now. Mind yourself out there.',
+];
 
 const ghostFlag = (map: string, x: number, y: number) => `ghost:${map}:${x}:${y}`;
 const challenge = (trainer: string): Run[] => [
@@ -231,7 +242,7 @@ export function Story() {
           case 'pub':
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };
             q.unshift(
-              { do: 'say', text: 'BARMAN: Sit down there. I’ll look after your lot.' },
+              { do: 'say', text: DUA_LINES[g.steps % DUA_LINES.length] },
               { do: 'say', text: 'Your Ranemon are fighting fit again!' },
               { do: 'offer-chat' },
             );
@@ -256,7 +267,7 @@ export function Story() {
             setLine(null);
             setFight({
               teams: [g.party.map(toEntrant), team],
-              foe: t.rival ? { kind: 'rival' } : { kind: 'trainer', name: t.name },
+              foe: { kind: 'trainer', name: t.name },
               ai: t.ai,
               trainer: t.id,
               key: Date.now(),
@@ -276,7 +287,7 @@ export function Story() {
   /** A, or tapping the text box: finish typing the line, then go on to the next. */
   const advance = useCallback(() => {
     if (!game || !line) return;
-    if (!line.full && Date.now() - line.n < line.text.length * MS_PER_CHAR) {
+    if (!line.full && Date.now() - line.n < scaled(line.text.length * MS_PER_CHAR)) {
       setLine({ ...line, full: true });
       return;
     }
@@ -331,7 +342,7 @@ export function Story() {
       setTimeout(() => {
         setExclaim(null);
         run(g, challenge(spotter.item.trainer!));
-      }, 700);
+      }, scaled(700));
       return;
     }
 
@@ -356,7 +367,7 @@ export function Story() {
           trainer: null,
           key: Date.now(),
         });
-      }, 650);
+      }, scaled(650));
       return;
     }
     setGame(g);
@@ -375,7 +386,7 @@ export function Story() {
       if (t && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
           return run(game, [
-            { do: 'say', text: 'Your Ranemon are too tired. Heal them in the pub first!' },
+            { do: 'say', text: 'Your Ranemon are too tired. Heal them in McGrattans first!' },
           ]);
         }
         return run(game, challenge(t));
@@ -505,7 +516,10 @@ export function Story() {
       setFaces({});
       persist(g);
       run(g, [
-        { do: 'say', text: 'RIVAL: Ha! Told you mine was better. Go on, I’ll patch yours up.' },
+        {
+          do: 'say',
+          text: 'THATCHER: Ha! Rule, Britannia! Never mind, dear. A nice cup of tea will sort your lot out.',
+        },
         ...queue,
       ]);
       return;
@@ -708,6 +722,7 @@ export function Story() {
         <div className="pointer-events-none absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper">
           {map.name}
         </div>
+        <SpeedButton className="absolute right-1 top-1" />
         {flash && <div className="encounter-flash absolute inset-0" />}
         {line && <EvolutionScene text={line.text} />}
         {line && (

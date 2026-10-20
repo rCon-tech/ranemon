@@ -223,7 +223,7 @@ export function ShopPanel({
 }) {
   const county = mapById(game.map).county;
   return (
-    <Panel title="CORNER SHOP" onClose={onClose}>
+    <Panel title="VAPES" onClose={onClose}>
       <p className="text-[11px]">Money: €{game.money}</p>
       {shopStock(county).map((i) => (
         <button

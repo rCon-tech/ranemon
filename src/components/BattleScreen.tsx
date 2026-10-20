@@ -15,10 +15,12 @@ import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
 import { canUse, type ItemUse } from '@/lib/story/items';
 import type { Foe } from '@/lib/ui/playback';
+import { scaled } from '@/lib/speed';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
 import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
+import { SpeedButton, useAnimationSpeed } from './SpeedButton';
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 
@@ -111,7 +113,7 @@ export function BattleScreen({
   // Playback: wait long enough to read the current line, then take the next step.
   useEffect(() => {
     if (mode !== 'playing') return;
-    const id = setTimeout(() => dispatch({ type: 'step', random: roll() }), pause);
+    const id = setTimeout(() => dispatch({ type: 'step', random: roll() }), scaled(pause));
     return () => clearTimeout(id);
   }, [mode, queue, pause]);
 
@@ -166,10 +168,12 @@ export function BattleScreen({
   };
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
+  useAnimationSpeed();
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="field" data-scene={scene} data-testid="battlefield">
+        <SpeedButton className="absolute right-1 top-1 z-20" />
         <div className="platform platform-foe" />
         <div className="platform platform-you" />
         <div className="sprite-slot slot-foe">

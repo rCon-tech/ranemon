@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
+import { scaled } from '@/lib/speed';
 import { speciesById } from '@/lib/story/party';
 import {
   canEnter,
@@ -13,10 +14,12 @@ import {
   type Dir,
   type GameMap,
 } from '@/lib/story/world';
-import { DOOR_LABEL, INK, LIGHT, LOOKS, paintPerson, PERSON, TILE } from './pixels';
+import { monStyle, paintPerson, STYLES, type Style } from './people';
+import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
 import {
   frameOf,
   grassFront,
+  groundOverlay,
   RES,
   TALL,
   TALL_GRASS,
@@ -77,7 +80,7 @@ function head(species: string): HTMLImageElement {
   let img = heads.get(species);
   if (!img) {
     img = new Image();
-    // Each sprite has a 28-pixel version in mini/ beside it, drawn at half size.
+    // Each sprite has a 40-pixel version in mini/ beside it, drawn at half size.
     const sprite = speciesById(species).sprite ?? '';
     img.src = asset(sprite.replace(/\/([^/]+)$/, '/mini/$1'));
     heads.set(species, img);
@@ -189,7 +192,7 @@ export function Overworld(props: Props) {
           w.x = nx;
           w.y = ny;
           w.t0 = now;
-          w.dur = p.bike && p.held.current?.b ? BIKE_MS : WALK_MS;
+          w.dur = scaled(p.bike && p.held.current?.b ? BIKE_MS : WALK_MS);
           w.frame++;
         } else if (now - w.lastBump > 350) {
           w.lastBump = now;
@@ -235,7 +238,7 @@ export function Overworld(props: Props) {
 
       // Visible rows plus one below, so a tree's canopy can rise into view.
       for (let ty = y0; ty <= y0 + SCREEN_H / TILE + 2; ty++) {
-        for (let tx = x0; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
+        for (let tx = x0 - 1; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
           if (!inMap(tx, ty)) continue;
           const tile = at(tx, ty);
           const around = {
@@ -254,13 +257,27 @@ export function Overworld(props: Props) {
           );
           c.drawImage(image, sx(tx * TILE), sy(ty * TILE), TILE, TILE);
           if (TALL.has(tile)) {
-            const { image: top, rise } = tallImage(tile, variant);
+            const { image: top, rise, spread } = tallImage(tile, variant);
             drawn.push({
               y: ty * TILE,
-              paint: () => c.drawImage(top, sx(tx * TILE), sy(ty * TILE - rise), TILE, TILE + rise),
+              paint: () =>
+                c.drawImage(
+                  top,
+                  sx(tx * TILE - spread),
+                  sy(ty * TILE - rise),
+                  TILE + spread * 2,
+                  TILE + rise,
+                ),
             });
           }
         }
+      }
+
+      // Light and shade, worn patches, tree shadows and fallen leaves, laid over the ground.
+      if (!map.inside) {
+        const rows = map.rows.length;
+        const cols = map.rows[0].length;
+        c.drawImage(groundOverlay(map.id, cols, rows, at), sx(0), sy(0), mapW, mapH);
       }
 
       // Shop signs over the doors, in the door's own colour.
@@ -269,9 +286,18 @@ export function Overworld(props: Props) {
       c.textBaseline = 'middle';
       for (const [door, label] of Object.entries(DOOR_LABEL)) {
         for (const d of find(map, door)) {
-          const lx = sx(d.x * TILE + 8);
-          const ly = sy((d.y - 1) * TILE + 8);
           const width = Math.ceil(c.measureText(label).width) + 6;
+          // Centred over the door, but kept on the building's front when it's long.
+          const row = map.rows[d.y];
+          let x0 = d.x;
+          let x1 = d.x;
+          while ('#PMGHL'.includes(row[x0 - 1] ?? '.')) x0--;
+          while ('#PMGHL'.includes(row[x1 + 1] ?? '.')) x1++;
+          const lo = x0 * TILE + width / 2;
+          const hi = (x1 + 1) * TILE - width / 2;
+          const centre = d.x * TILE + 8;
+          const lx = sx(lo <= hi ? Math.min(hi, Math.max(lo, centre)) : (lo + hi) / 2);
+          const ly = sy((d.y - 1) * TILE + 8);
           c.fillStyle = INK;
           c.fillRect(lx - width / 2 - 0.5, ly - 5, width + 1, 10);
           c.fillStyle = SIGN_COLOUR[door];
@@ -304,8 +330,10 @@ export function Overworld(props: Props) {
         }
       }
 
+      /** Someone 16 × 24 standing on a tile, feet at its bottom, over a soft shadow. */
       const person = (
-        look: keyof typeof LOOKS,
+        key: string,
+        style: Style,
         dir: Dir,
         frame: number,
         wx: number,
@@ -315,32 +343,39 @@ export function Overworld(props: Props) {
         drawn.push({
           y: wy,
           paint: () => {
-            // A soft shadow under everyone.
-            c.fillStyle = 'rgb(0 0 0 / 0.22)';
+            c.fillStyle = 'rgb(0 0 0 / 0.25)';
             c.beginPath();
-            c.ellipse(sx(wx + 8), sy(wy + 11), 5, 1.75, 0, 0, Math.PI * 2);
+            c.ellipse(sx(wx + 8), sy(wy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
             c.drawImage(
-              sprite(`p:${look}:${dir}:${frame}`, () =>
-                paintPerson(PERSON[dir][frame], LOOKS[look]),
-              ),
+              sprite(`p:${key}:${dir}:${frame}`, () => paintPerson(style, dir, frame)),
               sx(wx),
-              sy(wy - 4 - bob),
-              TILE,
-              TILE,
+              sy(wy - 9.5 - bob),
+              16,
+              24,
             );
           },
         });
+      // Standing still, everyone breathes: a half-pixel bob, out of step with each other.
+      const idle = (phase: number) => (Math.floor(now / 700 + phase) % 2 ? 0.5 : 0);
 
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
-        person(n.item.look, p.faces[n.index] ?? n.item.face, 0, n.x * TILE, n.y * TILE);
+        person(
+          n.item.look,
+          STYLES[n.item.look],
+          p.faces[n.index] ?? n.item.face,
+          0,
+          n.x * TILE,
+          n.y * TILE,
+          idle(n.index * 0.37),
+        );
         if (p.exclaim === n.index) {
           drawn.push({
             y: 9999,
             paint: () => {
               const bx = sx(n.x * TILE + 3);
-              const by = sy(n.y * TILE - 18);
+              const by = sy(n.y * TILE - 26);
               c.fillStyle = INK;
               c.fillRect(bx - 0.5, by - 0.5, 11, 13);
               c.fillStyle = LIGHT;
@@ -353,43 +388,60 @@ export function Overworld(props: Props) {
         }
       }
 
-      // The follower takes the tile you just left: its face on a little body, hopping along.
+      // The follower takes the tile you just left: its photo head on a body in its colour,
+      // as tall as you, walking the way it's going and hopping a little.
       const tr = trail.current;
       if (p.follower && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const fx = (tr.from && w.from ? lerp(tr.from.x, tr.at.x) : tr.at.x) * TILE;
         const fy = (tr.from && w.from ? lerp(tr.from.y, tr.at.y) : tr.at.y) * TILE;
-        const hop = w.from ? Math.sin(t * Math.PI) * 1.5 : Math.floor(now / 500) % 2 ? 0.5 : 0;
+        const moving = !!(tr.from && w.from);
+        const toward = moving
+          ? { x: tr.at.x - tr.from!.x, y: tr.at.y - tr.from!.y }
+          : { x: w.x - tr.at.x, y: w.y - tr.at.y };
+        const fdir: Dir =
+          toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
+        const hop = moving ? Math.sin(t * Math.PI) * 1.5 : idle(0.5);
         const img = head(p.follower);
         const colour = speciesById(p.follower).colour;
+        const frame = moving && t < 0.5 ? (w.frame % 2 ? 3 : 1) : 0;
         drawn.push({
           y: fy,
           paint: () => {
-            const ax = sx(fx);
-            const ay = sy(fy - 4);
-            c.fillStyle = 'rgb(0 0 0 / 0.22)';
+            c.fillStyle = 'rgb(0 0 0 / 0.25)';
             c.beginPath();
-            c.ellipse(ax + 8, ay + 15, 5, 1.75, 0, 0, Math.PI * 2);
+            c.ellipse(sx(fx + 8), sy(fy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
-            c.fillStyle = INK;
-            c.beginPath();
-            c.ellipse(ax + 8, ay + 11.5 - hop, 5, 3.5, 0, 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = colour;
-            c.beginPath();
-            c.ellipse(ax + 8, ay + 11.5 - hop, 4.5, 3, 0, 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = INK;
-            c.fillRect(ax + 4.5, ay + 13.5 - hop * 0.3, 2.5, 1.5);
-            c.fillRect(ax + 9, ay + 13.5 - hop * 0.6, 2.5, 1.5);
-            if (img.complete && img.naturalWidth) c.drawImage(img, ax + 1, ay - 2 - hop, 14, 14);
-            else c.fillRect(ax + 3, ay, 10, 10);
+            c.drawImage(
+              sprite(`mon:${colour}:${fdir}:${frame}`, () =>
+                paintPerson(monStyle(colour), fdir, frame, true),
+              ),
+              sx(fx),
+              sy(fy - 9.5 - hop),
+              16,
+              24,
+            );
+            // The photo always faces you, as there's no back view of it.
+            if (img.complete && img.naturalWidth) {
+              c.drawImage(img, sx(fx - 2), sy(fy - 12 - hop), 20, 20);
+            } else {
+              c.fillStyle = INK;
+              c.fillRect(sx(fx), sy(fy - 10 - hop), 16, 16);
+            }
           },
         });
       }
 
       // Each step shows a foot forward for its first half, alternating feet, with a small bob.
       const stepFrame = w.from && t < 0.5 ? (w.frame % 2 ? 1 : 3) : 0;
-      person('player', w.face, stepFrame, px, py, stepFrame ? 0.5 : 0);
+      person(
+        'player',
+        STYLES.player,
+        w.face,
+        stepFrame,
+        px,
+        py,
+        w.from ? (stepFrame ? 0.5 : 0) : idle(0),
+      );
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
 

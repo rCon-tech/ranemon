@@ -81,3 +81,15 @@ test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page 
   expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(96);
   await expect(page.getByText('★ Ranelads.com:')).toBeVisible();
 });
+
+test('how to play: the guide explains the game and shows the type chart', async ({ page }) => {
+  await unlock(page);
+  await page.goto('/');
+  await page.getByRole('link', { name: 'HOW TO PLAY' }).click();
+  await expect(page.getByRole('heading', { name: 'HOW TO PLAY' })).toBeVisible();
+  const chart = page.getByTestId('type-chart');
+  await expect(chart.locator('tbody tr')).toHaveCount(6);
+  // Each type hits two types for 2× and two for ½.
+  await expect(chart.locator('td', { hasText: '2×' })).toHaveCount(12);
+  await expect(chart.locator('td', { hasText: '½' })).toHaveCount(12);
+});

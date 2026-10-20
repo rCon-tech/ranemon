@@ -3,7 +3,7 @@ import { interiorsOf } from './interiors';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
- * Each county has a town with a pub (heals), a corner shop and a gym, and a Garda at the east
+ * Each county has a town with McGrattans (the pub, which heals), Vapes (the shop) and a gym, and a Garda at the east
  * edge who lets you through once you have that county's jersey. See docs/story-mode.md.
  */
 
@@ -42,7 +42,7 @@ export const MAPS: GameMap[] = [
       'T,,,,,,......=......,,,T',
       'T,,,,,,..3...=......,,,T',
       'T,,,,,,......=..*...,,,T',
-      'T....,,......=.....,,,,T',
+      'TeeeeeeeeeeeeseeeeeeeeeT',
       'TT...,,......=.....,,,,T',
       'T^^^^...^^^..=..^^^^^..T',
       'T#P##...#M#..=..##G##..T',
@@ -129,7 +129,7 @@ export const MAPS: GameMap[] = [
     ],
     signs: [
       'NEWMARKET-ON-FERGUS. Home of a President.',
-      'ENNIS. Pub, shop and the Clare gym. Road east to Limerick.',
+      'ENNIS. McGrattans, Vapes and the Clare gym. Road east to Limerick.',
     ],
     houses: [
       [
@@ -221,7 +221,7 @@ export const MAPS: GameMap[] = [
       'T..^^^.,,,,,,,..##L##..T',
       'T..#H#.,,,,,,,....=....T',
       '@.......===========....T',
-      'T.......=.....,,,,,....T',
+      'TeeeeeeeseeeeeeeeeeeeeeT',
       'TT..1...=.....,,,,,.*..T',
       'T^^^^...=.....,,,,,....T',
       'T#P##...=..^^^.........T',
@@ -612,7 +612,7 @@ export const MAPS: GameMap[] = [
       [
         {
           do: 'say',
-          text: 'TEMPLE BAR. A man in a Dublin jersey is selling Blue Ghosts out of a sports bag. You decide to buy from the shop instead.',
+          text: 'TEMPLE BAR. A man in a Dublin jersey is selling Blue Ghosts out of a sports bag. You decide to buy from Vapes instead.',
         },
       ],
     ],
@@ -651,8 +651,8 @@ export const MAPS: GameMap[] = [
       'T....=.......=.......=.T',
       '@=====.......=.......=.T',
       'T............=.......=.T',
-      'T..""...4..==K==...""=.T',
-      'T..""....5..===....""=.T',
+      'T..hh...4..==K==...hh=.T',
+      'T..hh....5..===....hh=.T',
       'T....................=.T',
       'T..S.................=.T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',

@@ -17,8 +17,8 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
 
 /**
  * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
- * `B` bridge, `F` floor. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
- * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock. Doors are blocked too, and walking
+ * `B` bridge, `F` floor, `s` stone steps. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
+ * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
  * Indoors (see content/story/interiors.ts): `g` gym floor and `r` rug are walkable, and `E` is
  * the way out, blocked like a door.
@@ -27,7 +27,7 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  */
 export type Tile = string;
 
-const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r']);
+const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r', 's']);
 export const ENCOUNTER_TILES = new Set([',', 'b']);
 export const DOORS = new Set(['P', 'M', 'G', 'H', 'L']);
 export const EXIT = 'E';
