@@ -5,7 +5,7 @@
 
 Writes, under public/sprites:
   bw/<id>.png        each Ranemon at 96 pixels, cut down to 32 colours like a handheld sprite
-  bw/mini/<id>.png   a 14-pixel version for the Ranemon that follows you in story mode
+  bw/mini/<id>.png   a 28-pixel version for the Ranemon that follows you in story mode
   evo/<id>.png       each evolved form: the same photo with a type-coloured aura and a costume
                      piece from the Pokémon it's named after (wings, spoons, a crest, ...)
   evo/mini/<id>.png
@@ -281,11 +281,11 @@ def main() -> None:
     for path in sorted(SRC.glob("*.png")):
         im = Image.open(path)
         pixelate(im, SIZE).save(SRC / "bw" / path.name)
-        pixelate(im, 14, 12).save(SRC / "bw/mini" / path.name)
+        pixelate(im, 28, 24).save(SRC / "bw/mini" / path.name)
     for evo, (base, kind) in EVOLUTIONS.items():
         im = evolve(evo, base, kind)
         im.save(SRC / "evo" / f"{evo}.png")
-        pixelate(im, 14, 12).save(SRC / "evo/mini" / f"{evo}.png")
+        pixelate(im, 28, 24).save(SRC / "evo/mini" / f"{evo}.png")
     if args.sheet:
         photo = Image.open(args.sheet).convert("RGBA").crop((130, 170, 730, 470))
         outline(pixelate(photo, 160, 48)).save(SRC / "bw/bns.png")
