@@ -11,7 +11,7 @@ import { INK } from './pixels';
 export const PERSON_W = 32;
 export const PERSON_H = 48;
 
-type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'none';
+type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'bob' | 'none';
 type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie';
 type Top = 'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat';
 
@@ -35,6 +35,14 @@ export interface Style {
   skirt?: string;
   pearls?: boolean;
   earrings?: string;
+  /** A canvas tote bag over the shoulder, with a badge on it. */
+  tote?: string;
+  /** Little badges pinned on the front. */
+  badges?: string[];
+  /** A walking stick, in the near hand. */
+  stick?: string;
+  /** A ring through the nose. */
+  nosering?: boolean;
 }
 
 const SKIN = '#f8d0a8';
@@ -194,6 +202,37 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#101014',
     earrings: '#f0c040',
   },
+  // Saoirse, the Tipperary gym leader: a blue bob with a straight fringe, round glasses, a nose
+  // ring, an oversized green cardigan covered in badges, a tote bag and Docs.
+  saoirse: {
+    skin: '#f8d8c0',
+    hair: '#3aa8e8',
+    hairStyle: 'bob',
+    top: '#4a9a6a',
+    topKind: 'jumper',
+    trim: '#f0e0b0',
+    legs: '#2a2a38',
+    shoes: '#5a1a22',
+    glasses: 'glasses',
+    earrings: '#c8ccd4',
+    tote: '#ece0c4',
+    badges: ['#e83a8a', '#f8d048', '#9b7be8'],
+    nosering: true,
+  },
+  // The old man in Thurles, a retired donkey vet: flat cap, tweed jacket, a blackthorn stick.
+  oldman: {
+    skin: '#f0c8a8',
+    hair: '#e8e8e8',
+    hairStyle: 'balding',
+    hat: { kind: 'flat', colour: '#6a5a48' },
+    top: '#8a7458',
+    topKind: 'coat',
+    trim: '#5a4a38',
+    legs: '#4a4038',
+    shoes: '#2a2018',
+    glasses: 'glasses',
+    stick: '#3a2a1a',
+  },
   shopkeeper: {
     skin: SKIN,
     hair: '#c8c8c8',
@@ -331,6 +370,9 @@ function body(c: Ctx, s: Style, side: Side, step: number) {
     px(c, ax + 3, 26, 1, 9, shade(sleeve, 0.75));
     px(c, ax, 35, 4, 3, s.skin);
     if (s.handbag) handbag(c, s.handbag, ax - 2, 33);
+    if (s.tote) round(c, 18, 31, 7, 8, 1, s.tote);
+    if (s.badges) px(c, 13, 28, 2, 2, s.badges[0]);
+    if (s.stick) px(c, ax, 37, 1, 10, s.stick);
     if (s.pearls) for (let x = 7; x < 14; x += 2) px(c, x, 25, 1, 1, '#f8f4ec');
     return;
   }
@@ -400,6 +442,18 @@ function body(c: Ctx, s: Style, side: Side, step: number) {
   if (s.pearls && !back)
     for (let x = 11; x < 22; x += 2) px(c, x, 25 + (x > 13 && x < 19 ? 1 : 0), 1, 1, '#f8f4ec');
   if (s.handbag && !back) handbag(c, s.handbag, 23, 32 + (step === 1 ? 1 : step === -1 ? -1 : 0));
+  if (s.tote) {
+    // The strap across the shoulder and the bag at the hip.
+    if (!back) for (let i = 0; i < 9; i++) px(c, 11 + i, 25 + i, 1, 1, shade(s.tote, 0.8));
+    round(c, back ? 5 : 21, 31, 7, 8, 1, s.tote);
+    px(c, back ? 6 : 22, 32, 5, 1, shade(s.tote, 1.1));
+    if (!back) px(c, 23, 34, 3, 3, '#e83a8a');
+  }
+  if (s.badges && !back) s.badges.forEach((b, i) => px(c, 17 + (i % 2) * 2, 28 + i * 2, 2, 2, b));
+  if (s.stick && !back) {
+    px(c, 7, 36, 1, 11, s.stick);
+    px(c, 6, 35, 3, 1, s.stick);
+  }
 }
 
 /** A stiff little handbag with a clasp, hung from the arm. */
@@ -417,6 +471,8 @@ function hairBack(c: Ctx, s: Style, side: Side) {
     round(c, side === 'left' ? 5 : 2, 1, side === 'left' ? 24 : 28, 21, 10, s.hair);
   if (s.hairStyle === 'long')
     round(c, side === 'left' ? 9 : 4, 8, side === 'left' ? 19 : 24, 24, 7, s.hair);
+  if (s.hairStyle === 'bob')
+    round(c, side === 'left' ? 8 : 3, 6, side === 'left' ? 21 : 26, 18, 5, s.hair);
 }
 
 /** The head: hair, face and hat, for each facing. */
@@ -502,6 +558,24 @@ function head(c: Ctx, s: Style, side: Side) {
     }
   }
   if (s.hairStyle === 'bun') round(c, 12, 0, 8, 6, 3, s.hair);
+  if (s.hairStyle === 'bob' && side !== 'up') {
+    // A blunt fringe straight across, and a lighter streak.
+    if (side === 'down') {
+      px(c, 7, 8, 18, 5, s.hair);
+      px(c, 7, 12, 18, 1, shade(s.hair, 0.72));
+      px(c, 3, 10, 4, 13, s.hair);
+      px(c, 25, 10, 4, 13, s.hair);
+      px(c, 11, 4, 3, 8, shade(s.hair, 1.45));
+    } else {
+      px(c, 5, 8, 14, 5, s.hair);
+      px(c, 5, 12, 14, 1, shade(s.hair, 0.72));
+      px(c, 18, 9, 9, 14, s.hair);
+      px(c, 9, 4, 3, 8, shade(s.hair, 1.45));
+    }
+  }
+  if (s.hairStyle === 'bob' && side === 'up') round(c, 3, 3, 26, 21, 6, s.hair);
+  if (s.nosering && side === 'down') px(c, 15, 21, 2, 1, '#c8ccd4');
+  if (s.nosering && side === 'left') px(c, 4, 20, 1, 1, '#c8ccd4');
   if (s.hairStyle === 'bouffant' && side !== 'up') {
     // The famous set: a swept wave of hair over the forehead.
     round(c, side === 'left' ? 4 : 5, 2, side === 'left' ? 20 : 22, 9, 5, s.hair);

@@ -46,7 +46,11 @@ const nextTo = (seen: Set<string>, x: number, y: number) =>
 
 function stepsOf(steps: Step[]): Step[] {
   return steps.flatMap((s) =>
-    s.do === 'if' ? [s, ...stepsOf(s.then), ...stepsOf(s.else ?? [])] : [s],
+    s.do === 'if'
+      ? [s, ...stepsOf(s.then), ...stepsOf(s.else ?? [])]
+      : s.do === 'ask'
+        ? [s, ...stepsOf(s.yes ?? []), ...stepsOf(s.no ?? [])]
+        : [s],
   );
 }
 

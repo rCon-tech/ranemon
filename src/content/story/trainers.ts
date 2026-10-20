@@ -108,16 +108,18 @@ const T: Trainer[] = [
   },
   {
     id: 'gym-tipperary',
-    name: 'Séamus',
+    name: 'Saoirse',
     team: [
-      ['carlmon', 18],
-      ['killemon', 18],
+      ['jammon', 18],
+      ['steadmon', 18],
       ['conemon', 20],
     ],
     ai: 'easy',
     prize: 800,
-    before: 'SÉAMUS: Welcome to Semple. Mind the sliotar.',
-    after: 'SÉAMUS: Mighty stuff. The Tipperary jersey.',
+    before:
+      'SAOIRSE: Hiya! Quick check-in before we start: my Ranemon have unionised, my oat flat white is fair trade, and this battle is a safe space. Now let’s GO.',
+    after:
+      'SAOIRSE: Okay, that was problematic… for me. Fair play, though. Take the Tipperary jersey, and a reusable tote bag. Plastic is so last century.',
     reward: jersey('Tipperary', 'Kilkenny'),
   },
   {

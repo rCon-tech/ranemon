@@ -7,6 +7,7 @@ import { moveById } from '@/lib/battle/moves';
 import { DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
 import { canUseOn, ITEMS, itemById, shopStock, type ItemId } from '@/lib/story/items';
+import { KEY_ITEMS } from '@/lib/story/keys';
 import {
   creatureOf,
   expProgress,
@@ -160,13 +161,16 @@ export function PartyPanel({
 export function BagPanel({
   game,
   onUse,
+  onUseKey,
   onClose,
 }: {
   game: StoryState;
   onUse: (item: ItemId, member: number) => void;
+  onUseKey: (flag: string) => void;
   onClose: () => void;
 }) {
   const [pick, setPick] = useState<ItemId | null>(null);
+  const keys = KEY_ITEMS.filter((k) => hasFlag(game, k.flag));
   const items = ITEMS.filter((i) => (game.bag[i.id] ?? 0) > 0);
   if (pick) {
     const item = itemById(pick);
@@ -189,7 +193,7 @@ export function BagPanel({
   }
   return (
     <Panel title="BAG" onClose={onClose}>
-      {items.length === 0 && <p className="text-[11px]">The bag is empty.</p>}
+      {items.length === 0 && !keys.length && <p className="text-[11px]">The bag is empty.</p>}
       {items.map((i) => (
         <button
           key={i.id}
@@ -206,6 +210,20 @@ export function BagPanel({
             {i.about}
             {i.use.kind === 'pint' ? ' Use it in a wild battle.' : ''}
           </span>
+        </button>
+      ))}
+      {keys.length > 0 && <h3 className="mt-1 text-[11px] font-bold">KEY ITEMS</h3>}
+      {keys.map((k) => (
+        <button
+          key={k.flag}
+          type="button"
+          className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
+          disabled={!k.usable}
+          onClick={() => onUseKey(k.flag)}
+          data-testid={`key-${k.flag}`}
+        >
+          <span className="text-left text-[11px]">{k.name}</span>
+          <span className="text-left text-[8px] leading-relaxed">{k.about}</span>
         </button>
       ))}
     </Panel>

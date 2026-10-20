@@ -70,6 +70,7 @@ import {
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
+import { notice } from '@/lib/story/keys';
 import { Overworld, type Held, type Position } from './Overworld';
 import {
   BagPanel,
@@ -96,6 +97,7 @@ type Overlay =
   | 'card'
   | 'starter'
   | 'offer-chat'
+  | 'ask'
   | 'ending'
   | null;
 
@@ -191,6 +193,8 @@ export function Story() {
   /** The line in the text box: `n` restarts the typing, `full` skips to the end of it. */
   const [line, setLine] = useState<{ text: string; n: number; full?: boolean } | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  /** The question on screen while the overlay is 'ask'. */
+  const [ask, setAsk] = useState<Extract<Step, { do: 'ask' }> | null>(null);
   const [fight, setFight] = useState<Fight | null>(null);
   const [flash, setFlash] = useState(false);
   const [exclaim, setExclaim] = useState<number | null>(null);
@@ -247,6 +251,13 @@ export function Story() {
               { do: 'offer-chat' },
             );
             break;
+          case 'ask':
+            setGame(g);
+            setQueue(q);
+            setLine(null);
+            setAsk(s);
+            setOverlay('ask');
+            return;
           case 'offer-chat':
           case 'shop':
           case 'starter':
@@ -429,9 +440,17 @@ export function Story() {
   /** Through a door: into the room behind it, facing in. */
   function goInside(map: GameMap, x: number, y: number, kind: string) {
     if (!game) return;
+    const lock = kind === 'G' ? map.gym?.lock : undefined;
+    if (lock && !hasFlag(game, lock.flag)) return run(game, [{ do: 'say', text: lock.locked }]);
     const room = mapById(interiorId(map.id, kind, doorIndex(map, x, y)));
-    const g: StoryState = { ...game, map: room.id, ...marker(room, '@'), face: 'up' };
-    run(g, room.arrive ?? []);
+    let g: StoryState = { ...game, map: room.id, ...marker(room, '@'), face: 'up' };
+    const steps: Run[] = [...(room.arrive ?? [])];
+    // The first time through a locked door, say how it opened.
+    if (lock && !hasFlag(g, `unlocked:${map.id}`)) {
+      g = setFlag(g, `unlocked:${map.id}`);
+      steps.unshift({ do: 'say', text: lock.opened });
+    }
+    run(g, steps);
   }
 
   function pressA() {
@@ -455,6 +474,14 @@ export function Story() {
     if (!game || line || fight) return;
     if (overlay === 'menu') setOverlay(null);
     else if (!overlay && !busy) setOverlay('menu');
+  }
+
+  /** Answering a question: its steps for that answer, then the rest of the script. */
+  function answer(steps: Step[] | undefined) {
+    if (!game) return;
+    setOverlay(null);
+    setAsk(null);
+    run(game, [...(steps ?? []), ...queue]);
   }
 
   /** Closing a menu the script opened carries on with the script. */
@@ -759,6 +786,13 @@ export function Story() {
           <BagPanel
             game={game}
             onClose={closeOverlay}
+            onUseKey={() => {
+              setOverlay(null);
+              run(
+                game,
+                notice(map, flags, ghosts.length).map((text) => ({ do: 'say', text })),
+              );
+            }}
             onUse={(id, i) => {
               const item = itemById(id);
               const m = game.party[i];
@@ -834,6 +868,15 @@ export function Story() {
             no="NO"
             onYes={() => setOverlay('chat')}
             onNo={closeOverlay}
+          />
+        )}
+        {overlay === 'ask' && ask && (
+          <Choice
+            question={ask.text}
+            yes="YES"
+            no="NO"
+            onYes={() => answer(ask.yes)}
+            onNo={() => answer(ask.no)}
           />
         )}
         {overlay === 'ending' && (
