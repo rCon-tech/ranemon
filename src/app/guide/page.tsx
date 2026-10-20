@@ -1,5 +1,8 @@
 import Link from 'next/link';
+import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
+import { ROSTER } from '@/lib/battle/roster';
+import { SHINY_ODDS, shinyChance, shinyForm } from '@/lib/story/shiny';
 import { TYPE_COLOR, TYPE_LABEL, TYPES, typeMultiplier, type RaneType } from '@/lib/battle/types';
 
 export const metadata = { title: 'How to play' };
@@ -203,6 +206,43 @@ export default function Guide() {
             The game saves as you go. The ▶ button at the top of the map and in battles speeds the
             whole game up to 2× or 4×.
           </li>
+        </ul>
+      </Section>
+
+      <Section title="Shiny Ranemon">
+        <div className="flex items-end justify-center gap-4" aria-hidden>
+          <span className="flex flex-col items-center gap-1 text-[10px]">
+            <span className="h-16 w-16">
+              <Sprite creature={ROSTER[0]} />
+            </span>
+            {ROSTER[0].name}
+          </span>
+          <span className="flex flex-col items-center gap-1 text-[10px]">
+            <span className="h-16 w-16">
+              <Sprite creature={shinyForm(ROSTER[0])} />
+            </span>
+            <span>
+              <span className="shiny-name">★</span>
+              {ROSTER[0].name}
+            </span>
+          </span>
+        </div>
+        <ul className="list-disc pl-4">
+          <li>
+            Very rarely, a wild Ranemon is <b>shiny</b>: golden all over, ringed in gold and
+            sparkling. Only 1 wild Ranemon in {SHINY_ODDS} is. Over a whole run of about 150 wild
+            battles that’s roughly a {Math.round(shinyChance(150) * 100)}% chance of seeing even
+            one, so most players never will.
+          </li>
+          <li>
+            You can’t miss one. The screen flashes gold, it bursts into sparkles as it comes in, the
+            text says “A shiny … appeared!”, and its name has a gold ★.
+          </li>
+          <li>
+            Befriend it and it’s yours for good. It keeps its ★ in your party, the Group Chat and
+            the Ranedex, follows you in gold, and stays shiny when it evolves.
+          </li>
+          <li>Shinies have the same stats and moves as any other. They’re for bragging rights.</li>
         </ul>
       </Section>
     </div>

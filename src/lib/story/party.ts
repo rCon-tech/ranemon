@@ -3,6 +3,7 @@ import type { Battler, Entrant } from '../battle/engine';
 import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
 import { ROSTER } from '../battle/roster';
+import { SHINY_STAR, shinyForm } from './shiny';
 
 /**
  * Story mode's Ranemon: a species at a level, with the HP, PP and status it carries from one
@@ -20,6 +21,8 @@ export interface Member {
   pp: number[];
   status: Status | null;
   moves: string[];
+  /** A shiny: golden, and rare. Saves from before shinies have no field, so read it as false. */
+  shiny?: boolean;
 }
 
 export const PARTY_SIZE = 6;
@@ -114,7 +117,13 @@ export function catchUp(m: Member): Member {
 
 /** The member as the engine sees it: the species with only the moves it knows so far. */
 export function creatureOf(m: Member): Creature {
-  return { ...speciesById(m.species), moves: m.moves };
+  const c = { ...speciesById(m.species), moves: m.moves };
+  return m.shiny ? shinyForm(c) : c;
+}
+
+/** A member's name as the story's text gives it: shinies wear their star. */
+export function nameOf(m: Member): string {
+  return `${m.shiny ? SHINY_STAR : ''}${speciesById(m.species).name}`;
 }
 
 export function toEntrant(m: Member): Entrant {
@@ -144,7 +153,7 @@ export function expYield(foeLevel: number, trainer: boolean): number {
 
 /** Goes up one level: more HP, and any move learnt at the new level. */
 function levelUp(m: Member, lines: string[]): Member {
-  const name = speciesById(m.species).name;
+  const name = nameOf(m);
   const before = statsOf(m).hp;
   let next: Member = { ...m, level: m.level + 1 };
   const gained = statsOf(next).hp - before;
@@ -164,18 +173,19 @@ function levelUp(m: Member, lines: string[]): Member {
 /** Turns a member into its evolved form, keeping the HP it has lost. */
 function evolve(m: Member, lines: string[]): Member {
   const evo = evolutionOf(m.species)!;
-  const name = speciesById(m.species).name;
+  const name = nameOf(m);
   const before = statsOf(m).hp;
+  // A shiny stays shiny: everything but the species carries over.
   const next: Member = { ...m, species: evo.id };
   const gained = statsOf(next).hp - before;
-  lines.push(`What? ${name} is evolving!`, `${name} evolved into ${evo.name}!`);
+  lines.push(`What? ${name} is evolving!`, `${name} evolved into ${nameOf(next)}!`);
   return { ...next, hp: m.hp > 0 ? m.hp + gained : 0 };
 }
 
 /** Adds EXP and applies any level-ups. Returns the lines to show. */
 export function gainExp(m: Member, amount: number): { member: Member; lines: string[] } {
   if (m.level >= MAX_LEVEL) return { member: m, lines: [] };
-  const lines = [`${speciesById(m.species).name} gained ${amount} EXP!`];
+  const lines = [`${nameOf(m)} gained ${amount} EXP!`];
   let member: Member = { ...m, exp: m.exp + amount };
   while (member.level < MAX_LEVEL && member.exp >= expAt(member.level + 1)) {
     member = levelUp(member, lines);
@@ -203,13 +213,18 @@ const BY_NAME = new Map([...SPECIES.values()].map((c) => [c.name, c]));
 
 /**
  * The evolution a line of text announces, for the evolution scene: `done` once it has
- * happened. Null for any other line.
+ * happened. Null for any other line. A shiny's star in the name shows both forms shiny.
  */
 export function evolutionIn(text: string): { from: Creature; to: Creature; done: boolean } | null {
   const starting = /^What\? (.+) is evolving!$/.exec(text);
   const finished = /^(.+) evolved into (.+)!$/.exec(text);
-  const from = BY_NAME.get((starting ?? finished)?.[1] ?? '');
+  const named = (starting ?? finished)?.[1] ?? '';
+  const shiny = named.startsWith(SHINY_STAR);
+  const from = BY_NAME.get(shiny ? named.slice(SHINY_STAR.length) : named);
   const evo = from && evolutionOf(from.id);
   if (!from || !evo) return null;
-  return { from, to: speciesById(evo.id), done: !!finished };
+  const to = speciesById(evo.id);
+  return shiny
+    ? { from: shinyForm(from), to: shinyForm(to), done: !!finished }
+    : { from, to, done: !!finished };
 }

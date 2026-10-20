@@ -18,6 +18,7 @@ import {
   statsOf,
   type Member,
 } from '@/lib/story/party';
+import { shinyForm } from '@/lib/story/shiny';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 
@@ -86,7 +87,14 @@ export function MemberRow({
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex justify-between text-[11px]">
-          <span className="truncate">{speciesById(m.species).name}</span>
+          <span className="truncate">
+            {m.shiny && (
+              <span className="shiny-name" aria-label="Shiny">
+                ★
+              </span>
+            )}
+            {speciesById(m.species).name}
+          </span>
           <span>Lv{m.level}</span>
         </span>
         <Bar value={m.hp / max} label="HP" />
@@ -122,6 +130,11 @@ export function PartyPanel({
           <MemberRow m={m} onClick={() => setOpen(open === i ? null : i)} pressed={open === i} />
           {open === i && (
             <div className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist p-2 text-[10px]">
+              {m.shiny && (
+                <span className="shiny-banner self-start rounded px-1.5 py-0.5 text-[10px] font-bold">
+                  ★ SHINY ★
+                </span>
+              )}
               <span className="flex gap-1">
                 {speciesById(m.species).types.map((t) => (
                   <TypeBadge key={t} type={t} />
@@ -302,22 +315,31 @@ export function GroupChatPanel({
 }
 
 export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+  // Species you have a shiny of right now, in the party or the Group Chat.
+  const shinies = new Set(
+    [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
+  );
   return (
     <Panel title="RANEDEX" onClose={onClose}>
       <p className="text-[11px]">
         Seen {game.seen.length} · Befriended {game.caught.length} / {DEX.length}
+        {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
       <div className="grid grid-cols-4 gap-1.5">
         {DEX.map((c, i) => {
           const seen = game.seen.includes(c.id);
+          const shiny = shinies.has(c.id);
           return (
             <div
               key={c.id}
-              className="flex flex-col items-center gap-1 rounded-lg border-2 border-frame bg-mist p-1"
+              className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 ${shiny ? 'border-gold' : 'border-frame'}`}
             >
               <span className="text-[8px]">{String(i + 1).padStart(3, '0')}</span>
-              <span className="h-10 w-10">{seen ? <Sprite creature={c} /> : null}</span>
+              <span className="h-10 w-10">
+                {seen ? <Sprite creature={shiny ? shinyForm(c) : c} /> : null}
+              </span>
               <span className="text-[8px]">
+                {shiny && <span className="shiny-name">★</span>}
                 {seen ? c.name : '?????'}
                 {game.caught.includes(c.id) ? ' ●' : ''}
               </span>

@@ -10,7 +10,7 @@ import {
   makeMember,
   PARTY_SIZE,
   catchUp,
-  speciesById,
+  nameOf,
   type Member,
 } from './party';
 import { marker, type Dir } from './world';
@@ -120,7 +120,7 @@ export function recruit(
   }
   return {
     state: { ...next, box: [...s.box, member] },
-    line: `Your party is full, so ${speciesById(species).name} joined the Group Chat.`,
+    line: `Your party is full, so ${nameOf(member)} joined the Group Chat.`,
   };
 }
 
@@ -173,6 +173,7 @@ export function settleBattle(
     const joined = recruit(state, foe.creature.id, foe.level, {
       hp: foe.hp,
       status: foe.status,
+      ...(foe.creature.shiny ? { shiny: true } : {}),
     });
     state = joined.state;
     if (joined.line) lines.push(joined.line);

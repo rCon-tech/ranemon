@@ -119,9 +119,12 @@ export function describeEvent(
   switch (event.kind) {
     case 'send-out':
       if (side === 0) return `Go! ${creature}!`;
-      return foe.kind === 'wild'
-        ? `A wild ${creature} appeared!`
-        : `${trainer} sent out ${creature}!`;
+      if (foe.kind === 'wild') {
+        return state.teams[side].battlers[index].creature.shiny
+          ? `A shiny ${creature} appeared!`
+          : `A wild ${creature} appeared!`;
+      }
+      return `${trainer} sent out ${creature}!`;
     case 'withdraw':
       return side === 0 ? `${creature}, come back!` : `${trainer} withdrew ${creature}!`;
     case 'move':

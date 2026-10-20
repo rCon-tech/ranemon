@@ -10,6 +10,10 @@ Writes, under public/sprites:
                      piece from the Pokémon it's named after (wings, spoons, a crest, ...)
   evo/mini/<id>.png
   bw/bns.png         B&S, cut from the group photo on the sheet's last page (only with --sheet)
+  shiny/...          the shiny palette of every sprite above (bar B&S), at the same path under
+                     shiny/: gilded, ringed in gold, with sparkles on the full-size ones
+
+    python3 scripts/sprites.py --shiny-only   rebuilds just the shiny sprites
 """
 
 import argparse
@@ -272,10 +276,50 @@ def evolve(evo: str, base: str, kind: str) -> Image.Image:
     return out
 
 
+GOLD = np.array([[64, 28, 8], [160, 88, 12], [236, 174, 32], [255, 224, 96], [255, 250, 214]], np.float32)
+GILD = 0.8
+RING = (255, 214, 56, 255)
+
+
+def gild(im: Image.Image, sparkles: bool) -> Image.Image:
+    """A shiny sprite: every colour pulled onto a gold ramp by its brightness, so the friend is
+    still recognisable but unmistakably golden, then a gold ring around it and a few sparkles."""
+    a = np.asarray(im.convert("RGBA")).astype(np.float32)
+    lum = (a[..., :3] @ np.array([0.3, 0.59, 0.11], np.float32)) / 255
+    pos = np.clip((lum - 0.06) / 0.82, 0, 1) ** 0.85 * (len(GOLD) - 1)
+    i = np.clip(pos.astype(int), 0, len(GOLD) - 2)
+    f = (pos - i)[..., None]
+    gold = GOLD[i] * (1 - f) + GOLD[i + 1] * f
+    opaque = a[..., 3] > 0
+    a[..., :3][opaque] = gold[opaque] * GILD + a[..., :3][opaque] * (1 - GILD)
+    out = outline(Image.fromarray(a.astype(np.uint8), "RGBA"), RING)
+    if sparkles:
+        d = ImageDraw.Draw(out)
+        w, h = out.size
+        for x, y in ((8, 10), (w - 9, 18), (6, h // 2 + 4), (w - 7, h // 2 + 14)):
+            sparkle(d, x, y, (255, 236, 120))
+    return out
+
+
+def shinies() -> None:
+    for d in ("bw", "evo"):
+        for path in sorted((SRC / d).glob("*.png")):
+            if path.stem == "bns":
+                continue
+            (SRC / "shiny" / d / "mini").mkdir(parents=True, exist_ok=True)
+            gild(Image.open(path), True).save(SRC / "shiny" / d / path.name)
+            mini = SRC / d / "mini" / path.name
+            gild(Image.open(mini), False).save(SRC / "shiny" / d / "mini" / path.name)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sheet", help="page 7 of the Ranemon sheet, as an image")
+    parser.add_argument("--shiny-only", action="store_true", help="only rebuild the shiny sprites")
     args = parser.parse_args()
+    if args.shiny_only:
+        shinies()
+        return
     for d in ("bw", "bw/mini", "evo", "evo/mini"):
         (SRC / d).mkdir(parents=True, exist_ok=True)
     for path in sorted(SRC.glob("*.png")):
@@ -289,6 +333,7 @@ def main() -> None:
     if args.sheet:
         photo = Image.open(args.sheet).convert("RGBA").crop((130, 170, 730, 470))
         outline(pixelate(photo, 160, 48)).save(SRC / "bw/bns.png")
+    shinies()
 
 
 if __name__ == "__main__":
