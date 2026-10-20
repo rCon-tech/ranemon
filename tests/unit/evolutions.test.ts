@@ -60,7 +60,10 @@ describe('evolutions', () => {
       1,
     );
     const hand = state.teams[0].battlers[0].creature.moves.indexOf('helping-hand-ois');
-    const next = playTurn(state, [{ kind: 'move', index: hand }, { kind: 'move', index: 0 }]);
+    const next = playTurn(state, [
+      { kind: 'move', index: hand },
+      { kind: 'move', index: 0 },
+    ]);
     const team = next.state.teams[0];
     expect(team.battlers[team.active].creature.id).toBe('hitmonollie');
     expect(team.battlers).toHaveLength(2);
