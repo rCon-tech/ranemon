@@ -23,6 +23,8 @@ export interface Creature {
   sprite?: string;
   /** Accent colour: the blob's body, and the backdrop behind a sprite in the Ranedex. */
   colour: string;
+  /** A rare golden palette, from story mode's wild Ranemon. */
+  shiny?: boolean;
 }
 
 /** Battle mode's level. Story mode runs from 5 to MAX_LEVEL. */

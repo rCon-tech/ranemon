@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
 import { scaled } from '@/lib/speed';
 import { speciesById } from '@/lib/story/party';
+import { shinySprite } from '@/lib/story/shiny';
 import {
   canEnter,
   DELTA,
@@ -51,6 +52,8 @@ interface Props {
   flags: ReadonlySet<string>;
   /** The species walking behind you, or null. */
   follower: string | null;
+  /** The follower is a shiny, so its head is the golden one. */
+  followerShiny?: boolean;
   /** True while a text box, menu or battle intro is up: no walking. */
   frozen: boolean;
   bike: boolean;
@@ -76,14 +79,16 @@ function sprite(key: string, make: () => HTMLCanvasElement) {
 }
 
 const heads = new Map<string, HTMLImageElement>();
-function head(species: string): HTMLImageElement {
-  let img = heads.get(species);
+function head(species: string, shiny: boolean): HTMLImageElement {
+  const key = `${species}:${shiny}`;
+  let img = heads.get(key);
   if (!img) {
     img = new Image();
     // Each sprite has a 40-pixel version in mini/ beside it, drawn at half size.
-    const sprite = speciesById(species).sprite ?? '';
+    const plain = speciesById(species).sprite ?? '';
+    const sprite = shiny ? shinySprite(plain) : plain;
     img.src = asset(sprite.replace(/\/([^/]+)$/, '/mini/$1'));
-    heads.set(species, img);
+    heads.set(key, img);
   }
   return img;
 }
@@ -401,8 +406,9 @@ export function Overworld(props: Props) {
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
         const hop = moving ? Math.sin(t * Math.PI) * 1.5 : idle(0.5);
-        const img = head(p.follower);
-        const colour = speciesById(p.follower).colour;
+        const img = head(p.follower, !!p.followerShiny);
+        // A shiny's body is gold to match its head.
+        const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
         const frame = moving && t < 0.5 ? (w.frame % 2 ? 3 : 1) : 0;
         drawn.push({
           y: fy,

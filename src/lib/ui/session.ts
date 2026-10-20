@@ -293,6 +293,11 @@ function throwPint(s: Session, a: Extract<SessionAction, { type: 'pint' }>): Ses
   for (let i = 1; i <= n; i++) lines.push(say(['Sip…', ...Array(i - 1).fill('sip…')].join(' ')));
   if (n === 3) {
     lines.push(say(`Gotcha! ${target.creature.name} finished the pint and joined you!`));
+    if (target.creature.shiny) {
+      lines.push(
+        say(`★ A SHINY ${target.creature.name.toUpperCase()}! Hardly anyone ever finds one! ★`),
+      );
+    }
     return {
       ...s,
       queue: [...s.queue, ...lines, { kind: 'end', result: 'caught' }],

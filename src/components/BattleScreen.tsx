@@ -23,6 +23,7 @@ import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
 import { SpeedButton, useAnimationSpeed } from './SpeedButton';
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
+import { ShinyCelebration, ShinySparkle } from './ShinySparkle';
 
 /** One kind of item in the story bag, as the battle screen shows it. */
 export interface BagEntry {
@@ -191,6 +192,7 @@ export function BattleScreen({
                   <Sprite creature={foe.creature} />
                 </div>
               </div>
+              {foe.creature.shiny && <ShinySparkle />}
             </div>
           ) : (
             foe.hp === 0 &&
@@ -216,6 +218,7 @@ export function BattleScreen({
                   <Sprite creature={me.creature} back />
                 </div>
               </div>
+              {me.creature.shiny && <ShinySparkle />}
             </div>
           ) : (
             me.hp === 0 &&
@@ -244,6 +247,9 @@ export function BattleScreen({
           />
         )}
         {special && <SpecialEffect key={effect.n} moveId={effect.moveId} user={effect.user} />}
+        {foe.creature.shiny && (result === 'caught' || message.startsWith('★ A SHINY')) && (
+          <ShinyCelebration name={foe.creature.name} />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 bg-shell p-3">
@@ -347,6 +353,7 @@ export function BattleScreen({
                     </span>
                     <span className="flex flex-1 flex-col gap-1">
                       <span className="text-[13px]">
+                        {b.creature.shiny && <span className="shiny-name">★</span>}
                         {b.creature.name} Lv{b.level}
                       </span>
                       <span className="text-[10px] opacity-75">
@@ -480,7 +487,10 @@ export function BattleScreen({
                     <Sprite creature={b.creature} />
                   </span>
                   <span className="flex flex-1 flex-col gap-1">
-                    <span className="text-[13px]">{b.creature.name}</span>
+                    <span className="text-[13px]">
+                      {b.creature.shiny && <span className="shiny-name">★</span>}
+                      {b.creature.name}
+                    </span>
                     <span className="text-[10px] opacity-75">
                       {b.hp === 0 ? 'Fainted' : `HP ${b.hp}/${b.stats.hp}`}
                       {out && b.hp > 0 ? ' · In battle' : ''}

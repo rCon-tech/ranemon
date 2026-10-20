@@ -71,6 +71,7 @@ import {
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
 import { notice } from '@/lib/story/keys';
+import { rollShiny } from '@/lib/story/shiny';
 import { Overworld, type Held, type Position } from './Overworld';
 import {
   BagPanel,
@@ -196,7 +197,7 @@ export function Story() {
   /** The question on screen while the overlay is 'ask'. */
   const [ask, setAsk] = useState<Extract<Step, { do: 'ask' }> | null>(null);
   const [fight, setFight] = useState<Fight | null>(null);
-  const [flash, setFlash] = useState(false);
+  const [flash, setFlash] = useState<'plain' | 'shiny' | null>(null);
   const [exclaim, setExclaim] = useState<number | null>(null);
   const [faces, setFaces] = useState<Record<number, Dir>>({});
   const held = useRef<Held>({ dir: null, b: false });
@@ -306,7 +307,12 @@ export function Story() {
   }, [game, line, queue, run]);
 
   const busy =
-    !game || line !== null || overlay !== null || fight !== null || flash || exclaim !== null;
+    !game ||
+    line !== null ||
+    overlay !== null ||
+    fight !== null ||
+    flash !== null ||
+    exclaim !== null;
 
   function startGame(g: StoryState, fresh: boolean) {
     const map = mapById(g.map);
@@ -366,13 +372,17 @@ export function Story() {
       const wild = pickWild(map.wild, Math.random(), Math.random());
       const { level } = wild;
       const species = formAt(wild.species, level);
+      const shiny = rollShiny(Math.random());
       g = see(g, species);
       setGame(g);
-      setFlash(true);
+      setFlash(shiny ? 'shiny' : 'plain');
       setTimeout(() => {
-        setFlash(false);
+        setFlash(null);
         setFight({
-          teams: [g.party.map(toEntrant), [toEntrant(makeMember(species, level, -1))]],
+          teams: [
+            g.party.map(toEntrant),
+            [toEntrant({ ...makeMember(species, level, -1), ...(shiny ? { shiny } : {}) })],
+          ],
           foe: { kind: 'wild' },
           ai: 'easy',
           trainer: null,
@@ -733,6 +743,7 @@ export function Story() {
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
           follower={walker?.species ?? null}
+          followerShiny={!!walker?.shiny}
           frozen={busy}
           bike={hasFlag(game, 'bike')}
           exclaim={exclaim}
@@ -750,7 +761,9 @@ export function Story() {
           {map.name}
         </div>
         <SpeedButton className="absolute right-1 top-1" />
-        {flash && <div className="encounter-flash absolute inset-0" />}
+        {flash && (
+          <div className={`encounter-flash absolute inset-0 ${flash === 'shiny' ? 'shiny' : ''}`} />
+        )}
         {line && <EvolutionScene text={line.text} />}
         {line && (
           <button

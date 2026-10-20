@@ -20,11 +20,18 @@ export function InfoBox({ battler, hp, status, mine, exp }: Props) {
   const who = mine ? 'Your' : 'Foe';
   return (
     <div
-      className={`info-box ${mine ? 'info-you' : 'info-foe'}`}
+      className={`info-box ${mine ? 'info-you' : 'info-foe'} ${battler.creature.shiny ? 'info-shiny' : ''}`}
       data-testid={mine ? 'info-you' : 'info-foe'}
     >
       <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate">{battler.creature.name}</span>
+        <span className="truncate">
+          {battler.creature.shiny && (
+            <span className="shiny-name" aria-label="Shiny" data-testid="shiny-star">
+              ★
+            </span>
+          )}
+          {battler.creature.name}
+        </span>
         <span className="shrink-0 text-[10px]">Lv{battler.level}</span>
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1">
