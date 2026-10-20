@@ -11,7 +11,7 @@ import { INK } from './pixels';
 export const PERSON_W = 32;
 export const PERSON_H = 48;
 
-type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'none';
+type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'none';
 type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie';
 type Top = 'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat';
 
@@ -29,6 +29,12 @@ export interface Style {
   tie?: string;
   glasses?: 'glasses' | 'shades';
   bag?: string;
+  /** Carried at the side, on the arm. */
+  handbag?: string;
+  /** A skirt over the top of the legs, which are then tights. */
+  skirt?: string;
+  pearls?: boolean;
+  earrings?: string;
 }
 
 const SKIN = '#f8d0a8';
@@ -70,15 +76,21 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#18181c',
     glasses: 'glasses',
   },
+  // The rival: Margaret Thatcher. The hair that never moved, pearls, a royal blue suit and
+  // the handbag.
   rival: {
-    skin: SKIN,
-    hair: '#f0c030',
-    hairStyle: 'spiky',
-    top: '#38a048',
-    topKind: 'jacket',
-    trim: '#f8f0c0',
-    legs: '#3a3a48',
-    shoes: '#f4f4f4',
+    skin: '#f8d8b8',
+    hair: '#d8c8a0',
+    hairStyle: 'bouffant',
+    top: '#1f4fa8',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    tie: '#1f4fa8',
+    legs: '#e8c8a8',
+    shoes: '#1c2848',
+    skirt: '#1f4fa8',
+    handbag: '#141418',
+    pearls: true,
   },
   farmer: {
     skin: SKIN,
@@ -170,15 +182,17 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#5a6a8a',
     shoes: '#5a3a2a',
   },
+  // Dua Lipa, pulling pints in McGrattans: long black hair, gold hoops, a black top.
   barman: {
-    skin: SKIN,
-    hair: '#3a2a20',
-    hairStyle: 'slick',
-    top: '#202024',
-    topKind: 'waistcoat',
-    trim: '#f4f4f4',
+    skin: '#f0c8a0',
+    hair: '#141418',
+    hairStyle: 'long',
+    top: '#18181c',
+    topKind: 'shirt',
+    trim: '#d4a838',
     legs: '#202028',
     shoes: '#101014',
+    earrings: '#f0c040',
   },
   shopkeeper: {
     skin: SKIN,
@@ -262,6 +276,14 @@ type Side = 'down' | 'up' | 'left';
 
 /** Legs and shoes. `step` is -1, 0 or 1: which foot is forward. */
 function legs(c: Ctx, s: Style, side: Side, step: number) {
+  legPairs(c, s, side, step);
+  if (s.skirt) {
+    if (side === 'left') round(c, 11, 34, 11, 7, 2, s.skirt);
+    else round(c, 9, 34, 14, 7, 2, s.skirt);
+  }
+}
+
+function legPairs(c: Ctx, s: Style, side: Side, step: number) {
   const dark = shade(s.legs, 0.75);
   if (side === 'left') {
     // Seen from the side, the legs scissor.
@@ -308,6 +330,8 @@ function body(c: Ctx, s: Style, side: Side, step: number) {
     px(c, ax, 26, 4, 9, sleeve);
     px(c, ax + 3, 26, 1, 9, shade(sleeve, 0.75));
     px(c, ax, 35, 4, 3, s.skin);
+    if (s.handbag) handbag(c, s.handbag, ax - 2, 33);
+    if (s.pearls) for (let x = 7; x < 14; x += 2) px(c, x, 25, 1, 1, '#f8f4ec');
     return;
   }
   const back = side === 'up';
@@ -373,9 +397,24 @@ function body(c: Ctx, s: Style, side: Side, step: number) {
     if (s.topKind === 'jacket' || s.topKind === 'hivis') px(c, x, 33 + swing, 3, 1, s.trim);
     px(c, x, 35 + swing, 3, 3, s.skin);
   }
+  if (s.pearls && !back)
+    for (let x = 11; x < 22; x += 2) px(c, x, 25 + (x > 13 && x < 19 ? 1 : 0), 1, 1, '#f8f4ec');
+  if (s.handbag && !back) handbag(c, s.handbag, 23, 32 + (step === 1 ? 1 : step === -1 ? -1 : 0));
+}
+
+/** A stiff little handbag with a clasp, hung from the arm. */
+function handbag(c: Ctx, colour: string, x: number, y: number) {
+  px(c, x + 1, y - 2, 4, 1, colour);
+  px(c, x, y - 1, 1, 2, colour);
+  px(c, x + 5, y - 1, 1, 2, colour);
+  round(c, x - 1, y + 1, 8, 7, 2, colour);
+  px(c, x, y + 2, 6, 1, shade(colour, 1.6));
+  px(c, x + 2, y + 1, 2, 1, '#e8c040');
 }
 
 function hairBack(c: Ctx, s: Style, side: Side) {
+  if (s.hairStyle === 'bouffant')
+    round(c, side === 'left' ? 5 : 2, 1, side === 'left' ? 24 : 28, 21, 10, s.hair);
   if (s.hairStyle === 'long')
     round(c, side === 'left' ? 9 : 4, 8, side === 'left' ? 19 : 24, 24, 7, s.hair);
 }
@@ -463,6 +502,21 @@ function head(c: Ctx, s: Style, side: Side) {
     }
   }
   if (s.hairStyle === 'bun') round(c, 12, 0, 8, 6, 3, s.hair);
+  if (s.hairStyle === 'bouffant' && side !== 'up') {
+    // The famous set: a swept wave of hair over the forehead.
+    round(c, side === 'left' ? 4 : 5, 2, side === 'left' ? 20 : 22, 9, 5, s.hair);
+    px(c, side === 'left' ? 7 : 9, 4, 10, 2, shade(s.hair, 1.3));
+    px(c, side === 'left' ? 6 : 8, 9, 12, 1, shade(s.hair, 0.8));
+  }
+  if (s.hairStyle === 'bouffant' && side === 'up') round(c, 2, 1, 28, 23, 10, s.hair);
+  if (s.earrings && side !== 'up') {
+    for (const x of side === 'left' ? [19] : [4, 26]) {
+      px(c, x, 20, 2, 1, s.earrings);
+      px(c, x - 1, 21, 1, 2, s.earrings);
+      px(c, x + 2, 21, 1, 2, s.earrings);
+      px(c, x, 23, 2, 1, s.earrings);
+    }
+  }
   if (s.hat) hat(c, s, side);
 }
 

@@ -115,6 +115,15 @@ const storage = (): Storage | null => {
 
 const noSubscribe = () => () => {};
 
+/** Dua Lipa works the bar in McGrattans, and has a line for every visit. */
+const DUA_LINES = [
+  'DUA LIPA: Welcome to McGrattans! Sit down there and I’ll look after your lot.',
+  'DUA LIPA: New rules. One: don’t pick up the phone. Two: hand me your Ranemon. Three: have a pint.',
+  'DUA LIPA: Don’t start now, I’ve only just healed the last lot! Go on, give them here.',
+  'DUA LIPA: Levitating? No, that’s just the Guinness. Leave your Ranemon with me.',
+  'DUA LIPA: Physical, physical… they’re all in great shape now. Mind yourself out there.',
+];
+
 const ghostFlag = (map: string, x: number, y: number) => `ghost:${map}:${x}:${y}`;
 const challenge = (trainer: string): Run[] => [
   { do: 'say', text: trainerById(trainer).before },
@@ -231,7 +240,7 @@ export function Story() {
           case 'pub':
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };
             q.unshift(
-              { do: 'say', text: 'BARMAN: Sit down there. I’ll look after your lot.' },
+              { do: 'say', text: DUA_LINES[g.steps % DUA_LINES.length] },
               { do: 'say', text: 'Your Ranemon are fighting fit again!' },
               { do: 'offer-chat' },
             );
@@ -256,7 +265,7 @@ export function Story() {
             setLine(null);
             setFight({
               teams: [g.party.map(toEntrant), team],
-              foe: t.rival ? { kind: 'rival' } : { kind: 'trainer', name: t.name },
+              foe: { kind: 'trainer', name: t.name },
               ai: t.ai,
               trainer: t.id,
               key: Date.now(),
@@ -505,7 +514,10 @@ export function Story() {
       setFaces({});
       persist(g);
       run(g, [
-        { do: 'say', text: 'RIVAL: Ha! Told you mine was better. Go on, I’ll patch yours up.' },
+        {
+          do: 'say',
+          text: 'THATCHER: Ha! Rule, Britannia! Never mind, dear. A nice cup of tea will sort your lot out.',
+        },
         ...queue,
       ]);
       return;

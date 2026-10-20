@@ -26,7 +26,7 @@ The core loop is: walk a county route, fight wild Ranemon in the long grass, thr
 - The only species are the 16 friends, so wild Ranemon, gym teams and B&S's team all draw from them. Duplicates are allowed. More can join through Creature Studio later.
 - B&S is a trainer with a team of 6 whose last Ranemon is a unique boss creature drawn from their photo (page 7 of the Ranemon sheet).
 - Levels run 5 to 60, and the endgame sits at level 50 so it matches the battle game's balance.
-- The player is an unnamed young trainer from Clare. The rival is a mate from the same village who picks after you.
+- The player is an unnamed young trainer from Clare. The rival is Margaret Thatcher, who picks after you and is incredibly British about everything (tea, queues, pearls and the handbag). Dua Lipa pulls the pints in McGrattans and heals your party.
 
 ## Story beats
 

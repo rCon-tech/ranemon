@@ -137,7 +137,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
             talk: [
               {
                 do: 'say',
-                text: 'LAD: The barman will sort your Ranemon out. Just talk to him over the bar.',
+                text: 'LAD: Is that Dua Lipa pulling pints? It is! Talk to her over the bar and she’ll sort your Ranemon out.',
               },
             ],
           },

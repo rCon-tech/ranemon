@@ -15,57 +15,65 @@ function jersey(county: string, next: string, extra: Step[] = []): Step[] {
 }
 
 const T: Trainer[] = [
-  // ---------- the rival: the mate from the village who picks after you ----------
+  // ---------- the rival: Margaret Thatcher, who picks after you and is terribly British ----------
   {
     id: 'rival-1',
-    name: 'Your rival',
+    name: 'Margaret Thatcher',
     rival: true,
     friendly: true,
     team: [],
     ai: 'easy',
     prize: 100,
-    before: 'RIVAL: Michael D gave you one too? Grand. Let’s see whose is better!',
-    after: 'RIVAL: Ah, beginner’s luck. See you up the road.',
+    before:
+      'THATCHER: Good heavens. That Higgins chap gave you a Ranemon? Then I shall have one too. This lady is not for turning, and neither is her Ranemon!',
+    after:
+      'THATCHER: Beginner’s luck, I expect. I’m off for a pot of Earl Grey. Do queue properly on your way out.',
   },
   {
     id: 'rival-2',
-    name: 'Your rival',
+    name: 'Margaret Thatcher',
     rival: true,
     team: [],
     ai: 'easy',
     prize: 560,
-    before: 'RIVAL: Thomond Park! Fancy a scrum before the gym?',
-    after: 'RIVAL: Fair play. I’m off to Tipp.',
+    before:
+      'THATCHER: Thomond Park, is it? We invented rugby, dear. And queueing. And the scone. Shall we?',
+    after:
+      'THATCHER: Hmph. I shall be writing a very strongly worded letter to The Times. Tipperary is that way.',
   },
   {
     id: 'rival-3',
-    name: 'Your rival',
+    name: 'Margaret Thatcher',
     rival: true,
     team: [],
     ai: 'normal',
     prize: 880,
-    before: 'RIVAL: Kilkenny! I’ve been training. Properly this time.',
-    after: 'RIVAL: How are you this good? See you in Kildare.',
+    before:
+      'THATCHER: I’ve been training at Wimbledon between rounds of cucumber sandwiches. Pearls on. Handbag ready. Prepare yourself.',
+    after: 'THATCHER: Extraordinary. Simply not cricket. I’ll see you in Kildare, I suppose.',
   },
   {
     id: 'rival-4',
-    name: 'Your rival',
+    name: 'Margaret Thatcher',
     rival: true,
     team: [],
     ai: 'hard',
     prize: 1680,
-    before: 'RIVAL: Last stop before Dublin. No more messing.',
-    after: 'RIVAL: Go on so. You’ve earned Dublin.',
+    before:
+      'THATCHER: The Curragh. Horses, soldiers and frankly far too much rain. Stiff upper lip, everyone. Last chance before Dublin, dear.',
+    after: 'THATCHER: Very well. You may have Dublin. I am keeping the handbag.',
   },
   {
     id: 'rival-5',
-    name: 'Your rival',
+    name: 'Margaret Thatcher',
     rival: true,
     team: [],
     ai: 'hard',
     prize: 1840,
-    before: 'RIVAL: One more on the quays, for old times’ sake. Then Trinity’s yours.',
-    after: 'RIVAL: Go and beat B&S. For the village.',
+    before:
+      'THATCHER: One more, on the quays. I have brought my pearls, my handbag and the full might of a stiff upper lip. Jolly good. Let’s begin.',
+    after:
+      'THATCHER: Oh, go on then. Beat B&S. I shall be taking afternoon tea at the Shelbourne if anyone needs me. Cheerio!',
   },
 
   // ---------- gyms ----------
