@@ -29,6 +29,8 @@ jobs:
       - run: pnpm build
         env:
           PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          # The save server for online saves (docs/online-saves.md). Unset, saves stay in the browser.
+          NEXT_PUBLIC_SAVE_API: ${{ vars.SAVE_API_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
