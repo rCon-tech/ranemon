@@ -131,7 +131,10 @@ function kitOf(key: string, style: Style, headless: boolean): Kit {
       2,
     ]);
     const [w, h, d] = part.size;
-    const geo = new THREE.BoxGeometry(w * PX, h * PX, d * PX);
+    const geo =
+      part === HEAD
+        ? roundedBox(w * PX, h * PX, d * PX)
+        : new THREE.BoxGeometry(w * PX, h * PX, d * PX);
     // Hang the block from its pivot: the top of a limb, the neck for a head.
     geo.translate(0, -(h * PX) / 2, 0);
     if (part === HEAD) geo.translate(0, h * PX, 0);
@@ -199,12 +202,62 @@ function solidify(c: HTMLCanvasElement) {
   g.putImageData(img, 0, 0);
 }
 
+/** How finely a head is cut, along each side: enough that its curves read as round. */
+const HEAD_SEGMENTS = 6;
+/** How much of a head's narrowest half is curve rather than flat. */
+const HEAD_ROUND = 0.6;
+
+/**
+ * A box with its edges and corners rounded off, for a head. It keeps a box's six faces, so each
+ * still wears its own piece of the art, but the art wraps round the curves: the face looks out
+ * of the flat middle of the front, the hair runs over the top and down the sides. The cuts are
+ * spaced evenly along the surface, so the art is not squashed at the edges.
+ */
+function roundedBox(w: number, h: number, d: number) {
+  const n = HEAD_SEGMENTS;
+  const geo = new THREE.BoxGeometry(w, h, d, n, n, n);
+  const half = [w / 2, h / 2, d / 2];
+  const r = Math.min(...half) * HEAD_ROUND;
+  // Along one axis: flat for 2(e - r) in the middle, then an eighth of a turn of curve each end.
+  const spread = (u: number, e: number) => {
+    const flat = e - r;
+    const arc = (r * Math.PI) / 4;
+    const s = Math.abs(u) * (flat + arc);
+    const a = s <= flat ? s : flat + r * Math.tan((s - flat) / r);
+    return Math.sign(u) * a;
+  };
+  const pos = geo.getAttribute('position') as THREE.BufferAttribute;
+  const nrm = geo.getAttribute('normal') as THREE.BufferAttribute;
+  const p = new THREE.Vector3();
+  const core = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    p.set(
+      spread(pos.getX(i) / half[0], half[0]),
+      spread(pos.getY(i) / half[1], half[1]),
+      spread(pos.getZ(i) / half[2], half[2]),
+    );
+    // The nearest point of the flat-sided core, then out from it by the radius.
+    core.set(
+      THREE.MathUtils.clamp(p.x, r - half[0], half[0] - r),
+      THREE.MathUtils.clamp(p.y, r - half[1], half[1] - r),
+      THREE.MathUtils.clamp(p.z, r - half[2], half[2] - r),
+    );
+    const out = p.sub(core).normalize();
+    nrm.setXYZ(i, out.x, out.y, out.z);
+    out.multiplyScalar(r).add(core);
+    pos.setXYZ(i, out.x, out.y, out.z);
+  }
+  return geo;
+}
+
 /** Points each face of a box at its piece of the atlas. */
 function mapFaces(geo: THREE.BufferGeometry, crops: Crop[], aw: number, ah: number) {
   const uv = geo.getAttribute('uv') as THREE.BufferAttribute;
+  // A box cut finer has more corners to each face, but still in face order.
+  const each = uv.count / 6;
   crops.forEach(([x, y, w, h], face) => {
-    for (let k = 0; k < 4; k++) {
-      const i = face * 4 + k;
+    for (let k = 0; k < each; k++) {
+      const i = face * each + k;
       const u = uv.getX(i);
       const v = uv.getY(i);
       uv.setXY(i, (x + u * w) / aw, 1 - (y + (1 - v) * h) / ah);
