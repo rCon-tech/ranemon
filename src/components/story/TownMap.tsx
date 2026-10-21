@@ -38,7 +38,13 @@ export function TownMapPanel({ game, onClose }: { game: StoryState; onClose: () 
     return () => window.removeEventListener('keydown', key);
   }, [stops.length]);
 
-  const road = stops.map((s) => `${s.x},${s.y}`).join(' ');
+  const road = stops
+    .filter((s) => s.id !== 'donegal')
+    .map((s) => `${s.x},${s.y}`)
+    .join(' ');
+  // The train to Donegal, once you've taken it: a railway line from Dublin.
+  const dublin = stops.find((s) => s.id === 'dublin')!;
+  const donegal = stops.find((s) => s.id === 'donegal');
   return (
     <Panel title="TOWN MAP" onClose={onClose}>
       <svg
@@ -72,6 +78,27 @@ export function TownMapPanel({ game, onClose }: { game: StoryState; onClose: () 
           strokeWidth="1.4"
           strokeLinejoin="round"
         />
+        {donegal && (
+          <g data-testid="railway">
+            <line
+              x1={dublin.x}
+              y1={dublin.y}
+              x2={donegal.x}
+              y2={donegal.y}
+              stroke={ROAD_EDGE}
+              strokeWidth="1.6"
+            />
+            <line
+              x1={dublin.x}
+              y1={dublin.y}
+              x2={donegal.x}
+              y2={donegal.y}
+              stroke={ROAD}
+              strokeWidth="0.8"
+              strokeDasharray="1.4 1"
+            />
+          </g>
+        )}
         {stops.map((s, i) => (
           <g
             key={s.id}

@@ -1,5 +1,5 @@
 import { LEGEND, LEGEND_LEVEL } from '@/lib/battle/legend';
-import { CERT, HM } from '@/lib/story/keys';
+import { CERT, HM, TABLET, TABLET_TAKEN, TAKE_TABLET } from '@/lib/story/keys';
 import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
 
@@ -313,6 +313,120 @@ const HELLFIRE_ROOM = {
     },
   ],
 };
+
+/**
+ * The Donegal side story: the train from Dublin to Bundoran, where Josh Lee surfs all year and
+ * hands out a tablet that lets you see Poseidon, out on the rocks. Poseidon is a boss trainer.
+ */
+const DONEGAL_AT = { x: 21, y: 5 };
+const DUBLIN_AT = { x: 18, y: 5 };
+const BEAT_POSEIDON = 'beat:poseidon';
+
+const TO_DONEGAL: Step[] = [
+  {
+    do: 'ask',
+    text: 'CONDUCTOR: The Atlantic Coast Express, Dublin to Bundoran, Co. Donegal. All aboard?',
+    yes: [
+      {
+        do: 'say',
+        text: 'The train rattles north through Meath and Cavan, past a hundred lakes, until you can smell the sea.',
+      },
+      { do: 'travel', map: 'donegal', ...DONEGAL_AT, face: 'left' },
+      {
+        do: 'if',
+        flag: 'seen:bundoran',
+        then: [],
+        else: [
+          {
+            do: 'say',
+            text: 'BUNDORAN, CO. DONEGAL. Surf capital of Ireland. The Atlantic is roaring.',
+          },
+          { do: 'flag', flag: 'seen:bundoran' },
+        ],
+      },
+    ],
+    no: [{ do: 'say', text: 'CONDUCTOR: No bother. Trains run all day.' }],
+  },
+];
+
+const TO_DUBLIN: Step[] = [
+  {
+    do: 'ask',
+    text: 'CONDUCTOR: Back to Dublin Connolly?',
+    yes: [
+      { do: 'say', text: 'The train winds back down through the lakes to Dublin.' },
+      { do: 'travel', map: 'dublin', ...DUBLIN_AT, face: 'right' },
+    ],
+    no: [{ do: 'say', text: 'CONDUCTOR: Enjoy the waves.' }],
+  },
+];
+
+const JOSH: Step[] = [
+  {
+    do: 'if',
+    flag: BEAT_POSEIDON,
+    then: [
+      {
+        do: 'say',
+        text: 'JOSH LEE: You beat POSEIDON? Absolute legend. Nobody in the Surf Club believes me either.',
+      },
+    ],
+    else: [
+      {
+        do: 'if',
+        flag: TABLET_TAKEN,
+        then: [
+          {
+            do: 'say',
+            text: 'JOSH LEE: Told you. He’s out on the rocks by Tullan Strand, isn’t he? Go on, he loves a scrap.',
+          },
+        ],
+        else: [
+          {
+            do: 'if',
+            flag: TABLET,
+            then: [
+              { do: 'say', text: 'JOSH LEE: Still haven’t taken the tablet? Go on.' },
+              {
+                do: 'ask',
+                text: 'Take Josh Lee’s tablet now?',
+                yes: TAKE_TABLET,
+                no: [{ do: 'say', text: 'JOSH LEE: Suit yourself. It’s in your bag.' }],
+              },
+            ],
+            else: [
+              {
+                do: 'say',
+                text: 'JOSH LEE: Story? Josh Lee. I surf Bundoran all year round, even in January.',
+              },
+              {
+                do: 'say',
+                text: 'JOSH LEE: There’s a god out on the rocks. POSEIDON. Crown, trident, beard down to here. I’ve seen him loads.',
+              },
+              {
+                do: 'say',
+                text: 'JOSH LEE: Only thing is, you can only see him after you take one of these. Here.',
+              },
+              { do: 'flag', flag: TABLET },
+              { do: 'say', text: 'You got JOSH LEE’S TABLET!' },
+              {
+                do: 'ask',
+                text: 'Take the tablet now?',
+                yes: TAKE_TABLET,
+                no: [
+                  {
+                    do: 'say',
+                    text: 'JOSH LEE: Grand. It’s in your bag whenever you’re ready.',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
 
 export const MAPS: GameMap[] = [
   {
@@ -861,7 +975,7 @@ export const MAPS: GameMap[] = [
       'T,,,,,,,,,..###L##..#M#T',
       'T,,,,1,,,,.....=..6....T',
       '@==============.......*T',
-      'T...5.........=........T',
+      'T...5.........=....7...T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
       'T.............=..2.^^^.T',
@@ -909,6 +1023,7 @@ export const MAPS: GameMap[] = [
       },
       { look: 'local', face: 'down', talk: OLD_WOMAN },
       { look: 'busker', face: 'down', talk: BUSKER },
+      { look: 'conductor', face: 'left', talk: TO_DONEGAL },
     ],
     signs: ['DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.'],
     houses: [
@@ -1015,6 +1130,52 @@ export const MAPS: GameMap[] = [
         do: 'say',
         text: 'Three scholars guard the Long Room. B&S wait under the Campanile.',
       },
+    ],
+  },
+  {
+    id: 'donegal',
+    name: 'Bundoran, Co. Donegal',
+    county: 9,
+    rows: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      '~~~~~~~T...^^^^...^^^^.T',
+      '~~~~~~~T...#P##...#M##.T',
+      '~~~~~~2:.......=.....S.T',
+      '~~~~~~~:.....1.=.......T',
+      '~~~~~~~:,,,,...=....3@.T',
+      '~~~~~~~:,,,,...=.......T',
+      '~~~~~~~:,,,,...========T',
+      '~~~~~~~::......S.......T',
+      '~~~~~~~~~~:...,,,,,....T',
+      '~~~~~~~~~~~:..,,,,,....T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+    ],
+    wild: {
+      min: 46,
+      max: 52,
+      table: [
+        ['jammon', 20],
+        ['simomon', 20],
+        ['olliemon', 15],
+        ['enda', 15],
+        ['owemon', 15],
+        ['steadmon', 15],
+      ],
+    },
+    npcs: [
+      { look: 'josh', face: 'down', talk: JOSH },
+      {
+        look: 'poseidon',
+        face: 'right',
+        showIf: TABLET_TAKEN,
+        hideIf: BEAT_POSEIDON,
+        trainer: 'poseidon',
+      },
+      { look: 'conductor', face: 'left', talk: TO_DUBLIN },
+    ],
+    signs: [
+      'BUNDORAN STATION. Trains to Dublin Connolly. Surfboards in the guard’s van, please.',
+      'TULLAN STRAND. Locals say POSEIDON himself lives out on the rocks. Nobody has ever seen him.',
     ],
   },
 ];

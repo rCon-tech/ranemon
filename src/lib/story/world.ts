@@ -49,7 +49,10 @@ export type Look =
   | 'saoirse'
   | 'oldman'
   | 'legend'
-  | 'busker';
+  | 'busker'
+  | 'conductor'
+  | 'josh'
+  | 'poseidon';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -62,6 +65,8 @@ export type Step =
   | { do: 'ask'; text: string; yes?: Step[]; no?: Step[] }
   /** A battle with one particular wild Ranemon, such as a legend. The script goes on after. */
   | { do: 'wild'; species: string; level: number }
+  /** Takes you somewhere far off, by train: to a map, standing on a tile, facing a way. */
+  | { do: 'travel'; map: string; x: number; y: number; face: Dir }
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }

@@ -73,7 +73,7 @@ import {
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
-import { notice } from '@/lib/story/keys';
+import { notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { rollShiny } from '@/lib/story/shiny';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
@@ -273,6 +273,10 @@ export function Story() {
             setLine(null);
             setOverlay(s.do === 'offer-chat' ? 'offer-chat' : s.do === 'shop' ? 'shop' : s.do);
             return;
+          case 'travel': {
+            g = setFlag({ ...g, map: s.map, x: s.x, y: s.y, face: s.face }, `visited:${s.map}`);
+            break;
+          }
           case 'wild': {
             const shiny = rollShiny(Math.random());
             g = see(g, s.species);
@@ -857,8 +861,9 @@ export function Story() {
           <BagPanel
             game={game}
             onClose={closeOverlay}
-            onUseKey={() => {
+            onUseKey={(flag) => {
               setOverlay(null);
+              if (flag === TABLET) return run(game, TAKE_TABLET);
               run(
                 game,
                 notice(map, flags, ghosts.length).map((text) => ({ do: 'say', text })),
