@@ -210,3 +210,63 @@ test('story mode: the Town Map opens from START and from the place name', async 
   await page.getByTestId('place').click();
   await expect(page.getByTestId('town-map')).toBeVisible();
 });
+
+test('story mode in 3D: walks into the house just like 2D', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    localStorage.setItem('ranemon.view', '3d');
+    if (localStorage.getItem('ranemon.story.v1:solid')) return;
+    // Standing at the front door of home, after Michael D.
+    localStorage.setItem(
+      'ranemon.story.v1:solid',
+      JSON.stringify({
+        version: 1,
+        map: 'clare',
+        x: 2,
+        y: 3,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 5,
+            exp: 125,
+            hp: 20,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter'],
+        seen: [],
+        caught: [],
+        pub: { map: 'clare', x: 2, y: 3 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Solid');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  await expect(world).toHaveAttribute('data-view', '3d');
+
+  // Software graphics on CI draw slowly, so hold the key until the door opens rather than tapping.
+  await page.keyboard.down('ArrowUp');
+  await expect(world).toHaveAttribute('aria-label', /^Home,/, { timeout: 30_000 });
+  await page.keyboard.up('ArrowUp');
+  await expect(world).toHaveAttribute('data-view', '3d');
+
+  // Back to 2D in the middle of the game: the same room, the same spot.
+  const x = await world.getAttribute('data-x');
+  const y = await world.getAttribute('data-y');
+  await page.getByTestId('view').click();
+  await expect(world).toHaveAttribute('data-view', '2d');
+  await expect(world).toHaveAttribute('aria-label', /^Home,/);
+  await expect(world).toHaveAttribute('data-x', x!);
+  await expect(world).toHaveAttribute('data-y', y!);
+});

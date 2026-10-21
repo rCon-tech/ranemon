@@ -33,6 +33,14 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Speed**: the ▶ button on the map and in battles cycles 1×, 2× and 4×. Walking, text, battle playback and animations all speed up (`src/lib/speed.ts`).
 - **How to play** (`/guide`, on the title screen): the game, the six types and the full type chart, battles, statuses and story mode, for new players.
 
+## 3D look
+
+The **2D / 3D** button beside the speed button (on the map and in battles) switches to a 2.5D look, kept per browser. 2D stays the default. Only the drawing changes: maps, walking, scripts, battles and saves are the same code, and you can switch mid-game.
+
+- **Overworld** (`src/components/story/Overworld3D.tsx`, `scene3d.ts`): the map's own 2D ground art on a plane under a tilted camera, with buildings lifted into walls and pitched roofs (slate on gyms), low-poly trees that sway, tall grass standing up in blades, walls, hedges, fences and furniture as blocks wearing their tile art, the Campanile in stone, sunlight with real shadows, and the clock's dawn, evening and night. People and your follower stand in the world as their 2D sprites. Walking lives in `walk.ts`, shared by both looks.
+- **Battles** (`src/components/Backdrop3D.tsx`): a 3D stage per scene (fields with hills and drifting clouds, a Georgian terrace, a sports hall with spotlights, Trinity at night under the stars) behind the same sprites, info boxes and move effects, with the platforms placed under the sprites.
+- **Phones**: it uses WebGL through Three.js, loaded only when 3D is picked. Where frames run slow it draws fewer pixels, then turns shadows off. Browsers without WebGL don't show the button.
+
 ## Password
 
 The game asks for the word once per browser (`src/components/Gate.tsx`). Only a SHA-256 hash of it is in the code, but the site is static, so this keeps out casual visitors rather than anyone determined.
