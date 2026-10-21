@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { MAPS } from '@/content/story/maps';
+import { MAPS, mapById } from '@/content/story/maps';
 import { trainerById } from '@/content/story/trainers';
 import { Rng } from '@/lib/battle/rng';
 import { ROSTER } from '@/lib/battle/roster';
@@ -46,4 +46,30 @@ it(`each gym is winnable but not a walkover over ${RUNS} runs`, () => {
     expect(rate, name).toBeGreaterThanOrEqual(0.45);
     expect(rate, name).toBeLessThanOrEqual(0.9);
   }
+});
+
+/**
+ * Poseidon, the Donegal boss: a party of 6 at Lv54 (where a player reaching Dublin and
+ * training a little would be), from the Dublin long grass, should beat him some of the time
+ * but not most: between 20% and 65%.
+ */
+it(`Poseidon is a hard fight over ${RUNS} runs`, () => {
+  const rng = new Rng(1798);
+  const god = trainerById('poseidon');
+  const wild = mapById('dublin').wild!.table.map(([id]) => id);
+  let won = 0;
+  for (let i = 0; i < RUNS; i++) {
+    const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+      makeMember(wild[rng.int(0, wild.length - 1)], 54, j),
+    );
+    const foes = god.team.map(([id, level], j) => makeMember(id, level, 100 + j));
+    const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 17, [
+      'hard',
+      god.ai,
+    ]);
+    if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+  }
+  console.log('Poseidon win rate', won / RUNS);
+  expect(won / RUNS).toBeGreaterThanOrEqual(0.2);
+  expect(won / RUNS).toBeLessThanOrEqual(0.65);
 });

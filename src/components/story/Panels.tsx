@@ -247,7 +247,9 @@ export function BagPanel({
   onClose: () => void;
 }) {
   const [pick, setPick] = useState<ItemId | null>(null);
-  const keys = KEY_ITEMS.filter((k) => hasFlag(game, k.flag));
+  const keys = KEY_ITEMS.filter(
+    (k) => hasFlag(game, k.flag) && !(k.goneIf && hasFlag(game, k.goneIf)),
+  );
   const items = ITEMS.filter((i) => (game.bag[i.id] ?? 0) > 0);
   if (pick) {
     const item = itemById(pick);

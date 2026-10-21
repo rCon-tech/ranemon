@@ -294,6 +294,30 @@ const T: Trainer[] = [
     before: 'B&S: Rematch. Level 60. No excuses this time.',
     after: 'B&S: Grand. Same again next week?',
   },
+  {
+    id: 'poseidon',
+    name: 'Poseidon',
+    team: [
+      ['jammon', 55],
+      ['simomon', 55],
+      ['olliemon', 56],
+      ['owemon', 56],
+      ['poseidon', 60],
+    ],
+    ai: 'hard',
+    prize: 7000,
+    before:
+      'POSEIDON: A mortal who can see me. Josh Lee has been handing out tablets again. Very well: face the Atlantic!',
+    after:
+      'POSEIDON: …The sea has not lost since Atlantis. Take this, and tell no one. They would not believe you.',
+    reward: [
+      { do: 'give', item: 'blue-ghost', count: 3 },
+      {
+        do: 'say',
+        text: 'Poseidon dives under a wave the size of a house and is gone. The sea goes quiet.',
+      },
+    ],
+  },
 
   // ---------- route trainers ----------
   trainer(

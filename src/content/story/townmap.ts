@@ -69,6 +69,8 @@ const WHERE: Record<string, [number, number]> = {
   meath: [-6.48, 53.69],
   kildare: [-6.83, 53.15],
   dublin: [-6.26, 53.35],
+  // By train from Dublin, once you've been.
+  donegal: [-8.28, 54.48],
 };
 
 /** The view: the whole island. */
@@ -111,7 +113,10 @@ export interface Stop {
 export function stopsOf(game: StoryState): Stop[] {
   const here = outsideOf(mapById(game.map)).id;
   const at = here === 'trinity' ? 'dublin' : here;
-  return MAPS.filter((m) => WHERE[m.id]).map((m) => {
+  return MAPS.filter(
+    (m) =>
+      WHERE[m.id] && (m.id !== 'donegal' || here === 'donegal' || hasFlag(game, 'visited:donegal')),
+  ).map((m) => {
     const [town, county = m.id === 'dublin' ? 'Co. Dublin' : ''] = m.name.split(', ');
     return {
       id: m.id,

@@ -13,7 +13,7 @@ export const PERSON_W = 64;
 export const PERSON_H = 96;
 
 type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'bob' | 'none';
-type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila';
+type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila' | 'crown';
 type Top =
   'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat' | 'agbada';
 
@@ -44,6 +44,8 @@ export interface Style {
   /** A walking stick or staff, in the near hand, and the colour of its top. */
   stick?: string;
   stickTop?: string;
+  /** The staff is a trident: three gold prongs instead of a knob. */
+  trident?: boolean;
   /** A ring through the nose. */
   nosering?: boolean;
   beard?: string;
@@ -285,6 +287,48 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#3a4a6a',
     shoes: '#4a3424',
     guitar: '#b8742c',
+  },
+  // An Iarnród Éireann conductor: navy uniform, green tie, a peaked cap with a gold badge.
+  conductor: {
+    skin: SKIN,
+    hair: '#4a3a2a',
+    hairStyle: 'short',
+    hat: { kind: 'garda', colour: '#1c3050', trim: '#e8c040' },
+    top: '#1c3050',
+    topKind: 'suit',
+    trim: '#e8ecf0',
+    tie: '#2e8a4a',
+    legs: '#1c3050',
+    shoes: '#141418',
+  },
+  // Josh Lee, who surfs Bundoran all year: bleached hair, shades, a wetsuit top and board shorts.
+  josh: {
+    skin: '#e8b890',
+    hair: '#f0d890',
+    hairStyle: 'spiky',
+    glasses: 'shades',
+    top: '#1c2a38',
+    topKind: 'shirt',
+    trim: '#30b0c0',
+    legs: '#e86a30',
+    shoes: '#2a2a2a',
+  },
+  // Poseidon, god of the sea: sea-green skin, a white beard, a gold crown and a trident.
+  poseidon: {
+    skin: '#9cd0c8',
+    hair: '#f4f6f8',
+    hairStyle: 'long',
+    beard: '#f4f6f8',
+    hat: { kind: 'crown', colour: '#f0c040', trim: '#2a8ad0' },
+    top: '#e8f2f6',
+    topKind: 'agbada',
+    trim: '#2a8ad0',
+    legs: '#e8f2f6',
+    shoes: '#c8a050',
+    stick: '#c89830',
+    stickTop: '#f0c040',
+    trident: true,
+    emblem: '#2a8ad0',
   },
 };
 
@@ -681,6 +725,16 @@ function handbag(c: Ctx, colour: string, x: number, y: number) {
 function staff(c: Ctx, s: Style, x: number, y: number) {
   px(c, x, y - 2, 3, 40, s.stick!);
   px(c, x, y - 2, 1, 40, shade(s.stick!, 1.8));
+  if (s.trident) {
+    const gold = s.stickTop ?? s.stick!;
+    px(c, x - 5, y - 4, 13, 3, gold);
+    for (const dx of [-5, 0, 5]) {
+      px(c, x + dx, y - 16, 3, 13, gold);
+      px(c, x + dx, y - 16, 1, 13, shade(gold, 1.5));
+      px(c, x + dx - 1, y - 14, 1, 2, gold);
+    }
+    return;
+  }
   if (s.stickTop) {
     round(c, x - 2, y - 10, 7, 9, 3, s.stickTop);
     px(c, x - 1, y - 9, 2, 3, shade(s.stickTop, 1.5));
@@ -990,6 +1044,23 @@ function hat(c: Ctx, s: Style, side: Side, y: number) {
       px(c, 16, 14 + y, 32, 2, dark);
       px(c, 24, 6 + y, 1, 8, dark);
       px(c, 38, 5 + y, 10, 2, light);
+      break;
+    case 'crown':
+      // A gold band with five points, a jewel in the middle one.
+      shaded(c, 17, 9 + y, 30, 7, 2, colour, 0.25, 0.3);
+      for (const [x, h] of [
+        [17, 6],
+        [24, 8],
+        [30, 11],
+        [37, 8],
+        [43, 6],
+      ] as const) {
+        for (let i = 0; i < h; i++)
+          px(c, x + i * 0.2, 9 + y - i, 4 - i * 0.35, 1, i < 2 ? dark : colour);
+        px(c, x + 1, 9 + y - h, 2, 1, light);
+      }
+      px(c, 17, 10 + y, 30, 1, light);
+      if (side !== 'up') round(c, 30, 11 + y, 4, 4, 1, trim ?? '#3a8ac8');
       break;
   }
 }

@@ -218,6 +218,10 @@ export default function Guide() {
             in years. Some say it was never real. Listen to them, and you might find out.
           </li>
           <li>
+            <b>Donegal</b>: the conductor in Dublin runs a train to Bundoran. Have a chat with Josh
+            Lee down by the waves. He knows something about the sea that nobody else does.
+          </li>
+          <li>
             <b>Your rival</b> is Margaret Thatcher, who picks the Ranemon that beats yours and turns
             up all along the road. Don’t let her win.
           </li>
