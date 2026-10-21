@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-21',
+    title: 'A new look for Olliemon',
+    notes: [
+      'Olliemon has a brand new photo, drawn in twice the detail of before.',
+      'In the 3D look he stands in battle as a solid, rounded figure instead of a flat picture.',
+    ],
+  },
+  {
+    date: '2026-10-21',
     title: 'Sound and music',
     notes: [
       'The game has music now: its own tunes for the road, the city, the pub, home, gyms, the bike and four kinds of battle, plus jingles for levels, items and new friends.',

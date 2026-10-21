@@ -251,7 +251,7 @@ export function BattleScreen({
                   key={`hit-${hits[1]}`}
                   className={hits[1] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
-                  <Sprite creature={foe.creature} />
+                  <Sprite creature={foe.creature} solid={look === '3d'} />
                 </div>
               </div>
               {foe.creature.shiny && <ShinySparkle />}
@@ -260,7 +260,7 @@ export function BattleScreen({
             foe.hp === 0 &&
             entries[1] > 0 && (
               <div key={`faint-${view[1].active}`} className="anim-faint h-full w-full">
-                <Sprite creature={foe.creature} />
+                <Sprite creature={foe.creature} solid={look === '3d'} />
               </div>
             )
           )}
@@ -277,7 +277,7 @@ export function BattleScreen({
                   key={`hit-${hits[0]}`}
                   className={hits[0] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
-                  <Sprite creature={me.creature} back />
+                  <Sprite creature={me.creature} back solid={look === '3d'} />
                 </div>
               </div>
               {me.creature.shiny && <ShinySparkle />}
@@ -286,7 +286,7 @@ export function BattleScreen({
             me.hp === 0 &&
             entries[0] > 0 && (
               <div key={`faint-${view[0].active}`} className="anim-faint h-full w-full">
-                <Sprite creature={me.creature} back />
+                <Sprite creature={me.creature} back solid={look === '3d'} />
               </div>
             )
           )}

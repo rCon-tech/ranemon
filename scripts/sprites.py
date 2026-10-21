@@ -5,6 +5,7 @@
 
 Writes, under public/sprites:
   bw/<id>.png        each Ranemon at 96 pixels, cut down to 32 colours like a handheld sprite
+                     (or, for those in HD, at 192 pixels and 64 colours from a bigger cut-out)
   bw/mini/<id>.png   a 40-pixel outlined version for the Ranemon that follows you in story mode
   evo/<id>.png       each evolved form: the same photo with a type-coloured aura and a costume
                      piece from the Pokémon it's named after (wings, spoons, a crest, ...)
@@ -37,6 +38,25 @@ TYPE_COLOUR = {
     "charm": (240, 122, 174),
     "hype": (242, 196, 24),
 }
+
+# Ranemon redrawn in more detail from a bigger, full-length cut-out: (size, colours) for the battle
+# sprite, the (left, top, size) square of the cut-out the follower's head-and-shoulders mini is
+# taken from, and a touch-up for details too small to survive the cut to a palette.
+HD = {
+    "olliemon": (192, 64, (104, 0, 176)),
+}
+
+
+def pin(im: Image.Image) -> Image.Image:
+    """Olliemon's tricolour pin, 6 x 4 pixels on his shirt pocket, which the palette loses."""
+    d = ImageDraw.Draw(im)
+    for i, colour in enumerate(((22, 155, 98), (246, 246, 240), (255, 136, 62))):
+        d.rectangle([119 + i * 2, 126, 120 + i * 2, 129], fill=colour)
+    d.point([(119, 130), (122, 130), (124, 125)], fill=(200, 160, 72))
+    return im
+
+
+TOUCH_UP = {"olliemon": pin}
 
 # id: (base form, first type)
 EVOLUTIONS = {
@@ -322,7 +342,8 @@ def legend(im: Image.Image, colours) -> Image.Image:
 def shinies() -> None:
     for d in ("bw", "evo"):
         for path in sorted((SRC / d).glob("*.png")):
-            if path.stem == "bns":
+            # B&S and Poseidon are never wild, so never shiny.
+            if path.stem == "bns" or not (SRC / d / "mini" / path.name).exists():
                 continue
             (SRC / "shiny" / d / "mini").mkdir(parents=True, exist_ok=True)
             gild(Image.open(path), True).save(SRC / "shiny" / d / path.name)
@@ -342,11 +363,17 @@ def main() -> None:
         (SRC / d).mkdir(parents=True, exist_ok=True)
     for path in sorted(SRC.glob("*.png")):
         im = Image.open(path)
-        big = pixelate(im, SIZE)
+        mini = im
+        if path.stem in HD:
+            size, colours, (x, y, w) = HD[path.stem]
+            big = outline(TOUCH_UP.get(path.stem, lambda b: b)(pixelate(im, size, colours)))
+            mini = im.crop((x, y, x + w, y + w))
+        else:
+            big = pixelate(im, SIZE)
         if path.stem in LEGENDARY:
             big = legend(big, LEGENDARY[path.stem])
         big.save(SRC / "bw" / path.name)
-        outline(pixelate(im, 40, 28)).save(SRC / "bw/mini" / path.name)
+        outline(pixelate(mini, 40, 28)).save(SRC / "bw/mini" / path.name)
     for evo, (base, kind) in EVOLUTIONS.items():
         im = evolve(evo, base, kind)
         im.save(SRC / "evo" / f"{evo}.png")

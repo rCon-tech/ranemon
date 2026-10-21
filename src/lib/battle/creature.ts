@@ -23,6 +23,8 @@ export interface Creature {
   sprite?: string;
   /** Accent colour: the blob's body, and the backdrop behind a sprite in the Ranedex. */
   colour: string;
+  /** Stands in the 3D look's battles as a solid figure blown up from its sprite (`Solid`). */
+  solid?: boolean;
   /** A rare golden palette, from story mode's wild Ranemon. */
   shiny?: boolean;
 }

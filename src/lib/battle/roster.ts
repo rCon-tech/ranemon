@@ -54,6 +54,7 @@ export const ROSTER: Creature[] = [
     entry: 'Tags in for Oismon with an energy drink. Never seen without him.',
     colour: '#e58fd8',
     sprite: '/sprites/bw/olliemon.png',
+    solid: true,
   },
   {
     id: 'hugomon',

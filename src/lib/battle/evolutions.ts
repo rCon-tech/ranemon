@@ -138,6 +138,8 @@ export const EVOLVED: Creature[] = EVOLUTIONS.map((e) => {
     base: evolvedStats(from.base),
     entry: e.entry,
     sprite: `/sprites/evo/${e.id}.png`,
+    // An evolved form's glow and costume pieces are see-through, so it stays flat.
+    solid: false,
   };
 });
 
