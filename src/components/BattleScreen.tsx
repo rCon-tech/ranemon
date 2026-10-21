@@ -12,7 +12,7 @@ import {
   type Entrant,
 } from '@/lib/battle/engine';
 import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
-import { TYPE_COLOR, TYPE_LABEL } from '@/lib/battle/types';
+import { matchup, TYPE_COLOR, TYPE_LABEL, type RaneType } from '@/lib/battle/types';
 import { canUse, type ItemUse } from '@/lib/story/items';
 import type { Foe } from '@/lib/ui/playback';
 import { scaled } from '@/lib/speed';
@@ -20,6 +20,7 @@ import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session'
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
 import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
+import { Backdrop } from './Backdrop';
 import { SpeedButton, useAnimationSpeed } from './SpeedButton';
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
@@ -64,7 +65,16 @@ const CATEGORY_LABEL: Record<Move['category'], string> = {
 };
 
 /** What a move does, shown in the text box when it's picked and before it's used. */
-function MoveInfo({ move, pp }: { move: Move; pp: number | null }) {
+function MoveInfo({
+  move,
+  pp,
+  foe,
+}: {
+  move: Move;
+  pp: number | null;
+  foe: { name: string; types: readonly RaneType[] };
+}) {
+  const m = move.category === 'status' ? null : matchup(move.type, foe.types);
   return (
     <span className="flex flex-col gap-1.5 text-[11px] leading-relaxed" data-testid="move-info">
       <span className="text-[14px]">
@@ -79,6 +89,12 @@ function MoveInfo({ move, pp }: { move: Move; pp: number | null }) {
         POW {move.power || '—'} · ACC {move.accuracy === null ? '—' : `${move.accuracy}%`}
         {pp !== null && ` · PP ${pp}/${move.pp}`}
       </span>
+      {m && (
+        <span data-testid="move-matchup" data-tone={m.tone}>
+          <span className={`matchup matchup-${m.tone}`}>{m.short}</span> {m.label} against{' '}
+          {foe.name}.
+        </span>
+      )}
       <span className="opacity-80">{move.flavour}</span>
     </span>
   );
@@ -175,8 +191,7 @@ export function BattleScreen({
     <div className="flex flex-1 flex-col">
       <div className="field" data-scene={scene} data-testid="battlefield">
         <SpeedButton className="absolute right-1 top-1 z-20" />
-        <div className="platform platform-foe" />
-        <div className="platform platform-you" />
+        <Backdrop scene={scene} />
         <div className="sprite-slot slot-foe">
           {effect?.side === 1 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[1].shown ? (
@@ -268,6 +283,7 @@ export function BattleScreen({
             <MoveInfo
               move={flail ? FLAIL : moveById(me.creature.moves[selected])}
               pp={flail ? null : me.pp[selected]}
+              foe={foe.creature}
             />
           ) : (
             <TypedText key={line} text={message} />
@@ -412,6 +428,8 @@ export function BattleScreen({
               {me.creature.moves.map((id, index) => {
                 const move = moveById(id);
                 const allowed = legal.some((a) => a.kind === 'move' && a.index === index);
+                const m =
+                  move.category === 'status' ? null : matchup(move.type, foe.creature.types);
                 return (
                   <button
                     key={id}
@@ -428,9 +446,16 @@ export function BattleScreen({
                     }
                     title={move.flavour}
                   >
-                    <span className="text-[13px] leading-snug">
-                      {move.signature && <span className="text-gold">★ </span>}
-                      {move.name}
+                    <span className="flex items-start justify-between gap-1 text-[13px] leading-snug">
+                      <span>
+                        {move.signature && <span className="text-gold">★ </span>}
+                        {move.name}
+                      </span>
+                      {m && (
+                        <span className={`matchup matchup-${m.tone}`} title={m.label}>
+                          {m.short}
+                        </span>
+                      )}
                     </span>
                     <span className="flex justify-between text-[10px] opacity-90">
                       <span>{move.type ? TYPE_LABEL[move.type] : '—'}</span>

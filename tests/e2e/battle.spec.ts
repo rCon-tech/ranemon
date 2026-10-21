@@ -11,6 +11,8 @@ async function playToTheEnd(page: Page) {
     if (await proceed.isVisible()) return;
     if (await fight.isVisible()) {
       await fight.click();
+      // Every damaging move says how it does against the foe.
+      await expect(moves.locator('.matchup').first()).toHaveText(/SUPER|NORMAL|WEAK/);
       // The first tap shows what the move does; USE confirms it.
       await moves.getByRole('button', { disabled: false }).first().click();
       await expect(page.getByTestId('move-info')).toBeVisible();

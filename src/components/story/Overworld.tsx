@@ -94,6 +94,50 @@ function head(species: string, shiny: boolean): HTMLImageElement {
 }
 
 /** The sign colour over each kind of door. */
+/** How far a tree's crown leans in the wind just now: a slow sway with the odd gust. */
+function sway(now: number, x: number, y: number): number {
+  const t = now / 1000;
+  const gust = Math.max(0, Math.sin(t / 3.1 + x * 0.05)) ** 4;
+  return (Math.sin(t * 1.3 + x * 0.9 + y * 0.6) * 0.018 + gust * 0.03) * (1 + ((x + y) % 3) * 0.2);
+}
+
+export interface Daylight {
+  /** A colour laid over everything, or null at midday. */
+  tint: string | null;
+  /** 0 by day up to 1 at midnight: how much light the doors give. */
+  night: number;
+  /** How strong the shafts of sunlight are. */
+  rays: number;
+}
+
+/** The light at a time of day: Irish hours, so a long evening in summer and a short day. */
+export function daylight(d: Date): Daylight {
+  const h = d.getHours() + d.getMinutes() / 60;
+  if (h >= 7 && h < 9) {
+    const k = 1 - (h - 7) / 2;
+    return { tint: `rgb(255 170 150 / ${0.16 * k})`, night: 0, rays: 0.6 + 0.4 * (1 - k) };
+  }
+  if (h >= 9 && h < 17) return { tint: null, night: 0, rays: 1 };
+  if (h >= 17 && h < 20) {
+    const k = (h - 17) / 3;
+    return { tint: `rgb(255 140 50 / ${0.12 + 0.16 * k})`, night: k * 0.4, rays: 1 - k * 0.5 };
+  }
+  // Night: deepest at midnight, lifting toward dawn.
+  const fromMidnight = h >= 20 ? 24 - h : h;
+  const k = Math.min(1, 0.6 + (1 - fromMidnight / 7) * 0.4);
+  return { tint: `rgb(20 30 80 / ${0.38 * k})`, night: k, rays: 0 };
+}
+
+const doorCache = new Map<string, { x: number; y: number }[]>();
+function doors(map: GameMap) {
+  if (!doorCache.has(map.id))
+    doorCache.set(
+      map.id,
+      ['P', 'M', 'G', 'H', 'L'].flatMap((d) => find(map, d)),
+    );
+  return doorCache.get(map.id)!;
+}
+
 const SIGN_COLOUR: Record<string, string> = { P: '#2f8a4a', M: '#3a70c8', G: '#d03838' };
 
 const gymRoofCache = new Map<string, Set<string>>();
@@ -212,6 +256,7 @@ export function Overworld(props: Props) {
       const p = live.current;
       const w = walk.current;
       const map = p.map;
+      const light = daylight(new Date());
       c.setTransform(RES, 0, 0, RES, 0, 0);
       c.imageSmoothingEnabled = false;
       const t = w.from ? Math.min(1, (now - w.t0) / w.dur) : 1;
@@ -263,16 +308,19 @@ export function Overworld(props: Props) {
           c.drawImage(image, sx(tx * TILE), sy(ty * TILE), TILE, TILE);
           if (TALL.has(tile)) {
             const { image: top, rise, spread } = tallImage(tile, variant);
+            // Trees lean a little in the wind, each in its own time; the Campanile doesn't.
+            const lean = tile === 'T' ? sway(now, tx, ty) : 0;
             drawn.push({
               y: ty * TILE,
-              paint: () =>
-                c.drawImage(
-                  top,
-                  sx(tx * TILE - spread),
-                  sy(ty * TILE - rise),
-                  TILE + spread * 2,
-                  TILE + rise,
-                ),
+              paint: () => {
+                const bx = sx(tx * TILE + 8);
+                const by = sy(ty * TILE + TILE);
+                c.save();
+                c.translate(bx, by);
+                c.transform(1, 0, lean, 1, 0, 0);
+                c.drawImage(top, -8 - spread, -TILE - rise, TILE + spread * 2, TILE + rise);
+                c.restore();
+              },
             });
           }
         }
@@ -283,6 +331,26 @@ export function Overworld(props: Props) {
         const rows = map.rows.length;
         const cols = map.rows[0].length;
         c.drawImage(groundOverlay(map.id, cols, rows, at), sx(0), sy(0), mapW, mapH);
+      }
+
+      // Sun glints dancing on the water.
+      if (!map.inside) {
+        for (let ty = y0; ty <= y0 + SCREEN_H / TILE + 1; ty++) {
+          for (let tx = x0 - 1; tx <= x0 + SCREEN_W / TILE + 1; tx++) {
+            if (at(tx, ty) !== '~') continue;
+            for (let k = 0; k < 2; k++) {
+              const beat = Math.floor(now / 260) + tx * 7 + ty * 13 + k * 5;
+              if (beat % 9) continue;
+              const gx = sx(tx * TILE + 3 + ((tx * 5 + k * 7 + ty) % 10));
+              const gy = sy(ty * TILE + 3 + ((ty * 3 + k * 9 + tx) % 10));
+              c.fillStyle = 'rgb(255 255 255 / 0.9)';
+              c.fillRect(gx, gy, 1, 0.5);
+              c.fillStyle = 'rgb(255 255 255 / 0.5)';
+              c.fillRect(gx - 1, gy, 3, 0.5);
+              c.fillRect(gx + 0.25, gy - 0.5, 0.5, 1.5);
+            }
+          }
+        }
       }
 
       // Shop signs over the doors, in the door's own colour.
@@ -475,6 +543,61 @@ export function Overworld(props: Props) {
       }
       c.fillStyle = map.inside ? 'rgb(255 200 120 / 0.06)' : sun;
       c.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+      if (!map.inside) {
+        // Shafts of sunlight slanting down from the top left, slowly breathing.
+        if (light.rays > 0) {
+          c.save();
+          c.globalCompositeOperation = 'lighter';
+          for (let i = 0; i < 3; i++) {
+            const a = light.rays * (0.05 + 0.025 * Math.sin(now / 2300 + i * 2));
+            c.fillStyle = `rgb(255 240 200 / ${a})`;
+            const x = 10 + i * 46 - (camX % 40) * 0.3;
+            c.beginPath();
+            c.moveTo(x, 0);
+            c.lineTo(x + 14 + i * 4, 0);
+            c.lineTo(x + 70 + i * 4, SCREEN_H);
+            c.lineTo(x + 46, SCREEN_H);
+            c.fill();
+          }
+          c.restore();
+        }
+        // Leaves and seeds blowing through on the wind.
+        for (let i = 0; i < 10; i++) {
+          const life = 9000 + i * 700;
+          const tt = ((now + i * 1777) % life) / life;
+          const lx = ((i * 53 + tt * 260) % 220) - 30;
+          const ly = ((i * 37) % 120) + tt * 50 + Math.sin(tt * 12 + i) * 6;
+          c.fillStyle = i % 3 ? 'rgb(232 150 60 / 0.85)' : 'rgb(250 250 230 / 0.8)';
+          c.fillRect(lx, ly, i % 3 ? 1.5 : 1, i % 3 ? 1 : 1);
+          if (i % 3) {
+            c.fillStyle = 'rgb(170 80 30 / 0.8)';
+            c.fillRect(lx + 0.5, ly + 0.5, 1, 0.5);
+          }
+        }
+      }
+
+      // The time of day, from the clock: a pink dawn, a golden evening, a blue night with
+      // light spilling from every door.
+      if (light.tint) {
+        c.fillStyle = light.tint;
+        c.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      }
+      if (light.night > 0) {
+        c.save();
+        c.globalCompositeOperation = 'lighter';
+        for (const d of map.inside ? [] : doors(map)) {
+          const gx = sx(d.x * TILE + 8);
+          const gy = sy(d.y * TILE + 14);
+          if (gx < -40 || gy < -40 || gx > SCREEN_W + 40 || gy > SCREEN_H + 40) continue;
+          const g = c.createRadialGradient(gx, gy, 1, gx, gy, 26);
+          g.addColorStop(0, `rgb(255 190 90 / ${0.42 * light.night})`);
+          g.addColorStop(1, 'rgb(255 190 90 / 0)');
+          c.fillStyle = g;
+          c.fillRect(gx - 26, gy - 26, 52, 52);
+        }
+        c.restore();
+      }
       c.fillStyle = vignette;
       c.fillRect(0, 0, SCREEN_W, SCREEN_H);
     };
