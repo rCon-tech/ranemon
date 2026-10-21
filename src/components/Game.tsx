@@ -7,6 +7,7 @@ import { TEAM_SIZE } from '@/lib/battle/engine';
 import { drawTeam, ROSTER } from '@/lib/battle/roster';
 import { addResult, getRecord, getServerRecord, subscribeRecord } from '@/lib/record';
 import { BattleScreen } from './BattleScreen';
+import { useMusic } from './Sound';
 import { TeamSelect } from './TeamSelect';
 import { TitleScreen } from './TitleScreen';
 
@@ -26,6 +27,8 @@ function rivalTeam(mine: Creature[]): Creature[] {
 export function Game() {
   const [screen, setScreen] = useState<Screen>({ kind: 'title' });
   const record = useSyncExternalStore(subscribeRecord, getRecord, getServerRecord);
+  // The battle screen plays its own music.
+  useMusic(screen.kind === 'battle' ? undefined : 'title');
 
   function start() {
     setScreen({ kind: 'select' });

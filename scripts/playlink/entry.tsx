@@ -4,6 +4,8 @@ import Ranedex from '@/app/ranedex/page';
 import Guide from '@/app/guide/page';
 import { Game } from '@/components/Game';
 import { Gate } from '@/components/Gate';
+import { SoundHooks } from '@/components/Sound';
+import { SoundTest } from '@/components/SoundTest';
 import { Story } from '@/components/story/Story';
 import { setCloudSaves } from '@/lib/story/cloud';
 
@@ -46,6 +48,7 @@ function App() {
   const hash = useSyncExternalStore(onHash, () => location.hash);
   return (
     <main className="screen mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">
+      <SoundHooks />
       <Gate>
         {hash === '#story' ? (
           <Story key="story" />
@@ -53,6 +56,8 @@ function App() {
           <Ranedex />
         ) : hash === '#guide' ? (
           <Guide />
+        ) : hash === '#sound' ? (
+          <SoundTest />
         ) : (
           <Game />
         )}

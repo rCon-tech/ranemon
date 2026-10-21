@@ -113,3 +113,44 @@ test('updates: the title shows NEW until you’ve read the Updates screen', asyn
   await page.getByRole('link', { name: 'BACK' }).click();
   await expect(page.getByTestId('updates-link')).not.toContainText('NEW');
 });
+
+test('sound: the sound test plays music once tapped, and ♪ turns it off', async ({ page }) => {
+  await unlock(page);
+  // Count the chip's notes as they start.
+  await page.addInitScript(() => {
+    const w = window as unknown as { notes: number };
+    w.notes = 0;
+    const start = OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start = function (...args) {
+      w.notes++;
+      return start.apply(this, args);
+    };
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await page.getByRole('link', { name: 'SOUND TEST' }).click();
+  await expect(page.getByRole('heading', { name: 'SOUND TEST' })).toBeVisible();
+  const notes = () => page.evaluate(() => (window as unknown as { notes: number }).notes);
+  await page.getByRole('button', { name: /Wild Ranemon/ }).click();
+  await expect(page.getByRole('button', { name: /Wild Ranemon/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect.poll(notes).toBeGreaterThan(20);
+
+  const sound = page.getByTestId('sound');
+  await expect(sound).toHaveText('♪');
+  await sound.click();
+  await expect(sound).toHaveText('♪ FX');
+  await sound.click();
+  await expect(sound).toHaveText('♪ OFF');
+  expect(await page.evaluate(() => localStorage.getItem('ranemon.sound'))).toBe('off');
+  // Off means silence: nothing new starts.
+  await page.waitForTimeout(300);
+  const before = await notes();
+  await page.getByRole('button', { name: 'HIT-SUPER' }).click();
+  await page.waitForTimeout(500);
+  expect(await notes()).toBe(before);
+  expect(errors).toEqual([]);
+});

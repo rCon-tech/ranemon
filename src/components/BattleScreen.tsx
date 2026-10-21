@@ -18,6 +18,10 @@ import { canUse, type ItemUse } from '@/lib/story/items';
 import type { Foe } from '@/lib/ui/playback';
 import { scaled } from '@/lib/speed';
 import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
+import { battleCues } from '@/lib/sound/cues';
+import { playJingle, playSfx } from '@/lib/sound/engine';
+import type { SongId } from '@/lib/sound/songs';
+import { play, SoundButton, useMusic } from './Sound';
 import { InfoBox } from './InfoBox';
 import { MoveEffect } from './MoveEffect';
 import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
@@ -60,6 +64,8 @@ interface Props {
   story?: StoryBattle;
   /** Where the fight is, for the battlefield's backdrop. */
   scene?: Scene;
+  /** The battle theme; battle mode's rival gets the trainers' one. */
+  music?: SongId;
   onFinish: (result: Result, state: BattleState, fought: number[]) => void;
 }
 
@@ -118,6 +124,7 @@ export function BattleScreen({
   foe: against,
   story,
   scene = 'field',
+  music = 'trainer',
   onFinish,
 }: Props) {
   const [session, dispatch] = useReducer(reduce, null, () =>
@@ -146,6 +153,20 @@ export function BattleScreen({
     const id = setTimeout(() => dispatch({ type: 'tick', random: roll() }), 1000);
     return () => clearTimeout(id);
   }, [choosing, timeLeft]);
+
+  // Sound: each step of playback's effects, the last seconds of the timer, and the ending.
+  useEffect(() => {
+    if (session.last) play(battleCues(session.last, session.state, session.view));
+    // Only once per step played.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.played]);
+  useEffect(() => {
+    if (choosing && session.timer && timeLeft <= 5) playSfx('tick');
+  }, [choosing, session.timer, timeLeft]);
+  useEffect(() => {
+    if (result === 'loss') playJingle('lose');
+  }, [result]);
+  useMusic(result === 'win' || result === 'caught' ? 'victory' : result ? null : music);
 
   const act = (action: Action) => dispatch({ type: 'act', action, random: roll() });
   const advance = () => dispatch({ type: 'step', random: roll() });
@@ -213,6 +234,7 @@ export function BattleScreen({
     <div className="flex flex-1 flex-col">
       <div className="field" data-scene={scene} data-testid="battlefield">
         <div className="absolute right-1 top-1 z-20 flex gap-1">
+          <SoundButton />
           <ViewButton />
           <SpeedButton />
         </div>
@@ -298,6 +320,7 @@ export function BattleScreen({
           className="dialog min-h-[76px] w-full px-4 py-3 text-left text-[15px] leading-[1.9]"
           onClick={mode === 'playing' ? advance : undefined}
           aria-live="polite"
+          data-sound="none"
           data-testid="text-box"
         >
           {bagNote && mode === 'bag' ? (
