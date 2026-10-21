@@ -8,10 +8,10 @@ import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
 import { Figure } from './figure3d';
-import { monStyle, paintDog, STYLES } from './people';
+import { monStyle, paintDog, paintRider, STYLES } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
+import { isRiding, placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -24,12 +24,21 @@ const PITCH = (50 * Math.PI) / 180;
 const DISTANCE = 15.5;
 const LEAN = -0.35;
 
-const dogTextures = new Map<string, THREE.Texture>();
-function dogTexture(dir: Dir, frame: number) {
-  const key = `${dir}:${frame}`;
-  let t = dogTextures.get(key);
-  if (!t) dogTextures.set(key, (t = pixelTexture(paintDog(dir, frame))));
+/** Pictures that stay 2D in the 3D look (Norm, you on a bike), by what they show. */
+const pictures = new Map<string, THREE.Texture>();
+function picture(key: string, make: () => HTMLCanvasElement) {
+  let t = pictures.get(key);
+  if (!t) pictures.set(key, (t = pixelTexture(make())));
   return t;
+}
+
+/** Puts a texture on a mesh's own material. */
+function show(mesh: THREE.Mesh, map: THREE.Texture) {
+  const mat = mesh.material as THREE.MeshLambertMaterial;
+  if (mat.map !== map) {
+    mat.map = map;
+    mat.needsUpdate = true;
+  }
 }
 
 const headTextures = new Map<HTMLImageElement, THREE.Texture>();
@@ -181,15 +190,22 @@ export default function Overworld3D(props: Props) {
     followerHead.rotation.x = LEAN;
     followerHead.castShadow = true;
     scene.add(followerHead);
-    const dogGeo = new THREE.PlaneGeometry(1, 1.5);
-    dogGeo.translate(0, 0.75, 0);
-    const dog = new THREE.Mesh(
-      dogGeo,
-      new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
-    );
-    dog.rotation.x = LEAN;
-    dog.castShadow = true;
-    scene.add(dog);
+    // Pictures standing up in the world, leaning back a little toward the camera.
+    const boardGeo = new THREE.PlaneGeometry(1, 1.5);
+    boardGeo.translate(0, 0.75, 0);
+    const board = () => {
+      const mesh = new THREE.Mesh(
+        boardGeo,
+        new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
+      );
+      mesh.rotation.x = LEAN;
+      mesh.castShadow = true;
+      mesh.visible = false;
+      scene.add(mesh);
+      return mesh;
+    };
+    const dog = board();
+    const rider = board();
 
     const exclaim = new THREE.Mesh(
       new THREE.PlaneGeometry(0.62, 0.74),
@@ -400,12 +416,10 @@ export default function Overworld3D(props: Props) {
         if (p.dog || !p.follower) {
           // Norm stays his 2D picture, on the same canvas as a person, so the same size as you.
           const frame = moving ? stepPose(t, w.frame) : 0;
-          const mat = dog.material as THREE.MeshLambertMaterial;
-          const tex = dogTexture(fdir, frame);
-          if (mat.map !== tex) {
-            mat.map = tex;
-            mat.needsUpdate = true;
-          }
+          show(
+            dog,
+            picture(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
+          );
           dog.position.set(fx, lift / 2, fz);
           dog.visible = true;
         } else {
@@ -421,19 +435,27 @@ export default function Overworld3D(props: Props) {
               swingOf(moving),
               lift,
             );
-            const mat = followerHead.material as THREE.MeshLambertMaterial;
-            const tex = headTexture(img);
-            if (mat.map !== tex) {
-              mat.map = tex;
-              mat.needsUpdate = true;
-            }
+            show(followerHead, headTexture(img));
             followerHead.position.set(fx, 0.62 + lift, fz + 0.05);
             followerHead.visible = true;
           }
         }
       }
 
-      person(
+      // On a bike you're your 2D picture riding it, as the bike has no 3D shape yet.
+      const bike = isRiding(w, p) ? p.bike : null;
+      rider.visible = !!bike;
+      if (bike) {
+        const turn = w.from ? stepPose(t, w.frame) % 4 : 0;
+        show(
+          rider,
+          picture(`ride:${bike}:${w.face}:${turn}`, () =>
+            paintRider(STYLES.player, w.face, turn, bike),
+          ),
+        );
+        rider.position.set(px, 0, pz);
+      }
+      const you = person(
         'player',
         () => new Figure('player', STYLES.player),
         w.face,
@@ -442,6 +464,7 @@ export default function Overworld3D(props: Props) {
         swingOf(!!w.from),
         w.from ? 0 : idle(0),
       );
+      you.group.visible = !bike;
       for (const [k, fig] of figures) if (!seen.has(k)) fig.group.visible = false;
       for (let i = used; i < blobs.length; i++) blobs[i].visible = false;
 
@@ -471,9 +494,9 @@ export default function Overworld3D(props: Props) {
       cancelAnimationFrame(raf);
       watch.disconnect();
       level?.dispose();
-      [headGeo, dogGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
+      [headGeo, boardGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
       (followerHead.material as THREE.Material).dispose();
-      (dog.material as THREE.Material).dispose();
+      [dog, rider].forEach((m) => (m.material as THREE.Material).dispose());
       renderer.dispose();
       renderer.domElement.remove();
     };

@@ -101,3 +101,15 @@ test('how to play: the guide explains the game and shows the type chart', async 
   await expect(chart.locator('td', { hasText: '2×' })).toHaveCount(12);
   await expect(chart.locator('td', { hasText: '½' })).toHaveCount(12);
 });
+
+test('updates: the title shows NEW until you’ve read the Updates screen', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('ranemon.unlocked', '1'));
+  await page.goto('/');
+  const link = page.getByTestId('updates-link');
+  await expect(link).toContainText('NEW');
+  await link.click();
+  await expect(page.getByRole('heading', { name: 'UPDATES' })).toBeVisible();
+  expect(await page.getByTestId('update-day').count()).toBeGreaterThan(0);
+  await page.getByRole('link', { name: 'BACK' }).click();
+  await expect(page.getByTestId('updates-link')).not.toContainText('NEW');
+});

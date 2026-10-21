@@ -5,7 +5,15 @@ import { asset } from '@/lib/asset';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
-import { monStyle, paintDog, paintPerson, STYLES, type Style } from './people';
+import {
+  monStyle,
+  paintDog,
+  paintPerson,
+  paintRider,
+  STYLES,
+  type BikeKind,
+  type Style,
+} from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
 import {
   frameOf,
@@ -21,6 +29,7 @@ import {
 import {
   placeWalk,
   startWalk,
+  isRiding,
   stepPose,
   stepT,
   tickWalk,
@@ -50,7 +59,8 @@ export interface Props {
   dog?: boolean;
   /** True while a text box, menu or battle intro is up: no walking. */
   frozen: boolean;
-  bike: boolean;
+  /** Which bike you have, if any: hold B to ride it. */
+  bike: BikeKind | null;
   /** A trainer who has just spotted you, for the ! bubble. */
   exclaim: number | null;
   /** People turned to face you while you talk to them. */
@@ -462,15 +472,38 @@ export function Overworld(props: Props) {
 
       // Each step passes, plants a foot, passes back and stands, alternating feet.
       const stepFrame = w.from ? stepPose(t, w.frame) : 0;
-      person(
-        'player',
-        STYLES.player,
-        w.face,
-        stepFrame,
-        px,
-        py,
-        w.from ? (stepFrame % 2 ? 0.5 : 0) : idle(0),
-      );
+      const bike = isRiding(w, live.current) ? p.bike : null;
+      if (bike) {
+        const turn = w.from ? stepFrame % 4 : 0;
+        drawn.push({
+          y: py,
+          paint: () => {
+            c.fillStyle = 'rgb(0 0 0 / 0.25)';
+            c.beginPath();
+            c.ellipse(sx(px + 8), sy(py + 13.5), 7, 2, 0, 0, Math.PI * 2);
+            c.fill();
+            c.drawImage(
+              sprite(`ride:${bike}:${w.face}:${turn}`, () =>
+                paintRider(STYLES.player, w.face, turn, bike),
+              ),
+              sx(px),
+              sy(py - 9.5),
+              16,
+              24,
+            );
+          },
+        });
+      } else {
+        person(
+          'player',
+          STYLES.player,
+          w.face,
+          stepFrame,
+          px,
+          py,
+          w.from ? (stepFrame % 2 ? 0.5 : 0) : idle(0),
+        );
+      }
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
 

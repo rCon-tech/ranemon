@@ -326,6 +326,18 @@ export const STYLES: Record<Look | 'player', Style> = {
     earrings: '#e8c040',
     handbag: '#2a2a30',
   },
+  // The Lime rep: a lime-green hi-vis with a white stripe, a black cap and black trousers.
+  lime: {
+    skin: '#e8b890',
+    hair: '#2a1e16',
+    hairStyle: 'short',
+    hat: { kind: 'cap', colour: '#1c1c1c', trim: '#7ad321' },
+    top: '#7ad321',
+    topKind: 'hivis',
+    trim: '#f4f8f0',
+    legs: '#1c1c22',
+    shoes: '#f4f4f4',
+  },
   // Poseidon, god of the sea: sea-green skin, a white beard, a gold crown and a trident.
   poseidon: {
     skin: '#9cd0c8',
@@ -1223,4 +1235,133 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
   f.scale(-1, 1);
   f.drawImage(canvas, -PERSON_W, 0);
   return flipped;
+}
+
+// ---------- bikes ----------
+
+export type BikeKind = 'lime' | 'nelly';
+
+const BIKES: Record<BikeKind, { frame: string; trim: string; basket: boolean }> = {
+  // A Lime e-bike, as on every street in London: lime green, a step-through frame, chunky
+  // tyres, a black basket up front and the battery under the seat.
+  lime: { frame: '#7ad321', trim: '#f4f8f0', basket: true },
+  // The High Nelly: a big black Irish roadster.
+  nelly: { frame: '#202024', trim: '#c8ccd4', basket: false },
+};
+const TYRE = '#1c1c22';
+const RIM = '#9aa0a8';
+
+function wheel(c: Ctx, x: number, y: number, r: number, turn: number) {
+  c.fillStyle = TYRE;
+  c.beginPath();
+  c.arc(x, y, r, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = RIM;
+  c.beginPath();
+  c.arc(x, y, r - 3, 0, Math.PI * 2);
+  c.fill();
+  c.save();
+  c.globalCompositeOperation = 'destination-out';
+  c.beginPath();
+  c.arc(x, y, r - 4, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+  // Spokes, turned a little each frame as you pedal.
+  for (let i = 0; i < 3; i++) {
+    const a = turn * 0.5 + (i * Math.PI) / 3;
+    const dx = Math.cos(a) * (r - 4);
+    const dy = Math.sin(a) * (r - 4);
+    c.strokeStyle = RIM;
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(Math.round(x - dx), Math.round(y - dy));
+    c.lineTo(Math.round(x + dx), Math.round(y + dy));
+    c.stroke();
+  }
+  px(c, x - 2, y - 2, 4, 4, '#5a5e66');
+}
+
+/** A bike on its own, on the same canvas and ground as a person, facing `dir`. */
+function bikeLayer(c: Ctx, kind: BikeKind, dir: Dir, frame: number) {
+  const b = BIKES[kind];
+  const dark = shade(b.frame, 0.7);
+  const side: Side = dir === 'right' ? 'left' : dir;
+  if (side === 'left') {
+    // Front wheel on the left.
+    wheel(c, 13, 82, 11, frame);
+    wheel(c, 51, 82, 11, frame);
+    // Mudguards.
+    px(c, 4, 69, 18, 3, b.frame);
+    px(c, 42, 69, 18, 3, b.frame);
+    // The step-through frame: down from the head tube, along low, up to the seat.
+    for (let i = 0; i <= 12; i++) px(c, 18 + i, 58 + i * 1.6, 5, 5, i % 4 ? b.frame : dark);
+    px(c, 26, 76, 16, 5, b.frame);
+    for (let i = 0; i <= 10; i++) px(c, 40 - i * 0.4, 76 - i * 1.6, 5, 4, b.frame);
+    // Battery under the seat, and the seat.
+    px(c, 33, 66, 6, 10, '#3a3e46');
+    px(c, 33, 57, 12, 3, '#141418');
+    // Fork, stem and bars.
+    px(c, 15, 60, 4, 22, dark);
+    px(c, 17, 48, 4, 12, '#2a2a30');
+    px(c, 12, 47, 12, 3, '#141418');
+    // Chain ring.
+    px(c, 30, 77, 7, 7, '#5a5e66');
+    if (b.basket) {
+      px(c, 2, 52, 16, 10, '#141418');
+      px(c, 3, 53, 14, 1, '#3a3e46');
+      px(c, 4, 57, 2, 2, b.frame);
+    }
+    // The name along the frame, in white.
+    if (kind === 'lime') for (const x of [27, 30, 33, 36]) px(c, x, 78, 2, 2, b.trim);
+    // Headlight.
+    px(c, 1, 60, 3, 3, '#fff8c0');
+  } else if (side === 'down') {
+    // Coming towards you: the front wheel, fork, mudguard, basket and bars.
+    px(c, 28, 71, 8, 22, TYRE);
+    px(c, 30, 73, 4, 18, '#3a3e46');
+    px(c, 27, 68, 10, 4, b.frame);
+    px(c, 25, 60, 4, 12, dark);
+    px(c, 35, 60, 4, 12, dark);
+    px(c, 12, 51, 40, 3, '#141418');
+    px(c, 10, 50, 5, 5, '#2a2a30');
+    px(c, 49, 50, 5, 5, '#2a2a30');
+    if (b.basket) {
+      px(c, 21, 55, 22, 12, '#141418');
+      px(c, 22, 56, 20, 1, '#3a3e46');
+      px(c, 26, 60, 12, 3, b.frame);
+    }
+    px(c, 30, 66, 4, 3, '#fff8c0');
+  } else {
+    // Going away: the back wheel, mudguard, rack and tail light, and the ends of the bars.
+    px(c, 28, 71, 8, 22, TYRE);
+    px(c, 30, 73, 4, 18, '#3a3e46');
+    px(c, 25, 64, 14, 8, b.frame);
+    px(c, 26, 65, 12, 1, shade(b.frame, 1.25));
+    px(c, 29, 67, 6, 3, '#e83a3a');
+    px(c, 10, 50, 6, 4, '#2a2a30');
+    px(c, 48, 50, 6, 4, '#2a2a30');
+  }
+}
+
+/** You on a bike: standing on the pedals, with the bike over your legs. Pedals turn with `frame`. */
+export function paintRider(s: Style, dir: Dir, frame: number, kind: BikeKind): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = PERSON_W;
+  canvas.height = PERSON_H;
+  const c = canvas.getContext('2d')!;
+  c.drawImage(paintPerson(s, dir, 0), 0, -7);
+  const bike = document.createElement('canvas');
+  bike.width = PERSON_W;
+  bike.height = PERSON_H;
+  const b = bike.getContext('2d')!;
+  const side: Side = dir === 'right' ? 'left' : dir;
+  bikeLayer(b, kind, side === 'left' ? 'left' : dir, frame);
+  outline(b);
+  if (dir === 'right') {
+    c.save();
+    c.scale(-1, 1);
+    c.drawImage(bike, -PERSON_W, 0);
+    c.restore();
+  } else c.drawImage(bike, 0, 0);
+  return canvas;
 }

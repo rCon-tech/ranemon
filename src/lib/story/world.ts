@@ -53,7 +53,8 @@ export type Look =
   | 'conductor'
   | 'josh'
   | 'poseidon'
-  | 'sibeal';
+  | 'sibeal'
+  | 'lime';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =

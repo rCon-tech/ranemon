@@ -1,11 +1,29 @@
 'use client';
 
 import Link from 'next/link';
+import { useSyncExternalStore } from 'react';
+import { LATEST, SEEN_KEY } from '@/content/updates';
 import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
 
+/** Whether there's an update you haven't looked at yet. Never on the server render. */
+function useHasNew(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return localStorage.getItem(SEEN_KEY) !== LATEST;
+      } catch {
+        return false;
+      }
+    },
+    () => false,
+  );
+}
+
 /** The title: the black-and-white split of the 5th generation's box art, with a gold logo. */
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
+  const fresh = useHasNew();
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-4 py-12 text-center">
       <div
@@ -48,6 +66,14 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
           </Link>
           <Link href="/ranedex" className="underline underline-offset-4">
             RANEDEX
+          </Link>
+          <Link href="/updates" className="underline underline-offset-4" data-testid="updates-link">
+            UPDATES
+            {fresh && (
+              <span className="ml-1 rounded bg-accent px-1 text-[10px] text-paper no-underline">
+                NEW
+              </span>
+            )}
           </Link>
         </div>
       </div>
