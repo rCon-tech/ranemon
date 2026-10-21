@@ -83,7 +83,8 @@ test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page 
   await page.goto('/ranedex');
   await expect(page.getByRole('heading', { name: 'RANEDEX' })).toBeVisible();
   await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(16);
-  const sprite = page.getByRole('img', { name: 'Steadmon' });
+  // The first is the usual look; a second look sits beside it.
+  const sprite = page.getByRole('img', { name: 'Steadmon' }).first();
   await expect(sprite).toBeVisible();
   // The full-colour pixel versions: 96 pixels, cut down to 32 colours.
   expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(96);

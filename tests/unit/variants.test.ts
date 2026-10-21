@@ -9,7 +9,7 @@ import { parseSave } from '@/lib/story/save';
 import { newGame, recruit } from '@/lib/story/state';
 
 describe('variants', () => {
-  it('give eight of the lads a second look, through their evolutions', () => {
+  it('give nine of the lads a second look, through their evolutions', () => {
     expect(variantsOf('olliemon').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('hitmonollie').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('oismon').map((v) => v.id)).toEqual(['cap']);
@@ -26,7 +26,9 @@ describe('variants', () => {
     expect(variantsOf('steadakazam').map((v) => v.id)).toEqual(['suit']);
     expect(variantsOf('gibbsmon').map((v) => v.id)).toEqual(['races']);
     expect(variantsOf('gyaragibbs').map((v) => v.id)).toEqual(['races']);
-    expect(variantsOf('jammon')).toEqual([]);
+    expect(variantsOf('jammon').map((v) => v.id)).toEqual(['shades']);
+    expect(variantsOf('jamchamp').map((v) => v.id)).toEqual(['shades']);
+    expect(variantsOf('hugomon')).toEqual([]);
   });
 
   it('have every sprite on disk, with a follower head and a shiny version', () => {
@@ -49,7 +51,7 @@ describe('variants', () => {
     // An unknown look, or none, is the usual one.
     expect(variantForm(plain, 'gone')).toBe(plain);
     expect(variantForm(plain, undefined)).toBe(plain);
-    expect(variantForm(creatureById('jammon'), 'tricolour')).toBe(creatureById('jammon'));
+    expect(variantForm(creatureById('hugomon'), 'tricolour')).toBe(creatureById('hugomon'));
   });
 
   it('are as likely as the usual look in the wild', () => {
@@ -57,7 +59,7 @@ describe('variants', () => {
     expect(rollVariant('olliemon', 0.49)).toBeUndefined();
     expect(rollVariant('olliemon', 0.5)).toBe('tricolour');
     expect(rollVariant('olliemon', 0.999)).toBe('tricolour');
-    expect(rollVariant('jammon', 0.999)).toBeUndefined();
+    expect(rollVariant('hugomon', 0.999)).toBeUndefined();
   });
 
   it('are kept when befriended, when evolving, in the evolution scene and in saves', () => {
