@@ -251,7 +251,7 @@ describe('story state', () => {
     expect(gain({ ...s, flags: ['round'] })).toEqual([full, Math.floor(full / 2), 0]);
   });
 
-  it('saves and loads under a trainer name, and survives a broken save', () => {
+  it('saves and loads under a trainer name, and falls back to a copy if the save breaks', () => {
     const store = new Map<string, string>();
     const storage = {
       getItem: (k: string) => store.get(k) ?? null,
@@ -261,6 +261,9 @@ describe('story state', () => {
     expect(save(storage, s, 'Rich')).toBeTruthy();
     expect(load(storage, '  rich ')).toEqual({ ...s, savedAt: expect.any(Number) });
     expect(load(storage, 'Seán')).toBeNull();
+    store.set('ranemon.story.v1:rich', '{nope');
+    expect(load(storage, 'Rich')?.party).toEqual(s.party);
+    store.clear();
     store.set('ranemon.story.v1:rich', '{nope');
     expect(load(storage, 'Rich')).toBeNull();
   });

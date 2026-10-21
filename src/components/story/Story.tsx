@@ -14,7 +14,18 @@ import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
 import { LEGEND } from '@/lib/battle/legend';
 import type { BattleState, Entrant } from '@/lib/battle/engine';
-import { flushOnline, hasCloudSaves, loadOnline, saveOnline } from '@/lib/story/cloud';
+import {
+  cloudNeedsPin,
+  flushOnline,
+  hasCloudSaves,
+  isPin,
+  loadOnline,
+  saveOnline,
+  setCloudSaves,
+} from '@/lib/story/cloud';
+import { remoteSaves } from '@/lib/story/remote';
+import { replace } from '@/lib/story/save';
+import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
 import {
   blueGhost,
@@ -125,6 +136,17 @@ const storage = (): Storage | null => {
 
 const noSubscribe = () => () => {};
 
+/** The save server's address, when this build has one (see `worker/`). */
+function saveApi(): string | undefined {
+  try {
+    return process.env.NEXT_PUBLIC_SAVE_API || undefined;
+  } catch {
+    return undefined;
+  }
+}
+const SAVE_API = saveApi();
+if (SAVE_API && typeof window !== 'undefined') setCloudSaves(remoteSaves(SAVE_API));
+
 /** Dua Lipa works the bar in McGrattans, and has a line for every visit. */
 const DUA_LINES = [
   'DUA LIPA: Welcome to McGrattans! Sit down there and I’ll look after your lot.',
@@ -190,11 +212,20 @@ export function Story() {
   const name = typed ?? remembered ?? '';
   /** The trainer playing: whose save every change goes to. */
   const player = useRef('');
-  const [title, setTitle] = useState<{ busy: boolean; note: string | null; replace: boolean }>({
+  const [pin, setPin] = useState('');
+  const [title, setTitle] = useState<{
+    busy: boolean;
+    note: string | null;
+    replace: boolean;
+    /** The online save can't be opened: the next CONTINUE plays this browser's save alone. */
+    localOnly?: boolean;
+  }>({
     busy: false,
     note: null,
     replace: false,
   });
+  /** The title screen's backups and save codes, with the trainer's save as it stands. */
+  const [tools, setTools] = useState<{ current: StoryState | null } | null>(null);
   const [queue, setQueue] = useState<Run[]>([]);
   /** The line in the text box: `n` restarts the typing, `full` skips to the end of it. */
   const [line, setLine] = useState<{ text: string; n: number; full?: boolean } | null>(null);
@@ -636,11 +667,23 @@ export function Story() {
 
   if (remembered === undefined) return <div className="flex-1" />;
 
-  /** Finds the trainer's save: the newer of this browser's and the online one. */
+  /**
+   * Finds the trainer's save: the newer of this browser's and the online one. `blocked` says why
+   * the online one couldn't be opened, if it couldn't.
+   */
   async function findSave(trainer: string) {
     const local = load(storage(), trainer);
-    const online = parseSave(await loadOnline(trainer));
-    return newer(local, online);
+    const online = await loadOnline(trainer, cloudNeedsPin() ? pin : undefined);
+    if ('error' in online) {
+      const blocked =
+        online.error === 'pin'
+          ? `That PIN doesn’t match the online save for “${trainer.trim()}”.`
+          : online.error === 'locked'
+            ? 'Too many wrong PINs for that name. Try again in 15 minutes.'
+            : null;
+      return { save: local, blocked };
+    }
+    return { save: newer(local, parseSave(online.raw)), blocked: null };
   }
 
   function begin(trainer: string, g: StoryState, fresh: boolean) {
@@ -656,9 +699,22 @@ export function Story() {
   }
 
   async function onContinue() {
+    if (title.localOnly) {
+      const local = load(storage(), name);
+      if (local) return begin(name, local, false);
+    }
     setTitle({ busy: true, note: null, replace: false });
-    const found = await findSave(name);
-    if (found) begin(name, found, false);
+    const { save: found, blocked } = await findSave(name);
+    if (blocked)
+      setTitle({
+        busy: false,
+        note: found
+          ? `${blocked} Check it, or tap CONTINUE again to play this browser’s save without saving online.`
+          : `${blocked} Check it, or pick another name.`,
+        replace: false,
+        localOnly: !!found,
+      });
+    else if (found) begin(name, found, false);
     else
       setTitle({
         busy: false,
@@ -670,7 +726,15 @@ export function Story() {
   async function onNew() {
     if (!title.replace) {
       setTitle({ busy: true, note: null, replace: false });
-      const found = await findSave(name);
+      const { save: found, blocked } = await findSave(name);
+      if (blocked) {
+        setTitle({
+          busy: false,
+          note: `${blocked} Check it, or pick another name.`,
+          replace: false,
+        });
+        return;
+      }
       if (found) {
         const jerseys = found.flags.filter(
           (f) => f.startsWith('jersey:') && f !== 'jersey:all',
@@ -686,8 +750,30 @@ export function Story() {
     begin(name, newGame(), true);
   }
 
+  async function openTools() {
+    const { save: current } = await findSave(name);
+    setTools({ current: current ?? load(storage(), name) });
+  }
+
+  if (!game && tools) {
+    return (
+      <SaveTools
+        name={name}
+        storage={storage()}
+        current={tools.current}
+        onUse={(g, why) => {
+          replace(storage(), g, name, why);
+          setTools(null);
+          begin(name, g, false);
+        }}
+        onClose={() => setTools(null)}
+      />
+    );
+  }
+
   if (!game) {
-    const ready = playerId(name).length > 0 && !title.busy;
+    const needsPin = cloudNeedsPin();
+    const ready = playerId(name).length > 0 && !title.busy && (!needsPin || isPin(pin));
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
         <h1 className="text-[40px] font-bold leading-tight text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
@@ -723,6 +809,24 @@ export function Story() {
               data-testid="trainer-name"
             />
           </label>
+          {needsPin && (
+            <label className="flex flex-col gap-1 text-left text-[12px]">
+              PIN (4 TO 8 NUMBERS)
+              <input
+                className="dialog px-3 py-2 text-[16px] outline-none focus:border-accent2"
+                type="password"
+                inputMode="numeric"
+                autoComplete="current-password"
+                maxLength={8}
+                value={pin}
+                onChange={(e) => {
+                  setPin(e.target.value.replace(/\D/g, ''));
+                  setTitle({ busy: false, note: null, replace: false });
+                }}
+                data-testid="trainer-pin"
+              />
+            </label>
+          )}
           <button type="submit" className="pixel-btn menu-item text-[14px]" disabled={!ready}>
             CONTINUE
           </button>
@@ -734,13 +838,24 @@ export function Story() {
           >
             NEW GAME
           </button>
+          <button
+            type="button"
+            className="pixel-btn menu-item text-[12px]"
+            disabled={!ready}
+            onClick={openTools}
+            data-testid="open-save-tools"
+          >
+            BACKUPS AND SAVE CODES
+          </button>
           <p className="text-[10px] leading-relaxed text-frame" aria-live="polite">
             {title.busy
               ? 'Looking for your save…'
               : (title.note ??
-                (hasCloudSaves()
-                  ? 'Your save follows this name, so you can carry on from any device.'
-                  : 'Your save is kept in this browser under this name.'))}
+                (needsPin
+                  ? 'Your save follows this name and PIN, so you can carry on from any device. A new name’s PIN is set by its first save.'
+                  : hasCloudSaves()
+                    ? 'Your save follows this name, so you can carry on from any device.'
+                    : 'Your save is kept in this browser under this name. A save code carries it to another device.'))}
           </p>
         </form>
         <Link href="/" className="text-[11px] text-frame underline underline-offset-4">

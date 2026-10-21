@@ -1,0 +1,14 @@
+# The save server for online saves. See docs/online-saves.md to set it up.
+name = "ranemon-saves"
+main = "save-server.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+# The sites allowed to call it, comma-separated.
+ALLOWED_ORIGINS = "https://rcon-tech.github.io,http://localhost:3000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ranemon-saves"
+# Paste the id that `wrangler d1 create ranemon-saves` prints.
+database_id = "REPLACE_WITH_DATABASE_ID"
