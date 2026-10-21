@@ -157,7 +157,7 @@ export function BattleScreen({
   };
   const run = () => dispatch({ type: 'run', random: roll() });
   const spendEntry = (entry: BagEntry, target: number) => {
-    if (entry.use.kind !== 'heal') return;
+    if (entry.use.kind !== 'heal' && entry.use.kind !== 'vape') return;
     story?.onUse(entry.id);
     setBagPick(null);
     dispatch({ type: 'item', name: entry.name, effect: entry.use.effect, target, random: roll() });
@@ -170,6 +170,22 @@ export function BattleScreen({
       }
       story?.onUse(entry.id);
       dispatch({ type: 'pint', pint: entry.use.pint, rate: story?.rate ?? 120, random: roll() });
+      return;
+    }
+    // A vape is always for the Ranemon that's out.
+    if (entry.use.kind === 'vape') {
+      const out = state.teams[0].battlers[view[0].active];
+      const { stat } = entry.use.effect;
+      const ok = canUse(entry.use, {
+        hp: out.hp,
+        maxHp: out.stats.hp,
+        status: out.status,
+        level: out.level,
+        active: true,
+        stages: out.stages,
+      });
+      if (ok) spendEntry(entry, view[0].active);
+      else setBagNote(`${out.creature.name}’s ${stat.toUpperCase()} won’t go any higher!`);
       return;
     }
     setBagNote(null);
@@ -364,6 +380,8 @@ export function BattleScreen({
                   maxHp: b.stats.hp,
                   status: b.status,
                   level: b.level,
+                  active: i === view[0].active,
+                  stages: b.stages,
                 });
                 return (
                   <button
