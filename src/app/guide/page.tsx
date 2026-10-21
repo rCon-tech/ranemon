@@ -228,6 +228,10 @@ export default function Guide() {
             Sibeal in any McGrattans.
           </li>
           <li>
+            <b>Limepass</b>: the Lime rep in Limerick signs you up. Hold B to ride a Lime e-bike,
+            and pick LIMEPASS from START to zip back to any town you’ve been to.
+          </li>
+          <li>
             <b>Your rival</b> is Margaret Thatcher, who picks the Ranemon that beats yours and turns
             up all along the road. Don’t let her win.
           </li>

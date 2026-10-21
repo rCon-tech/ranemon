@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mapById } from '@/content/story/maps';
 import {
+  BIKE_MS,
+  isRiding,
   placeWalk,
   startWalk,
   tickWalk,
@@ -20,13 +22,20 @@ function road() {
     map: mapById('clare'),
     flags: new Set<string>(),
     frozen: false,
-    bike: false,
+    bike: null as string | null,
     held,
     onStep: (to: Position) => steps.push(to),
     onTurn: () => {},
     onBump: () => {},
   };
-  return { w, trail, held, steps, tick: (now: number) => tickWalk(w, trail, walker, now) };
+  return {
+    w,
+    trail,
+    held,
+    steps,
+    walker,
+    tick: (now: number) => tickWalk(w, trail, walker, now),
+  };
 }
 
 describe('walking', () => {
@@ -63,5 +72,21 @@ describe('walking', () => {
     tick(1000 + WALK_MS);
     placeWalk(w, trail, { x: 3, y: 4, face: 'down' });
     expect([w.x, w.y, w.waiting]).toEqual([3, 4, false]);
+  });
+
+  it('rides the bike twice as fast while B is held, and only with a bike', () => {
+    const { w, held, walker, tick } = road();
+    held.current.b = true;
+    held.current.dir = 'right';
+    tick(1000);
+    expect([w.dur, isRiding(w, walker)]).toEqual([WALK_MS, false]);
+    walker.bike = 'lime';
+    tick(1000 + WALK_MS);
+    placeWalk(w, road().trail, { x: w.x, y: w.y, face: 'right' });
+    tick(2000);
+    expect(w.dur).toBe(BIKE_MS);
+    expect(isRiding(w, walker)).toBe(true);
+    held.current.b = false;
+    expect(isRiding(w, walker)).toBe(true);
   });
 });

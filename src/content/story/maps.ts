@@ -1,5 +1,5 @@
 import { LEGEND, LEGEND_LEVEL } from '@/lib/battle/legend';
-import { CERT, HM, TABLET, TABLET_TAKEN, TAKE_TABLET } from '@/lib/story/keys';
+import { CERT, HM, LIMEPASS, TABLET, TABLET_TAKEN, TAKE_TABLET } from '@/lib/story/keys';
 import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
 import { SIBEAL_LENDS } from './sibeal';
@@ -430,6 +430,36 @@ const JOSH: Step[] = [
   },
 ];
 
+/** The Lime rep in Limerick, who signs you up for a Limepass. */
+const LIME_REP: Step[] = [
+  {
+    do: 'if',
+    flag: LIMEPASS,
+    then: [
+      {
+        do: 'say',
+        text: 'LIME REP: Enjoying the Limepass? Hold B to ride, and pick LIMEPASS from START to zip back anywhere you’ve been.',
+      },
+    ],
+    else: [
+      {
+        do: 'say',
+        text: 'LIME REP: Story! Lime bikes have landed in Limerick. Grand for the hills, and you can leave them anywhere. Well, nearly anywhere.',
+      },
+      {
+        do: 'say',
+        text: 'LIME REP: Here, have a Limepass on the house. First ride’s on us. So is every other one.',
+      },
+      { do: 'flag', flag: LIMEPASS },
+      { do: 'say', text: 'You got the LIMEPASS! Hold B to ride a Lime e-bike.' },
+      {
+        do: 'say',
+        text: 'LIMEPASS is on the START menu now, too: pick it to zip straight back to any town you’ve been to.',
+      },
+    ],
+  },
+];
+
 export const MAPS: GameMap[] = [
   {
     id: 'clare',
@@ -584,7 +614,7 @@ export const MAPS: GameMap[] = [
       'TT....==......=,,,,,...T',
       'T^^^^.==.^^^..=...^^^^^T',
       'T#P##.==.#M#..=...##G##T',
-      'T.....==.4....=........T',
+      'T.....==.4....=..5.....T',
       'T..S..========.======>3.',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -604,6 +634,8 @@ export const MAPS: GameMap[] = [
       garda('Limerick', 'jersey:limerick'),
       // Sibeal and her dog Norm. Once he's with you she's off to McGrattans to wait for him.
       { look: 'sibeal', face: 'down', hideIf: NORM, talk: SIBEAL_LENDS },
+      // The Lime rep, by a row of green e-bikes.
+      { look: 'lime', face: 'left', talk: LIME_REP },
     ],
     signs: ['LIMERICK. Thomond Park, King John’s Castle and the Shannon.'],
     landmarks: [

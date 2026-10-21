@@ -25,6 +25,9 @@ export const TAKE_TABLET: Step[] = [
   { do: 'flag', flag: TABLET_TAKEN },
 ];
 
+/** The Limepass, from the Lime rep in Limerick: Lime e-bikes to ride, and fast travel. */
+export const LIMEPASS = 'limepass';
+
 export interface KeyItem {
   flag: string;
   /** Gone from the bag once this flag is set, such as a tablet once taken. */
@@ -50,6 +53,12 @@ export const KEY_ITEMS: KeyItem[] = [
       'Signed by a retired donkey vet on the back of a Tayto packet. The highest honour in Tipperary.',
   },
   { flag: 'bike', name: 'High Nelly', about: 'A big black bike. Hold B to ride.' },
+  {
+    flag: LIMEPASS,
+    name: 'Limepass',
+    about:
+      'Unlocks every Lime e-bike in Ireland. Hold B to ride, and pick LIMEPASS from START to zip back to any town you’ve been to.',
+  },
   {
     flag: TABLET,
     goneIf: TABLET_TAKEN,
