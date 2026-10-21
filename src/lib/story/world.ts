@@ -68,6 +68,8 @@ export type Step =
   | { do: 'ask'; text: string; yes?: Step[]; no?: Step[] }
   /** A battle with one particular wild Ranemon, such as a legend. The script goes on after. */
   | { do: 'wild'; species: string; level: number }
+  /** A Ranemon given to you: it joins the party, or the Group Chat when the party is full. */
+  | { do: 'recruit'; species: string; level: number }
   /** Takes you somewhere far off, by train: to a map, standing on a tile, facing a way. */
   | { do: 'travel'; map: string; x: number; y: number; face: Dir }
   | { do: 'heal' }

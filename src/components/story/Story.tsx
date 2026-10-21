@@ -326,6 +326,16 @@ export function Story() {
             q.unshift({ do: 'say', text: `You got ${count > 1 ? `${count} × ` : 'a '}${name}!` });
             break;
           }
+          case 'recruit': {
+            const name = speciesById(s.species).name;
+            const joined = recruit(g, s.species, s.level);
+            g = joined.state;
+            q.unshift(
+              { do: 'say', text: `You got ${name}!` },
+              ...(joined.line ? [{ do: 'say' as const, text: joined.line }] : []),
+            );
+            break;
+          }
           case 'flag':
             g = setFlag(g, s.flag);
             break;

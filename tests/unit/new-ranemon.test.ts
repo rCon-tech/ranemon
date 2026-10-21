@@ -56,6 +56,17 @@ describe('Petchemon', () => {
       expect(m.wild?.table.some(([s]) => s === 'petchemon') ?? false).toBe(false);
     expect(DEX.some((d) => d.id === 'petchemon')).toBe(false);
   });
+
+  it('is yours for beating B&S, and only for that', () => {
+    const gives = TRAINERS.filter((t) =>
+      t.reward?.some((s) => s.do === 'recruit' && s.species === 'petchemon'),
+    ).map((t) => t.id);
+    expect(gives).toEqual(['bns']);
+    const bns = TRAINERS.find((t) => t.id === 'bns')!;
+    // He joins before the credits roll.
+    const steps = bns.reward!.map((s) => s.do);
+    expect(steps.indexOf('recruit')).toBeLessThan(steps.indexOf('ending'));
+  });
 });
 
 describe('Cholokill', () => {

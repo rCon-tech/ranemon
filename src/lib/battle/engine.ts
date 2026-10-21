@@ -23,6 +23,8 @@ export interface Battler {
   pp: number[];
   /** Replaced by a wild partner: off the team for good, and kept at 0 HP. */
   left?: boolean;
+  /** The turn it was last switched in on, so the CPU doesn't swap it straight back out. */
+  cameIn?: number;
 }
 
 export interface Team {
@@ -267,6 +269,7 @@ class Turn {
       leaving.mods = { ...NO_MODS };
     }
     team.active = to;
+    team.battlers[to].cameIn = this.state.turn;
     this.events.push({ kind: 'send-out', side, index: to });
   }
 
