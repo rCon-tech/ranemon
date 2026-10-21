@@ -136,7 +136,7 @@ const storage = (): Storage | null => {
 
 const noSubscribe = () => () => {};
 
-/** The save server's address, when this build has one (see `worker/`). */
+/** The save server's address, when this build has one (see `save-api/`). */
 function saveApi(): string | undefined {
   try {
     return process.env.NEXT_PUBLIC_SAVE_API || undefined;

@@ -4,7 +4,7 @@ import { playerId } from './state';
  * Online saves, filed under the trainer's name so a save follows you to another device or
  * survives a cleared browser. It is off unless the page that hosts the game provides it: the
  * claude.ai play link keeps saves in its own database, and a build with NEXT_PUBLIC_SAVE_API set
- * uses the save server in `worker/` (`remote.ts`), where each name is locked with a PIN.
+ * uses the save server in `save-api/` (`remote.ts`), where each name is locked with a PIN.
  */
 export interface CloudSaves {
   /** The save's JSON, or null if there is none under that name. Rejects with a CloudError. */

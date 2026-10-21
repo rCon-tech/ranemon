@@ -1,7 +1,7 @@
 import { CloudError, type CloudSaves } from './cloud';
 
 /**
- * Online saves on the save server in `worker/`, at `base` (NEXT_PUBLIC_SAVE_API). The server
+ * Online saves on the save server in `save-api/`, at `base` (NEXT_PUBLIC_SAVE_API). The server
  * keeps each name's save with a hash of its PIN; the PIN itself is only ever sent to it.
  */
 export function remoteSaves(base: string): CloudSaves {

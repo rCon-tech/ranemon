@@ -1,11 +1,14 @@
 /**
- * The save server: a Cloudflare Worker that keeps each trainer's online save in a D1 database,
- * locked with a PIN. Only a salted PBKDF2 hash of the PIN is kept, and five wrong PINs lock a name
- * for 15 minutes, so a 4-digit PIN can't be guessed by trying them all.
+ * The save server: Vercel functions (`api/`) that keep each trainer's online save in a Neon
+ * Postgres database (`store.ts`), locked with a PIN. Only a salted PBKDF2 hash of the PIN is
+ * kept, and five wrong PINs lock a name for 15 minutes, so a 4-digit PIN can't be guessed by
+ * trying them all.
  *
- *   POST /load {id, pin}       → {raw} (null if the name has no save yet), 401 wrong PIN, 429 locked
- *   POST /save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the server
- *                                already has a newer save (from another device), which it keeps.
+ *   POST /api/load {id, pin}       → {raw} (null if the name has no save yet), 401 wrong PIN,
+ *                                    429 locked
+ *   POST /api/save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the
+ *                                    server already has a newer save (from another device),
+ *                                    which it keeps.
  *
  * The handler takes its storage as a `SaveStore`, so the tests run it against memory.
  */
@@ -102,7 +105,7 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
     });
 
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  const path = new URL(req.url).pathname;
+  const path = new URL(req.url).pathname.replace(/^\/api/, '').replace(/\/$/, '');
   if (req.method !== 'POST' || (path !== '/load' && path !== '/save'))
     return reply(404, { error: 'not found' });
 
@@ -156,51 +159,3 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
   });
   return reply(200, { ok: true });
 }
-
-// ---------- Cloudflare ----------
-
-/** The parts of Cloudflare's D1 binding the server uses. */
-interface D1 {
-  prepare(query: string): {
-    bind(...values: unknown[]): { first<T>(): Promise<T | null>; run(): Promise<unknown> };
-  };
-}
-
-export function d1Store(db: D1): SaveStore {
-  return {
-    get: (id) => db.prepare('SELECT * FROM saves WHERE id = ?').bind(id).first<SaveRow>(),
-    put: async (r) =>
-      void (await db
-        .prepare(
-          `INSERT INTO saves (id, raw, saved_at, salt, hash, prev_raw, prev_at) VALUES (?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET raw = excluded.raw, saved_at = excluded.saved_at,
-             prev_raw = excluded.prev_raw, prev_at = excluded.prev_at`,
-        )
-        .bind(r.id, r.raw, r.saved_at, r.salt, r.hash, r.prev_raw, r.prev_at)
-        .run()),
-    fails: (id) =>
-      db.prepare('SELECT count, until FROM fails WHERE id = ?').bind(id).first<{
-        count: number;
-        until: number;
-      }>(),
-    setFails: async (id, count, until) =>
-      void (await db
-        .prepare(
-          'INSERT INTO fails (id, count, until) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET count = excluded.count, until = excluded.until',
-        )
-        .bind(id, count, until)
-        .run()),
-    clearFails: async (id) =>
-      void (await db.prepare('DELETE FROM fails WHERE id = ?').bind(id).run()),
-  };
-}
-
-const worker = {
-  fetch(req: Request, env: { DB: D1; ALLOWED_ORIGINS: string }): Promise<Response> {
-    return handle(req, d1Store(env.DB), {
-      origins: env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()),
-    });
-  },
-};
-
-export default worker;
