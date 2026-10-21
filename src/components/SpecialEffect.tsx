@@ -688,6 +688,52 @@ const SCENES: Record<string, Scene> = {
     </>
   ),
 
+  // A leg seizes up with a twang, and he goes down on the foe.
+  'calf-cramp': (u, o) => (
+    <>
+      <A anim="pop">
+        <g className="sfx sfx-wiggle sfx-repeat">
+          <path
+            d={`M${u.x - 8} ${up(u, 18).y} l4 -4 l4 4 l4 -4 l4 4`}
+            stroke="#e04848"
+            strokeWidth="1.6"
+            fill="none"
+          />
+        </g>
+      </A>
+      <A anim="pop" delay={0.2}>
+        <Label at={up(u, 30)} text="CRAMP!" colour="#f08a5d" />
+      </A>
+      <A anim="travel" delay={0.5} to={between(u, o)}>
+        <circle cx={u.x} cy={u.y - 4} r="5" fill="#c8642a" stroke={INK} strokeWidth="0.6" />
+      </A>
+      <Boom at={o} delay={0.85} size={11} />
+    </>
+  ),
+
+  // A finger pointed at the foe, sleeves rolled up, then WHABAM.
+  whabam: (u, o) => (
+    <>
+      <A anim="pop">
+        <path
+          d={`M${u.x - 6} ${up(u, 14).y} h10 l4 -2 v4 l-4 -2`}
+          fill="#f0c8a0"
+          stroke={INK}
+          strokeWidth="0.6"
+        />
+      </A>
+      {[-4, 0, 4].map((dy, i) => (
+        <A key={i} anim="travel" delay={0.3 + i * 0.06} to={between(u, o)}>
+          <rect x={u.x - 8} y={u.y + dy - 4} width="12" height="1.4" fill="#3e5a4a" />
+        </A>
+      ))}
+      <Boom at={o} delay={0.7} size={13} />
+      <A anim="pop" delay={0.75}>
+        <Label at={up(o, 26)} text="WHABAM!" colour="#f8d030" size={7} />
+      </A>
+    </>
+  ),
+
   // A stein raised high, foam spilling over, and a cheer.
   prost: (u) => (
     <>

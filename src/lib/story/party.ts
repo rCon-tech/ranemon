@@ -1,6 +1,13 @@
 import { levelStats, MAX_LEVEL, type BaseStats, type Creature } from '../battle/creature';
 import type { Battler, Entrant } from '../battle/engine';
-import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
+import {
+  EVOLVED,
+  evolutionOf,
+  formAt,
+  ITEM_EVOLVED,
+  itemEvolutionOf,
+  lineOf,
+} from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
 import { PETCHEMON } from '../battle/petchemon';
@@ -54,7 +61,7 @@ export const BOSS: Creature = {
 };
 
 const SPECIES = new Map(
-  [...ROSTER, ...EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON].map((c) => [c.id, c]),
+  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON].map((c) => [c.id, c]),
 );
 
 export function speciesById(id: string): Creature {
@@ -258,6 +265,36 @@ export function gainExp(m: Member, amount: number): { member: Member; lines: str
   return { member, lines };
 }
 
+/**
+ * An item evolution: the member becomes the form the item sets off, and that form's special
+ * move takes the place of the old one, in the same slot.
+ */
+export function itemEvolve(m: Member, item: string): { member: Member; lines: string[] } {
+  const evo = itemEvolutionOf(m.species, item);
+  if (!evo) return { member: m, lines: ['It won’t have any effect.'] };
+  const name = nameOf(m);
+  const before = statsOf(m).hp;
+  const old = speciesById(m.species).moves.find((id) => moveById(id).signature);
+  const swap = (id: string) => (id === old ? evo.signature : id);
+  const known = learnedOf(m).map(swap);
+  let next: Member = {
+    ...m,
+    species: evo.id,
+    moves: m.moves.map(swap),
+    learned: known.includes(evo.signature) ? known : [evo.signature, ...known],
+    pp: m.moves.map((id, i) => (id === old ? moveById(evo.signature).pp : m.pp[i])),
+  };
+  next = { ...next, hp: m.hp > 0 ? m.hp + statsOf(next).hp - before : 0 };
+  return {
+    member: next,
+    lines: [
+      `What? ${name} is evolving!`,
+      `${name} evolved into ${nameOf(next)}!`,
+      `${nameOf(next)} learned ${moveById(evo.signature).name}!`,
+    ],
+  };
+}
+
 /** A Blue Ghost: exactly one level, with EXP set to the start of it. */
 export function blueGhost(m: Member): { member: Member; lines: string[] } {
   if (m.level >= MAX_LEVEL) return { member: m, lines: ['It won’t have any effect.'] };
@@ -289,11 +326,21 @@ export function evolutionIn(
   const named = (starting ?? finished)?.[1] ?? '';
   const shiny = named.startsWith(SHINY_STAR);
   const base = BY_NAME.get(shiny ? named.slice(SHINY_STAR.length) : named);
-  const evo = base && evolutionOf(base.id);
-  if (!base || !evo) return null;
-  const variant = party.find((m) => m.species === base.id || m.species === evo.id)?.variant;
+  if (!base) return null;
+  // Which evolution: the one the line names, or the item evolution a member of the line has
+  // just taken, or else the one it reaches by levelling.
+  const into = finished ? BY_NAME.get(finished[2].replace(SHINY_STAR, ''))?.id : undefined;
+  const branches = [evolutionOf(base.id)?.id, ...ITEM_EVOLVED.map((c) => c.id)].filter(
+    (id): id is string => !!id && lineOf(id) === base.id,
+  );
+  const taken = party.find(
+    (m) => m.species !== evolutionOf(base.id)?.id && branches.includes(m.species),
+  )?.species;
+  const evo = branches.find((id) => id === into) ?? taken ?? evolutionOf(base.id)?.id;
+  if (!evo) return null;
+  const variant = party.find((m) => m.species === base.id || m.species === evo)?.variant;
   const from = variantForm(base, variant);
-  const to = variantForm(speciesById(evo.id), variant);
+  const to = variantForm(speciesById(evo), variant);
   return shiny
     ? { from: shinyForm(from), to: shinyForm(to), done: !!finished }
     : { from, to, done: !!finished };

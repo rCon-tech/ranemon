@@ -198,6 +198,17 @@ export const ROSTER: Creature[] = [
     sprite: '/sprites/bw/vinnimon.png',
     solid: true,
   },
+  {
+    id: 'crampemon',
+    name: 'Crampemon',
+    types: ['brawn', 'charm'],
+    base: { hp: 100, attack: 90, defense: 85, spirit: 60, speed: 65 },
+    moves: ['calf-cramp', 'headlock', 'dazzling-smile', 'flex'],
+    entry: 'All grin and beard. Seizes up mid-match, and takes the other lad down with him.',
+    colour: '#c8642a',
+    sprite: '/sprites/bw/crampemon.png',
+    solid: true,
+  },
 ];
 
 export function creatureById(id: string): Creature {

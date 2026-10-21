@@ -17,7 +17,8 @@ export const UPDATES: Update[] = [
       'Some Ranemon now have a second look, from a brand new photo drawn in twice the detail. Pick which one you want on the team screen, or keep an eye out in the long grass.',
       'In the 3D look the new ones stand in battle as solid, rounded figures instead of flat pictures.',
       'Enda is now called Endamon, like everyone else.',
-      'Three brand new Ranemon have turned up in the wild, each with a special move and an evolution of his own.',
+      'Four brand new Ranemon have turned up in the wild, each with a special move and an evolution of his own.',
+      'The corner shop has something new on the rail. One Ranemon might take a shine to it.',
     ],
   },
   {
