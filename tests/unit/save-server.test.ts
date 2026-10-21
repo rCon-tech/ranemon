@@ -1,6 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { handle, LOCK_MS, MAX_FAILS, type SaveRow, type SaveStore } from '../../save-api/handler';
+import {
+  databaseUrl,
+  handle,
+  LOCK_MS,
+  MAX_FAILS,
+  type SaveRow,
+  type SaveStore,
+} from '../../save-api/handler';
 
 const LIVE = readFileSync('tests/fixtures/saves/live-early.json', 'utf8');
 const at = (raw: string, savedAt: number) => JSON.stringify({ ...JSON.parse(raw), savedAt });
@@ -92,5 +99,13 @@ describe('the save server', () => {
     expect(ok.headers.get('access-control-allow-origin')).toBe('https://rcon-tech.github.io');
     const other = await s.call('/api/load', { id: 'rich', pin: '1234' }, 'https://evil.example');
     expect(other.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('finds the database under any name Vercel’s Neon integration gives it', () => {
+    expect(databaseUrl({ DATABASE_URL: 'a' })).toBe('a');
+    expect(databaseUrl({ POSTGRES_URL: 'b', OTHER: 'x' })).toBe('b');
+    expect(databaseUrl({ STORAGE_DATABASE_URL: 'c' })).toBe('c');
+    expect(databaseUrl({ NEON_POSTGRES_URL: 'd' })).toBe('d');
+    expect(databaseUrl({ DATABASE_URL: '' })).toBeNull();
   });
 });
