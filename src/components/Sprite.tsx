@@ -1,11 +1,23 @@
 import { asset } from '@/lib/asset';
 import type { Creature } from '@/lib/battle/creature';
+import { SolidSprite } from './SolidSprite';
 
 /**
  * The pixel sprite cut from a friend's photo, or a chunky outlined blob for creatures without
- * one. `back` is your own creature in battle: the sprite is mirrored to face the foe.
+ * one. `back` is your own creature in battle: the sprite is mirrored to face the foe. `solid`
+ * is a battle in the 3D look, where a Ranemon that has one stands as a solid figure instead.
  */
-export function Sprite({ creature, back = false }: { creature: Creature; back?: boolean }) {
+export function Sprite({
+  creature,
+  back = false,
+  solid = false,
+}: {
+  creature: Creature;
+  back?: boolean;
+  solid?: boolean;
+}) {
+  if (solid && creature.solid && creature.sprite)
+    return <SolidSprite sprite={creature.sprite} name={creature.name} back={back} />;
   if (creature.sprite) {
     return (
       // Sprites are tiny pixel art, so next/image's resizing would only blur them.

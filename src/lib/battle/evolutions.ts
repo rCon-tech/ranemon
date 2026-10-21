@@ -114,6 +114,24 @@ export const EVOLUTIONS: Evolution[] = [
     name: 'Thilotrode',
     entry: 'Goes back to back so fast he explodes. Then he’s gone.',
   },
+  {
+    from: 'paulimon',
+    id: 'pauliwrath',
+    name: 'Pauliwrath',
+    entry: 'Put the gloves on over the hat trick. The swirl means he’s not finished.',
+  },
+  {
+    from: 'skehemon',
+    id: 'skehdinja',
+    name: 'Skehdinja',
+    entry: 'So unbothered he floats. A halo, a shell, and still the arms are crossed.',
+  },
+  {
+    from: 'vinnimon',
+    id: 'vinnisaur',
+    name: 'Vinnisaur',
+    entry: 'A flower blooms on his back after the third stein. He toasts it too.',
+  },
 ].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
 
 /** Scales a base budget up to EVOLVED_BUDGET, keeping the shape; the largest stat takes the rounding. */
@@ -138,6 +156,8 @@ export const EVOLVED: Creature[] = EVOLUTIONS.map((e) => {
     base: evolvedStats(from.base),
     entry: e.entry,
     sprite: `/sprites/evo/${e.id}.png`,
+    // An evolved form's glow and costume pieces are see-through, so it stays flat.
+    solid: false,
   };
 });
 

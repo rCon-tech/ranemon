@@ -39,7 +39,7 @@ test('the game asks for the password once per browser', async ({ page }) => {
   await expect(page.getByText('PRESS START')).toBeVisible();
 });
 
-test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }) => {
+test('pick 6 of the 19, then a full 6v6 battle against the CPU', async ({ page }) => {
   await unlock(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
@@ -47,7 +47,7 @@ test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }
   await page.getByRole('button', { name: 'PRESS START' }).click();
 
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
-  await expect(roster).toHaveCount(16);
+  await expect(roster).toHaveCount(19);
   const start = page.getByRole('button', { name: /BATTLE!/ });
   await expect(start).toBeDisabled();
   for (let i = 0; i < 7; i++) await roster.nth(i).click();
@@ -78,12 +78,13 @@ test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }
   await expect(page.getByText('Record: 0W · 0L')).toHaveCount(ending?.includes('draw') ? 1 : 0);
 });
 
-test('the Ranedex lists all 16 Ranemon with their photo sprites', async ({ page }) => {
+test('the Ranedex lists all 19 Ranemon with their photo sprites', async ({ page }) => {
   await unlock(page);
   await page.goto('/ranedex');
   await expect(page.getByRole('heading', { name: 'RANEDEX' })).toBeVisible();
-  await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(16);
-  const sprite = page.getByRole('img', { name: 'Steadmon' });
+  await expect(page.getByRole('listitem').filter({ hasText: 'No.' })).toHaveCount(19);
+  // The first is the usual look; a second look sits beside it.
+  const sprite = page.getByRole('img', { name: 'Steadmon' }).first();
   await expect(sprite).toBeVisible();
   // The full-colour pixel versions: 96 pixels, cut down to 32 colours.
   expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(96);

@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-21',
+    title: 'New looks',
+    notes: [
+      'Some Ranemon now have a second look, from a brand new photo drawn in twice the detail. Pick which one you want on the team screen, or keep an eye out in the long grass.',
+      'In the 3D look the new ones stand in battle as solid, rounded figures instead of flat pictures.',
+      'Enda is now called Endamon, like everyone else.',
+      'Three brand new Ranemon have turned up in the wild, each with a special move and an evolution of his own.',
+    ],
+  },
+  {
+    date: '2026-10-21',
     title: 'Sound and music',
     notes: [
       'The game has music now: its own tunes for the road, the city, the pub, home, gyms, the bike and four kinds of battle, plus jingles for levels, items and new friends.',

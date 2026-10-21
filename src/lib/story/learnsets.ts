@@ -48,6 +48,16 @@ export const LEARNSETS: Record<string, string[]> = {
   ],
   simomon: ['sin-bin', 'mulligan', 'off-the-glass', 'bandeja', 'respawn', 'slipstream'],
   thilomon: ['nutmeg', 'speedrun', 'garryowen', 'vibora', 'combo-breaker', 'rage-quit'],
+  paulimon: ['fore', 'tiki-taka', 'drs', 'putt-for-dough', 'top-bins', 'lights-out'],
+  skehemon: ['sin-bin', 'nutmeg', 'globo', 'vibora', 'rage-quit', 'slipstream'],
+  vinnimon: [
+    'the-dive',
+    'golf-clap',
+    'fields-of-athenry',
+    'drop-goal',
+    'one-more-game',
+    'hole-in-one',
+  ],
 };
 
 export const SPORT_LEVELS = [8, 16, 25, 33, 42, 50];

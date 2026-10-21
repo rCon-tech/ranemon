@@ -5,6 +5,7 @@ import { levelStats, STAT_KEYS } from '@/lib/battle/creature';
 import { evolutionOf } from '@/lib/battle/evolutions';
 import { moveById } from '@/lib/battle/moves';
 import { ROSTER } from '@/lib/battle/roster';
+import { variantForm, variantsOf } from '@/lib/battle/variants';
 
 export const metadata = { title: 'Ranedex' };
 
@@ -34,6 +35,16 @@ export default function Ranedex() {
                 <div className="h-16 w-16 shrink-0 rounded-lg border-2 border-frame bg-mist p-1">
                   <Sprite creature={c} />
                 </div>
+                {/* Its other looks: the same Ranemon in another photo. */}
+                {variantsOf(c.id).map((v) => (
+                  <div
+                    key={v.id}
+                    className="h-16 w-16 shrink-0 rounded-lg border-2 border-frame bg-mist p-1"
+                    title={`${c.name} (${v.label})`}
+                  >
+                    <Sprite creature={variantForm(c, v.id)} />
+                  </div>
+                ))}
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="text-[11px] opacity-60">
                     No.{String(i + 1).padStart(3, '0')}

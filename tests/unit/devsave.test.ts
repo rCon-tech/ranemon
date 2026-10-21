@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MAPS } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
+import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import { devSave, isDevName, storyFlags } from '@/lib/story/devsave';
@@ -26,12 +27,23 @@ describe('the developer save', () => {
   });
 
   it('has every Ranemon and evolution, caught and in the party or Group Chat', () => {
-    const owned = [...g.party, ...g.box].map((m) => m.species).sort();
-    expect(owned).toEqual(DEX.map((c) => c.id).sort());
+    const all = [...g.party, ...g.box];
+    const usual = all.filter((m) => !m.variant).map((m) => m.species);
+    expect(usual.sort()).toEqual(DEX.map((c) => c.id).sort());
     expect(g.party).toHaveLength(6);
     expect(new Set(g.caught)).toEqual(new Set(DEX.map((c) => c.id)));
     expect(new Set(g.seen)).toEqual(new Set(DEX.map((c) => c.id)));
-    expect(new Set([...g.party, ...g.box].map((m) => m.uid)).size).toBe(DEX.length);
+    expect(new Set(all.map((m) => m.uid)).size).toBe(all.length);
+  });
+
+  it('has every other look too, beside the usual one', () => {
+    const looks = [...g.party, ...g.box]
+      .filter((m) => m.variant)
+      .map((m) => `${m.species}:${m.variant}`);
+    const expected = DEX.flatMap((c) => variantsOf(c.id).map((v) => `${c.id}:${v.id}`));
+    expect(looks.sort()).toEqual(expected.sort());
+    expect(looks).toContain('olliemon:tricolour');
+    expect(looks).toContain('hitmonollie:tricolour');
   });
 
   it('has every jersey, town, key item and story flag', () => {

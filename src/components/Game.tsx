@@ -5,6 +5,7 @@ import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import { TEAM_SIZE } from '@/lib/battle/engine';
 import { drawTeam, ROSTER } from '@/lib/battle/roster';
+import { rollVariant, variantForm } from '@/lib/battle/variants';
 import { addResult, getRecord, getServerRecord, subscribeRecord } from '@/lib/record';
 import { BattleScreen } from './BattleScreen';
 import { useMusic } from './Sound';
@@ -18,10 +19,12 @@ type Screen =
 
 const shuffle = <T,>(xs: T[]) => [...xs].sort(() => Math.random() - 0.5);
 
-/** The rival's team is drawn at random from the Ranemon you didn't pick. */
+/** The rival's team is drawn at random from the Ranemon you didn't pick, each in a random look. */
 function rivalTeam(mine: Creature[]): Creature[] {
-  const remaining = ROSTER.filter((c) => !mine.includes(c));
-  return drawTeam(shuffle(remaining), TEAM_SIZE);
+  const remaining = ROSTER.filter((c) => !mine.some((m) => m.id === c.id));
+  return drawTeam(shuffle(remaining), TEAM_SIZE).map((c) =>
+    variantForm(c, rollVariant(c.id, Math.random())),
+  );
 }
 
 export function Game() {

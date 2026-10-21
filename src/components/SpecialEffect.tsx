@@ -634,6 +634,96 @@ const SCENES: Record<string, Scene> = {
       </A>
     </>
   ),
+
+  // Three balls into the net, one after another, and the hats come raining down.
+  'hat-trick': (u, o) => (
+    <>
+      {[0, 1, 2].map((i) => (
+        <A key={i} anim="travel" delay={i * 0.25} to={between(u, off(o, (i - 1) * 6, 0))}>
+          <circle cx={u.x} cy={u.y - 4} r="3" fill="#f8f8f0" stroke={INK} strokeWidth="0.6" />
+          <circle cx={u.x} cy={u.y - 4} r="1" fill={INK} />
+        </A>
+      ))}
+      {[-12, 0, 12].map((dx, i) => (
+        <A key={i} anim="drop" delay={0.8 + i * 0.1} to={{ x: 0, y: 14 }}>
+          <path
+            d={`M${o.x + dx - 6} ${o.y - 22} h12 l-2 -1.5 v-4 h-8 v4 z`}
+            fill="#3a4050"
+            stroke={INK}
+            strokeWidth="0.5"
+          />
+          <rect x={o.x + dx - 4} y={o.y - 24.5} width="8" height="1.2" fill="#9ae0c8" />
+        </A>
+      ))}
+      <A anim="pop" delay={0.9}>
+        <Label at={up(o, 32)} text="HAT TRICK!" />
+      </A>
+    </>
+  ),
+
+  // Arms crossed, shades on, and a frosty look that takes the wind out of the foe.
+  'not-impressed': (u, o) => (
+    <>
+      <A anim="pop">
+        <rect x={u.x - 9} y={up(u, 20).y - 3} width="8" height="5" rx="1.5" fill="#2fb3b8" />
+        <rect x={u.x + 1} y={up(u, 20).y - 3} width="8" height="5" rx="1.5" fill="#2fb3b8" />
+        <rect x={u.x - 1} y={up(u, 20).y - 2} width="2" height="1" fill={INK} />
+      </A>
+      <A anim="pop" delay={0.3}>
+        <Label at={up(u, 30)} text="MEH." colour="#9ae0e8" size={6} />
+      </A>
+      {[-8, 0, 8].map((dx, i) => (
+        <A key={i} anim="travel" delay={0.5 + i * 0.1} to={between(u, off(o, dx, 0))}>
+          <polygon
+            points={star(off(u, 0, -6), 3, 1.2, 6)}
+            fill="#c8f0f8"
+            stroke={INK}
+            strokeWidth="0.4"
+          />
+        </A>
+      ))}
+      <A anim="pop" delay={1}>
+        <Label at={up(o, 26)} text="ATK DOWN" colour="#c8f0f8" size={4} />
+      </A>
+    </>
+  ),
+
+  // A stein raised high, foam spilling over, and a cheer.
+  prost: (u) => (
+    <>
+      <A anim="rise">
+        <g className="sfx sfx-wiggle sfx-repeat">
+          <rect
+            x={u.x - 5}
+            y={up(u, 22).y - 6}
+            width="10"
+            height="13"
+            rx="1"
+            fill="#f2c230"
+            stroke={INK}
+            strokeWidth="0.6"
+          />
+          <path
+            d={`M${u.x + 5} ${up(u, 22).y - 3} h3 v7 h-3`}
+            fill="none"
+            stroke={INK}
+            strokeWidth="1"
+          />
+          <circle cx={u.x - 3} cy={up(u, 22).y - 7} r="2.2" fill="#f8f8f0" />
+          <circle cx={u.x} cy={up(u, 22).y - 8} r="2.5" fill="#f8f8f0" />
+          <circle cx={u.x + 3} cy={up(u, 22).y - 7} r="2.2" fill="#f8f8f0" />
+        </g>
+      </A>
+      <A anim="pop" delay={0.3}>
+        <Label at={up(u, 36)} text="PROST!" />
+      </A>
+      {[-12, 12, -6, 8].map((dx, i) => (
+        <A key={i} anim="rise" delay={0.5 + i * 0.12}>
+          <circle cx={u.x + dx} cy={u.y} r="1.6" fill="#f8f8f0" stroke={INK} strokeWidth="0.3" />
+        </A>
+      ))}
+    </>
+  ),
 };
 
 /** An energy drink thrown in from the user's bench, for Helping Hand. */

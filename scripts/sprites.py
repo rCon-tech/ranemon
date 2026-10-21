@@ -5,6 +5,7 @@
 
 Writes, under public/sprites:
   bw/<id>.png        each Ranemon at 96 pixels, cut down to 32 colours like a handheld sprite
+                     (or, for those in HD, at 192 pixels and 64 colours from a bigger cut-out)
   bw/mini/<id>.png   a 40-pixel outlined version for the Ranemon that follows you in story mode
   evo/<id>.png       each evolved form: the same photo with a type-coloured aura and a costume
                      piece from the Pokémon it's named after (wings, spoons, a crest, ...)
@@ -38,6 +39,44 @@ TYPE_COLOUR = {
     "hype": (242, 196, 24),
 }
 
+# Looks redrawn in more detail from a bigger, full-length cut-out: (size, colours) for the battle
+# sprite, the (left, top, size) square of the cut-out the follower's head-and-shoulders mini is
+# taken from, and a touch-up for details too small to survive the cut to a palette.
+HD = {
+    "olliemon-tricolour": (192, 64, (104, 0, 176)),
+    "oismon-cap": (192, 64, (140, 0, 210)),
+    "enda-wine": (192, 64, (160, 70, 160)),
+    "carlmon-tache": (192, 64, (160, 0, 170)),
+    "conemon-curls": (192, 64, (150, 0, 210)),
+    "boydemon-rugby": (192, 64, (150, 0, 95)),
+    "steadmon-suit": (192, 64, (100, 0, 190)),
+    "gibbsmon-races": (192, 64, (90, 0, 130)),
+    "jammon-shades": (192, 64, (40, 0, 260)),
+    "killemon-thumbs": (192, 64, (50, 0, 180)),
+    "owemon-dance": (192, 64, (130, 20, 170)),
+    "robinmon-coat": (192, 64, (100, 0, 170)),
+    "simomon-linen": (192, 64, (205, 0, 170)),
+    "lorcamon-tux": (192, 64, (70, 0, 175)),
+    "thilomon-fish": (192, 64, (120, 0, 140)),
+    # Ranemon who came later, drawn in HD from the start.
+    "paulimon": (192, 64, (80, 0, 250)),
+    "skehemon": (192, 64, (60, 0, 180)),
+    "vinnimon": (192, 64, (140, 0, 170)),
+    "petchemon": (192, 64, (90, 10, 200)),
+}
+
+
+def pin(im: Image.Image) -> Image.Image:
+    """Olliemon's tricolour pin, 6 x 4 pixels on his shirt pocket, which the palette loses."""
+    d = ImageDraw.Draw(im)
+    for i, colour in enumerate(((22, 155, 98), (246, 246, 240), (255, 136, 62))):
+        d.rectangle([119 + i * 2, 126, 120 + i * 2, 129], fill=colour)
+    d.point([(119, 130), (122, 130), (124, 125)], fill=(200, 160, 72))
+    return im
+
+
+TOUCH_UP = {"olliemon-tricolour": pin}
+
 # id: (base form, first type)
 EVOLUTIONS = {
     "carlizard": ("carlmon", "hype"),
@@ -56,7 +95,30 @@ EVOLUTIONS = {
     "robinsey": ("robinmon", "charm"),
     "weezimo": ("simomon", "chill"),
     "thilotrode": ("thilomon", "chaos"),
+    "pauliwrath": ("paulimon", "hype"),
+    "skehdinja": ("skehemon", "chill"),
+    "vinnisaur": ("vinnimon", "charm"),
+    # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
+    "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
+    "hitmonois-cap": ("oismon-cap", "hype"),
+    "clefenda-wine": ("enda-wine", "charm"),
+    "carlizard-tache": ("carlmon-tache", "hype"),
+    "conix-curls": ("conemon-curls", "hype"),
+    "primeboyd-rugby": ("boydemon-rugby", "brawn"),
+    "steadakazam-suit": ("steadmon-suit", "brains"),
+    "gyaragibbs-races": ("gibbsmon-races", "brawn"),
+    "jamchamp-shades": ("jammon-shades", "chill"),
+    "killigatr-thumbs": ("killemon-thumbs", "hype"),
+    "fearowe-dance": ("owemon-dance", "brawn"),
+    "robinsey-coat": ("robinmon-coat", "charm"),
+    "weezimo-linen": ("simomon-linen", "chill"),
+    "lorchu-tux": ("lorcamon-tux", "charm"),
+    "thilotrode-fish": ("thilomon-fish", "chaos"),
 }
+
+# Where the head is, (x centre, y top, half width) on the 96-pixel canvas, for photos where
+# something held up (a glass of wine) is higher than the head and would fool head_of.
+HEADS = {"clefenda-wine": (58, 26, 14)}
 
 
 def pixelate(im: Image.Image, size: int, colours: int = COLOURS) -> Image.Image:
@@ -259,6 +321,27 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
         back.chord([4, 8, SIZE - 5, SIZE - 3], 0, 180, fill=(248, 248, 248), outline=OUTLINE)
         for x, y in ((14, 18), (SIZE - 16, 20), (10, 60)):
             bolt(d, x, y)
+    elif evo == "pauliwrath":
+        # Poliwrath's swirl on his chest and a pair of boxing gloves.
+        x, y = cx, SIZE - 14
+        for r in (11, 7, 3):
+            d.arc([x - r, y - r, x + r, y + r], 30, 330, fill=OUTLINE, width=2)
+        glove(d, 12, SIZE - 14, (72, 112, 200))
+        glove(d, SIZE - 12, SIZE - 14, (72, 112, 200))
+    elif evo == "skehdinja":
+        # Shedinja's halo over his head and its paper-thin shell wings behind.
+        d.ellipse([cx - 12, top - 10, cx + 12, top - 3], outline=(248, 216, 96), width=2)
+        wings(back, cx, top, (176, 136, 80), (232, 208, 152))
+    elif evo == "vinnisaur":
+        # Venusaur's big flower behind him, with leaves either side.
+        fx, fy = cx, top + 4
+        for i in range(6):
+            a = np.pi * (i / 6 * 2 + 1 / 6)
+            px, py = fx + np.cos(a) * 16, fy + np.sin(a) * 9
+            back.ellipse([px - 9, py - 6, px + 9, py + 6], fill=(240, 120, 152), outline=OUTLINE)
+        back.ellipse([fx - 6, fy - 4, fx + 6, fy + 4], fill=(248, 216, 96), outline=OUTLINE)
+        for s in (-1, 1):
+            poly(back, [(cx + s * 18, top + 44), (cx + s * 46, top + 30), (cx + s * 40, top + 52)], (72, 168, 88))
 
 
 def evolve(evo: str, base: str, kind: str) -> Image.Image:
@@ -269,7 +352,8 @@ def evolve(evo: str, base: str, kind: str) -> Image.Image:
     canvas.paste(body, ((SIZE - body_w) // 2, SIZE - body.height), body)
     behind = Image.new("RGBA", (SIZE, SIZE))
     front = Image.new("RGBA", (SIZE, SIZE))
-    costume(evo, ImageDraw.Draw(front), ImageDraw.Draw(behind), head_of(canvas), body_w)
+    # A look wears the same costume as its form.
+    costume(evo.split("-")[0], ImageDraw.Draw(front), ImageDraw.Draw(behind), HEADS.get(evo) or head_of(canvas), body_w)
     figure = Image.alpha_composite(behind, canvas)
     figure = outline(Image.alpha_composite(figure, front))
     out = aura(figure, TYPE_COLOUR[kind])
@@ -322,7 +406,8 @@ def legend(im: Image.Image, colours) -> Image.Image:
 def shinies() -> None:
     for d in ("bw", "evo"):
         for path in sorted((SRC / d).glob("*.png")):
-            if path.stem == "bns":
+            # B&S, Petchemon and Poseidon are never wild, so never shiny.
+            if path.stem in ("bns", "petchemon") or not (SRC / d / "mini" / path.name).exists():
                 continue
             (SRC / "shiny" / d / "mini").mkdir(parents=True, exist_ok=True)
             gild(Image.open(path), True).save(SRC / "shiny" / d / path.name)
@@ -342,11 +427,17 @@ def main() -> None:
         (SRC / d).mkdir(parents=True, exist_ok=True)
     for path in sorted(SRC.glob("*.png")):
         im = Image.open(path)
-        big = pixelate(im, SIZE)
+        mini = im
+        if path.stem in HD:
+            size, colours, (x, y, w) = HD[path.stem]
+            big = outline(TOUCH_UP.get(path.stem, lambda b: b)(pixelate(im, size, colours)))
+            mini = im.crop((x, y, x + w, y + w))
+        else:
+            big = pixelate(im, SIZE)
         if path.stem in LEGENDARY:
             big = legend(big, LEGENDARY[path.stem])
         big.save(SRC / "bw" / path.name)
-        outline(pixelate(im, 40, 28)).save(SRC / "bw/mini" / path.name)
+        outline(pixelate(mini, 40, 28)).save(SRC / "bw/mini" / path.name)
     for evo, (base, kind) in EVOLUTIONS.items():
         im = evolve(evo, base, kind)
         im.save(SRC / "evo" / f"{evo}.png")

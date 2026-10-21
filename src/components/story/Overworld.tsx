@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
+import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
@@ -55,6 +56,8 @@ export interface Props {
   follower: string | null;
   /** The follower is a shiny, so its head is the golden one. */
   followerShiny?: boolean;
+  /** The follower's look, for a Ranemon with more than one, so its head is the right photo. */
+  followerVariant?: string;
   /** Norm, Sibeal's dog, is walking behind you instead. */
   dog?: boolean;
   /** True while a text box, menu or battle intro is up: no walking. */
@@ -83,13 +86,13 @@ function sprite(key: string, make: () => HTMLCanvasElement) {
 }
 
 const heads = new Map<string, HTMLImageElement>();
-function head(species: string, shiny: boolean): HTMLImageElement {
-  const key = `${species}:${shiny}`;
+function head(species: string, shiny: boolean, variant?: string): HTMLImageElement {
+  const key = `${species}:${shiny}:${variant}`;
   let img = heads.get(key);
   if (!img) {
     img = new Image();
     // Each sprite has a 40-pixel version in mini/ beside it, drawn at half size.
-    const plain = speciesById(species).sprite ?? '';
+    const plain = variantForm(speciesById(species), variant).sprite ?? '';
     const sprite = shiny ? shinySprite(plain) : plain;
     img.src = asset(sprite.replace(/\/([^/]+)$/, '/mini/$1'));
     heads.set(key, img);
@@ -459,7 +462,7 @@ export function Overworld(props: Props) {
               24,
             );
             // The photo always faces you, as there's no back view of it.
-            const img = head(fname, !!p.followerShiny);
+            const img = head(fname, !!p.followerShiny, p.followerVariant);
             if (img.complete && img.naturalWidth) {
               c.drawImage(img, sx(fx - 2), sy(fy - 12 - hop), 20, 20);
             } else {

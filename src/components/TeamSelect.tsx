@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import { TEAM_SIZE } from '@/lib/battle/engine';
+import { CLASSIC, variantForm, variantsOf } from '@/lib/battle/variants';
 import { Sprite } from './Sprite';
 import { TypeBadge } from './TypeBadge';
 
@@ -37,13 +38,20 @@ export function TeamSelect({ roster, onReady }: Props) {
   const [picks, setPicks] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const [timeLeft, setTimeLeft] = useState(PICK_SECONDS);
+  // The look picked for each Ranemon that has more than one; none is its usual look.
+  const [looks, setLooks] = useState<Record<string, string | undefined>>({});
+  const dressed = (c: Creature) => variantForm(c, looks[c.id]);
+  const varied = roster.filter((c) => variantsOf(c.id).length > 0);
 
-  const chosen = () => picks.map((id) => roster.find((c) => c.id === id)!);
+  const chosen = () => picks.map((id) => dressed(roster.find((c) => c.id === id)!));
 
   // As in Stadium, the clock fills any empty slots at random when it runs out.
   useEffect(() => {
     if (timeLeft <= 0) {
-      const rest = roster.filter((c) => !picks.includes(c.id)).sort(() => Math.random() - 0.5);
+      const rest = roster
+        .filter((c) => !picks.includes(c.id))
+        .sort(() => Math.random() - 0.5)
+        .map(dressed);
       onReady([...chosen(), ...rest].slice(0, TEAM_SIZE), difficulty);
       return;
     }
@@ -81,7 +89,7 @@ export function TeamSelect({ roster, onReady }: Props) {
                 aria-pressed={order >= 0}
                 onClick={() => toggle(c.id)}
               >
-                <Card creature={c}>
+                <Card creature={dressed(c)}>
                   <span className="h-2.5 text-[10px]">
                     {order === 0 ? 'LEAD' : order > 0 ? `#${order + 1}` : ''}
                   </span>
@@ -91,6 +99,30 @@ export function TeamSelect({ roster, onReady }: Props) {
           })}
         </div>
       </section>
+
+      {varied.map((c) => (
+        <section key={c.id} className="dialog p-3 text-ink" aria-label={`${c.name}’s look`}>
+          <h2 className="mb-2 text-[13px]">{c.name.toUpperCase()}’S LOOK</h2>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[undefined, ...variantsOf(c.id).map((v) => v.id)].map((id) => (
+              <button
+                key={id ?? ''}
+                type="button"
+                className="pixel-btn flex flex-col items-center gap-1 px-1 py-2 text-center"
+                aria-pressed={looks[c.id] === id}
+                onClick={() => setLooks((l) => ({ ...l, [c.id]: id }))}
+              >
+                <span className="h-12 w-12">
+                  <Sprite creature={variantForm(c, id)} />
+                </span>
+                <span className="text-[10px] leading-tight">
+                  {variantsOf(c.id).find((v) => v.id === id)?.label ?? CLASSIC}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
 
       <div role="group" aria-label="Difficulty" className="grid grid-cols-3 gap-2">
         {LEVELS.map((level) => (

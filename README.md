@@ -1,6 +1,6 @@
 # Ranemon
 
-A turn-based monster-battle game in the style of the classic handhelds, where every creature is one of your friends. Battle mode: pick 6 of the 16 Ranemon, your rival gets 6 of the rest, and you fight 6v6 until one side has no creatures left. Story mode walks you from Co. Clare to Trinity College Dublin.
+A turn-based monster-battle game in the style of the classic handhelds, where every creature is one of your friends. Battle mode: pick 6 of the 19 Ranemon, your rival gets 6 of the rest, and you fight 6v6 until one side has no creatures left. Story mode walks you from Co. Clare to Trinity College Dublin.
 
 The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and milestones) is the **Ranemon V1 Game Plan** doc in the project.
 
@@ -11,11 +11,11 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
   - Six personality types (Brains, Brawn, Chaos, Chill, Charm, Hype) on a balanced chart, with 1.5x same-type bonus and dual types.
   - The main-series damage formula fixed at level 50, with crits (1 in 24) and an 85–100% roll.
   - 36 moves (6 per type), PP, accuracy, priority, and effects: statuses, stat stages (±3), recoil, healing and multi-hit. Flail kicks in when every move is out of PP.
-  - 16 special moves, one per Ranemon, that no one else can learn. Their percentage boosts stack on top of stages and wear off when the Ranemon switches out. Some swap HP, tag in a partner, or attack and then switch out.
+  - 19 special moves, one per Ranemon, that no one else can learn. Their percentage boosts stack on top of stages and wear off when the Ranemon switches out. Some swap HP, tag in a partner, or attack and then switch out.
   - Three statuses: Flustered, Hangry and Asleep.
   - A CPU at three levels. Easy picks moves at random, Normal picks the best move about half the time, and Hard always picks the best move and also switches out of bad matchups.
 - **Screens**: title screen, team select with a 90-second pick-6 from all 16, the battle screen and the Ranedex. The battle screen has info boxes, a text box, FIGHT, RANEMON and RUN, a 45-second turn timer, text that types out and can be tapped past, an animation for every move in its type's style, a scene of its own for each special move, and hit, send-out and faint animations.
-- **Roster**: the 16 lads from the Ranemon sheet (`roster.ts`), each with a pixel sprite cut from their photo and their own special move. The rival's 6 are drawn at random from the 10 you didn't pick, and Oismon and Olliemon are kept together when both are left. The sheet gives no types or stats, so those are a first pass tuned with the simulator.
+- **Roster**: the 16 lads from the Ranemon sheet plus Paulimon, Skehemon and Vinnimon (`roster.ts`), each with a pixel sprite cut from their photo and their own special move. The rival's 6 are drawn at random from the 13 you didn’t pick, and Oismon and Olliemon are kept together when both are left. The sheet gives no types or stats, so those are a first pass tuned with the simulator.
 - **Record**: your wins and losses, kept in this browser until accounts arrive.
 
 ## Story mode
@@ -23,7 +23,7 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 `/story` (STORY MODE on the title screen) is a top-down adventure from Co. Clare to Trinity College Dublin, following `docs/story-mode.md`.
 
 - **The road**: 11 maps (Clare, Limerick, Tipperary, Kilkenny, Laois, Offaly, Westmeath, Meath, Kildare, Dublin, Trinity), each with McGrattans (the pub, which heals), Vapes (the shop) and a gym. A Garda at each county line lets you through once you have that county's jersey. Every door opens into a room of its own (`src/content/story/interiors.ts`): the barman heals you across the bar, the shopkeeper sells across the counter, gym leaders wait at the end of a red carpet between two All-Ireland cups, and your house has Mam, a turf fire and a lovely Ocean Linen couch.
-- **The story**: Michael D Higgins gives you your first Ranemon (any of the 16) in Newmarket-on-Fergus, your rival from the village picks the one that beats yours, and B&S wait under the Campanile with a boss Ranemon made from their group photo.
+- **The story**: Michael D Higgins gives you your first Ranemon (any of the 19) in Newmarket-on-Fergus, your rival from the village picks the one that beats yours, and B&S wait under the Campanile with a boss Ranemon made from their group photo and Petchemon, a Ranemon only they have.
 - **Evolutions** (`src/lib/battle/evolutions.ts`): every Ranemon evolves once at Lv30, into a pun on a Gen 1 or 2 Pokémon (Conemon into Conix). The evolved form keeps its types and moves with a bigger stat budget (460 against 400). Wild and trainer Ranemon from Lv30 are already evolved, and evolved ones are harder to befriend.
 - **Rules** (`src/lib/story/`): levels 5 to 60 by the main-series stat formula (level 50 gives battle mode's numbers), EXP on an L³ curve, every Ranemon knows its special move from the start, with its other moves learnt weakest first, pints of Guinness to befriend wild Ranemon, Blue Ghosts for +1 level, a party of 6 with the rest in the Group Chat, and a save in this browser.
 - **Content** (`src/content/story/`): the maps as one character per tile, trainers, gyms and wild tables. `tests/unit/story-maps.test.ts` checks every door, person and exit can be reached, and `pnpm simulate` also plays each gym with a typical party and checks it is winnable but not a walkover.
@@ -38,8 +38,15 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 The **2D / 3D** button beside the speed button (on the map and in battles) switches to a 2.5D look, kept per browser. 2D stays the default. Only the drawing changes: maps, walking, scripts, battles and saves are the same code, and you can switch mid-game.
 
 - **Overworld** (`src/components/story/Overworld3D.tsx`, `scene3d.ts`): the map's own 2D ground art on a plane under a tilted camera, with buildings lifted into walls and pitched roofs (slate on gyms), low-poly trees that sway, tall grass standing up in blades, walls, hedges, fences and furniture as blocks wearing their tile art, the Campanile in stone, sunlight with real shadows, and the clock's dawn, evening and night. People are solid figures (`figure3d.ts`) built from their own 2D art: a head, body, arms and legs as blocks wearing the matching piece of the sprite from the front, back and sides, so they turn round, swing their arms and legs as they walk, and cast real shadows. Your follower gets a solid body in its colour under its photo head, which faces the camera as in 2D. Walking lives in `walk.ts`, shared by both looks.
-- **Battles** (`src/components/Backdrop3D.tsx`): a 3D stage per scene (fields with hills and drifting clouds, a Georgian terrace, a sports hall with spotlights, Trinity at night under the stars) behind the same sprites, info boxes and move effects, with the platforms placed under the sprites.
+- **Battles** (`src/components/Backdrop3D.tsx`): a 3D stage per scene (fields with hills and drifting clouds, a Georgian terrace, a sports hall with spotlights, Trinity at night under the stars) behind the same sprites, info boxes and move effects, with the platforms placed under the sprites. The second looks (below) stand in it as solid figures (`src/components/Solid.tsx`): the sprite blown up into a rounded body, thickest where the art is widest, with a dark rim for the outline, lit like the stage and turned toward the foe. A Ranemon or look opts in with `solid: true`.
 - **Phones**: it uses WebGL through Three.js, loaded only when 3D is picked. Where frames run slow it draws fewer pixels, then turns shadows off. Browsers without WebGL don't show the button.
+
+## Second looks
+
+Some Ranemon have a second look from another photo (`src/lib/battle/variants.ts`): Olliemon (Tricolour), Oismon (Orange Cap), Endamon (Red Wine), Carlmon (Moustache), Conemon (Curls), Boydemon (Rugby), Steadmon (Wedding Suit), Gibbsmon (Races), Jammon (Shades), Killemon (Thumbs Up), Owemon (Dance Floor), Robinmon (Long Coat), Simomon (Linen Suit), Lorcamon (Tuxedo) and Thilomon (Big Catch), and their evolutions. It's the same Ranemon, with the same name, types, stats and moves; only the picture changes. The new photos are cut at 192 pixels and 64 colours, twice the detail of the others (`HD` in `scripts/sprites.py`), with their own follower heads, shiny versions and evolved costumes.
+
+- **Battle mode**: the team screen has a picker for each one's look, and the rival's come in a random look.
+- **Story mode**: a wild one is either look, equally likely. The look is kept when you befriend it, when it evolves (the evolution scene shows it too) and in saves, and the Ranemon following you wears it. The Ranedex page shows every look.
 
 ## Sound
 

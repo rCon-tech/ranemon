@@ -24,9 +24,9 @@ test('story mode: Michael D hands over a starter in Clare', async ({ page }) => 
     await page.keyboard.press('z');
     await page.waitForTimeout(150);
   }
-  await page.getByRole('button', { name: /Enda/ }).click();
-  await page.getByRole('button', { name: 'CHOOSE ENDA' }).click();
-  await expect(text).toContainText('You chose Enda!');
+  await page.getByRole('button', { name: /Endamon/ }).click();
+  await page.getByRole('button', { name: 'CHOOSE ENDAMON' }).click();
+  await expect(text).toContainText('You chose Endamon!');
   // The rest of Michael D's lines; the game saves once he's done.
   for (let i = 0; i < 12 && (await text.count()); i++) await text.click();
   await expect(text).toHaveCount(0);
