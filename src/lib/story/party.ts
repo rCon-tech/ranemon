@@ -5,6 +5,7 @@ import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
 import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
+import { variantForm } from '../battle/variants';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
 
@@ -32,6 +33,8 @@ export interface Member {
   learned?: string[];
   /** A shiny: golden, and rare. Saves from before shinies have no field, so read it as false. */
   shiny?: boolean;
+  /** Its look, for a Ranemon with more than one (`variants.ts`). None is the usual look. */
+  variant?: string;
 }
 
 export const PARTY_SIZE = 6;
@@ -169,7 +172,7 @@ export function catchUp(m: Member): Member {
 
 /** The member as the engine sees it: the species with only the moves it knows so far. */
 export function creatureOf(m: Member): Creature {
-  const c = { ...speciesById(m.species), moves: m.moves };
+  const c = variantForm({ ...speciesById(m.species), moves: m.moves }, m.variant);
   return m.shiny ? shinyForm(c) : c;
 }
 
@@ -233,7 +236,7 @@ function evolve(m: Member, lines: string[]): Member {
   const evo = evolutionOf(m.species)!;
   const name = nameOf(m);
   const before = statsOf(m).hp;
-  // A shiny stays shiny: everything but the species carries over.
+  // A shiny stays shiny, and a look stays the same: everything but the species carries over.
   const next: Member = { ...m, species: evo.id };
   const gained = statsOf(next).hp - before;
   lines.push(`What? ${name} is evolving!`, `${name} evolved into ${nameOf(next)}!`);
@@ -271,17 +274,23 @@ const BY_NAME = new Map([...SPECIES.values()].map((c) => [c.name, c]));
 
 /**
  * The evolution a line of text announces, for the evolution scene: `done` once it has
- * happened. Null for any other line. A shiny's star in the name shows both forms shiny.
+ * happened. Null for any other line. A shiny's star in the name shows both forms shiny, and
+ * both are in the look of the party member of that line, if there is one.
  */
-export function evolutionIn(text: string): { from: Creature; to: Creature; done: boolean } | null {
+export function evolutionIn(
+  text: string,
+  party: Member[] = [],
+): { from: Creature; to: Creature; done: boolean } | null {
   const starting = /^What\? (.+) is evolving!$/.exec(text);
   const finished = /^(.+) evolved into (.+)!$/.exec(text);
   const named = (starting ?? finished)?.[1] ?? '';
   const shiny = named.startsWith(SHINY_STAR);
-  const from = BY_NAME.get(shiny ? named.slice(SHINY_STAR.length) : named);
-  const evo = from && evolutionOf(from.id);
-  if (!from || !evo) return null;
-  const to = speciesById(evo.id);
+  const base = BY_NAME.get(shiny ? named.slice(SHINY_STAR.length) : named);
+  const evo = base && evolutionOf(base.id);
+  if (!base || !evo) return null;
+  const variant = party.find((m) => m.species === base.id || m.species === evo.id)?.variant;
+  const from = variantForm(base, variant);
+  const to = variantForm(speciesById(evo.id), variant);
   return shiny
     ? { from: shinyForm(from), to: shinyForm(to), done: !!finished }
     : { from, to, done: !!finished };

@@ -192,6 +192,7 @@ export function settleBattle(
       hp: foe.hp,
       status: foe.status,
       ...(foe.creature.shiny ? { shiny: true } : {}),
+      ...(foe.creature.variant ? { variant: foe.creature.variant } : {}),
     });
     state = joined.state;
     if (joined.line) lines.push(joined.line);

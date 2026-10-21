@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { asset } from '@/lib/asset';
+import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
@@ -49,12 +50,12 @@ function headTexture(img: HTMLImageElement) {
 }
 
 const heads = new Map<string, HTMLImageElement>();
-function head(species: string, shiny: boolean): HTMLImageElement {
-  const key = `${species}:${shiny}`;
+function head(species: string, shiny: boolean, variant?: string): HTMLImageElement {
+  const key = `${species}:${shiny}:${variant}`;
   let img = heads.get(key);
   if (!img) {
     img = new Image();
-    const plain = speciesById(species).sprite ?? '';
+    const plain = variantForm(speciesById(species), variant).sprite ?? '';
     img.src = asset((shiny ? shinySprite(plain) : plain).replace(/\/([^/]+)$/, '/mini/$1'));
     heads.set(key, img);
   }
@@ -407,7 +408,7 @@ export default function Overworld3D(props: Props) {
           normBlob.rotation.y = fdir === 'left' || fdir === 'right' ? Math.PI / 2 : 0;
           norm.group.visible = normBlob.visible = true;
         } else {
-          const img = head(p.follower, !!p.followerShiny);
+          const img = head(p.follower, !!p.followerShiny, p.followerVariant);
           const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
           if (img.complete && img.naturalWidth) {
             person(

@@ -12,10 +12,11 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-21',
-    title: 'A new look for Olliemon',
+    title: 'New looks',
     notes: [
-      'Olliemon has a brand new photo, drawn in twice the detail of before.',
-      'In the 3D look he stands in battle as a solid, rounded figure instead of a flat picture.',
+      'Some Ranemon now have a second look, from a brand new photo drawn in twice the detail. Pick which one you want on the team screen, or keep an eye out in the long grass.',
+      'In the 3D look the new ones stand in battle as solid, rounded figures instead of flat pictures.',
+      'Enda is now called Endamon, like everyone else.',
     ],
   },
   {

@@ -39,11 +39,16 @@ TYPE_COLOUR = {
     "hype": (242, 196, 24),
 }
 
-# Ranemon redrawn in more detail from a bigger, full-length cut-out: (size, colours) for the battle
+# Looks redrawn in more detail from a bigger, full-length cut-out: (size, colours) for the battle
 # sprite, the (left, top, size) square of the cut-out the follower's head-and-shoulders mini is
 # taken from, and a touch-up for details too small to survive the cut to a palette.
 HD = {
-    "olliemon": (192, 64, (104, 0, 176)),
+    "olliemon-tricolour": (192, 64, (104, 0, 176)),
+    "oismon-cap": (192, 64, (140, 0, 210)),
+    "enda-wine": (192, 64, (160, 70, 160)),
+    "carlmon-tache": (192, 64, (160, 0, 170)),
+    "conemon-curls": (192, 64, (150, 0, 210)),
+    "boydemon-rugby": (192, 64, (150, 0, 95)),
 }
 
 
@@ -56,7 +61,7 @@ def pin(im: Image.Image) -> Image.Image:
     return im
 
 
-TOUCH_UP = {"olliemon": pin}
+TOUCH_UP = {"olliemon-tricolour": pin}
 
 # id: (base form, first type)
 EVOLUTIONS = {
@@ -76,7 +81,18 @@ EVOLUTIONS = {
     "robinsey": ("robinmon", "charm"),
     "weezimo": ("simomon", "chill"),
     "thilotrode": ("thilomon", "chaos"),
+    # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
+    "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
+    "hitmonois-cap": ("oismon-cap", "hype"),
+    "clefenda-wine": ("enda-wine", "charm"),
+    "carlizard-tache": ("carlmon-tache", "hype"),
+    "conix-curls": ("conemon-curls", "hype"),
+    "primeboyd-rugby": ("boydemon-rugby", "brawn"),
 }
+
+# Where the head is, (x centre, y top, half width) on the 96-pixel canvas, for photos where
+# something held up (a glass of wine) is higher than the head and would fool head_of.
+HEADS = {"clefenda-wine": (58, 26, 14)}
 
 
 def pixelate(im: Image.Image, size: int, colours: int = COLOURS) -> Image.Image:
@@ -289,7 +305,8 @@ def evolve(evo: str, base: str, kind: str) -> Image.Image:
     canvas.paste(body, ((SIZE - body_w) // 2, SIZE - body.height), body)
     behind = Image.new("RGBA", (SIZE, SIZE))
     front = Image.new("RGBA", (SIZE, SIZE))
-    costume(evo, ImageDraw.Draw(front), ImageDraw.Draw(behind), head_of(canvas), body_w)
+    # A look wears the same costume as its form.
+    costume(evo.split("-")[0], ImageDraw.Draw(front), ImageDraw.Draw(behind), HEADS.get(evo) or head_of(canvas), body_w)
     figure = Image.alpha_composite(behind, canvas)
     figure = outline(Image.alpha_composite(figure, front))
     out = aura(figure, TYPE_COLOUR[kind])

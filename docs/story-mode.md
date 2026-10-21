@@ -66,10 +66,10 @@ The route is Clare → Limerick → Tipperary → Kilkenny → Laois → Offaly 
 | 1     | Clare     | Ennis: a trad session in the back of a pub            | Nóra, concertina player                 | Chill            | Simomon 10, Jammon 12                                       | Clare jersey; Cup of Tea x3                        |
 | 2     | Limerick  | Thomond Park: a rugby scrum gym                       | Big Donncha, tighthead prop             | Brawn            | Olliemon 14, Boydemon 16                                    | Limerick jersey; High Nelly bike                   |
 | 3     | Tipperary | Thurles: Semple Stadium, home of the GAA              | Saoirse, blue hair, very online liberal | Mixed            | Jammon 18, Steadmon 18, Conemon 20                          | Tipperary jersey. The door needs HM Neurodivergent |
-| 4     | Kilkenny  | Kilkenny Castle during the Cat Laughs comedy festival | Aoife, stand-up comic                   | Charm            | Enda 22, Robinmon 22, Lorcamon 24                           | Kilkenny jersey; The Round (EXP share)             |
+| 4     | Kilkenny  | Kilkenny Castle during the Cat Laughs comedy festival | Aoife, stand-up comic                   | Charm            | Endamon 22, Robinmon 22, Lorcamon 24                        | Kilkenny jersey; The Round (EXP share)             |
 | 5     | Laois     | Stradbally: the Electric Picnic main stage            | DJ Stradbally                           | Chaos            | Hugomon 26, Thilomon 26, Boydemon 28                        | Laois jersey; Currach (cross rivers and loughs)    |
 | 6     | Offaly    | Clonmacnoise: a monastery scriptorium                 | Brother Ciarán                          | Brains           | Steadmon 30, Simomon 31, Hugomon 32                         | Offaly jersey; Ordnance Survey map (fast travel)   |
-| 7     | Westmeath | Mullingar: a pop star's homecoming gig                | Niamh, the frontwoman                   | Charm and Hype   | Robinmon 34, Carlmon 34, Enda 35, Conemon 36                | Westmeath jersey; Hi-Vis Vest x5                   |
+| 7     | Westmeath | Mullingar: a pop star's homecoming gig                | Niamh, the frontwoman                   | Charm and Hype   | Robinmon 34, Carlmon 34, Endamon 35, Conemon 36             | Westmeath jersey; Hi-Vis Vest x5                   |
 | 8     | Meath     | Newgrange at the winter solstice                      | The Keeper of Brú na Bóinne             | Brains and Chill | Jammon 38, Simomon 38, Hugomon 39, Steadmon 40              | Meath jersey; Blue Ghost x2                        |
 | 9     | Kildare   | The Curragh army camp                                 | Commandant Dee                          | Brawn            | Oismon 39, Olliemon 39, Boydemon 40, Owemon 41, Gibbsmon 44 | Kildare jersey; entry to Dublin                    |
 | Final | Dublin    | Trinity College: Long Room, then the Campanile        | 3 scholars, then B&S                    | Mixed            | Scholars 3 each at 46 to 48; B&S 6 at 50 to 55              | Champions of Ireland                               |
@@ -152,14 +152,14 @@ Every one of the 16 can be caught on the main route, each in a place that suits 
 
 | County    | Wild levels | Encounters (chance per encounter)                    | Easter egg                                                                      |
 | --------- | ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Clare     | 2–6         | Enda 35%, Lorcamon 30%, Simomon 25%, Owemon 10%      | Owemon only on the Shannon Airport apron: US military planes refuel there       |
+| Clare     | 2–6         | Endamon 35%, Lorcamon 30%, Simomon 25%, Owemon 10%   | Owemon only on the Shannon Airport apron: US military planes refuel there       |
 | Limerick  | 7–11        | Jammon 35%, Boydemon 25%, Lorcamon 25%, Hugomon 15%  | Boydemon trains at a boxing club by the Treaty Stone                            |
 | Tipperary | 11–15       | Carlmon 40%, Conemon 35%, Killemon 25%               | Conemon trains too hard on the Semple pitch, alone, after everyone's gone       |
-| Kilkenny  | 15–19       | Enda 40%, Robinmon 35%, Steadmon 25%                 | Robinmon filming content on the castle lawn                                     |
+| Kilkenny  | 15–19       | Endamon 40%, Robinmon 35%, Steadmon 25%              | Robinmon filming content on the castle lawn                                     |
 | Laois     | 19–23       | Killemon 35%, Thilomon 25%, Oismon 20%, Olliemon 20% | Thilomon plays B2B in the dance tent; Oismon and Olliemon only appear backstage |
 | Offaly    | 23–27       | Simomon 40%, Steadmon 35%, Hugomon 25%               | Simomon "blazing up" in a quiet corner of the bog                               |
 | Westmeath | 27–31       | Lorcamon 30%, Carlmon 25%, Robinmon 25%, Conemon 20% | Lorcamon at Sean's Bar gives you a Guinness 0.0                                 |
-| Meath     | 31–35       | Steadmon 30%, Jammon 30%, Simomon 25%, Enda 15%      | Jammon demanding a refund at the Navan shop counter                             |
+| Meath     | 31–35       | Steadmon 30%, Jammon 30%, Simomon 25%, Endamon 15%   | Jammon demanding a refund at the Navan shop counter                             |
 | Kildare   | 35–39       | Owemon 40%, Boydemon 40%, Gibbsmon 20%               | Gibbsmon is first found at the Curragh camp, calling in bombers                 |
 | Dublin    | 40–46       | All 16, 4–8% each; Gibbsmon and Thilomon 3%          | Steadmon in a Ranelads.com internet café off Dame Street                        |
 

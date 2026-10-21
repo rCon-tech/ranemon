@@ -2,6 +2,7 @@ import { INTERIORS, MAPS, mapById } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
+import { variantsOf } from '../battle/variants';
 import { ITEMS } from './items';
 import { HM, CERT, TABLET, TABLET_TAKEN } from './keys';
 import { NORM } from './norm';
@@ -54,7 +55,10 @@ export function storyFlags(): string[] {
   return [...found];
 }
 
-/** The whole Ranedex as Ranemon of your own: evolved forms first, then base forms, then the legend. */
+/**
+ * The whole Ranedex as Ranemon of your own: evolved forms first, then base forms, then the
+ * legend, then the other looks of those that have them.
+ */
 function everyone(): Member[] {
   let uid = 1;
   const evolved = new Set(DEX.map((c) => evolutionOf(c.id)?.id).filter(Boolean));
@@ -70,6 +74,10 @@ function everyone(): Member[] {
     members.push(makeMember(c.id, evo ? evo.level - 1 : DEV_LEVEL, uid++));
   }
   members.push(makeMember(LEGEND.id, LEGEND_LEVEL, uid++));
+  // And every other look, of every form that has one, at the same level as the usual look.
+  for (const m of [...members])
+    for (const v of variantsOf(m.species))
+      members.push({ ...makeMember(m.species, m.level, uid++), variant: v.id });
   return members;
 }
 

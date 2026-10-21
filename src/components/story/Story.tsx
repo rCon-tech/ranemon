@@ -43,6 +43,7 @@ import {
   swapMove,
   speciesById,
   toEntrant,
+  type Member,
 } from '@/lib/story/party';
 import {
   beatFlag,
@@ -95,6 +96,7 @@ import type { Result } from '@/lib/ui/session';
 import { LIMEPASS, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
+import { rollVariant } from '@/lib/battle/variants';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
 
@@ -178,9 +180,12 @@ const challenge = (trainer: string): Run[] => [
   { do: 'battle', trainer },
 ];
 
-/** While the text announces an evolution: the two forms trading places in a white glow. */
-function EvolutionScene({ text }: { text: string }) {
-  const evo = evolutionIn(text);
+/**
+ * While the text announces an evolution: the two forms trading places in a white glow, in the
+ * look of the party member it's about.
+ */
+function EvolutionScene({ text, party }: { text: string; party: Member[] }) {
+  const evo = evolutionIn(text, party);
   if (!evo) return null;
   return (
     <div
@@ -362,6 +367,7 @@ export function Story() {
           }
           case 'wild': {
             const shiny = rollShiny(Math.random());
+            const variant = rollVariant(s.species, Math.random());
             g = see(g, s.species);
             setGame(g);
             setQueue(q);
@@ -369,7 +375,7 @@ export function Story() {
             setFight({
               teams: [
                 g.party.map(toEntrant),
-                [toEntrant({ ...makeMember(s.species, s.level, -1), ...(shiny ? { shiny } : {}) })],
+                [toEntrant({ ...makeMember(s.species, s.level, -1), shiny, variant })],
               ],
               foe: { kind: 'wild' },
               ai: 'hard',
@@ -501,6 +507,7 @@ export function Story() {
       const { level } = wild;
       const species = formAt(wild.species, level);
       const shiny = rollShiny(Math.random());
+      const variant = rollVariant(species, Math.random());
       g = see(g, species);
       setGame(g);
       playSfx('encounter');
@@ -510,7 +517,7 @@ export function Story() {
         setFight({
           teams: [
             g.party.map(toEntrant),
-            [toEntrant({ ...makeMember(species, level, -1), ...(shiny ? { shiny } : {}) })],
+            [toEntrant({ ...makeMember(species, level, -1), shiny, variant })],
           ],
           foe: { kind: 'wild' },
           ai: 'easy',
@@ -988,6 +995,7 @@ export function Story() {
           flags={flags}
           follower={norm ? null : (walker?.species ?? null)}
           followerShiny={!!walker?.shiny}
+          followerVariant={walker?.variant}
           dog={norm}
           frozen={busy}
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
@@ -1019,7 +1027,7 @@ export function Story() {
         {flash && (
           <div className={`encounter-flash absolute inset-0 ${flash === 'shiny' ? 'shiny' : ''}`} />
         )}
-        {line && <EvolutionScene text={line.text} />}
+        {line && <EvolutionScene text={line.text} party={game.party} />}
         {line && (
           <button
             type="button"
