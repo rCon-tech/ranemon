@@ -12,6 +12,7 @@ import { interiorId } from '@/content/story/interiors';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
+import { LEGEND } from '@/lib/battle/legend';
 import type { BattleState, Entrant } from '@/lib/battle/engine';
 import { flushOnline, hasCloudSaves, loadOnline, saveOnline } from '@/lib/story/cloud';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
@@ -159,9 +160,9 @@ function EvolutionScene({ text }: { text: string }) {
   );
 }
 
-/** The battlefield's backdrop: B&S at night, gyms indoors, Dublin's streets, or the fields. */
-function sceneOf(map: GameMap, trainer: string | null): Scene {
-  if (trainer?.startsWith('bns')) return 'night';
+/** The battlefield's backdrop: B&S and the legend at night, gyms indoors, Dublin's streets, or the fields. */
+function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
+  if (trainer?.startsWith('bns') || foe === LEGEND.id) return 'night';
   if (trainer && map.gym?.trainer === trainer) return 'gym';
   const outside = outsideOf(map).id;
   if (outside === 'dublin' || outside === 'trinity') return 'city';
@@ -269,6 +270,24 @@ export function Story() {
             setLine(null);
             setOverlay(s.do === 'offer-chat' ? 'offer-chat' : s.do === 'shop' ? 'shop' : s.do);
             return;
+          case 'wild': {
+            const shiny = rollShiny(Math.random());
+            g = see(g, s.species);
+            setGame(g);
+            setQueue(q);
+            setLine(null);
+            setFight({
+              teams: [
+                g.party.map(toEntrant),
+                [toEntrant({ ...makeMember(s.species, s.level, -1), ...(shiny ? { shiny } : {}) })],
+              ],
+              foe: { kind: 'wild' },
+              ai: 'hard',
+              trainer: null,
+              key: Date.now(),
+            });
+            return;
+          }
           case 'battle': {
             const t = trainerById(s.trainer);
             const team = teamOf(t, g.starter).map(([id, level], i) =>
@@ -451,14 +470,20 @@ export function Story() {
   /** Through a door: into the room behind it, facing in. */
   function goInside(map: GameMap, x: number, y: number, kind: string) {
     if (!game) return;
-    const lock = kind === 'G' ? map.gym?.lock : undefined;
+    const lock =
+      kind === 'G'
+        ? map.gym?.lock
+        : kind === 'L'
+          ? map.landmarkLocks?.[doorIndex(map, x, y)]
+          : undefined;
     if (lock && !hasFlag(game, lock.flag)) return run(game, [{ do: 'say', text: lock.locked }]);
     const room = mapById(interiorId(map.id, kind, doorIndex(map, x, y)));
     let g: StoryState = { ...game, map: room.id, ...marker(room, '@'), face: 'up' };
     const steps: Run[] = [...(room.arrive ?? [])];
     // The first time through a locked door, say how it opened.
-    if (lock && !hasFlag(g, `unlocked:${map.id}`)) {
-      g = setFlag(g, `unlocked:${map.id}`);
+    const opened = `unlocked:${room.id}`;
+    if (lock && !hasFlag(g, opened)) {
+      g = setFlag(g, opened);
       steps.unshift({ do: 'say', text: lock.opened });
     }
     run(g, steps);
@@ -564,6 +589,8 @@ export function Story() {
     }
     const settled = settleBattle(game, state, result, fought, trainer !== null);
     let g = settled.state;
+    // Scripts ask whether a particular Ranemon was befriended, such as the legend.
+    if (result === 'caught') g = setFlag(g, `caught:${fight.teams[1][0].creature.id}`);
     const steps: Run[] = [];
     if (result === 'win' && trainer) {
       g = { ...g, money: g.money + trainer.prize };
@@ -716,7 +743,7 @@ export function Story() {
         teams={fight.teams}
         difficulty={fight.ai}
         foe={fight.foe}
-        scene={sceneOf(mapById(game.map), fight.trainer)}
+        scene={sceneOf(mapById(game.map), fight.trainer, fight.teams[1][0].creature.id)}
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,

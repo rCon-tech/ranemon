@@ -204,6 +204,10 @@ export default function Guide() {
             team levels up together. Turn it off to train one Ranemon at a time.
           </li>
           <li>
+            <b>Legends</b>: the locals in Dublin tell an old story about a Ranemon nobody has seen
+            in years. Some say it was never real. Listen to them, and you might find out.
+          </li>
+          <li>
             <b>Your rival</b> is Margaret Thatcher, who picks the Ranemon that beats yours and turns
             up all along the road. Don’t let her win.
           </li>

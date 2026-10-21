@@ -29,6 +29,13 @@ import {
   variantAt,
 } from './tiles';
 
+/** The overworld canvas draws at 4 device pixels per world pixel, so people show their detail. */
+const SCREEN_RES = 4;
+
+/** The pose frame for a step `t` of the way through: frames 1-4 lead with the left foot, 5-8 the right. */
+const stepPose = (t: number, step: number) =>
+  (step % 2 ? 4 : 0) + (t < 0.25 ? 1 : t < 0.6 ? 2 : t < 0.85 ? 3 : 4);
+
 /** The original handheld's screen: 10 × 9 tiles. */
 export const SCREEN_W = 160;
 export const SCREEN_H = 144;
@@ -257,7 +264,7 @@ export function Overworld(props: Props) {
       const w = walk.current;
       const map = p.map;
       const light = daylight(new Date());
-      c.setTransform(RES, 0, 0, RES, 0, 0);
+      c.setTransform(SCREEN_RES, 0, 0, SCREEN_RES, 0, 0);
       c.imageSmoothingEnabled = false;
       const t = w.from ? Math.min(1, (now - w.t0) / w.dur) : 1;
       const lerp = (a: number, b: number) => a + (b - a) * t;
@@ -267,7 +274,7 @@ export function Overworld(props: Props) {
       const mapH = map.rows.length * TILE;
       const clamp = (v: number, size: number, screen: number) =>
         size <= screen ? (size - screen) / 2 : Math.max(0, Math.min(size - screen, v));
-      // Half-pixel camera steps: the screen has twice the world's resolution.
+      // Half-pixel camera steps, matching the tile art's resolution.
       const snap = (v: number) => Math.round(v * RES) / RES;
       const camX = snap(clamp(px + 8 - SCREEN_W / 2, mapW, SCREEN_W));
       const camY = snap(clamp(py + 8 - SCREEN_H / 2, mapH, SCREEN_H));
@@ -477,7 +484,7 @@ export function Overworld(props: Props) {
         const img = head(p.follower, !!p.followerShiny);
         // A shiny's body is gold to match its head.
         const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
-        const frame = moving && t < 0.5 ? (w.frame % 2 ? 3 : 1) : 0;
+        const frame = moving ? stepPose(t, w.frame) : 0;
         drawn.push({
           y: fy,
           paint: () => {
@@ -505,8 +512,8 @@ export function Overworld(props: Props) {
         });
       }
 
-      // Each step shows a foot forward for its first half, alternating feet, with a small bob.
-      const stepFrame = w.from && t < 0.5 ? (w.frame % 2 ? 1 : 3) : 0;
+      // Each step passes, plants a foot, passes back and stands, alternating feet.
+      const stepFrame = w.from ? stepPose(t, w.frame) : 0;
       person(
         'player',
         STYLES.player,
@@ -514,7 +521,7 @@ export function Overworld(props: Props) {
         stepFrame,
         px,
         py,
-        w.from ? (stepFrame ? 0.5 : 0) : idle(0),
+        w.from ? (stepFrame % 2 ? 0.5 : 0) : idle(0),
       );
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
@@ -609,8 +616,8 @@ export function Overworld(props: Props) {
   return (
     <canvas
       ref={canvas}
-      width={SCREEN_W * RES}
-      height={SCREEN_H * RES}
+      width={SCREEN_W * SCREEN_RES}
+      height={SCREEN_H * SCREEN_RES}
       className="block h-auto w-full [image-rendering:pixelated]"
       data-testid="overworld"
       data-x={props.pos.x}
