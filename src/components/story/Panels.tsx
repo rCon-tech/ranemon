@@ -278,7 +278,7 @@ export function BagPanel({
           key={i.id}
           type="button"
           className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
-          disabled={i.use.kind === 'pint'}
+          disabled={i.use.kind === 'pint' || i.use.kind === 'vape'}
           onClick={() => setPick(i.id)}
         >
           <span className="flex justify-between text-[11px]">
@@ -287,7 +287,11 @@ export function BagPanel({
           </span>
           <span className="text-[8px] leading-relaxed">
             {i.about}
-            {i.use.kind === 'pint' ? ' Use it in a wild battle.' : ''}
+            {i.use.kind === 'pint'
+              ? ' Use it in a wild battle.'
+              : i.use.kind === 'vape'
+                ? ' Use it in a battle.'
+                : ''}
           </span>
         </button>
       ))}

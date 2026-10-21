@@ -172,7 +172,7 @@ The target is that a player who catches as they go, without grinding, arrives at
 
 ## Items
 
-Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at Vapes, the corner shop in each town. Items used in battle take your turn, like a switch.
+Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at Vapes, the corner shop in each town. Items used in battle take your turn, like a switch. Vapes only work in battle: each raises one stat of the Ranemon that's out by a stage (up to +3), and it wears off when the battle ends or it switches out.
 
 | Item                | Kind   | Effect                                                      | Where                         | Price    |
 | ------------------- | ------ | ----------------------------------------------------------- | ----------------------------- | -------- |
@@ -193,6 +193,10 @@ Money is euro, won from trainers (leader's ace level × €40, route trainers ×
 | Club Orange         | PP     | +10 PP to one move                                          | Shops from Offaly             | €1,000   |
 | Hi-Vis Vest         | Field  | No weaker wild encounters for 200 steps                     | Shops from Limerick           | €350     |
 | Taxi Home           | Field  | Back to the last pub                                        | Every shop                    | €550     |
+| Watermelon Ice      | Vape   | Defense +1 stage in battle, on the Ranemon that's out       | Shops from Limerick           | €500     |
+| Blue Razz           | Vape   | Speed +1 stage in battle                                    | Shops from Limerick           | €500     |
+| Cherry Cola         | Vape   | Attack +1 stage in battle                                   | Shops from Limerick           | €500     |
+| Mango Tango         | Vape   | Spirit +1 stage in battle                                   | Shops from Limerick           | €500     |
 
 **Key items** (never used up): Ranedex, Group Chat (storage, at pubs), High Nelly bike (double speed), Wellies (bog roads), The Round (EXP share), Currach (water), Ordnance Survey map (fly to any visited pub), and the 9 county jerseys shown on the trainer card. **Pubs** (every one is called McGrattans) do what Pokémon Centres do: the barman heals the party for free and the Group Chat is on the wall.
 

@@ -1,5 +1,6 @@
 import { MAX_LEVEL } from '../battle/creature';
-import type { Status } from '../battle/moves';
+import { MAX_STAGE } from '../battle/engine';
+import type { Stat, Status } from '../battle/moves';
 import type { ItemEffect, Pint } from '../ui/session';
 import { statsOf, type Member } from './party';
 
@@ -15,13 +16,19 @@ export type ItemId =
   | 'curry-chips'
   | 'monster'
   | 'hair-of-the-dog'
-  | 'blue-ghost';
+  | 'blue-ghost'
+  | 'watermelon-ice'
+  | 'blue-razz'
+  | 'cherry-cola'
+  | 'mango-tango';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
-  | { kind: 'heal'; effect: ItemEffect }
+  | { kind: 'heal'; effect: Exclude<ItemEffect, { kind: 'boost' }> }
   /** A Blue Ghost: +1 level, used outside battle only. */
-  | { kind: 'level' };
+  | { kind: 'level' }
+  /** A vape: raises a stat of the Ranemon that's out, in battle only, until the battle ends. */
+  | { kind: 'vape'; effect: Extract<ItemEffect, { kind: 'boost' }> };
 
 export interface Item {
   id: ItemId;
@@ -131,6 +138,39 @@ export const ITEMS: Item[] = [
     from: 9,
     use: { kind: 'level' },
   },
+  // Vapes, from the Vapes shop: one stat up a stage in battle, for the Ranemon that's out.
+  {
+    id: 'watermelon-ice',
+    name: 'Watermelon Ice',
+    about: 'Ice cold. Raises DEFENSE in battle. Nothing gets to it now.',
+    price: 500,
+    from: 1,
+    use: { kind: 'vape', effect: { kind: 'boost', stat: 'defense', stages: 1 } },
+  },
+  {
+    id: 'blue-razz',
+    name: 'Blue Razz',
+    about: 'Pure sugar and noise. Raises SPEED in battle.',
+    price: 500,
+    from: 1,
+    use: { kind: 'vape', effect: { kind: 'boost', stat: 'speed', stages: 1 } },
+  },
+  {
+    id: 'cherry-cola',
+    name: 'Cherry Cola',
+    about: 'Fizzing for a fight. Raises ATTACK in battle.',
+    price: 500,
+    from: 1,
+    use: { kind: 'vape', effect: { kind: 'boost', stat: 'attack', stages: 1 } },
+  },
+  {
+    id: 'mango-tango',
+    name: 'Mango Tango',
+    about: 'Smells like a summer in Salthill. Raises SPIRIT in battle.',
+    price: 500,
+    from: 1,
+    use: { kind: 'vape', effect: { kind: 'boost', stat: 'spirit', stages: 1 } },
+  },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
@@ -146,12 +186,17 @@ export interface Target {
   maxHp: number;
   status: Status | null;
   level: number;
+  /** In battle: whether it's the one out, and its stat stages. Vapes need both. */
+  active?: boolean;
+  stages?: Record<Stat, number>;
 }
 
 /** Whether an item would do anything for this Ranemon right now. */
 export function canUse(use: ItemUse, t: Target): boolean {
   if (use.kind === 'level') return t.level < MAX_LEVEL;
   if (use.kind === 'pint') return false;
+  if (use.kind === 'vape')
+    return !!t.active && !!t.stages && t.hp > 0 && t.stages[use.effect.stat] < MAX_STAGE;
   const e = use.effect;
   switch (e.kind) {
     case 'heal':

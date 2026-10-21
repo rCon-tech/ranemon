@@ -173,6 +173,9 @@ export function activeBattler(state: BattleState, side: Side): Battler {
 
 const other = (side: Side): Side => (side === 0 ? 1 : 0);
 
+/** Stat stages run from −3 to +3. */
+export const MAX_STAGE = 3;
+
 /** Each stage is ±50%: +1 is 1.5x, +3 is 2.5x, −1 is 1/1.5, −3 is 1/2.5. */
 export function stageMultiplier(stage: number): number {
   return stage >= 0 ? 1 + stage / 2 : 1 / (1 - stage / 2);
@@ -373,7 +376,7 @@ class Turn {
         if (target.hp === 0) break;
         if (effect.chance < 1 && !this.rng.chance(effect.chance)) break;
         const before = target.stages[effect.stat];
-        const after = Math.max(-3, Math.min(3, before + effect.stages));
+        const after = Math.max(-MAX_STAGE, Math.min(MAX_STAGE, before + effect.stages));
         if (after === before) {
           this.events.push({
             kind: 'stat-limit',

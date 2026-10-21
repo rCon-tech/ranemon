@@ -188,7 +188,8 @@ export default function Guide() {
           </li>
           <li>
             <b>Vapes</b> is the shop. It sells pints, healing items and more, with better stock
-            further along the road.
+            further along the road. It sells vapes too: use one in battle to raise a stat of the
+            Ranemon that’s out, like Watermelon Ice for DEFENSE. They wear off after the battle.
           </li>
           <li>
             <b>Gyms</b>: beat each county’s gym leader for the county jersey. The Garda at the
