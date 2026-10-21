@@ -185,3 +185,28 @@ test('story mode: the old man’s HM opens the Semple Stadium gym', async ({ pag
   await expect(world).toHaveAttribute('aria-label', /Semple Stadium gym/);
   await expect(text).toContainText('You used HM NEURODIVERGENT!');
 });
+
+test('story mode: the Town Map opens from START and from the place name', async ({ page }) => {
+  await unlock(page);
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Mapper');
+  await page.getByRole('button', { name: 'NEW GAME' }).click();
+  const text = page.getByTestId('story-text');
+  for (let i = 0; i < 6 && (await text.count()); i++) await text.click();
+  await expect(text).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'MAP', exact: true }).click();
+  await expect(page.getByTestId('town-map')).toBeVisible();
+  await expect(page.getByTestId('stop-clare')).toHaveAttribute('data-visited', 'true');
+  await expect(page.getByTestId('stop-dublin')).toHaveAttribute('data-visited', 'false');
+  await expect(page.getByTestId('town-info')).toContainText('Newmarket-on-Fergus (you)');
+  await page.getByRole('button', { name: 'Next town' }).click();
+  await expect(page.getByTestId('town-info')).toContainText('Limerick City');
+  await expect(page.getByTestId('town-info')).toContainText('Not visited yet');
+  await page.getByRole('button', { name: 'BACK' }).click();
+  await expect(page.getByTestId('town-map')).toHaveCount(0);
+
+  await page.getByTestId('place').click();
+  await expect(page.getByTestId('town-map')).toBeVisible();
+});
