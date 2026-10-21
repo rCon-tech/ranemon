@@ -31,6 +31,7 @@ const DANCE = 'dance';
 const COAT = 'coat';
 const LINEN = 'linen';
 const TUX = 'tux';
+const FISH = 'fish';
 
 export const VARIANTS: Record<string, Variant[]> = {
   // Olliemon in a green shirt with a tricolour pin, at twice the detail of the other sprites.
@@ -96,6 +97,11 @@ export const VARIANTS: Record<string, Variant[]> = {
   // Lorcamon laughing in a tuxedo and bow tie, also in HD.
   lorcamon: [{ id: TUX, label: 'Tuxedo', sprite: '/sprites/bw/lorcamon-tux.png', solid: true }],
   lorchu: [{ id: TUX, label: 'Tuxedo', sprite: '/sprites/evo/lorchu-tux.png' }],
+  // Thilomon on a boat, holding up a huge cod, also in HD.
+  thilomon: [
+    { id: FISH, label: 'Big Catch', sprite: '/sprites/bw/thilomon-fish.png', solid: true },
+  ],
+  thilotrode: [{ id: FISH, label: 'Big Catch', sprite: '/sprites/evo/thilotrode-fish.png' }],
 };
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];

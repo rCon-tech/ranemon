@@ -9,7 +9,7 @@ import { parseSave } from '@/lib/story/save';
 import { newGame, recruit } from '@/lib/story/state';
 
 describe('variants', () => {
-  it('give fourteen of the lads a second look, through their evolutions', () => {
+  it('give fifteen of the lads a second look, through their evolutions', () => {
     expect(variantsOf('olliemon').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('hitmonollie').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('oismon').map((v) => v.id)).toEqual(['cap']);
@@ -38,6 +38,8 @@ describe('variants', () => {
     expect(variantsOf('weezimo').map((v) => v.id)).toEqual(['linen']);
     expect(variantsOf('lorcamon').map((v) => v.id)).toEqual(['tux']);
     expect(variantsOf('lorchu').map((v) => v.id)).toEqual(['tux']);
+    expect(variantsOf('thilomon').map((v) => v.id)).toEqual(['fish']);
+    expect(variantsOf('thilotrode').map((v) => v.id)).toEqual(['fish']);
     expect(variantsOf('hugomon')).toEqual([]);
   });
 

@@ -57,6 +57,7 @@ HD = {
     "robinmon-coat": (192, 64, (100, 0, 170)),
     "simomon-linen": (192, 64, (205, 0, 170)),
     "lorcamon-tux": (192, 64, (70, 0, 175)),
+    "thilomon-fish": (192, 64, (120, 0, 140)),
     # Ranemon who came later, drawn in HD from the start.
     "paulimon": (192, 64, (80, 0, 250)),
     "skehemon": (192, 64, (60, 0, 180)),
@@ -112,6 +113,7 @@ EVOLUTIONS = {
     "robinsey-coat": ("robinmon-coat", "charm"),
     "weezimo-linen": ("simomon-linen", "chill"),
     "lorchu-tux": ("lorcamon-tux", "charm"),
+    "thilotrode-fish": ("thilomon-fish", "chaos"),
 }
 
 # Where the head is, (x centre, y top, half width) on the 96-pixel canvas, for photos where
