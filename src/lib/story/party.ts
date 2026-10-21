@@ -4,6 +4,7 @@ import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
 import { ROSTER } from '../battle/roster';
+import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
 
 /**
@@ -21,7 +22,13 @@ export interface Member {
   /** PP for each of `moves`, in order. */
   pp: number[];
   status: Status | null;
+  /** The (up to) 4 moves it fights with. */
   moves: string[];
+  /**
+   * Every move it has learnt, in the order it learnt them; `moves` are picked from these.
+   * Saves from before there were more than 4 have no field, so read it as `moves`.
+   */
+  learned?: string[];
   /** A shiny: golden, and rare. Saves from before shinies have no field, so read it as false. */
   shiny?: boolean;
 }
@@ -64,9 +71,10 @@ export function catchRate(species: string): number {
 export const expAt = (level: number) => level ** 3;
 
 /**
- * The order a Ranemon learns its 4 battle-mode moves: its weakest attack and its own special
- * move to start, then the rest at 12 and 20, weakest first. Every Ranemon has its special
- * move from Lv1, so it's itself from the first fight.
+ * The order a Ranemon learns its moves. First its 4 battle-mode moves: its weakest attack and
+ * its own special move to start, then the rest at 12 and 20, weakest first. Every Ranemon has
+ * its special move from Lv1, so it's itself from the first fight. Then its line's 6 sport moves
+ * from LEARNSETS, from Lv8 to Lv50.
  */
 export function learnset(c: Creature): { level: number; move: string }[] {
   const plain = c.moves
@@ -76,15 +84,46 @@ export function learnset(c: Creature): { level: number; move: string }[] {
   const order = firstAttack ? [firstAttack, ...plain.filter((id) => id !== firstAttack)] : plain;
   const special = c.moves.filter((id) => moveById(id).signature);
   const [first, ...rest] = order;
-  return [first, ...special, ...rest]
+  const own = [first, ...special, ...rest]
     .filter(Boolean)
     .map((move, i) => ({ level: [1, 1, 12, 20][i] ?? 20, move }));
+  const sport = (LEARNSETS[lineOf(c.id)] ?? []).map((move, i) => ({
+    level: SPORT_LEVELS[i],
+    move,
+  }));
+  return [...own, ...sport].sort((a, b) => a.level - b.level);
 }
 
+/** Every move a Ranemon has learnt by a level, in the order it learnt them. */
 export function movesAt(c: Creature, level: number): string[] {
   return learnset(c)
     .filter((l) => l.level <= level)
     .map((l) => l.move);
+}
+
+/**
+ * The 4 moves a Ranemon met in the wild or on a trainer's team fights with: its special move,
+ * and the latest it has learnt, as in the main series.
+ */
+export function fightingMoves(learned: string[]): string[] {
+  const special = learned.filter((id) => moveById(id).signature);
+  const latest = learned
+    .filter((id) => !moveById(id).signature)
+    .slice(-(MOVE_SLOTS - special.length));
+  return learned.filter((id) => special.includes(id) || latest.includes(id));
+}
+
+/** Every move a member has learnt, the 4 it fights with included. */
+export const learnedOf = (m: Member) => m.learned ?? m.moves;
+
+/** Puts a learnt move into one of the member's 4 slots, with its full PP. */
+export function swapMove(m: Member, slot: number, move: string): Member {
+  if (!learnedOf(m).includes(move) || m.moves.includes(move)) return m;
+  const moves = [...m.moves];
+  const pp = [...m.pp];
+  moves[slot] = move;
+  pp[slot] = moveById(move).pp;
+  return { ...m, moves: moves.slice(0, MOVE_SLOTS), pp: pp.slice(0, MOVE_SLOTS) };
 }
 
 export function statsOf(m: Member): BaseStats {
@@ -94,7 +133,8 @@ export function statsOf(m: Member): BaseStats {
 /** A new member at a level; a Ranemon met at or past its evolution level comes evolved. */
 export function makeMember(base: string, level: number, uid: number): Member {
   const species = formAt(base, level);
-  const moves = movesAt(speciesById(species), level);
+  const learned = movesAt(speciesById(species), level);
+  const moves = fightingMoves(learned);
   const member: Member = {
     uid,
     species,
@@ -104,18 +144,25 @@ export function makeMember(base: string, level: number, uid: number): Member {
     pp: moves.map((id) => moveById(id).pp),
     status: null,
     moves,
+    learned,
   };
   return { ...member, hp: statsOf(member).hp };
 }
 
-/** Adds any move the member should know by now: saves from when special moves came at 20. */
+/**
+ * Adds any move the member should know by now, for saves from before special moves came at
+ * Lv1 or before sport moves. They go into a free slot if there is one, else wait to be swapped in.
+ */
 export function catchUp(m: Member): Member {
-  const missing = movesAt(speciesById(m.species), m.level).filter((id) => !m.moves.includes(id));
-  if (missing.length === 0) return m;
+  const known = learnedOf(m);
+  const missing = movesAt(speciesById(m.species), m.level).filter((id) => !known.includes(id));
+  if (missing.length === 0 && m.learned) return m;
+  const add = missing.slice(0, Math.max(0, MOVE_SLOTS - m.moves.length));
   return {
     ...m,
-    moves: [...m.moves, ...missing],
-    pp: [...m.pp, ...missing.map((id) => moveById(id).pp)],
+    learned: [...known, ...missing],
+    moves: [...m.moves, ...add],
+    pp: [...m.pp, ...add.map((id) => moveById(id).pp)],
   };
 }
 
@@ -164,10 +211,16 @@ function levelUp(m: Member, lines: string[]): Member {
   next = { ...next, hp: m.hp > 0 ? m.hp + gained : 0 };
   lines.push(`${name} grew to Lv${next.level}!`);
   for (const learnt of learnset(speciesById(m.species))) {
-    if (learnt.level !== next.level || next.moves.includes(learnt.move)) continue;
+    if (learnt.level !== next.level || learnedOf(next).includes(learnt.move)) continue;
     const move = moveById(learnt.move);
-    next = { ...next, moves: [...next.moves, move.id], pp: [...next.pp, move.pp] };
-    lines.push(`${name} learned ${move.name}!`);
+    const learned = [...learnedOf(next), move.id];
+    if (next.moves.length < MOVE_SLOTS) {
+      next = { ...next, learned, moves: [...next.moves, move.id], pp: [...next.pp, move.pp] };
+      lines.push(`${name} learned ${move.name}!`);
+    } else {
+      next = { ...next, learned };
+      lines.push(`${name} learned ${move.name}! Swap it in from PARTY.`);
+    }
   }
   const evo = evolutionOf(next.species);
   if (evo && next.level >= evo.level) next = evolve(next, lines);

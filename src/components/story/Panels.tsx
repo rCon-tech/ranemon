@@ -11,6 +11,7 @@ import { KEY_ITEMS } from '@/lib/story/keys';
 import {
   creatureOf,
   expProgress,
+  learnedOf,
   movesAt,
   PARTY_SIZE,
   speciesById,
@@ -113,13 +114,18 @@ export function MemberRow({
 export function PartyPanel({
   game,
   onLead,
+  onSwap,
   onClose,
 }: {
   game: StoryState;
   onLead: (index: number) => void;
+  /** Puts a learnt move into one of a member's 4 slots. */
+  onSwap: (index: number, slot: number, move: string) => void;
   onClose: () => void;
 }) {
   const [open, setOpen] = useState<number | null>(null);
+  /** The move slot picked to swap out, on the open member. */
+  const [slot, setSlot] = useState<number | null>(null);
   return (
     <Panel title="PARTY" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
@@ -127,7 +133,14 @@ export function PartyPanel({
       </p>
       {game.party.map((m, i) => (
         <div key={m.uid} className="flex flex-col gap-1">
-          <MemberRow m={m} onClick={() => setOpen(open === i ? null : i)} pressed={open === i} />
+          <MemberRow
+            m={m}
+            onClick={() => {
+              setOpen(open === i ? null : i);
+              setSlot(null);
+            }}
+            pressed={open === i}
+          />
           {open === i && (
             <div className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist p-2 text-[10px]">
               {m.shiny && (
@@ -140,17 +153,68 @@ export function PartyPanel({
                   <TypeBadge key={t} type={t} />
                 ))}
               </span>
-              {m.moves.map((id, j) => (
-                <span key={id} className="flex justify-between">
-                  <span>
-                    {moveById(id).signature ? '* ' : ''}
-                    {moveById(id).name}
+              {m.moves.map((id, j) => {
+                const spare = learnedOf(m).length > m.moves.length;
+                const row = (
+                  <>
+                    <span>
+                      {moveById(id).signature ? '* ' : ''}
+                      {moveById(id).name}
+                    </span>
+                    <span>
+                      PP {m.pp[j]}/{moveById(id).pp}
+                    </span>
+                  </>
+                );
+                return spare ? (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`flex justify-between rounded px-1 text-left ${slot === j ? 'bg-accent2 text-paper' : ''}`}
+                    onClick={() => setSlot(slot === j ? null : j)}
+                    aria-pressed={slot === j}
+                  >
+                    {row}
+                  </button>
+                ) : (
+                  <span key={id} className="flex justify-between px-1">
+                    {row}
                   </span>
-                  <span>
-                    PP {m.pp[j]}/{moveById(id).pp}
+                );
+              })}
+              {learnedOf(m).length > m.moves.length && (
+                <div className="mt-1 flex flex-col gap-1" data-testid="spare-moves">
+                  <span className="text-[9px] opacity-70">
+                    {slot === null
+                      ? 'Tap a move above, then one of these to swap it in.'
+                      : `Swap out ${moveById(m.moves[slot]).name} for:`}
                   </span>
-                </span>
-              ))}
+                  {learnedOf(m)
+                    .filter((id) => !m.moves.includes(id))
+                    .map((id) => {
+                      const move = moveById(id);
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          className="pixel-btn flex justify-between px-1.5 py-1 text-left text-[10px]"
+                          disabled={slot === null}
+                          onClick={() => {
+                            if (slot === null) return;
+                            onSwap(i, slot, id);
+                            setSlot(null);
+                          }}
+                        >
+                          <span>{move.name}</span>
+                          <span className="opacity-70">
+                            {move.type?.toUpperCase()} ·{' '}
+                            {move.power ? `POW ${move.power}` : 'STATUS'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
               {i > 0 && (
                 <button
                   type="button"

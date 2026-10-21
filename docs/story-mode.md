@@ -71,7 +71,7 @@ The route is Clare → Limerick → Tipperary → Kilkenny → Laois → Offaly 
 | 6     | Offaly    | Clonmacnoise: a monastery scriptorium                 | Brother Ciarán                          | Brains           | Steadmon 30, Simomon 31, Hugomon 32                         | Offaly jersey; Ordnance Survey map (fast travel)   |
 | 7     | Westmeath | Mullingar: a pop star's homecoming gig                | Niamh, the frontwoman                   | Charm and Hype   | Robinmon 34, Carlmon 34, Enda 35, Conemon 36                | Westmeath jersey; Hi-Vis Vest x5                   |
 | 8     | Meath     | Newgrange at the winter solstice                      | The Keeper of Brú na Bóinne             | Brains and Chill | Jammon 38, Simomon 38, Hugomon 39, Steadmon 40              | Meath jersey; Blue Ghost x2                        |
-| 9     | Kildare   | The Curragh army camp                                 | Commandant Dee                          | Brawn            | Oismon 42, Olliemon 42, Boydemon 42, Owemon 43, Gibbsmon 44 | Kildare jersey; entry to Dublin                    |
+| 9     | Kildare   | The Curragh army camp                                 | Commandant Dee                          | Brawn            | Oismon 39, Olliemon 39, Boydemon 40, Owemon 41, Gibbsmon 44 | Kildare jersey; entry to Dublin                    |
 | Final | Dublin    | Trinity College: Long Room, then the Campanile        | 3 scholars, then B&S                    | Mixed            | Scholars 3 each at 46 to 48; B&S 6 at 50 to 55              | Champions of Ireland                               |
 
 **Places on the way** (non-gym landmarks that make each county feel like itself): Cliffs of Moher, the Burren and Shannon Airport (Clare); King John's Castle (Limerick); Rock of Cashel (Tipperary); the Bog of Allen (Offaly); Sean's Bar, Athlone, the oldest pub in Ireland (Westmeath); the Hill of Tara (Meath); Punchestown (Kildare); the Phoenix Park, St James's Gate, Temple Bar and Grafton Street (Dublin).
@@ -107,7 +107,13 @@ The damage formula's fixed 22 becomes (2L/5 + 2), which is 22 again at level 50.
 
 ### Moves
 
-Each Ranemon keeps its 4 moves from the battle game, learnt in this order: its weakest attack and its special move at level 1, then the other two at 12 and 20. Every Ranemon is itself from the first fight. A Barman in Dublin teaches any of the 36 shared moves for a fee, so late-game teams can be tuned.
+Each Ranemon learns its 4 moves from the battle game in this order: its weakest attack and its special move at level 1, then the other two at 12 and 20. Every Ranemon is itself from the first fight.
+
+On top of those, each line learns 6 **sport moves** at levels 8, 16, 25, 33, 42 and 50 (`lib/story/learnsets.ts`). There are 36 of them, 6 for each of soccer, rugby, padel, golf, video games and F1 (`lib/battle/sports.ts`), spread over all six types. Every line gets a strong attack of its own type among its six, and evolved forms learn their line's moves. Battle mode doesn't use them, so its balance is untouched.
+
+A Ranemon fights with 4 moves at a time. A move learnt with all 4 slots full waits ("Swap it in from PARTY"): in PARTY, tap a member, tap one of its moves, then tap a learnt move to swap it in with full PP. Wild and trainer Ranemon fight with their special move and the 3 latest they've learnt. Saves from before sport moves catch up on load without going over 4.
+
+Aoife plays on Hard AI and Commandant Dee's supporting Ranemon are 2 to 3 levels lower than before, to keep both gyms inside the 45% to 90% band now that both sides have sport moves.
 
 ### Catching with a pint of Guinness
 

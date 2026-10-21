@@ -1,3 +1,4 @@
+import { SPORT_MOVES } from './sports';
 import type { RaneType } from './types';
 
 export type Category = 'physical' | 'spirit' | 'status';
@@ -770,7 +771,10 @@ export const LEGEND_MOVES: Move[] = [
 ];
 
 const BY_ID = new Map(
-  [...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, ...LEGEND_MOVES, FLAIL].map((m) => [m.id, m]),
+  [...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, ...LEGEND_MOVES, ...SPORT_MOVES, FLAIL].map((m) => [
+    m.id,
+    m,
+  ]),
 );
 
 export function moveById(id: string): Move {

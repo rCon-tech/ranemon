@@ -22,6 +22,7 @@ import {
   evolutionIn,
   expProgress,
   makeMember,
+  swapMove,
   speciesById,
   toEntrant,
 } from '@/lib/story/party';
@@ -841,6 +842,14 @@ export function Story() {
           <PartyPanel
             game={game}
             onLead={(i) => setGame(makeLead(game, i))}
+            onSwap={(i, slot, move) => {
+              const g = {
+                ...game,
+                party: game.party.map((m, j) => (j === i ? swapMove(m, slot, move) : m)),
+              };
+              persist(g);
+              setGame(g);
+            }}
             onClose={closeOverlay}
           />
         )}
