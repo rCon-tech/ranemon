@@ -57,6 +57,11 @@ HD = {
     "robinmon-coat": (192, 64, (100, 0, 170)),
     "simomon-linen": (192, 64, (205, 0, 170)),
     "lorcamon-tux": (192, 64, (70, 0, 175)),
+    # Ranemon who came later, drawn in HD from the start.
+    "paulimon": (192, 64, (80, 0, 250)),
+    "skehemon": (192, 64, (60, 0, 180)),
+    "vinnimon": (192, 64, (140, 0, 170)),
+    "petchemon": (192, 64, (90, 10, 200)),
 }
 
 
@@ -89,6 +94,9 @@ EVOLUTIONS = {
     "robinsey": ("robinmon", "charm"),
     "weezimo": ("simomon", "chill"),
     "thilotrode": ("thilomon", "chaos"),
+    "pauliwrath": ("paulimon", "hype"),
+    "skehdinja": ("skehemon", "chill"),
+    "vinnisaur": ("vinnimon", "charm"),
     # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
     "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
     "hitmonois-cap": ("oismon-cap", "hype"),
@@ -311,6 +319,27 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
         back.chord([4, 8, SIZE - 5, SIZE - 3], 0, 180, fill=(248, 248, 248), outline=OUTLINE)
         for x, y in ((14, 18), (SIZE - 16, 20), (10, 60)):
             bolt(d, x, y)
+    elif evo == "pauliwrath":
+        # Poliwrath's swirl on his chest and a pair of boxing gloves.
+        x, y = cx, SIZE - 14
+        for r in (11, 7, 3):
+            d.arc([x - r, y - r, x + r, y + r], 30, 330, fill=OUTLINE, width=2)
+        glove(d, 12, SIZE - 14, (72, 112, 200))
+        glove(d, SIZE - 12, SIZE - 14, (72, 112, 200))
+    elif evo == "skehdinja":
+        # Shedinja's halo over his head and its paper-thin shell wings behind.
+        d.ellipse([cx - 12, top - 10, cx + 12, top - 3], outline=(248, 216, 96), width=2)
+        wings(back, cx, top, (176, 136, 80), (232, 208, 152))
+    elif evo == "vinnisaur":
+        # Venusaur's big flower behind him, with leaves either side.
+        fx, fy = cx, top + 4
+        for i in range(6):
+            a = np.pi * (i / 6 * 2 + 1 / 6)
+            px, py = fx + np.cos(a) * 16, fy + np.sin(a) * 9
+            back.ellipse([px - 9, py - 6, px + 9, py + 6], fill=(240, 120, 152), outline=OUTLINE)
+        back.ellipse([fx - 6, fy - 4, fx + 6, fy + 4], fill=(248, 216, 96), outline=OUTLINE)
+        for s in (-1, 1):
+            poly(back, [(cx + s * 18, top + 44), (cx + s * 46, top + 30), (cx + s * 40, top + 52)], (72, 168, 88))
 
 
 def evolve(evo: str, base: str, kind: str) -> Image.Image:
@@ -375,8 +404,8 @@ def legend(im: Image.Image, colours) -> Image.Image:
 def shinies() -> None:
     for d in ("bw", "evo"):
         for path in sorted((SRC / d).glob("*.png")):
-            # B&S and Poseidon are never wild, so never shiny.
-            if path.stem == "bns" or not (SRC / d / "mini" / path.name).exists():
+            # B&S, Petchemon and Poseidon are never wild, so never shiny.
+            if path.stem in ("bns", "petchemon") or not (SRC / d / "mini" / path.name).exists():
                 continue
             (SRC / "shiny" / d / "mini").mkdir(parents=True, exist_ok=True)
             gild(Image.open(path), True).save(SRC / "shiny" / d / path.name)

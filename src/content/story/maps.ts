@@ -674,9 +674,10 @@ export const MAPS: GameMap[] = [
       min: 11,
       max: 15,
       table: [
-        ['carlmon', 40],
-        ['conemon', 35],
-        ['killemon', 25],
+        ['carlmon', 35],
+        ['conemon', 30],
+        ['killemon', 20],
+        ['paulimon', 15],
       ],
     },
     npcs: [
@@ -835,9 +836,10 @@ export const MAPS: GameMap[] = [
       min: 23,
       max: 27,
       table: [
-        ['simomon', 40],
-        ['steadmon', 35],
-        ['hugomon', 25],
+        ['simomon', 30],
+        ['steadmon', 30],
+        ['hugomon', 20],
+        ['skehemon', 20],
       ],
     },
     npcs: [
@@ -939,10 +941,11 @@ export const MAPS: GameMap[] = [
       min: 31,
       max: 35,
       table: [
-        ['steadmon', 30],
-        ['jammon', 30],
-        ['simomon', 25],
-        ['enda', 15],
+        ['steadmon', 25],
+        ['jammon', 25],
+        ['simomon', 20],
+        ['vinnimon', 20],
+        ['enda', 10],
       ],
     },
     npcs: [
@@ -1038,6 +1041,9 @@ export const MAPS: GameMap[] = [
         ['killemon', 7],
         ['owemon', 7],
         ['robinmon', 7],
+        ['paulimon', 7],
+        ['skehemon', 7],
+        ['vinnimon', 7],
         ['gibbsmon', 3],
         ['thilomon', 3],
       ],

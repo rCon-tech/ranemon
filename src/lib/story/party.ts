@@ -3,6 +3,7 @@ import type { Battler, Entrant } from '../battle/engine';
 import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
+import { PETCHEMON } from '../battle/petchemon';
 import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
 import { variantForm } from '../battle/variants';
@@ -52,7 +53,9 @@ export const BOSS: Creature = {
   sprite: '/sprites/bw/bns.png',
 };
 
-const SPECIES = new Map([...ROSTER, ...EVOLVED, BOSS, LEGEND, POSEIDON].map((c) => [c.id, c]));
+const SPECIES = new Map(
+  [...ROSTER, ...EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON].map((c) => [c.id, c]),
+);
 
 export function speciesById(id: string): Creature {
   const c = SPECIES.get(id);

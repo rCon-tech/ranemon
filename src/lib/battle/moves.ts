@@ -1,3 +1,4 @@
+import { PETCHEMON_MOVES } from './petchemon';
 import { POSEIDON_MOVES } from './poseidon';
 import { SPORT_MOVES } from './sports';
 import type { RaneType } from './types';
@@ -734,6 +735,46 @@ export const SPECIAL_MOVES: Move[] = [
     priority: 1,
     specials: [{ kind: 'hit-and-run' }],
   },
+  {
+    id: 'hat-trick',
+    signature: 'paulimon',
+    name: 'Hat Trick',
+    flavour: 'Tips the hat and scores three times in a row.',
+    type: 'hype',
+    category: 'physical',
+    power: 25,
+    accuracy: 90,
+    pp: 10,
+    priority: 0,
+    effect: { kind: 'multiHit', min: 3, max: 3 },
+  },
+  {
+    id: 'not-impressed',
+    signature: 'skehemon',
+    name: 'Not Impressed',
+    flavour: 'Crosses his arms and looks the foe up and down. Cuts its Attack by 20%.',
+    type: 'chill',
+    category: 'spirit',
+    power: 70,
+    accuracy: 100,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'foe', stat: 'attack', factor: 0.8 }],
+  },
+  {
+    id: 'prost',
+    signature: 'vinnimon',
+    name: 'Prost',
+    flavour: 'Raises the stein: heals a quarter of his HP and raises his Spirit by 30%.',
+    type: 'charm',
+    category: 'status',
+    power: 0,
+    accuracy: null,
+    pp: 5,
+    priority: 0,
+    effect: { kind: 'heal', fraction: 0.25 },
+    specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.3 }],
+  },
 ];
 
 /** Moves only story mode's bosses know. Named by Rich later; these are placeholders. */
@@ -779,6 +820,7 @@ const BY_ID = new Map(
     ...LEGEND_MOVES,
     ...SPORT_MOVES,
     ...POSEIDON_MOVES,
+    ...PETCHEMON_MOVES,
     FLAIL,
   ].map((m) => [m.id, m]),
 );
