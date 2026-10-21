@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScreen';
 import { Sprite } from '@/components/Sprite';
 import { SpeedButton } from '@/components/SpeedButton';
+import { useView, ViewButton } from '@/components/ViewButton';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
 import { mapById, outsideOf } from '@/content/story/maps';
@@ -88,6 +90,12 @@ import { notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { rollShiny } from '@/lib/story/shiny';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
+
+/** The 3D overworld and its WebGL library load only when the 3D look is picked. */
+const Overworld3D = dynamic(() => import('./Overworld3D'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-ink" />,
+});
 import {
   BagPanel,
   Choice,
@@ -237,6 +245,7 @@ export function Story() {
   const [exclaim, setExclaim] = useState<number | null>(null);
   const [faces, setFaces] = useState<Record<number, Dir>>({});
   const held = useRef<Held>({ dir: null, b: false });
+  const World = useView() === '3d' ? Overworld3D : Overworld;
 
   const persist = useCallback((g: StoryState) => {
     const raw = save(storage(), g, player.current);
@@ -592,6 +601,7 @@ export function Story() {
       const dir = dirs[e.key];
       if (dir) {
         held.current.dir = dir;
+        if (!e.repeat) held.current.tapped = dir;
         e.preventDefault();
       } else if (e.repeat) return;
       else if (e.key === 'z' || e.key === ' ') keys.current.pressA();
@@ -896,7 +906,7 @@ export function Story() {
         className="relative overflow-hidden rounded-md border-4 border-bezel bg-bezel"
         style={{ aspectRatio: '10 / 9' }}
       >
-        <Overworld
+        <World
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
@@ -924,7 +934,10 @@ export function Story() {
         >
           {map.name} ▸
         </button>
-        <SpeedButton className="absolute right-1 top-1" />
+        <div className="absolute right-1 top-1 flex gap-1">
+          <ViewButton />
+          <SpeedButton />
+        </div>
         {flash && (
           <div className={`encounter-flash absolute inset-0 ${flash === 'shiny' ? 'shiny' : ''}`} />
         )}
@@ -1085,7 +1098,7 @@ export function Story() {
       </div>
       <Controls
         onDir={(dir, on) => {
-          if (on) held.current.dir = dir;
+          if (on) held.current.dir = held.current.tapped = dir;
           else if (held.current.dir === dir) held.current.dir = null;
         }}
         onHoldB={(on) => (held.current.b = on)}

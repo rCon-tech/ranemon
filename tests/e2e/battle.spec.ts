@@ -62,6 +62,12 @@ test('pick 6 of the 16, then a full 6v6 battle against the CPU', async ({ page }
   await expect(page.getByTestId('info-you')).toBeVisible();
   await expect(page.getByTestId('info-foe')).toBeVisible();
 
+  // The 3D look swaps in a 3D battlefield behind the same sprites, and back again.
+  await page.getByTestId('view').click();
+  await expect(page.locator('.backdrop[data-view="3d"] canvas')).toBeVisible();
+  await page.getByTestId('view').click();
+  await expect(page.locator('.backdrop[data-view="3d"]')).toHaveCount(0);
+
   await playToTheEnd(page);
   const ending = await page.getByTestId('text-box').textContent();
   expect(ending).toMatch(/You won the battle!|You lost the battle…|draw/);

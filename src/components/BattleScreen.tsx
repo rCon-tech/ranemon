@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useReducer, useState, type CSSProperties } from 'react';
+import dynamic from 'next/dynamic';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import {
@@ -22,6 +23,10 @@ import { MoveEffect } from './MoveEffect';
 import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
 import { Backdrop } from './Backdrop';
 import { SpeedButton, useAnimationSpeed } from './SpeedButton';
+import { useView, ViewButton } from './ViewButton';
+
+/** The 3D battlefield and its WebGL library load only when the 3D look is picked. */
+const Backdrop3D = dynamic(() => import('./Backdrop3D'), { ssr: false, loading: () => null });
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 import { ShinyCelebration, ShinySparkle } from './ShinySparkle';
@@ -186,12 +191,16 @@ export function BattleScreen({
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
   useAnimationSpeed();
+  const look = useView();
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="field" data-scene={scene} data-testid="battlefield">
-        <SpeedButton className="absolute right-1 top-1 z-20" />
-        <Backdrop scene={scene} />
+        <div className="absolute right-1 top-1 z-20 flex gap-1">
+          <ViewButton />
+          <SpeedButton />
+        </div>
+        {look === '3d' ? <Backdrop3D scene={scene} /> : <Backdrop scene={scene} />}
         <div className="sprite-slot slot-foe">
           {effect?.side === 1 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
           {view[1].shown ? (

@@ -2,19 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
-import { scaled } from '@/lib/speed';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
-import {
-  canEnter,
-  DELTA,
-  find,
-  isPresent,
-  npcsOf,
-  tileAt,
-  type Dir,
-  type GameMap,
-} from '@/lib/story/world';
+import { find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
 import { monStyle, paintPerson, STYLES, type Style } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
 import {
@@ -28,32 +18,27 @@ import {
   tileImage,
   variantAt,
 } from './tiles';
+import {
+  placeWalk,
+  startWalk,
+  stepPose,
+  stepT,
+  tickWalk,
+  type Held,
+  type Position,
+  type Trail,
+} from './walk';
+
+export { BIKE_MS, WALK_MS, type Held, type Position } from './walk';
 
 /** The overworld canvas draws at 4 device pixels per world pixel, so people show their detail. */
 const SCREEN_RES = 4;
 
-/** The pose frame for a step `t` of the way through: frames 1-4 lead with the left foot, 5-8 the right. */
-const stepPose = (t: number, step: number) =>
-  (step % 2 ? 4 : 0) + (t < 0.25 ? 1 : t < 0.6 ? 2 : t < 0.85 ? 3 : 4);
-
 /** The original handheld's screen: 10 × 9 tiles. */
 export const SCREEN_W = 160;
 export const SCREEN_H = 144;
-export const WALK_MS = 250;
-export const BIKE_MS = 125;
 
-export interface Held {
-  dir: Dir | null;
-  b: boolean;
-}
-
-export interface Position {
-  x: number;
-  y: number;
-  face: Dir;
-}
-
-interface Props {
+export interface Props {
   map: GameMap;
   pos: Position;
   flags: ReadonlySet<string>;
@@ -149,7 +134,7 @@ const SIGN_COLOUR: Record<string, string> = { P: '#2f8a4a', M: '#3a70c8', G: '#d
 
 const gymRoofCache = new Map<string, Set<string>>();
 /** The roof tiles over each gym, which get slate instead of red so gyms stand out. */
-function gymRoofsOf(map: GameMap): Set<string> {
+export function gymRoofsOf(map: GameMap): Set<string> {
   let roofs = gymRoofCache.get(map.id);
   if (roofs) return roofs;
   roofs = new Set();
@@ -176,33 +161,14 @@ export function Overworld(props: Props) {
     live.current = props;
   });
 
-  const walk = useRef({
-    ...props.pos,
-    from: null as { x: number; y: number } | null,
-    t0: 0,
-    dur: WALK_MS,
-    frame: 0,
-    /** Waiting for the story to take in the last step. */
-    waiting: false,
-    lastBump: 0,
-  });
-  const trail = useRef({
-    at: { x: props.pos.x, y: props.pos.y },
-    from: null as null | { x: number; y: number },
-  });
+  const walk = useRef(startWalk(props.pos));
+  const trail = useRef<Trail>({ at: { x: props.pos.x, y: props.pos.y }, from: null });
 
   // The story moved us (a warp, a blackout) or took in our last step.
   const { x, y, face } = props.pos;
   const mapId = props.map.id;
   useEffect(() => {
-    const w = walk.current;
-    w.waiting = false;
-    if (w.from) return;
-    if (w.x !== x || w.y !== y) {
-      Object.assign(w, { x, y });
-      trail.current = { at: { x, y }, from: null };
-    }
-    w.face = face;
+    placeWalk(walk.current, trail.current, { x, y, face });
   }, [x, y, face, mapId]);
 
   useEffect(() => {
@@ -223,38 +189,7 @@ export function Overworld(props: Props) {
     vignette.addColorStop(1, 'rgb(10 20 40 / 0.28)');
 
     const tick = (now: number) => {
-      const p = live.current;
-      const w = walk.current;
-      if (w.from && now - w.t0 >= w.dur) {
-        w.from = null;
-        trail.current.from = null;
-        w.waiting = true;
-        p.onStep({ x: w.x, y: w.y, face: w.face });
-      }
-      const dir = p.held.current?.dir ?? null;
-      if (!w.from && !w.waiting && !p.frozen && dir) {
-        if (dir !== w.face) {
-          w.face = dir;
-          p.onTurn(dir);
-        }
-        const [dx, dy] = DELTA[dir];
-        const nx = w.x + dx;
-        const ny = w.y + dy;
-        const width = p.map.rows[0].length;
-        const offEdge = (nx < 0 && p.map.west) || (nx >= width && p.map.east);
-        if (offEdge || canEnter(p.map, nx, ny, p.flags)) {
-          trail.current = { at: { x: w.x, y: w.y }, from: trail.current.at };
-          w.from = { x: w.x, y: w.y };
-          w.x = nx;
-          w.y = ny;
-          w.t0 = now;
-          w.dur = scaled(p.bike && p.held.current?.b ? BIKE_MS : WALK_MS);
-          w.frame++;
-        } else if (now - w.lastBump > 350) {
-          w.lastBump = now;
-          p.onBump(nx, ny, dir);
-        }
-      }
+      tickWalk(walk.current, trail.current, live.current, now);
       draw(ctx, now);
       raf = requestAnimationFrame(tick);
     };
@@ -266,7 +201,7 @@ export function Overworld(props: Props) {
       const light = daylight(new Date());
       c.setTransform(SCREEN_RES, 0, 0, SCREEN_RES, 0, 0);
       c.imageSmoothingEnabled = false;
-      const t = w.from ? Math.min(1, (now - w.t0) / w.dur) : 1;
+      const t = stepT(w, now);
       const lerp = (a: number, b: number) => a + (b - a) * t;
       const px = (w.from ? lerp(w.from.x, w.x) : w.x) * TILE;
       const py = (w.from ? lerp(w.from.y, w.y) : w.y) * TILE;
@@ -620,6 +555,7 @@ export function Overworld(props: Props) {
       height={SCREEN_H * SCREEN_RES}
       className="block h-auto w-full [image-rendering:pixelated]"
       data-testid="overworld"
+      data-view="2d"
       data-x={props.pos.x}
       data-y={props.pos.y}
       aria-label={`${props.map.name}. Use the arrow keys or the D-pad to walk.`}

@@ -12,7 +12,11 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     // Lets a machine with a pre-installed Chromium skip `playwright install`.
-    launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH || undefined },
+    launchOptions: {
+      executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+      // Software WebGL, so the 3D look can be tested without a GPU.
+      args: ['--enable-unsafe-swiftshader'],
+    },
   },
   projects: [{ name: 'mobile-chromium', use: { ...devices['Pixel 7'] } }],
   webServer: {
