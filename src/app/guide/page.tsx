@@ -199,6 +199,11 @@ export default function Guide() {
             away. Every Ranemon evolves once, at level 30.
           </li>
           <li>
+            <b>Town Map</b>: pick MAP from the START menu, tap the place name at the top of the
+            screen, or press M. It shows the road from Clare to Dublin, the towns you’ve been to,
+            the jerseys you’ve won and where you are now.
+          </li>
+          <li>
             <b>Exp Share</b> is in the START menu, and starts off. Turn it on and every Ranemon in
             your party that’s still standing gets the same EXP as the one that fought, so the whole
             team levels up together. Turn it off to train one Ranemon at a time.

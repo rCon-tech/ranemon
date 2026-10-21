@@ -75,6 +75,7 @@ import type { Result } from '@/lib/ui/session';
 import { notice } from '@/lib/story/keys';
 import { rollShiny } from '@/lib/story/shiny';
 import { Overworld, type Held, type Position } from './Overworld';
+import { TownMapPanel } from './TownMap';
 import {
   BagPanel,
   Choice,
@@ -98,6 +99,7 @@ type Overlay =
   | 'chat'
   | 'dex'
   | 'card'
+  | 'map'
   | 'starter'
   | 'offer-chat'
   | 'ask'
@@ -512,6 +514,13 @@ export function Story() {
     else if (!overlay && !busy) setOverlay('menu');
   }
 
+  /** The Town Map, from the place name or the M key, whenever you could open the START menu. */
+  function openMap() {
+    if (!game || line || fight || flash || exclaim !== null) return;
+    if (overlay === 'map') setOverlay(null);
+    else if (!overlay || overlay === 'menu') setOverlay('map');
+  }
+
   /** Answering a question: its steps for that answer, then the rest of the script. */
   function answer(steps: Step[] | undefined) {
     if (!game) return;
@@ -526,10 +535,10 @@ export function Story() {
     if (game && queue.length) run(game, queue);
   }
 
-  // Keyboard: arrows or WASD walk, Z/Space is A, X/Escape is B, Enter is START.
-  const keys = useRef({ pressA, pressB, pressStart });
+  // Keyboard: arrows or WASD walk, Z/Space is A, X/Escape is B, Enter is START, M is the map.
+  const keys = useRef({ pressA, pressB, pressStart, openMap });
   useEffect(() => {
-    keys.current = { pressA, pressB, pressStart };
+    keys.current = { pressA, pressB, pressStart, openMap };
   });
   useEffect(() => {
     const dirs: Record<string, Dir> = {
@@ -554,6 +563,7 @@ export function Story() {
         held.current.b = true;
         keys.current.pressB();
       } else if (e.key === 'Enter') keys.current.pressStart();
+      else if (e.key === 'm') keys.current.openMap();
     };
     const up = (e: KeyboardEvent) => {
       if (dirs[e.key] && held.current.dir === dirs[e.key]) held.current.dir = null;
@@ -785,9 +795,15 @@ export function Story() {
             if (DOORS.has(tile) || tile === EXIT) interact(x, y, face, true);
           }}
         />
-        <div className="pointer-events-none absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper">
-          {map.name}
-        </div>
+        <button
+          type="button"
+          className="absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper"
+          onClick={openMap}
+          aria-label={`${map.name}. Open the Town Map.`}
+          data-testid="place"
+        >
+          {map.name} ▸
+        </button>
         <SpeedButton className="absolute right-1 top-1" />
         {flash && (
           <div className={`encounter-flash absolute inset-0 ${flash === 'shiny' ? 'shiny' : ''}`} />
@@ -889,6 +905,7 @@ export function Story() {
         )}
         {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} />}
         {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
+        {overlay === 'map' && <TownMapPanel game={game} onClose={closeOverlay} />}
         {overlay === 'starter' && (
           <StarterPanel
             onChoose={(species) => {
@@ -957,13 +974,14 @@ function StartMenu({
   onClose,
 }: {
   expShare: boolean;
-  onPick: (o: 'party' | 'bag' | 'dex' | 'card' | 'share' | 'save') => void;
+  onPick: (o: 'party' | 'bag' | 'dex' | 'map' | 'card' | 'share' | 'save') => void;
   onClose: () => void;
 }) {
   const items = [
     ['party', 'PARTY'],
     ['bag', 'BAG'],
     ['dex', 'RANEDEX'],
+    ['map', 'MAP'],
     ['card', 'JERSEYS'],
     ['share', `EXP SHARE: ${expShare ? 'ON' : 'OFF'}`],
     ['save', 'SAVE'],
