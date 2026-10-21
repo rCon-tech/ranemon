@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-21',
+    title: 'Sound and music',
+    notes: [
+      'The game has music now: its own tunes for the road, the city, the pub, home, gyms, the bike and four kinds of battle, plus jingles for levels, items and new friends.',
+      'Every Ranemon has a cry of its own, and moves, hits and menus all make a noise.',
+      'Tap ♪ at the top of the screen for music and effects, effects only, or off. SOUND TEST on the title plays them all.',
+    ],
+  },
+  {
+    date: '2026-10-21',
     title: 'Get around faster',
     notes: [
       'Someone in Limerick is handing out passes for a brand new way to get about. Hold B to ride.',

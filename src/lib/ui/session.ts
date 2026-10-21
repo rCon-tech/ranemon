@@ -83,6 +83,9 @@ export interface Session {
   fought: number[];
   /** Failed attempts to run, which make the next one likelier. */
   runs: number;
+  /** The queued item played last, and a count bumped with each, so its sound plays once. */
+  last: QueueItem | null;
+  played: number;
 }
 
 export type SessionAction =
@@ -137,6 +140,8 @@ export function startSession(
     result: null,
     fought: [],
     runs: 0,
+    last: null,
+    played: 0,
   };
 }
 
@@ -184,6 +189,7 @@ function playEvents(s: Session, state: BattleState, events: QueueItem[]): Sessio
 /** Plays the next queued event, or decides what comes next once the queue is empty. */
 function step(s: Session, random: number): Session {
   const [event, ...rest] = s.queue;
+  if (event) s = { ...s, last: event, played: s.played + 1 };
   if (event?.kind === 'end') return { ...s, queue: [], mode: 'over', result: event.result };
   if (event?.kind === 'say') {
     return {

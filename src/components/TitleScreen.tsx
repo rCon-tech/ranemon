@@ -5,6 +5,7 @@ import { useSyncExternalStore } from 'react';
 import { LATEST, SEEN_KEY } from '@/content/updates';
 import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
+import { SoundButton } from './Sound';
 
 /** Whether there's an update you haven't looked at yet. Never on the server render. */
 function useHasNew(): boolean {
@@ -30,6 +31,7 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         aria-hidden
         className="absolute inset-0 bg-[linear-gradient(160deg,#f4f7fa_0_48%,#1c2026_48%_100%)]"
       />
+      <SoundButton className="absolute right-2 top-2 z-10" />
       <div className="relative flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -60,12 +62,15 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
           STORY MODE
         </Link>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
           <Link href="/guide" className="underline underline-offset-4">
             HOW TO PLAY
           </Link>
           <Link href="/ranedex" className="underline underline-offset-4">
             RANEDEX
+          </Link>
+          <Link href="/sound" className="underline underline-offset-4">
+            SOUND TEST
           </Link>
           <Link href="/updates" className="underline underline-offset-4" data-testid="updates-link">
             UPDATES

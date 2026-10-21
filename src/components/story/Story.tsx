@@ -7,6 +7,9 @@ import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScre
 import { Sprite } from '@/components/Sprite';
 import { SpeedButton } from '@/components/SpeedButton';
 import { useView, ViewButton } from '@/components/ViewButton';
+import { play, SoundButton, useMusic } from '@/components/Sound';
+import { areaSong, battleSong, lineCues } from '@/lib/sound/cues';
+import { playSfx } from '@/lib/sound/engine';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
 import { mapById, outsideOf } from '@/content/story/maps';
@@ -251,6 +254,38 @@ export function Story() {
   const [faces, setFaces] = useState<Record<number, Dir>>({});
   const held = useRef<Held>({ dir: null, b: false });
   const World = useView() === '3d' ? Overworld3D : Overworld;
+  /** On the bike lately: its theme plays until you've been off it a couple of seconds. */
+  const [riding, setRiding] = useState(false);
+  const offBike = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Music: the title, then the place you're in. Battles play their own.
+  const here = game ? mapById(game.map) : null;
+  useMusic(
+    !game || !here
+      ? 'title'
+      : fight
+        ? undefined
+        : flash
+          ? 'wild'
+          : riding
+            ? 'bike'
+            : areaSong(here.id, outsideOf(here).id),
+  );
+  // A door's sound going in or out of a room.
+  const lastMap = useRef<string | null>(null);
+  useEffect(() => {
+    const before = lastMap.current ? mapById(lastMap.current) : null;
+    lastMap.current = here?.id ?? null;
+    if (before && here && before.id !== here.id && (before.inside || here.inside)) {
+      playSfx('door');
+    }
+  }, [here]);
+  // Each line's sound: items, levels, the pub, Norm.
+  useEffect(() => {
+    if (line && !line.full) play(lineCues(line.text));
+    // Once per line, not again when it's skipped to the end.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [line?.n]);
 
   const persist = useCallback((g: StoryState) => {
     const raw = save(storage(), g, player.current);
@@ -374,6 +409,7 @@ export function Story() {
   /** A, or tapping the text box: finish typing the line, then go on to the next. */
   const advance = useCallback(() => {
     if (!game || !line) return;
+    playSfx('blip');
     if (!line.full && Date.now() - line.n < scaled(line.text.length * MS_PER_CHAR)) {
       setLine({ ...line, full: true });
       return;
@@ -415,6 +451,13 @@ export function Story() {
       return;
     }
     let g: StoryState = { ...game, ...to, steps: game.steps + 1 };
+    // Hold B on a bike and its theme kicks in, with a ring of the bell.
+    if ((hasFlag(game, 'bike') || hasFlag(game, LIMEPASS)) && held.current.b) {
+      if (!riding) playSfx('bell');
+      setRiding(true);
+      if (offBike.current) clearTimeout(offBike.current);
+      offBike.current = setTimeout(() => setRiding(false), 2500);
+    }
 
     const ghost = find(map, '*').some((p) => p.x === to.x && p.y === to.y);
     if (ghost && !hasFlag(g, ghostFlag(map.id, to.x, to.y))) {
@@ -430,6 +473,7 @@ export function Story() {
     const spotter = spottedBy(map, to.x, to.y, flags, (t) => hasFlag(g, beatFlag(t)));
     if (spotter) {
       setGame(g);
+      playSfx('exclaim');
       setExclaim(spotter.index);
       setTimeout(() => {
         setExclaim(null);
@@ -459,6 +503,7 @@ export function Story() {
       const shiny = rollShiny(Math.random());
       g = see(g, species);
       setGame(g);
+      playSfx('encounter');
       setFlash(shiny ? 'shiny' : 'plain');
       setTimeout(() => {
         setFlash(null);
@@ -566,14 +611,20 @@ export function Story() {
   function pressB() {
     if (line) return advance();
     if (overlay && overlay !== 'starter' && overlay !== 'ending' && overlay !== 'offer-chat') {
+      playSfx('back');
       closeOverlay();
     }
   }
 
   function pressStart() {
     if (!game || line || fight) return;
-    if (overlay === 'menu') setOverlay(null);
-    else if (!overlay && !busy) setOverlay('menu');
+    if (overlay === 'menu') {
+      playSfx('back');
+      setOverlay(null);
+    } else if (!overlay && !busy) {
+      playSfx('select');
+      setOverlay('menu');
+    }
   }
 
   /** The Town Map, from the place name or the M key, whenever you could open the START menu. */
@@ -806,7 +857,8 @@ export function Story() {
     const needsPin = cloudNeedsPin();
     const ready = playerId(name).length > 0 && !title.busy && (!needsPin || isPin(pin));
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
+      <div className="relative flex flex-1 flex-col items-center justify-center gap-6 px-4 py-12 text-center text-ink">
+        <SoundButton className="absolute right-2 top-2" />
         <h1 className="text-[40px] font-bold leading-tight text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
           RANEMON
           <br />
@@ -898,13 +950,15 @@ export function Story() {
 
   if (fight) {
     const wild = fight.foe.kind === 'wild';
+    const scene = sceneOf(mapById(game.map), fight.trainer, fight.teams[1][0].creature.id);
     return (
       <BattleScreen
         key={fight.key}
         teams={fight.teams}
         difficulty={fight.ai}
         foe={fight.foe}
-        scene={sceneOf(mapById(game.map), fight.trainer, fight.teams[1][0].creature.id)}
+        scene={scene}
+        music={battleSong(scene, wild, fight.trainer)}
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,
@@ -958,6 +1012,7 @@ export function Story() {
           {map.name} ▸
         </button>
         <div className="absolute right-1 top-1 flex gap-1">
+          <SoundButton />
           <ViewButton />
           <SpeedButton />
         </div>
@@ -970,6 +1025,7 @@ export function Story() {
             type="button"
             className="dialog absolute inset-x-0 bottom-0 z-10 min-h-[38%] px-3 py-2 text-left text-[13px] leading-[1.8]"
             onClick={advance}
+            data-sound="none"
             data-testid="story-text"
           >
             <TypedText key={line.n} text={line.text} instant={line.full} />
@@ -1221,6 +1277,7 @@ function Controls({
     <div
       className="flex select-none items-center justify-between px-2 py-2"
       style={{ touchAction: 'none' }}
+      data-sound="none"
     >
       <div className="grid grid-cols-3 grid-rows-3" aria-label="D-pad">
         <span />

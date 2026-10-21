@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Gate } from '@/components/Gate';
+import { SoundHooks } from '@/components/Sound';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="antialiased">
+        <SoundHooks />
         <main className="screen mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">
           <Gate>{children}</Gate>
         </main>

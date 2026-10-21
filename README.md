@@ -41,6 +41,15 @@ The **2D / 3D** button beside the speed button (on the map and in battles) switc
 - **Battles** (`src/components/Backdrop3D.tsx`): a 3D stage per scene (fields with hills and drifting clouds, a Georgian terrace, a sports hall with spotlights, Trinity at night under the stars) behind the same sprites, info boxes and move effects, with the platforms placed under the sprites.
 - **Phones**: it uses WebGL through Three.js, loaded only when 3D is picked. Where frames run slow it draws fewer pixels, then turns shadows off. Browsers without WebGL don't show the button.
 
+## Sound
+
+All the music and effects are made in the browser as the game plays (`src/lib/sound/`), on a chip like the old handhelds': two pulse waves, a triangle bass and noise drums, through Web Audio. There are no sound files, so nothing to download and nothing copied.
+
+- **Music** (`songs.ts`): original tunes, written tracker style, note by note with chords bar by bar (`music.ts`). The title; a jig on the road; Dublin and Trinity; a reel in McGrattans; home and the shop; inside a gym; the bike (hold B); battles against wild Ranemon, trainers, gym leaders, and B&S, the legend and Poseidon; and victory. Short jingles play over them for a level up, an item, the pub's heal, befriending, evolving and losing.
+- **Effects** (`sfx.ts`): menus, doors, the encounter, a sound for each type's moves and for special moves, hits (super effective, not very, critical), misses, stat changes, statuses, faints, pints and sips, running away, shiny sparkles, Norm's bark and the bike bell. Every Ranemon has its own cry, made from its id.
+- **What plays when** (`cues.ts`): battle events, story lines ("You got…", "grew to Lv…") and the map you're on. Tested in `tests/unit/sound.test.ts`.
+- **Controls**: ♪ at the top of the screen cycles music and effects, effects only, and off, kept per browser. Phones allow sound only after a tap, so it starts at the first one, and it goes quiet when the tab is hidden. On an iPhone the ring/silent switch mutes it too. **SOUND TEST** on the title plays every tune, jingle, effect and cry.
+
 ## Play link
 
 `scripts/playlink/` builds the whole game as one HTML page, sprites inlined, for sharing as a claude.ai artifact (saves go to the artifact's own storage there): run `pnpm build` (for the CSS), then `node scripts/playlink/build.mjs ranemon.html`.
@@ -55,7 +64,7 @@ The 5th-generation handhelds (Black and White): full-colour pixel sprites that b
 
 ## Not yet
 
-These come next, as their own pull requests: Creature Studio (photo upload, cut-out, the creature card, the friend's approval), accounts and invite-only groups, server-side battles with a committed seed, live friend battles, and sound.
+These come next, as their own pull requests: Creature Studio (photo upload, cut-out, the creature card, the friend's approval), accounts and invite-only groups, server-side battles with a committed seed, and live friend battles.
 
 ## Running it
 
@@ -78,4 +87,4 @@ pnpm dev          # http://localhost:3000
 
 ## Art and sound
 
-Sprites are made from the friends' own photos, so keep the repo and any shared links private. All other art, names and fonts are original or openly licensed. The pixel font is Pixelify Sans, under the SIL Open Font Licence. The game uses no Pokémon logos, sprites or music; the evolved forms' names are parodies of Pokémon names.
+Sprites are made from the friends' own photos, so keep the repo and any shared links private. All other art, names and fonts are original or openly licensed. The pixel font is Pixelify Sans, under the SIL Open Font Licence. The game uses no Pokémon logos, sprites or music (all its music is original and made in code); the evolved forms' names are parodies of Pokémon names.
