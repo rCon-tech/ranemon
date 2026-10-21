@@ -2,15 +2,12 @@ import Link from 'next/link';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { levelStats, STAT_KEYS } from '@/lib/battle/creature';
-import { evolutionOf, ITEM_EVOLUTIONS } from '@/lib/battle/evolutions';
+import { evolutionOf } from '@/lib/battle/evolutions';
 import { moveById } from '@/lib/battle/moves';
 import { ROSTER } from '@/lib/battle/roster';
 import { variantForm, variantsOf } from '@/lib/battle/variants';
-import { itemById, type ItemId } from '@/lib/story/items';
 
 export const metadata = { title: 'Ranedex' };
-
-const itemName = (id: string) => itemById(id as ItemId).name;
 
 const STAT_LABEL = {
   hp: 'HP',
@@ -99,12 +96,6 @@ export default function Ranedex() {
                   {evolutionOf(c.id)!.level}.
                 </p>
               )}
-              {ITEM_EVOLUTIONS.filter((e) => e.from === c.id).map((e) => (
-                <p key={e.id} className="text-[10px] text-frame">
-                  Or, given a {itemName(e.item)}, evolves into {e.name}, who knows ★{' '}
-                  {moveById(e.signature).name}.
-                </p>
-              ))}
             </li>
           );
         })}

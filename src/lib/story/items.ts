@@ -1,5 +1,4 @@
 import { MAX_LEVEL } from '../battle/creature';
-import { itemEvolutionOf } from '../battle/evolutions';
 import { MAX_STAGE } from '../battle/engine';
 import type { Stat, Status } from '../battle/moves';
 import type { ItemEffect, Pint } from '../ui/session';
@@ -21,8 +20,7 @@ export type ItemId =
   | 'watermelon-ice'
   | 'blue-razz'
   | 'cherry-cola'
-  | 'mango-tango'
-  | 'flannel-shirt';
+  | 'mango-tango';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
@@ -30,9 +28,7 @@ export type ItemUse =
   /** A Blue Ghost: +1 level, used outside battle only. */
   | { kind: 'level' }
   /** A vape: raises a stat of the Ranemon that's out, in battle only, until the battle ends. */
-  | { kind: 'vape'; effect: Extract<ItemEffect, { kind: 'boost' }> }
-  /** Sets off an item evolution (`ITEM_EVOLUTIONS`), outside battle only. */
-  | { kind: 'evolve' };
+  | { kind: 'vape'; effect: Extract<ItemEffect, { kind: 'boost' }> };
 
 export interface Item {
   id: ItemId;
@@ -175,14 +171,6 @@ export const ITEMS: Item[] = [
     from: 1,
     use: { kind: 'vape', effect: { kind: 'boost', stat: 'spirit', stages: 1 } },
   },
-  {
-    id: 'flannel-shirt',
-    name: 'Flannel Shirt',
-    about: 'A big check flannel, sleeves rolled. Give it to a Killemon and see what happens.',
-    price: 3000,
-    from: 3,
-    use: { kind: 'evolve' },
-  },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
@@ -201,14 +189,11 @@ export interface Target {
   /** In battle: whether it's the one out, and its stat stages. Vapes need both. */
   active?: boolean;
   stages?: Record<Stat, number>;
-  /** Out of battle: its species, for items that set off an evolution. */
-  species?: string;
 }
 
 /** Whether an item would do anything for this Ranemon right now. */
-export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
+export function canUse(use: ItemUse, t: Target): boolean {
   if (use.kind === 'level') return t.level < MAX_LEVEL;
-  if (use.kind === 'evolve') return !!item && !!t.species && !!itemEvolutionOf(t.species, item);
   if (use.kind === 'pint') return false;
   if (use.kind === 'vape')
     return !!t.active && !!t.stages && t.hp > 0 && t.stages[use.effect.stat] < MAX_STAGE;
@@ -226,11 +211,7 @@ export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
 }
 
 export const canUseOn = (item: Item, m: Member) =>
-  canUse(
-    item.use,
-    { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level, species: m.species },
-    item.id,
-  );
+  canUse(item.use, { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level });
 
 /** Applies a healing item outside battle. */
 export function applyItem(item: Item, m: Member): Member {

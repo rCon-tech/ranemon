@@ -63,9 +63,6 @@ HD = {
     "skehemon": (192, 64, (60, 0, 180)),
     "vinnimon": (192, 64, (140, 0, 170)),
     "petchemon": (192, 64, (90, 10, 200)),
-    "crampemon": (192, 64, (50, 0, 290)),
-    # An item evolution from its own photo, wrapped in its type's glow like the other evolutions.
-    "cholokill": (192, 64, (105, 0, 150)),
 }
 
 
@@ -101,7 +98,6 @@ EVOLUTIONS = {
     "pauliwrath": ("paulimon", "hype"),
     "skehdinja": ("skehemon", "chill"),
     "vinnisaur": ("vinnimon", "charm"),
-    "crampharos": ("crampemon", "brawn"),
     # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
     "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
     "hitmonois-cap": ("oismon-cap", "hype"),
@@ -336,12 +332,6 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
         # Shedinja's halo over his head and its paper-thin shell wings behind.
         d.ellipse([cx - 12, top - 10, cx + 12, top - 3], outline=(248, 216, 96), width=2)
         wings(back, cx, top, (176, 136, 80), (232, 208, 152))
-    elif evo == "crampharos":
-        # Ampharos's red orb on his forehead, and sparks off either side.
-        d.ellipse([cx - 5, top - 10, cx + 5, top], fill=(232, 56, 56), outline=OUTLINE)
-        d.point((cx - 2, top - 7), fill=(255, 200, 200))
-        bolt(d, 6, 40)
-        bolt(d, SIZE - 16, 44)
     elif evo == "vinnisaur":
         # Venusaur's big flower behind him, with leaves either side.
         fx, fy = cx, top + 4
@@ -396,9 +386,6 @@ def gild(im: Image.Image, sparkles: bool) -> Image.Image:
     return out
 
 
-# Evolved forms drawn from their own photo, with the type glow evolve() gives the others.
-GLOW = {"cholokill": "hype"}
-
 # Legendary Ranemon: a two-tone glow behind them, and sparkles round about.
 LEGENDARY = {"tobymon": ((248, 200, 96), (240, 128, 88))}
 
@@ -449,10 +436,6 @@ def main() -> None:
             big = pixelate(im, SIZE)
         if path.stem in LEGENDARY:
             big = legend(big, LEGENDARY[path.stem])
-        if path.stem in GLOW:
-            glow = aura(big, TYPE_COLOUR[GLOW[path.stem]])
-            glow.alpha_composite(big)
-            big = glow
         big.save(SRC / "bw" / path.name)
         outline(pixelate(mini, 40, 28)).save(SRC / "bw/mini" / path.name)
     for evo, (base, kind) in EVOLUTIONS.items():

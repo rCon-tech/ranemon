@@ -20,7 +20,7 @@ it(`no type wins over 60% of ${BATTLES} simulated battles`, () => {
   for (let i = 0; i < BATTLES; i++) {
     const pool = [...ROSTER];
     const pick = () => pool.splice(rng.int(0, pool.length - 1), 1)[0];
-    // 6v6, as in the game: you pick 6 of the 20 and the rival gets 6 of the rest.
+    // 6v6, as in the game: you pick 6 of the 19 and the rival gets 6 of the rest.
     const teams = [Array.from({ length: 6 }, pick), Array.from({ length: 6 }, pick)] as const;
     const { state } = simulateBattle([[...teams[0]], [...teams[1]]], i);
     if (state.phase.kind !== 'over' || state.phase.winner === 'draw') continue;

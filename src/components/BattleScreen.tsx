@@ -69,9 +69,6 @@ interface Props {
   onFinish: (result: Result, state: BattleState, fought: number[]) => void;
 }
 
-/** Items only used from the bag outside battle: a Blue Ghost, or one that sets off an evolution. */
-const OUTSIDE_BATTLE: ItemUse['kind'][] = ['level', 'evolve'];
-
 const CATEGORY_LABEL: Record<Move['category'], string> = {
   physical: 'Physical',
   spirit: 'Spirit',
@@ -386,7 +383,7 @@ export function BattleScreen({
           <div className="flex flex-col gap-2" role="group" aria-label="Bag">
             {!bagPick &&
               (story?.bag ?? [])
-                .filter((e) => e.count > 0 && !OUTSIDE_BATTLE.includes(e.use.kind))
+                .filter((e) => e.count > 0 && e.use.kind !== 'level')
                 .map((e) => (
                   <button
                     key={e.id}
@@ -432,9 +429,9 @@ export function BattleScreen({
                   </button>
                 );
               })}
-            {(story?.bag ?? []).every(
-              (e) => e.count === 0 || OUTSIDE_BATTLE.includes(e.use.kind),
-            ) && <p className="text-[13px] text-ink">The bag is empty.</p>}
+            {(story?.bag ?? []).every((e) => e.count === 0 || e.use.kind === 'level') && (
+              <p className="text-[13px] text-ink">The bag is empty.</p>
+            )}
             <button
               type="button"
               className="pixel-btn self-end text-[13px]"

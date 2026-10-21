@@ -47,7 +47,7 @@ export default function Guide() {
         </p>
         <ul className="list-disc pl-4">
           <li>
-            <b>Battle</b> (PRESS START): pick 6 of the 20 Ranemon in 90 seconds. Your rival gets 6
+            <b>Battle</b> (PRESS START): pick 6 of the 19 Ranemon in 90 seconds. Your rival gets 6
             of the rest. You fight 6 against 6 until one side has nobody left standing.
           </li>
           <li>

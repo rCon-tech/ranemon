@@ -775,19 +775,6 @@ export const SPECIAL_MOVES: Move[] = [
     effect: { kind: 'heal', fraction: 0.25 },
     specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.3 }],
   },
-  {
-    id: 'calf-cramp',
-    signature: 'crampemon',
-    name: 'Calf Cramp',
-    flavour: 'Seizes up and goes down on the foe, cramping it too. Cuts its Speed by 30%.',
-    type: 'brawn',
-    category: 'physical',
-    power: 85,
-    accuracy: 95,
-    pp: 10,
-    priority: 0,
-    specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
-  },
 ];
 
 /** Moves only story mode's bosses know. Named by Rich later; these are placeholders. */
@@ -804,24 +791,6 @@ export const BOSS_MOVES: Move[] = [
     pp: 5,
     priority: 0,
     specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
-  },
-];
-
-/** Moves only an item evolution has, in place of its base form's special move. */
-export const ITEM_EVOLUTION_MOVES: Move[] = [
-  {
-    id: 'whabam',
-    signature: 'cholokill',
-    name: 'Whabam',
-    flavour:
-      'Points at the foe, rolls up the flannel sleeves, and WHABAM. Cuts its Defense by 20%.',
-    type: 'hype',
-    category: 'physical',
-    power: 100,
-    accuracy: 90,
-    pp: 5,
-    priority: 0,
-    specials: [{ kind: 'boost', target: 'foe', stat: 'defense', factor: 0.8 }],
   },
 ];
 
@@ -849,7 +818,6 @@ const BY_ID = new Map(
     ...SPECIAL_MOVES,
     ...BOSS_MOVES,
     ...LEGEND_MOVES,
-    ...ITEM_EVOLUTION_MOVES,
     ...SPORT_MOVES,
     ...POSEIDON_MOVES,
     ...PETCHEMON_MOVES,
