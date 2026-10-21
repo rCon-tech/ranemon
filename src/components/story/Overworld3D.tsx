@@ -7,24 +7,16 @@ import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
-import {
-  monStyle,
-  paintDog,
-  paintPerson,
-  paintRider,
-  PERSON_H,
-  PERSON_W,
-  STYLES,
-  type Style,
-} from './people';
+import { Figure } from './figure3d';
+import { monStyle, paintDog, paintRider, STYLES } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
 import { isRiding, placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
- * in 3D under a tilted camera, with sunlight and shadows, and the people stand up in it as their
- * own sprites. Drawn with WebGL, and only loaded when the 3D look is picked.
+ * in 3D under a tilted camera, with sunlight and shadows, and the people are solid figures made
+ * from their own sprites. Drawn with WebGL, and only loaded when the 3D look is picked.
  */
 
 /** The camera hangs behind and above you, looking down at this angle. */
@@ -32,10 +24,34 @@ const PITCH = (50 * Math.PI) / 180;
 const DISTANCE = 15.5;
 const LEAN = -0.35;
 
-const personTextures = new Map<string, THREE.Texture>();
-function personTexture(key: string, make: () => HTMLCanvasElement) {
-  let t = personTextures.get(key);
-  if (!t) personTextures.set(key, (t = pixelTexture(make())));
+/** Pictures that stay 2D in the 3D look (Norm, you on a bike), by what they show. */
+const pictures = new Map<string, THREE.Texture>();
+function picture(key: string, make: () => HTMLCanvasElement) {
+  let t = pictures.get(key);
+  if (!t) pictures.set(key, (t = pixelTexture(make())));
+  return t;
+}
+
+/** Puts a texture on a mesh's own material. */
+function show(mesh: THREE.Mesh, map: THREE.Texture) {
+  const mat = mesh.material as THREE.MeshLambertMaterial;
+  if (mat.map !== map) {
+    mat.map = map;
+    mat.needsUpdate = true;
+  }
+}
+
+const headTextures = new Map<HTMLImageElement, THREE.Texture>();
+function headTexture(img: HTMLImageElement) {
+  let t = headTextures.get(img);
+  if (!t) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 80;
+    const g = c.getContext('2d')!;
+    g.imageSmoothingEnabled = false;
+    g.drawImage(img, 0, 0, 80, 80);
+    headTextures.set(img, (t = pixelTexture(c)));
+  }
   return t;
 }
 
@@ -50,18 +66,6 @@ function head(species: string, shiny: boolean): HTMLImageElement {
     heads.set(key, img);
   }
   return img;
-}
-
-/** The follower: a body in its colour with its photo head on top, as one picture. */
-function followerCanvas(colour: string, dir: Dir, frame: number, img: HTMLImageElement) {
-  const c = document.createElement('canvas');
-  c.width = 80;
-  c.height = 106;
-  const g = c.getContext('2d')!;
-  g.imageSmoothingEnabled = false;
-  g.drawImage(paintPerson(monStyle(colour), dir, frame, true), 8, 10, PERSON_W, PERSON_H);
-  g.drawImage(img, 0, 0, 80, 80);
-  return c;
 }
 
 /** The ! over a trainer who has spotted you. */
@@ -162,23 +166,46 @@ export default function Overworld3D(props: Props) {
     watch.observe(host);
     resize();
 
-    // People are pictures standing up in the world, leaning back a little toward the camera.
-    const personGeo = new THREE.PlaneGeometry(1, 1.5);
-    personGeo.translate(0, 0.75, 0);
-    const followerGeo = new THREE.PlaneGeometry(1.25, 1.656);
-    followerGeo.translate(0, 0.828, 0);
-    const pool: THREE.Mesh[] = [];
+    // People are solid figures, kept by who they are so each turns and walks smoothly. A soft
+    // dark patch under each keeps them on the ground when the sun is high or shadows are off.
+    const figures = new Map<string, Figure>();
     const people = new THREE.Group();
     scene.add(people);
-    const blobGeo = new THREE.CircleGeometry(0.32, 16);
+    const blobGeo = new THREE.CircleGeometry(0.3, 16);
     blobGeo.rotateX(-Math.PI / 2);
     const blobMat = new THREE.MeshBasicMaterial({
       color: '#000',
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.16,
       depthWrite: false,
     });
     const blobs: THREE.Mesh[] = [];
+    // The follower's photo head faces the camera, as in 2D, on top of its own solid body.
+    const headGeo = new THREE.PlaneGeometry(1.15, 1.15);
+    headGeo.translate(0, 0.575, 0);
+    const followerHead = new THREE.Mesh(
+      headGeo,
+      new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
+    );
+    followerHead.rotation.x = LEAN;
+    followerHead.castShadow = true;
+    scene.add(followerHead);
+    // Pictures standing up in the world, leaning back a little toward the camera.
+    const boardGeo = new THREE.PlaneGeometry(1, 1.5);
+    boardGeo.translate(0, 0.75, 0);
+    const board = () => {
+      const mesh = new THREE.Mesh(
+        boardGeo,
+        new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
+      );
+      mesh.rotation.x = LEAN;
+      mesh.castShadow = true;
+      mesh.visible = false;
+      scene.add(mesh);
+      return mesh;
+    };
+    const dog = board();
+    const rider = board();
 
     const exclaim = new THREE.Mesh(
       new THREE.PlaneGeometry(0.62, 0.74),
@@ -226,6 +253,9 @@ export default function Overworld3D(props: Props) {
       level = buildLevel(map, gymRoofsOf(map));
       levelOf = map;
       scene.add(level.group);
+      people.clear();
+      figures.clear();
+      blobs.length = 0;
       glows.clear();
       for (const d of map.inside ? [] : level.doors) {
         const glow = new THREE.Mesh(glowGeo, glowMat);
@@ -314,69 +344,54 @@ export default function Overworld3D(props: Props) {
         crown.mesh.instanceMatrix.needsUpdate = true;
       }
 
-      // Everyone on the map, then you, from the pool of standing pictures.
+      // Everyone on the map, then the follower and you.
       let used = 0;
       const idle = (phase: number) => (Math.floor(now / 700 + phase) % 2 ? 0.03 : 0);
-      const stand = (
-        texture: THREE.Texture,
-        geo: THREE.BufferGeometry,
+      /** Arms and legs through a step: one way on odd steps, the other on even ones. */
+      const swingOf = (moving: boolean) =>
+        moving ? Math.sin(t * Math.PI) * (w.frame % 2 ? 1 : -1) : 0;
+      const seen = new Set<string>();
+      const person = (
+        key: string,
+        make: () => Figure,
+        dir: Dir,
         wx: number,
         wz: number,
+        swing: number,
         bob: number,
       ) => {
-        let mesh = pool[used];
-        if (!mesh) {
-          mesh = new THREE.Mesh(
-            geo,
-            new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
-          );
-          mesh.rotation.x = LEAN;
-          mesh.castShadow = true;
-          pool.push(mesh);
-          people.add(mesh);
-          const blob = new THREE.Mesh(blobGeo, blobMat);
+        let fig = figures.get(key);
+        if (!fig) {
+          fig = make();
+          figures.set(key, fig);
+          people.add(fig.group);
+        }
+        fig.group.visible = true;
+        fig.pose(wx, wz, dir, swing, bob);
+        seen.add(key);
+        let blob = blobs[used];
+        if (!blob) {
+          blob = new THREE.Mesh(blobGeo, blobMat);
           blobs.push(blob);
           people.add(blob);
         }
-        mesh.geometry = geo;
-        const mat = mesh.material as THREE.MeshLambertMaterial;
-        if (mat.map !== texture) {
-          mat.map = texture;
-          mat.needsUpdate = true;
-        }
-        mesh.position.set(wx, bob, wz);
-        mesh.visible = true;
-        blobs[used].position.set(wx, 0.015, wz);
-        blobs[used].visible = true;
+        blob.position.set(wx, 0.015, wz);
+        blob.visible = true;
         used++;
+        return fig;
       };
-      const person = (
-        key: string,
-        style: Style,
-        dir: Dir,
-        frame: number,
-        wx: number,
-        wz: number,
-        bob: number,
-      ) =>
-        stand(
-          personTexture(`${key}:${dir}:${frame}`, () => paintPerson(style, dir, frame)),
-          personGeo,
-          wx,
-          wz,
-          bob,
-        );
 
       exclaim.visible = false;
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
+        const look = n.item.look;
         person(
-          n.item.look,
-          STYLES[n.item.look],
+          `npc:${n.index}:${look}`,
+          () => new Figure(look, STYLES[look]),
           p.faces[n.index] ?? n.item.face,
-          0,
           n.x + 0.5,
           n.y + 0.5,
+          0,
           idle(n.index * 0.37),
         );
         if (p.exclaim === n.index) {
@@ -386,6 +401,8 @@ export default function Overworld3D(props: Props) {
       }
 
       const tr = trail.current;
+      followerHead.visible = false;
+      dog.visible = false;
       if ((p.follower || p.dog) && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const moving = !!(tr.from && w.from);
         const fx = (moving ? lerp(tr.from!.x, tr.at.x) : tr.at.x) + 0.5;
@@ -395,49 +412,61 @@ export default function Overworld3D(props: Props) {
           : { x: w.x - tr.at.x, y: w.y - tr.at.y };
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
-        const frame = moving ? stepPose(t, w.frame) : 0;
         const lift = moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5);
         if (p.dog || !p.follower) {
-          // Norm, on the same canvas as a person, so the same size as you.
-          stand(
-            personTexture(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
-            personGeo,
-            fx,
-            fz,
-            lift / 2,
+          // Norm stays his 2D picture, on the same canvas as a person, so the same size as you.
+          const frame = moving ? stepPose(t, w.frame) : 0;
+          show(
+            dog,
+            picture(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
           );
+          dog.position.set(fx, lift / 2, fz);
+          dog.visible = true;
         } else {
           const img = head(p.follower, !!p.followerShiny);
           const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
           if (img.complete && img.naturalWidth) {
-            stand(
-              personTexture(`mon:${p.follower}:${!!p.followerShiny}:${fdir}:${frame}`, () =>
-                followerCanvas(colour, fdir, frame, img),
-              ),
-              followerGeo,
+            person(
+              `mon:${colour}`,
+              () => new Figure(`mon:${colour}`, monStyle(colour), true),
+              fdir,
               fx,
               fz,
+              swingOf(moving),
               lift,
             );
+            show(followerHead, headTexture(img));
+            followerHead.position.set(fx, 0.62 + lift, fz + 0.05);
+            followerHead.visible = true;
           }
         }
       }
 
-      const stepFrame = w.from ? stepPose(t, w.frame) : 0;
+      // On a bike you're your 2D picture riding it, as the bike has no 3D shape yet.
       const bike = isRiding(w, p) ? p.bike : null;
+      rider.visible = !!bike;
       if (bike) {
-        const turn = w.from ? stepFrame % 4 : 0;
-        stand(
-          personTexture(`ride:${bike}:${w.face}:${turn}`, () =>
+        const turn = w.from ? stepPose(t, w.frame) % 4 : 0;
+        show(
+          rider,
+          picture(`ride:${bike}:${w.face}:${turn}`, () =>
             paintRider(STYLES.player, w.face, turn, bike),
           ),
-          personGeo,
-          px,
-          pz,
-          0,
         );
-      } else person('player', STYLES.player, w.face, stepFrame, px, pz, w.from ? 0 : idle(0));
-      for (let i = used; i < pool.length; i++) pool[i].visible = blobs[i].visible = false;
+        rider.position.set(px, 0, pz);
+      }
+      const you = person(
+        'player',
+        () => new Figure('player', STYLES.player),
+        w.face,
+        px,
+        pz,
+        swingOf(!!w.from),
+        w.from ? 0 : idle(0),
+      );
+      you.group.visible = !bike;
+      for (const [k, fig] of figures) if (!seen.has(k)) fig.group.visible = false;
+      for (let i = used; i < blobs.length; i++) blobs[i].visible = false;
 
       // Blue Ghosts, rebuilt when one is picked up.
       const key = p.ghosts.map((g) => `${g.x},${g.y}`).join(';') + map.id;
@@ -465,8 +494,9 @@ export default function Overworld3D(props: Props) {
       cancelAnimationFrame(raf);
       watch.disconnect();
       level?.dispose();
-      [personGeo, followerGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
-      pool.forEach((m) => (m.material as THREE.Material).dispose());
+      [headGeo, boardGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
+      (followerHead.material as THREE.Material).dispose();
+      [dog, rider].forEach((m) => (m.material as THREE.Material).dispose());
       renderer.dispose();
       renderer.domElement.remove();
     };
