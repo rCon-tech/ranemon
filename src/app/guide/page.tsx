@@ -204,6 +204,11 @@ export default function Guide() {
             the jerseys you’ve won and where you are now.
           </li>
           <li>
+            <b>Moves</b>: every Ranemon learns 6 sport moves as it levels up, from soccer, rugby,
+            padel, golf, video games and F1. It fights with 4 at a time. When it learns a fifth,
+            open PARTY, tap the Ranemon, tap the move to drop, then tap the new one.
+          </li>
+          <li>
             <b>Exp Share</b> is in the START menu, and starts off. Turn it on and every Ranemon in
             your party that’s still standing gets the same EXP as the one that fought, so the whole
             team levels up together. Turn it off to train one Ranemon at a time.

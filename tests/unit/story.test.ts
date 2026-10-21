@@ -91,12 +91,12 @@ describe('levels', () => {
 });
 
 describe('party', () => {
-  it('starts with its weakest attack and its special move, then learns at 12 and 20', () => {
+  it('starts with its weakest attack and its special move, then learns the rest up to 50', () => {
     const carl = creatureById('carlmon');
-    expect(learnset(carl).map((l) => l.level)).toEqual([1, 1, 12, 20]);
+    expect(learnset(carl).map((l) => l.level)).toEqual([1, 1, 8, 12, 16, 20, 25, 33, 42, 50]);
     expect(movesAt(carl, 5)).toEqual([expect.any(String), 'nozzy-call']);
     expect(moveById(movesAt(carl, 5)[0]).signature).toBeUndefined();
-    expect(movesAt(carl, 12)).toHaveLength(3);
+    expect(movesAt(carl, 12)).toHaveLength(4);
     for (const c of ROSTER) {
       expect(
         movesAt(c, 1).some((id) => moveById(id).signature === c.id),
@@ -109,8 +109,8 @@ describe('party', () => {
     const m = makeMember('carlmon', 11, 1);
     const { member, lines } = gainExp(m, expAt(12) - m.exp);
     expect(member.level).toBe(12);
-    expect(member.moves).toHaveLength(3);
-    expect(member.pp).toHaveLength(3);
+    expect(member.moves).toHaveLength(4);
+    expect(member.pp).toHaveLength(4);
     expect(lines.join(' ')).toMatch(/grew to Lv12.*learned/);
     expect(member.hp).toBeGreaterThan(m.hp);
   });
@@ -291,7 +291,12 @@ describe('story state', () => {
 describe('older saves', () => {
   it('teach the special move to Ranemon saved before it came at Lv1', () => {
     const s = newGame();
-    const old = { ...makeMember('carlmon', 8, 1), moves: ['headlock'], pp: [20] };
+    const old = {
+      ...makeMember('carlmon', 8, 1),
+      moves: ['headlock'],
+      pp: [20],
+      learned: undefined,
+    };
     const raw = JSON.stringify({ ...s, party: [old] });
     // Saved before trainer names, under the one old key.
     const loaded = load({ getItem: (k) => (k === 'ranemon.story.v1' ? raw : null) }, 'Rich');
