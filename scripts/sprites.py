@@ -52,6 +52,7 @@ HD = {
     "steadmon-suit": (192, 64, (100, 0, 190)),
     "gibbsmon-races": (192, 64, (90, 0, 130)),
     "jammon-shades": (192, 64, (40, 0, 260)),
+    "killemon-thumbs": (192, 64, (50, 0, 180)),
 }
 
 
@@ -94,6 +95,7 @@ EVOLUTIONS = {
     "steadakazam-suit": ("steadmon-suit", "brains"),
     "gyaragibbs-races": ("gibbsmon-races", "brawn"),
     "jamchamp-shades": ("jammon-shades", "chill"),
+    "killigatr-thumbs": ("killemon-thumbs", "hype"),
 }
 
 # Where the head is, (x centre, y top, half width) on the 96-pixel canvas, for photos where
