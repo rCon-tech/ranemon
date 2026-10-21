@@ -13,6 +13,7 @@ import { LEGEND } from '../battle/legend';
 import { PETCHEMON } from '../battle/petchemon';
 import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
+import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '../battle/second-specials';
 import { variantForm } from '../battle/variants';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
@@ -105,7 +106,9 @@ export function learnset(c: Creature): { level: number; move: string }[] {
     level: SPORT_LEVELS[i],
     move,
   }));
-  return [...own, ...sport].sort((a, b) => a.level - b.level);
+  const second = secondSpecialOf(lineOf(c.id));
+  const late = second ? [{ level: SECOND_SPECIAL_LEVEL, move: second.id }] : [];
+  return [...own, ...sport, ...late].sort((a, b) => a.level - b.level);
 }
 
 /** Every move a Ranemon has learnt by a level, in the order it learnt them. */
@@ -216,8 +219,14 @@ export function expYield(foeLevel: number, trainer: boolean): number {
   return Math.floor(((140 * foeLevel) / 7) * (trainer ? 1.5 : 1));
 }
 
+/** Whether a member's evolution's partner, if it needs one, is in the party with it. */
+function partnered(m: Member, party: Member[]): boolean {
+  const partner = evolutionOf(m.species)?.partner;
+  return !partner || party.some((p) => p.uid !== m.uid && lineOf(p.species) === partner);
+}
+
 /** Goes up one level: more HP, and any move learnt at the new level. */
-function levelUp(m: Member, lines: string[]): Member {
+function levelUp(m: Member, lines: string[], party: Member[] = []): Member {
   const name = nameOf(m);
   const before = statsOf(m).hp;
   let next: Member = { ...m, level: m.level + 1 };
@@ -237,7 +246,7 @@ function levelUp(m: Member, lines: string[]): Member {
     }
   }
   const evo = evolutionOf(next.species);
-  if (evo && next.level >= evo.level) next = evolve(next, lines);
+  if (evo && next.level >= evo.level && partnered(next, party)) next = evolve(next, lines);
   return next;
 }
 
@@ -253,13 +262,20 @@ function evolve(m: Member, lines: string[]): Member {
   return { ...next, hp: m.hp > 0 ? m.hp + gained : 0 };
 }
 
-/** Adds EXP and applies any level-ups. Returns the lines to show. */
-export function gainExp(m: Member, amount: number): { member: Member; lines: string[] } {
+/**
+ * Adds EXP and applies any level-ups. Returns the lines to show. The party is for evolutions
+ * that need a partner alongside.
+ */
+export function gainExp(
+  m: Member,
+  amount: number,
+  party: Member[] = [],
+): { member: Member; lines: string[] } {
   if (m.level >= MAX_LEVEL) return { member: m, lines: [] };
   const lines = [`${nameOf(m)} gained ${amount} EXP!`];
   let member: Member = { ...m, exp: m.exp + amount };
   while (member.level < MAX_LEVEL && member.exp >= expAt(member.level + 1)) {
-    member = levelUp(member, lines);
+    member = levelUp(member, lines, party);
   }
   if (member.level >= MAX_LEVEL) member = { ...member, exp: expAt(MAX_LEVEL) };
   return { member, lines };
@@ -296,10 +312,10 @@ export function itemEvolve(m: Member, item: string): { member: Member; lines: st
 }
 
 /** A Blue Ghost: exactly one level, with EXP set to the start of it. */
-export function blueGhost(m: Member): { member: Member; lines: string[] } {
+export function blueGhost(m: Member, party: Member[] = []): { member: Member; lines: string[] } {
   if (m.level >= MAX_LEVEL) return { member: m, lines: ['It won’t have any effect.'] };
   const lines: string[] = [];
-  const member = levelUp(m, lines);
+  const member = levelUp(m, lines, party);
   return { member: { ...member, exp: expAt(member.level) }, lines };
 }
 

@@ -4,7 +4,8 @@ import { TypeBadge } from '@/components/TypeBadge';
 import { levelStats, STAT_KEYS } from '@/lib/battle/creature';
 import { evolutionOf, ITEM_EVOLUTIONS } from '@/lib/battle/evolutions';
 import { moveById } from '@/lib/battle/moves';
-import { ROSTER } from '@/lib/battle/roster';
+import { creatureById, ROSTER } from '@/lib/battle/roster';
+import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '@/lib/battle/second-specials';
 import { variantForm, variantsOf } from '@/lib/battle/variants';
 import { itemById, type ItemId } from '@/lib/story/items';
 
@@ -93,10 +94,19 @@ export default function Ranedex() {
                     ★ {m.name}: {m.flavour}
                   </p>
                 ))}
+              {secondSpecialOf(c.id) && (
+                <p className="text-[10px] leading-relaxed">
+                  ★ {secondSpecialOf(c.id)!.name} (story mode, Lv{SECOND_SPECIAL_LEVEL}):{' '}
+                  {secondSpecialOf(c.id)!.flavour}
+                </p>
+              )}
               {evolutionOf(c.id) && (
                 <p className="text-[10px] text-frame">
                   In story mode, evolves into {evolutionOf(c.id)!.name} at Lv
-                  {evolutionOf(c.id)!.level}.
+                  {evolutionOf(c.id)!.level}
+                  {evolutionOf(c.id)!.partner &&
+                    ` or later, with a ${creatureById(evolutionOf(c.id)!.partner!).name} in the party`}
+                  .
                 </p>
               )}
               {ITEM_EVOLUTIONS.filter((e) => e.from === c.id).map((e) => (

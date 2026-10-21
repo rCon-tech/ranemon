@@ -19,6 +19,7 @@ export const UPDATES: Update[] = [
       'Enda is now called Endamon, like everyone else.',
       'Four brand new Ranemon have turned up in the wild, each with a special move and an evolution of his own.',
       'The corner shop has something new on the rail. One Ranemon might take a shine to it.',
+      'Most Ranemon now learn a second special move of their own later in the story, and every Ranedex entry has been rewritten.',
     ],
   },
   {

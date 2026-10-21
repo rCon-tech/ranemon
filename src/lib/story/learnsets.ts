@@ -50,14 +50,7 @@ export const LEARNSETS: Record<string, string[]> = {
   thilomon: ['nutmeg', 'speedrun', 'garryowen', 'vibora', 'combo-breaker', 'rage-quit'],
   paulimon: ['fore', 'tiki-taka', 'drs', 'putt-for-dough', 'top-bins', 'lights-out'],
   skehemon: ['sin-bin', 'nutmeg', 'globo', 'vibora', 'rage-quit', 'slipstream'],
-  crampemon: [
-    'fend-off',
-    'scrum-down',
-    'the-dive',
-    'drive-for-show',
-    'one-more-game',
-    'bicycle-kick',
-  ],
+  crampemon: ['fore', 'nutmeg', 'drs', 'speedrun', 'lights-out', 'rage-quit'],
   vinnimon: [
     'the-dive',
     'golf-clap',

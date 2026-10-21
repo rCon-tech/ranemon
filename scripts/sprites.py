@@ -101,7 +101,7 @@ EVOLUTIONS = {
     "pauliwrath": ("paulimon", "hype"),
     "skehdinja": ("skehemon", "chill"),
     "vinnisaur": ("vinnimon", "charm"),
-    "crampharos": ("crampemon", "brawn"),
+    "crampsb2bthilomon": ("crampemon", "hype"),
     # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
     "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
     "hitmonois-cap": ("oismon-cap", "hype"),
@@ -336,12 +336,16 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
         # Shedinja's halo over his head and its paper-thin shell wings behind.
         d.ellipse([cx - 12, top - 10, cx + 12, top - 3], outline=(248, 216, 96), width=2)
         wings(back, cx, top, (176, 136, 80), (232, 208, 152))
-    elif evo == "crampharos":
-        # Ampharos's red orb on his forehead, and sparks off either side.
-        d.ellipse([cx - 5, top - 10, cx + 5, top], fill=(232, 56, 56), outline=OUTLINE)
-        d.point((cx - 2, top - 7), fill=(255, 200, 200))
-        bolt(d, 6, 40)
-        bolt(d, SIZE - 16, 44)
+    elif evo == "crampsb2bthilomon":
+        # Back to back behind one set of decks, with the notes flying.
+        d.rectangle([8, SIZE - 22, SIZE - 9, SIZE - 1], fill=(48, 48, 56), outline=OUTLINE)
+        for x in (26, SIZE - 27):
+            d.ellipse([x - 10, SIZE - 21, x + 10, SIZE - 13], fill=(24, 24, 28), outline=(120, 120, 136))
+            d.ellipse([x - 3, SIZE - 19, x + 3, SIZE - 15], fill=(216, 64, 160))
+        d.rectangle([SIZE // 2 - 5, SIZE - 20, SIZE // 2 + 4, SIZE - 12], fill=(88, 88, 104), outline=OUTLINE)
+        for x, y in ((6, 20), (SIZE - 10, 16), (SIZE // 2, 4)):
+            d.ellipse([x - 3, y + 4, x + 1, y + 7], fill=(248, 216, 72), outline=OUTLINE)
+            d.line([(x + 1, y + 5), (x + 1, y - 3)], fill=OUTLINE, width=1)
     elif evo == "vinnisaur":
         # Venusaur's big flower behind him, with leaves either side.
         fx, fy = cx, top + 4
@@ -354,12 +358,24 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
             poly(back, [(cx + s * 18, top + 44), (cx + s * 46, top + 30), (cx + s * 40, top + 52)], (72, 168, 88))
 
 
+# Evolutions of two lads at once: the partner whose photo stands beside the base form's.
+DUOS = {"crampsb2bthilomon": "thilomon"}
+
+
 def evolve(evo: str, base: str, kind: str) -> Image.Image:
     photo = Image.open(SRC / f"{base}.png").convert("RGBA")
     body_w = 82
-    body = pixelate(photo, body_w)
     canvas = Image.new("RGBA", (SIZE, SIZE))
-    canvas.paste(body, ((SIZE - body_w) // 2, SIZE - body.height), body)
+    if evo in DUOS:
+        # Side by side, each a little more than half the width, the partner just behind.
+        body_w = 56
+        partner = pixelate(Image.open(SRC / f"{DUOS[evo]}.png").convert("RGBA"), body_w)
+        canvas.paste(partner, (SIZE - body_w, SIZE - partner.height), partner)
+        body = pixelate(photo, body_w)
+        canvas.alpha_composite(body, (0, SIZE - body.height))
+    else:
+        body = pixelate(photo, body_w)
+        canvas.paste(body, ((SIZE - body_w) // 2, SIZE - body.height), body)
     behind = Image.new("RGBA", (SIZE, SIZE))
     front = Image.new("RGBA", (SIZE, SIZE))
     # A look wears the same costume as its form.

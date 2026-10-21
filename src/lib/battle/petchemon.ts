@@ -11,7 +11,7 @@ export const PETCHEMON: Creature = {
   types: ['brawn', 'hype'],
   base: { hp: 95, attack: 105, defense: 80, spirit: 60, speed: 100 },
   moves: ['when-in-rome', 'gym-bro-punch', 'mosh-pit', 'flex'],
-  entry: 'B&S’s own. A white T-shirt, Ray-Bans and a grin. Conquered Rome on a weekend away.',
+  entry: 'B&S’s spy. A white T-shirt, Ray-Bans and a grin; nobody knows how much he’s told them.',
   colour: '#e05a2a',
   sprite: '/sprites/bw/petchemon.png',
 };

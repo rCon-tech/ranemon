@@ -5,13 +5,18 @@ import { moveById } from '@/lib/battle/moves';
 import { creatureById } from '@/lib/battle/roster';
 import { MAPS } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
+import { hasSpecialEffect } from '@/components/SpecialEffect';
+import { SECOND_SPECIAL_LEVEL, SECOND_SPECIALS } from '@/lib/battle/second-specials';
 import { canUseOn, itemById, shopStock } from '@/lib/story/items';
 import {
   evolutionIn,
   expAt,
   gainExp,
   itemEvolve,
+  catchUp,
+  learnedOf,
   makeMember,
+  movesAt,
   speciesById,
   statsOf,
 } from '@/lib/story/party';
@@ -20,7 +25,7 @@ const NEW = [
   ['paulimon', 'pauliwrath', 'hat-trick'],
   ['skehemon', 'skehdinja', 'not-impressed'],
   ['vinnimon', 'vinnisaur', 'prost'],
-  ['crampemon', 'crampharos', 'calf-cramp'],
+  ['crampemon', 'crampsb2bthilomon', 'drop-the-bass'],
 ] as const;
 
 describe('Paulimon, Skehemon, Vinnimon and Crampemon', () => {
@@ -90,5 +95,48 @@ describe('Cholokill', () => {
       ),
     ).toEqual(expect.arrayContaining(['killemon', 'killigatr', 'cholokill']));
     expect(existsSync(`public${speciesById('cholokill').sprite}`)).toBe(true);
+  });
+});
+
+describe('CrampsB2BThilomon', () => {
+  it('is what Crampemon becomes at 30, but only with a Thilomon in the party', () => {
+    const cramps = makeMember('crampemon', 29, 1);
+    const alone = gainExp(cramps, expAt(30) - cramps.exp, [cramps]).member;
+    expect(alone.species).toBe('crampemon');
+    const thilo = makeMember('thilomon', 20, 2);
+    const party = [alone, thilo];
+    const { member, lines } = gainExp(alone, expAt(31) - alone.exp, party);
+    expect(member.species).toBe('crampsb2bthilomon');
+    expect(lines).toContain('Crampemon evolved into CrampsB2BThilomon!');
+    // A Thilotrode counts too.
+    const trode = makeMember('thilomon', 35, 3);
+    expect(gainExp(cramps, expAt(30) - cramps.exp, [cramps, trode]).member.species).toBe(
+      'crampsb2bthilomon',
+    );
+    // Wild and trainers' ones from 30 are already evolved.
+    expect(makeMember('crampemon', 32, 4).species).toBe('crampsb2bthilomon');
+  });
+});
+
+describe('second special moves', () => {
+  it('are learnt at Lv36 in story mode, one for each line that has one', () => {
+    const lines = SECOND_SPECIALS.map((m) => m.signature);
+    expect(new Set(lines).size).toBe(lines.length);
+    for (const m of SECOND_SPECIALS) {
+      const base = creatureById(m.signature!);
+      expect(base.moves).not.toContain(m.id);
+      expect(movesAt(base, SECOND_SPECIAL_LEVEL - 1)).not.toContain(m.id);
+      expect(movesAt(base, SECOND_SPECIAL_LEVEL)).toContain(m.id);
+      expect(hasSpecialEffect(m.id), m.id).toBe(true);
+      // Its evolved form learns it too.
+      const evo = evolutionOf(base.id);
+      if (evo) expect(movesAt(speciesById(evo.id), 50)).toContain(m.id);
+    }
+  });
+
+  it('come back to a save that is already past Lv36', () => {
+    const old = makeMember('gibbsmon', 40, 1);
+    const before = { ...old, learned: old.learned!.filter((id) => id !== 'civil-war') };
+    expect(learnedOf(catchUp(before))).toContain('civil-war');
   });
 });

@@ -1093,7 +1093,7 @@ export function Story() {
               let g = take(game, id);
               let lines: string[];
               if (item.use.kind === 'level') {
-                const r = blueGhost(m);
+                const r = blueGhost(m, game.party);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = [`${name} drank the Blue Ghost!`, ...r.lines];
               } else if (item.use.kind === 'evolve') {

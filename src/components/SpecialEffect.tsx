@@ -103,6 +103,45 @@ const between = (a: Point, b: Point): Point => ({ x: b.x - a.x, y: b.y - a.y });
 
 type Scene = (u: Point, o: Point, userSide: Side) => ReactNode;
 
+/**
+ * A plainer scene for the second special moves: a shout over the user, then either a blast
+ * that flies to the foe or sparkles rising round the user.
+ */
+const shout = (text: string, colour: string, hits: boolean): Scene =>
+  function Shout(u, o) {
+    return (
+      <>
+        <A anim="pop">
+          <Label at={up(u, 30)} text={text} colour={colour} size={6} />
+        </A>
+        {hits ? (
+          <>
+            <A anim="travel" delay={0.3} to={between(u, o)}>
+              <polygon
+                points={star(off(u, 0, -4), 6, 2.6, 5)}
+                fill={colour}
+                stroke={INK}
+                strokeWidth="0.6"
+              />
+            </A>
+            <Boom at={o} delay={0.75} size={11} />
+          </>
+        ) : (
+          [-12, 10, -4, 14, -14].map((dx, i) => (
+            <A key={i} anim="rise" delay={0.3 + i * 0.12}>
+              <polygon
+                points={star(off(u, dx, 2 - (i % 3) * 6), 3.5, 1.4, 4)}
+                fill={colour}
+                stroke={INK}
+                strokeWidth="0.4"
+              />
+            </A>
+          ))
+        )}
+      </>
+    );
+  };
+
 const SCENES: Record<string, Scene> = {
   // A phone ringing off the hook, then off he goes.
   'nozzy-call': (u, o) => (
@@ -770,6 +809,25 @@ const SCENES: Record<string, Scene> = {
       ))}
     </>
   ),
+
+  // Second special moves (second-specials.ts).
+  'know-your-sport': shout('QUIZ TIME!', '#f59ac2', true),
+  'mushroom-harvest': shout('SPORES!', '#c89060', true),
+  'fossil-record': shout('ANCIENT!', '#c8b090', true),
+  'guiding-light': shout('FOLLOW ME', '#fff2a0', false),
+  'mind-unlocked': shout('UNLOCKED', '#9b7be8', true),
+  'bed-by-830': shout('ZZZ... 8:30', '#9ab8e8', false),
+  'civil-war': shout('CHARGE!', '#8a9a58', true),
+  'fix-anything': shout('FIXED.', '#f8d030', false),
+  'action-over-decision': shout('GO GO GO', '#f2a541', true),
+  'win-at-all-costs': shout('WIN!', '#e04848', true),
+  'positive-message': shout('GOOD VIBES', '#ff9ac8', false),
+  'fierce-competitor': shout('GAME ON', '#6cc4a0', true),
+  'no-complaints': shout('NO BOTHER', '#b45cc9', false),
+  'locked-in': shout('LOCKED IN', '#58a8f8', false),
+  'too-good-for-ireland': shout('TRY!', '#30b050', true),
+  'money-talks': shout('€€€', '#f8d030', true),
+  'drop-the-bass': shout('DROP!', '#d94fa8', true),
 };
 
 /** An energy drink thrown in from the user's bench, for Helping Hand. */

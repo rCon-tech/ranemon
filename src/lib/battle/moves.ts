@@ -1,5 +1,6 @@
 import { PETCHEMON_MOVES } from './petchemon';
 import { POSEIDON_MOVES } from './poseidon';
+import { SECOND_SPECIALS } from './second-specials';
 import { SPORT_MOVES } from './sports';
 import type { RaneType } from './types';
 
@@ -776,17 +777,17 @@ export const SPECIAL_MOVES: Move[] = [
     specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.3 }],
   },
   {
-    id: 'calf-cramp',
+    id: 'drop-the-bass',
     signature: 'crampemon',
-    name: 'Calf Cramp',
-    flavour: 'Seizes up and goes down on the foe, cramping it too. Cuts its Speed by 30%.',
-    type: 'brawn',
-    category: 'physical',
+    name: 'Drop the Bass',
+    flavour: 'Drops the bass and the whole room jumps. A big hit, and Speed up 20%.',
+    type: 'hype',
+    category: 'spirit',
     power: 85,
-    accuracy: 95,
+    accuracy: 100,
     pp: 10,
     priority: 0,
-    specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
+    specials: [{ kind: 'boost', target: 'self', stat: 'speed', factor: 1.2 }],
   },
 ];
 
@@ -850,6 +851,7 @@ const BY_ID = new Map(
     ...BOSS_MOVES,
     ...LEGEND_MOVES,
     ...ITEM_EVOLUTION_MOVES,
+    ...SECOND_SPECIALS,
     ...SPORT_MOVES,
     ...POSEIDON_MOVES,
     ...PETCHEMON_MOVES,

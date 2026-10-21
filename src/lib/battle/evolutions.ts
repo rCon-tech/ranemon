@@ -12,6 +12,8 @@ export interface Evolution {
   name: string;
   level: number;
   entry: string;
+  /** In story mode it only evolves with a Ranemon of this line in the party too. */
+  partner?: string;
 }
 
 export const EVOLUTION_LEVEL = 30;
@@ -134,9 +136,11 @@ export const EVOLUTIONS: Evolution[] = [
   },
   {
     from: 'crampemon',
-    id: 'crampharos',
-    name: 'Crampharos',
-    entry: 'The cramp turned to static. The red light on his head means he’s about to go.',
+    id: 'crampsb2bthilomon',
+    name: 'CrampsB2BThilomon',
+    entry:
+      'Crampemon and Thilomon, back to back on the decks as one. Nobody leaves till they say so.',
+    partner: 'thilomon',
   },
 ].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
 
