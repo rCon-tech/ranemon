@@ -89,7 +89,8 @@ import {
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
-import { notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
+import { LIMEPASS, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
+import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
@@ -123,6 +124,7 @@ type Overlay =
   | 'dex'
   | 'card'
   | 'map'
+  | 'limepass'
   | 'starter'
   | 'offer-chat'
   | 'ask'
@@ -933,7 +935,7 @@ export function Story() {
           followerShiny={!!walker?.shiny}
           dog={norm}
           frozen={busy}
-          bike={hasFlag(game, 'bike')}
+          bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
           exclaim={exclaim}
           faces={faces}
           ghosts={ghosts}
@@ -976,6 +978,7 @@ export function Story() {
         {overlay === 'menu' && (
           <StartMenu
             expShare={!!game.expShare}
+            limepass={hasFlag(game, LIMEPASS)}
             onPick={(o) => {
               if (o === 'share') {
                 const g = toggleExpShare(game);
@@ -1068,6 +1071,20 @@ export function Story() {
         {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} />}
         {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
         {overlay === 'map' && <TownMapPanel game={game} onClose={closeOverlay} />}
+        {overlay === 'limepass' && (
+          <LimepassPanel
+            flags={flags}
+            here={outsideOf(map).id}
+            onGo={(stop) => {
+              setOverlay(null);
+              run(game, [
+                { do: 'travel', map: stop.map, x: stop.x, y: stop.y, face: stop.face },
+                { do: 'say', text: `You hop on a Lime and zip over to ${stop.town}.` },
+              ]);
+            }}
+            onClose={closeOverlay}
+          />
+        )}
         {overlay === 'starter' && (
           <StarterPanel
             onChoose={(species) => {
@@ -1132,11 +1149,14 @@ export function Story() {
 
 function StartMenu({
   expShare,
+  limepass,
   onPick,
   onClose,
 }: {
   expShare: boolean;
-  onPick: (o: 'party' | 'bag' | 'dex' | 'map' | 'card' | 'share' | 'save') => void;
+  /** Whether you have the Limepass, which adds LIMEPASS to the menu. */
+  limepass: boolean;
+  onPick: (o: 'party' | 'bag' | 'dex' | 'map' | 'limepass' | 'card' | 'share' | 'save') => void;
   onClose: () => void;
 }) {
   const items = [
@@ -1144,6 +1164,7 @@ function StartMenu({
     ['bag', 'BAG'],
     ['dex', 'RANEDEX'],
     ['map', 'MAP'],
+    ...(limepass ? ([['limepass', 'LIMEPASS']] as const) : []),
     ['card', 'JERSEYS'],
     ['share', `EXP SHARE: ${expShare ? 'ON' : 'OFF'}`],
     ['save', 'SAVE'],

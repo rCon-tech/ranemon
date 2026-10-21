@@ -331,3 +331,51 @@ test('story mode: Sibeal in Limerick lends you Norm', async ({ page }) => {
   expect(save.flags).toContain('norm:with-you');
   expect(save.party).toHaveLength(1);
 });
+
+test('story mode: the Limepass fast travels to a town you’ve been to', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:lime')) return;
+    localStorage.setItem(
+      'ranemon.story.v1:lime',
+      JSON.stringify({
+        version: 1,
+        map: 'clare',
+        x: 2,
+        y: 3,
+        face: 'down',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 12,
+            exp: 2000,
+            hp: 40,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:clare', 'visited:limerick', 'limepass'],
+        seen: [],
+        caught: [],
+        pub: { map: 'clare', x: 2, y: 3 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Lime');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'LIMEPASS' }).click();
+  await expect(page.getByTestId('lime-clare')).toBeDisabled();
+  await page.getByTestId('lime-limerick').click();
+  await expect(page.getByTestId('story-text')).toContainText('zip over to Limerick');
+  await expect(page.getByTestId('place')).toContainText('Limerick');
+});

@@ -38,6 +38,8 @@ export interface Walk extends Position {
   /** The tile the last step left, to tell a late update from before it. */
   left: { x: number; y: number } | null;
   lastBump: number;
+  /** On the bike for the step being taken. */
+  riding: boolean;
 }
 
 /** Where the follower is: the tile it stands on, and the one it's leaving, while moving. */
@@ -50,7 +52,8 @@ export interface Walker {
   map: GameMap;
   flags: ReadonlySet<string>;
   frozen: boolean;
-  bike: boolean;
+  /** Which bike you have, if any. */
+  bike: string | null;
   held: React.RefObject<Held>;
   onStep: (to: Position) => void;
   onTurn: (face: Dir) => void;
@@ -66,6 +69,7 @@ export const startWalk = (pos: Position): Walk => ({
   waiting: false,
   left: null,
   lastBump: 0,
+  riding: false,
 });
 
 /** The story moved us (a warp, a blackout) or took in our last step. */
@@ -112,7 +116,8 @@ export function tickWalk(w: Walk, trail: Trail, p: Walker, now: number) {
     w.x = nx;
     w.y = ny;
     w.t0 = now;
-    w.dur = scaled(p.bike && p.held.current?.b ? BIKE_MS : WALK_MS);
+    w.riding = !!p.bike && !!p.held.current?.b;
+    w.dur = scaled(w.riding ? BIKE_MS : WALK_MS);
     w.frame++;
   } else if (now - w.lastBump > 350) {
     w.lastBump = now;
@@ -126,3 +131,7 @@ export const stepT = (w: Walk, now: number) => (w.from ? Math.min(1, (now - w.t0
 /** The pose frame for a step `t` of the way through: frames 1-4 lead with the left foot, 5-8 the right. */
 export const stepPose = (t: number, step: number) =>
   (step % 2 ? 4 : 0) + (t < 0.25 ? 1 : t < 0.6 ? 2 : t < 0.85 ? 3 : 4);
+
+/** Whether you're on the bike: for the step you're taking, or standing with B held. */
+export const isRiding = (w: Walk, p: Walker) =>
+  !!p.bike && (w.from ? w.riding : !!p.held.current?.b);

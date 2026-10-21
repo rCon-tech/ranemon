@@ -7,10 +7,19 @@ import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
-import { monStyle, paintDog, paintPerson, PERSON_H, PERSON_W, STYLES, type Style } from './people';
+import {
+  monStyle,
+  paintDog,
+  paintPerson,
+  paintRider,
+  PERSON_H,
+  PERSON_W,
+  STYLES,
+  type Style,
+} from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
+import { isRiding, placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -415,7 +424,19 @@ export default function Overworld3D(props: Props) {
       }
 
       const stepFrame = w.from ? stepPose(t, w.frame) : 0;
-      person('player', STYLES.player, w.face, stepFrame, px, pz, w.from ? 0 : idle(0));
+      const bike = isRiding(w, p) ? p.bike : null;
+      if (bike) {
+        const turn = w.from ? stepFrame % 4 : 0;
+        stand(
+          personTexture(`ride:${bike}:${w.face}:${turn}`, () =>
+            paintRider(STYLES.player, w.face, turn, bike),
+          ),
+          personGeo,
+          px,
+          pz,
+          0,
+        );
+      } else person('player', STYLES.player, w.face, stepFrame, px, pz, w.from ? 0 : idle(0));
       for (let i = used; i < pool.length; i++) pool[i].visible = blobs[i].visible = false;
 
       // Blue Ghosts, rebuilt when one is picked up.
