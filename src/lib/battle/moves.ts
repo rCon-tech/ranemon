@@ -751,7 +751,27 @@ export const BOSS_MOVES: Move[] = [
   },
 ];
 
-const BY_ID = new Map([...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, FLAIL].map((m) => [m.id, m]));
+/** The legendary Tobymon's own move: only he has it. */
+export const LEGEND_MOVES: Move[] = [
+  {
+    id: 'staff-of-ages',
+    signature: 'tobymon',
+    name: 'Staff of Ages',
+    flavour:
+      'Raises the gold-topped staff, and the wisdom of ages comes down on the foe. Raises Spirit by 30%.',
+    type: 'brains',
+    category: 'spirit',
+    power: 90,
+    accuracy: 100,
+    pp: 5,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.3 }],
+  },
+];
+
+const BY_ID = new Map(
+  [...MOVES, ...SPECIAL_MOVES, ...BOSS_MOVES, ...LEGEND_MOVES, FLAIL].map((m) => [m.id, m]),
+);
 
 export function moveById(id: string): Move {
   const move = BY_ID.get(id);

@@ -217,6 +217,8 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
     }
     case 'L': {
       const steps = outside.landmarks?.[index] ?? [];
+      const own = outside.landmarkRooms?.[index];
+      if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
       return {
         ...base,
         name: `${landmarkName(steps) ?? 'Michael D’s farmhouse'}, ${town}`,

@@ -1,4 +1,5 @@
 import { STAT_KEYS, type BaseStats, type Creature } from './creature';
+import { LEGEND } from './legend';
 import { ROSTER } from './roster';
 
 /**
@@ -155,7 +156,7 @@ export function formAt(species: string, level: number): string {
   return evo && level >= evo.level ? evo.id : species;
 }
 
-const FORMS = new Map([...ROSTER, ...EVOLVED].map((c) => [c.id, c]));
+const FORMS = new Map([...ROSTER, ...EVOLVED, LEGEND].map((c) => [c.id, c]));
 
 /** Any Ranemon, base or evolved. */
 export function formById(id: string): Creature {
@@ -169,8 +170,11 @@ export function sameStage(species: string, like: string): string {
   return lineOf(like) === like ? species : (evolutionOf(species)?.id ?? species);
 }
 
-/** The Ranedex order: each Ranemon followed by its evolution. */
-export const DEX: Creature[] = ROSTER.flatMap((c) => {
-  const evo = evolutionOf(c.id);
-  return evo ? [c, formById(evo.id)] : [c];
-});
+/** The Ranedex order: each Ranemon followed by its evolution, and the legend last. */
+export const DEX: Creature[] = [
+  ...ROSTER.flatMap((c) => {
+    const evo = evolutionOf(c.id);
+    return evo ? [c, formById(evo.id)] : [c];
+  }),
+  LEGEND,
+];

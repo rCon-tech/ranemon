@@ -2,6 +2,7 @@ import { levelStats, MAX_LEVEL, type BaseStats, type Creature } from '../battle/
 import type { Battler, Entrant } from '../battle/engine';
 import { EVOLVED, evolutionOf, formAt, lineOf } from '../battle/evolutions';
 import { moveById, type Status } from '../battle/moves';
+import { LEGEND } from '../battle/legend';
 import { ROSTER } from '../battle/roster';
 import { SHINY_STAR, shinyForm } from './shiny';
 
@@ -40,7 +41,7 @@ export const BOSS: Creature = {
   sprite: '/sprites/bw/bns.png',
 };
 
-const SPECIES = new Map([...ROSTER, ...EVOLVED, BOSS].map((c) => [c.id, c]));
+const SPECIES = new Map([...ROSTER, ...EVOLVED, BOSS, LEGEND].map((c) => [c.id, c]));
 
 export function speciesById(id: string): Creature {
   const c = SPECIES.get(id);
@@ -52,6 +53,9 @@ export function speciesById(id: string): Creature {
 const RARE = ['gibbsmon', 'thilomon', 'oismon', 'olliemon'];
 /** Evolved Ranemon are harder again. */
 export function catchRate(species: string): number {
+  // The legend is as hard as they come: worn down to 1 HP and asleep, a Mulligan's Pint
+  // befriends him about 1 time in 7.
+  if (species === LEGEND.id) return 9;
   const rate = RARE.includes(lineOf(species)) ? 45 : 120;
   return lineOf(species) === species ? rate : Math.round(rate * 0.6);
 }

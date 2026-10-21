@@ -47,7 +47,9 @@ export type Look =
   | 'barman'
   | 'shopkeeper'
   | 'saoirse'
-  | 'oldman';
+  | 'oldman'
+  | 'legend'
+  | 'busker';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -58,6 +60,8 @@ export type Step =
   | { do: 'if'; flag: string; then: Step[]; else?: Step[] }
   /** A yes or no question; the answer picks which steps run next. */
   | { do: 'ask'; text: string; yes?: Step[]; no?: Step[] }
+  /** A battle with one particular wild Ranemon, such as a legend. The script goes on after. */
+  | { do: 'wild'; species: string; level: number }
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }
@@ -100,7 +104,15 @@ export interface Gym {
   /** How the leader looks, if not like the other leaders. */
   look?: Look;
   /** A door that stays shut until a flag is set, such as an HM. */
-  lock?: { flag: string; locked: string; opened: string };
+  lock?: Lock;
+}
+
+export interface Lock {
+  flag: string;
+  /** Said at the door while it's shut. */
+  locked: string;
+  /** Said once, the first time through. */
+  opened: string;
 }
 
 export interface Wild {
@@ -122,6 +134,10 @@ export interface GameMap {
   signs?: string[];
   houses?: Step[][];
   landmarks?: Step[][];
+  /** Landmark doors that stay shut until a flag is set, by landmark index. */
+  landmarkLocks?: Record<number, Lock>;
+  /** A landmark's own room instead of the plain one, by landmark index. */
+  landmarkRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
   /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
   gym?: Gym;
   west?: string;

@@ -2,18 +2,20 @@ import type { Dir, Look } from '@/lib/story/world';
 import { INK } from './pixels';
 
 /**
- * The overworld's people, drawn in code like the 5th generation's chibi sprites: a big head with
- * a face, hair and hat, a jacket or outfit with sleeves and hands, legs and shoes, shaded, with a
- * dark outline all round. Each sprite is 16 × 24 world pixels, drawn at twice that.
+ * The overworld's people, drawn in code at four device pixels to the world pixel: a head with
+ * a real face (whites to the eyes, brows, a nose, ears), hair with strands and a shine, clothes
+ * shaded in three tones with collars, seams and folds, hands, belts and soled shoes, and an
+ * eight-frame walk. Each sprite is 16 × 24 world pixels, drawn at four times that.
  */
 
-/** Device pixels: 32 wide and 48 tall. */
-export const PERSON_W = 32;
-export const PERSON_H = 48;
+/** Device pixels: 64 wide and 96 tall. */
+export const PERSON_W = 64;
+export const PERSON_H = 96;
 
 type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'bob' | 'none';
-type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie';
-type Top = 'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat';
+type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila';
+type Top =
+  'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat' | 'agbada';
 
 export interface Style {
   skin: string;
@@ -39,10 +41,18 @@ export interface Style {
   tote?: string;
   /** Little badges pinned on the front. */
   badges?: string[];
-  /** A walking stick, in the near hand. */
+  /** A walking stick or staff, in the near hand, and the colour of its top. */
   stick?: string;
+  stickTop?: string;
   /** A ring through the nose. */
   nosering?: boolean;
+  beard?: string;
+  /** A long string of beads, worn in two loops. */
+  beads?: string;
+  /** Embroidered medallions on a robe. */
+  emblem?: string;
+  /** A guitar slung across the back. */
+  guitar?: string;
 }
 
 const SKIN = '#f8d0a8';
@@ -244,6 +254,38 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#2a2a30',
     glasses: 'glasses',
   },
+  // The legend in Dublin, never named: cream agbada with embroidered medallions over white, a
+  // folded fila cap, coral beads, a red-brown beard and a black staff topped with gold.
+  legend: {
+    skin: '#f4c8a8',
+    hair: '#9a5a30',
+    hairStyle: 'short',
+    beard: '#a8602e',
+    hat: { kind: 'fila', colour: '#e4d4b4' },
+    top: '#e4d4b4',
+    topKind: 'agbada',
+    trim: '#f8f8f4',
+    legs: '#f4f4f0',
+    shoes: '#c8a878',
+    beads: '#f08a58',
+    stick: '#1c1c22',
+    stickTop: '#f0c040',
+    emblem: '#3a8a84',
+  },
+  // A busker by the Park: beanie, parka, a guitar on his back.
+  busker: {
+    skin: SKIN,
+    hair: '#5a3a22',
+    hairStyle: 'long',
+    beard: '#5a3a22',
+    hat: { kind: 'beanie', colour: '#c8443a' },
+    top: '#5a7048',
+    topKind: 'coat',
+    trim: '#8a9a6a',
+    legs: '#3a4a6a',
+    shoes: '#4a3424',
+    guitar: '#b8742c',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -253,7 +295,7 @@ export const monStyle = (colour: string): Style => ({
   hairStyle: 'none',
   top: colour,
   topKind: 'shirt',
-  trim: colour,
+  trim: shade(colour, 1.3),
   legs: shade(colour, 0.6),
   shoes: shade(colour, 0.45),
 });
@@ -269,24 +311,57 @@ export function shade(hex: string, k: number): string {
 }
 
 type Ctx = CanvasRenderingContext2D;
+type Side = 'down' | 'up' | 'left';
 
 function px(c: Ctx, x: number, y: number, w: number, h: number, colour: string) {
   if (w <= 0 || h <= 0) return;
   c.fillStyle = colour;
-  c.fillRect(x, y, w, h);
+  c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+}
+
+/** The rows of a rectangle with rounded corners, in hard pixels. */
+function roundRows(x: number, y: number, w: number, h: number, r: number) {
+  x = Math.round(x);
+  y = Math.round(y);
+  const rows: [number, number, number][] = [];
+  for (let i = 0; i < h; i++) {
+    const d = i < r ? r - i - 0.5 : i >= h - r ? i - (h - r) + 0.5 : 0;
+    const inset = d > 0 ? Math.round(r - Math.sqrt(Math.max(0, r * r - d * d))) : 0;
+    rows.push([x + inset, y + i, w - inset * 2]);
+  }
+  return rows;
 }
 
 /** A rectangle with rounded corners, in hard pixels. */
 function round(c: Ctx, x: number, y: number, w: number, h: number, r: number, colour: string) {
   c.fillStyle = colour;
-  for (let i = 0; i < h; i++) {
-    const d = i < r ? r - i - 0.5 : i >= h - r ? i - (h - r) + 0.5 : 0;
-    const inset = d > 0 ? Math.round(r - Math.sqrt(Math.max(0, r * r - d * d))) : 0;
-    c.fillRect(x + inset, y + i, w - inset * 2, 1);
-  }
+  for (const [rx, ry, rw] of roundRows(x, y, w, h, r)) c.fillRect(rx, ry, rw, 1);
 }
 
-/** A dark line round everything drawn, one device pixel wide. */
+/** A part shaded like the 5th generation's: lit down the left, in shadow down the right. */
+function shaded(
+  c: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  colour: string,
+  light = 0.22,
+  dark = 0.3,
+) {
+  const rows = roundRows(x, y, w, h, r);
+  c.save();
+  c.beginPath();
+  for (const [rx, ry, rw] of rows) c.rect(rx, ry, rw, 1);
+  c.clip();
+  px(c, x, y, w, h, colour);
+  px(c, x + w * (1 - dark), y, w * dark + 1, h, shade(colour, 0.78));
+  px(c, x, y, Math.max(2, w * light), h, shade(colour, 1.22));
+  c.restore();
+}
+
+/** A dark line round everything drawn, one device pixel wide, slightly softened inside. */
 function outline(c: Ctx) {
   const img = c.getImageData(0, 0, PERSON_W, PERSON_H);
   const d = img.data;
@@ -311,342 +386,618 @@ function outline(c: Ctx) {
   c.putImageData(img, 0, 0);
 }
 
-type Side = 'down' | 'up' | 'left';
+// ---------- the walk ----------
 
-/** Legs and shoes. `step` is -1, 0 or 1: which foot is forward. */
-function legs(c: Ctx, s: Style, side: Side, step: number) {
-  legPairs(c, s, side, step);
+/**
+ * One pose of the walk. `stride` runs -2 to 2: the left foot forward at -2, the right at 2,
+ * the legs passing at ±1. `lift` raises the whole body a pixel at the passing poses.
+ */
+interface Pose {
+  stride: number;
+  lift: number;
+}
+
+function poseOf(frame: number): Pose {
+  // 0 stands. 1-4 step with the left foot (pass, full, pass, back to stand); 5-8 the right.
+  const cycle = [0, -1, -2, -1, 0, 1, 2, 1, 0];
+  const stride = cycle[frame % cycle.length] ?? 0;
+  return { stride, lift: Math.abs(stride) === 1 ? -1 : 0 };
+}
+
+// ---------- legs and feet ----------
+
+function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
+  const dark = shade(s.legs, 0.72);
+  const top = 64;
+  // Each leg shortens a little as its foot comes up off the ground.
+  for (const [x, foot] of [
+    [21, -1],
+    [33, 1],
+  ] as const) {
+    const up = p.stride === foot * 2 ? 3 : p.stride === foot ? 1 : 0;
+    const h = 24 - up;
+    shaded(c, x, top, 11, h, 2, s.legs, 0.25, 0.3);
+    if (!s.skirt) {
+      // A crease down the front and a hem.
+      px(c, x + 5, top + 6, 1, h - 8, dark);
+      px(c, x, top + h - 2, 11, 1, dark);
+    }
+    // The shoe: an upper, a lighter toe cap and a dark sole.
+    const sy = top + h - 1;
+    shaded(c, x - 1, sy, 13, 7, 3, s.shoes, 0.3, 0.3);
+    px(c, x + 1, sy + 1, 4, 2, shade(s.shoes, 1.35));
+    px(c, x - 1, sy + 6, 13, 1, shade(s.shoes, 0.45));
+    if (back) px(c, x + 2, sy + 2, 7, 2, shade(s.shoes, 0.75));
+  }
+  // The gap between the legs.
+  if (!s.skirt) px(c, 32, top + 8, 1, 16, shade(s.legs, 0.55));
   if (s.skirt) {
-    if (side === 'left') round(c, 11, 34, 11, 7, 2, s.skirt);
-    else round(c, 9, 34, 14, 7, 2, s.skirt);
+    shaded(c, 18, top - 2, 28, 15, 3, s.skirt);
+    for (const x of [24, 32, 40]) px(c, x, top + 3, 1, 9, shade(s.skirt, 0.75));
   }
 }
 
-function legPairs(c: Ctx, s: Style, side: Side, step: number) {
-  const dark = shade(s.legs, 0.75);
-  if (side === 'left') {
-    // Seen from the side, the legs scissor.
-    const front = 13 - step * 3;
-    const back = 15 + step * 3;
-    px(c, back, 37, 4, 7, dark);
-    px(c, back - 1, 43, 6, 3, shade(s.shoes, 0.75));
-    px(c, front, 37, 4, 7, s.legs);
-    px(c, front - 2, 43, 6, 3, s.shoes);
-    px(c, front - 2, 43, 6, 1, shade(s.shoes, 1.3));
-    return;
-  }
-  const lift = (foot: number) => (step === foot ? 2 : 0);
-  for (const [x, foot] of [
-    [11, -1],
-    [17, 1],
+function legsSide(c: Ctx, s: Style, p: Pose) {
+  const top = 64;
+  const swing = p.stride * 3;
+  // The far leg first, in shadow, then the near one.
+  for (const [dx, far] of [
+    [swing, true],
+    [-swing, false],
   ] as const) {
-    const up = lift(foot);
-    px(c, x, 37, 4, 7 - up, s.legs);
-    px(c, x + 3, 37, 1, 7 - up, dark);
-    px(c, x - 1, 43 - up, 6, 3, s.shoes);
-    px(c, x - 1, 43 - up, 6, 1, shade(s.shoes, 1.3));
+    const col = far ? shade(s.legs, 0.78) : s.legs;
+    const x = 26 + dx;
+    const lean = Math.sign(dx);
+    for (let y = 0; y < 24; y++) {
+      const off = Math.round((lean * y * Math.abs(dx)) / 24 / 2);
+      px(c, x + off, top + y, 10, 1, col);
+      px(c, x + off + 7, top + y, 3, 1, shade(col, 0.8));
+      px(c, x + off, top + y, 2, 1, shade(col, 1.15));
+    }
+    const fx = x + Math.round((lean * Math.abs(dx)) / 2) - 3;
+    const shoe = far ? shade(s.shoes, 0.8) : s.shoes;
+    round(c, fx, top + 23, 14, 6, 3, shoe);
+    px(c, fx + 1, top + 24, 5, 2, shade(shoe, 1.3));
+    px(c, fx, top + 28, 14, 1, shade(shoe, 0.45));
+  }
+  if (s.skirt) {
+    shaded(c, 21, top - 2, 22, 15, 3, s.skirt);
+    px(c, 30, top + 2, 1, 10, shade(s.skirt, 0.75));
   }
 }
 
-/** The torso and arms, in the outfit's cut. */
-function body(c: Ctx, s: Style, side: Side, step: number) {
+// ---------- the body ----------
+
+const LONG = new Set<Top>(['gown', 'agbada', 'coat']);
+
+function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
+  const y0 = 37 + p.lift;
+  const long = LONG.has(s.topKind);
+  const h = s.topKind === 'agbada' ? 42 : s.topKind === 'gown' ? 40 : long ? 34 : 29;
   const dark = shade(s.top, 0.75);
+  const darker = shade(s.top, 0.6);
   const light = shade(s.top, 1.25);
-  if (side === 'left') {
-    if (s.bag) round(c, 19, 26, 6, 10, 2, s.bag);
-    round(c, 11, 25, 11, s.topKind === 'gown' ? 18 : 13, 3, s.top);
-    px(c, 20, 26, 2, 11, dark);
-    px(c, 12, 26, 2, 6, light);
+
+  if (s.guitar && !back) {
+    // The neck of the guitar over the shoulder.
+    px(c, 44, y0 - 10, 4, 18, shade(s.guitar, 0.6));
+    px(c, 43, y0 - 14, 6, 5, '#2a2018');
+  }
+  if (s.bag && back) {
+    shaded(c, 20, y0 + 3, 24, 24, 5, s.bag);
+    px(c, 22, y0 + 6, 20, 3, shade(s.bag, 1.35));
+    px(c, 26, y0 + 15, 12, 6, shade(s.bag, 0.75));
+    px(c, 31, y0 + 15, 2, 6, shade(s.bag, 1.4));
+  }
+  if (s.guitar && back) {
+    c.save();
+    c.translate(32, y0 + 18);
+    c.rotate(-0.55);
+    round(c, -9, -4, 18, 22, 8, s.guitar);
+    round(c, -7, -2, 14, 18, 7, shade(s.guitar, 1.2));
+    px(c, -2, 4, 4, 4, '#2a2018');
+    px(c, -2, -26, 4, 24, shade(s.guitar, 0.6));
+    px(c, -3, -30, 6, 5, '#2a2018');
+    c.restore();
+  }
+  // The trunk, wider at the shoulders.
+  shaded(c, 17, y0, 30, h, 5, s.top, 0.2, 0.28);
+  px(c, 17, y0 + h - 1, 30, 1, darker);
+  if (s.bag && back) {
+    shaded(c, 20, y0 + 5, 24, 22, 5, s.bag);
+    px(c, 22, y0 + 7, 20, 3, shade(s.bag, 1.35));
+    px(c, 26, y0 + 16, 12, 6, shade(s.bag, 0.72));
+    px(c, 28, y0 + 18, 8, 1, shade(s.bag, 1.3));
+  }
+  if (back) {
+    // A seam down the back, and the collar.
+    px(c, 32, y0 + 3, 1, h - 6, dark);
+    px(c, 24, y0, 16, 3, s.topKind === 'suit' ? dark : s.trim);
     if (s.topKind === 'hivis') {
-      px(c, 11, 30, 11, 2, s.trim);
-      px(c, 11, 34, 11, 2, s.trim);
+      px(c, 17, y0 + 11, 30, 3, s.trim);
+      px(c, 17, y0 + 19, 30, 3, s.trim);
     }
-    if (s.topKind === 'suit' || s.topKind === 'waistcoat') px(c, 11, 26, 3, 6, s.trim);
-    if (s.topKind === 'jacket') px(c, 11, 25, 5, 2, s.trim);
-    // The near arm swings with the step.
-    const ax = 14 - step * 2;
-    const sleeve = s.topKind === 'waistcoat' ? s.trim : s.top;
-    px(c, ax, 26, 4, 9, sleeve);
-    px(c, ax + 3, 26, 1, 9, shade(sleeve, 0.75));
-    px(c, ax, 35, 4, 3, s.skin);
-    if (s.handbag) handbag(c, s.handbag, ax - 2, 33);
-    if (s.tote) round(c, 18, 31, 7, 8, 1, s.tote);
-    if (s.badges) px(c, 13, 28, 2, 2, s.badges[0]);
-    if (s.stick) px(c, ax, 37, 1, 10, s.stick);
-    if (s.pearls) for (let x = 7; x < 14; x += 2) px(c, x, 25, 1, 1, '#f8f4ec');
     return;
   }
-  const back = side === 'up';
-  if (s.bag && back) round(c, 10, 26, 12, 11, 3, s.bag);
-  round(c, 9, 25, 14, s.topKind === 'gown' ? 18 : 13, 3, s.top);
-  px(c, 21, 26, 2, 11, dark);
-  px(c, 10, 26, 2, 5, light);
-  px(c, 9, 36, 14, 1, dark);
-  if (s.bag && back) {
-    round(c, 10, 27, 12, 10, 3, s.bag);
-    px(c, 11, 28, 10, 2, shade(s.bag, 1.3));
+  switch (s.topKind) {
+    case 'jacket':
+      // Zipped, with a white collar and yoke and pockets.
+      px(c, 24, y0, 16, 4, s.trim);
+      px(c, 31, y0 + 2, 2, h - 3, s.trim);
+      px(c, 31, y0 + 2, 1, h - 3, shade(s.trim, 0.8));
+      px(c, 17, y0 + 9, 30, 2, s.trim);
+      px(c, 20, y0 + h - 9, 8, 1, dark);
+      px(c, 36, y0 + h - 9, 8, 1, dark);
+      px(c, 17, y0 + h - 4, 30, 3, shade(s.top, 0.82));
+      break;
+    case 'suit':
+      // A shirt and tie in a V, lapels and buttons.
+      for (let i = 0; i < 12; i++) px(c, 32 - 6 + i * 0.5, y0 + i, 12 - i, 1, '#f4f4f0');
+      px(c, 31, y0 + 1, 3, 15, s.tie ?? dark);
+      px(c, 30, y0 + 1, 5, 3, shade(s.tie ?? dark, 0.8));
+      for (let i = 0; i < 14; i++) {
+        px(c, 24 + i * 0.45, y0 + i, 2, 1, light);
+        px(c, 39 - i * 0.45, y0 + i, 2, 1, dark);
+      }
+      px(c, 31, y0 + 18, 2, 2, darker);
+      px(c, 31, y0 + 23, 2, 2, darker);
+      px(c, 20, y0 + 15, 6, 1, darker);
+      break;
+    case 'waistcoat':
+      px(c, 24, y0, 16, h - 2, s.trim);
+      for (const y of [8, 14, 20]) px(c, 31, y0 + y, 2, 2, s.top);
+      break;
+    case 'hivis':
+      px(c, 17, y0 + 11, 30, 3, s.trim);
+      px(c, 17, y0 + 19, 30, 3, s.trim);
+      px(c, 24, y0, 4, h, s.trim);
+      px(c, 36, y0, 4, h, s.trim);
+      px(c, 31, y0 + 2, 2, h - 3, dark);
+      px(c, 37, y0 + 3, 2, 3, '#e8c040');
+      break;
+    case 'gown':
+      px(c, 25, y0, 14, 6, s.trim);
+      px(c, 31, y0 + 4, 2, h - 6, shade(s.top, 1.5));
+      for (const x of [22, 41]) px(c, x, y0 + 8, 1, h - 10, darker);
+      break;
+    case 'jumper':
+      // Ribbed neck, cuffs and hem, and a cable down the front.
+      px(c, 24, y0, 16, 3, s.trim);
+      px(c, 17, y0 + h - 4, 30, 4, s.trim);
+      for (let x = 18; x < 47; x += 2) px(c, x, y0 + h - 4, 1, 4, shade(s.trim, 0.85));
+      for (let y = y0 + 6; y < y0 + h - 6; y += 3) {
+        px(c, 30, y, 2, 2, light);
+        px(c, 32, y + 1, 2, 2, dark);
+      }
+      break;
+    case 'coat':
+      // Long, double-seamed, with toggles and pockets.
+      px(c, 25, y0, 14, 4, s.trim);
+      px(c, 31, y0 + 3, 2, h - 4, darker);
+      for (const y of [8, 15, 22]) {
+        px(c, 27, y0 + y, 3, 1, s.trim);
+        px(c, 34, y0 + y, 3, 1, s.trim);
+      }
+      px(c, 19, y0 + 22, 9, 6, dark);
+      px(c, 36, y0 + 22, 9, 6, dark);
+      px(c, 19, y0 + 22, 9, 1, light);
+      px(c, 36, y0 + 22, 9, 1, light);
+      break;
+    case 'shirt':
+      // A collar, a placket and a stripe.
+      px(c, 26, y0, 5, 3, s.trim);
+      px(c, 33, y0, 5, 3, s.trim);
+      px(c, 31, y0 + 2, 2, 9, shade(s.top, 0.85));
+      px(c, 17, y0 + 12, 30, 3, s.trim);
+      break;
+    case 'agbada':
+      // The white robe underneath, the wide outer robe, embroidered medallions.
+      px(c, 26, y0, 12, h - 3, s.trim);
+      for (let y = y0 + 4; y < y0 + h - 4; y += 3) px(c, 27, y, 10, 1, shade(s.top, 1.12));
+      px(c, 31, y0 + 1, 2, 6, shade(s.trim, 0.85));
+      for (const [x, y] of [
+        [19, 12],
+        [41, 12],
+        [19, 28],
+        [41, 28],
+      ])
+        if (s.emblem) {
+          round(c, x - 3, y0 + y - 3, 7, 7, 3, s.emblem);
+          round(c, x - 2, y0 + y - 2, 5, 5, 2, shade(s.top, 1.15));
+          px(c, x - 1, y0 + y - 1, 3, 3, '#e07a40');
+        }
+      for (const x of [23, 41]) px(c, x, y0 + 4, 1, h - 6, darker);
+      break;
   }
-  if (!back) {
-    switch (s.topKind) {
-      case 'jacket':
-        px(c, 15, 27, 2, 10, s.trim);
-        px(c, 11, 25, 10, 2, s.trim);
-        if (s.bag) px(c, 11, 26, 2, 10, s.bag);
-        break;
-      case 'suit':
-        px(c, 13, 25, 6, 5, s.trim);
-        px(c, 15, 26, 2, 7, s.tie ?? s.trim);
-        break;
-      case 'waistcoat':
-        px(c, 13, 25, 6, 12, s.trim);
-        px(c, 15, 27, 2, 1, s.top);
-        px(c, 15, 30, 2, 1, s.top);
-        break;
-      case 'hivis':
-        px(c, 9, 30, 14, 2, s.trim);
-        px(c, 9, 34, 14, 2, s.trim);
-        px(c, 15, 25, 2, 12, shade(s.top, 0.85));
-        break;
-      case 'gown':
-        px(c, 13, 25, 6, 4, s.trim);
-        px(c, 15, 29, 2, 13, shade(s.top, 1.4));
-        break;
-      case 'jumper':
-        px(c, 9, 35, 14, 2, s.trim);
-        px(c, 13, 25, 6, 2, s.trim);
-        break;
-      case 'coat':
-        px(c, 15, 26, 1, 12, dark);
-        px(c, 12, 29, 2, 1, s.trim);
-        px(c, 12, 33, 2, 1, s.trim);
-        px(c, 12, 25, 8, 2, s.trim);
-        break;
-      case 'shirt':
-        px(c, 13, 25, 6, 2, s.trim);
-        px(c, 9, 29, 14, 2, s.trim);
-        break;
-    }
+  // A belt on the shorter tops.
+  if (!long && s.topKind !== 'jumper' && s.topKind !== 'hivis')
+    px(c, 18, y0 + h - 2, 28, 2, shade(s.legs, 0.6));
+  if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
+  if (s.pearls)
+    for (let i = 0; i < 9; i++)
+      px(c, 25 + i * 1.6, y0 + 2 + Math.sin((i / 8) * Math.PI) * 3, 2, 2, '#f8f4ec');
+  if (s.beads) {
+    // Two long loops of coral down to the waist.
+    for (const [w, d] of [
+      [9, 14],
+      [12, 26],
+    ])
+      for (let i = 0; i <= 14; i++) {
+        const t = i / 14;
+        const bx = 32 + Math.cos(Math.PI * t) * w;
+        const by = y0 + 1 + Math.sin(Math.PI * t) * d;
+        px(c, bx - 1, by - 1, 3, 3, s.beads);
+        px(c, bx - 1, by - 1, 1, 1, shade(s.beads, 1.35));
+      }
   }
-  // Arms swing a little, opposite the legs.
-  const sleeve = s.topKind === 'waistcoat' ? s.trim : s.top;
+}
+
+function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
+  const y0 = 38 + p.lift;
+  const wide = s.topKind === 'agbada' || s.topKind === 'gown';
   for (const [x, foot] of [
-    [6, -1],
-    [23, 1],
+    [10, -1],
+    [47, 1],
   ] as const) {
-    const swing = step === 0 ? 0 : step === foot ? 1 : -1;
-    px(c, x, 26 + swing, 3, 9, sleeve);
-    px(c, x + (x < 15 ? 0 : 2), 26 + swing, 1, 9, shade(sleeve, 0.75));
-    if (s.topKind === 'jacket' || s.topKind === 'hivis') px(c, x, 33 + swing, 3, 1, s.trim);
-    px(c, x, 35 + swing, 3, 3, s.skin);
+    // Arms swing against the legs: forward is down and in a little, seen from the front.
+    const swing =
+      p.stride === -foot * 2 ? 2 : p.stride === -foot ? 1 : p.stride === foot * 2 ? -1 : 0;
+    const ay = y0 + swing;
+    if (wide) {
+      // A wide sleeve falling in folds.
+      shaded(c, x - 2, ay, 11, 26, 4, s.top, 0.3, 0.35);
+      px(c, x + 2, ay + 6, 1, 16, shade(s.top, 0.7));
+      px(c, x, ay + 21, 7, 4, s.trim);
+    } else {
+      shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
+      // An elbow fold and a cuff.
+      px(c, x + 1, ay + 11, 5, 1, shade(s.top, 0.72));
+      const cuff = s.topKind === 'jacket' || s.topKind === 'hivis' ? s.trim : shade(s.top, 0.85);
+      px(c, x, ay + 19, 7, 3, cuff);
+    }
+    if (!back || !wide) {
+      round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
+      px(c, x + (x < 32 ? 0 : 5), ay + (wide ? 25 : 22), 2, 4, shade(s.skin, 0.85));
+    }
   }
-  if (s.pearls && !back)
-    for (let x = 11; x < 22; x += 2) px(c, x, 25 + (x > 13 && x < 19 ? 1 : 0), 1, 1, '#f8f4ec');
-  if (s.handbag && !back) handbag(c, s.handbag, 23, 32 + (step === 1 ? 1 : step === -1 ? -1 : 0));
+  if (!back && s.handbag) handbag(c, s.handbag, 49, y0 + 22);
   if (s.tote) {
-    // The strap across the shoulder and the bag at the hip.
-    if (!back) for (let i = 0; i < 9; i++) px(c, 11 + i, 25 + i, 1, 1, shade(s.tote, 0.8));
-    round(c, back ? 5 : 21, 31, 7, 8, 1, s.tote);
-    px(c, back ? 6 : 22, 32, 5, 1, shade(s.tote, 1.1));
-    if (!back) px(c, 23, 34, 3, 3, '#e83a8a');
+    if (!back) for (let i = 0; i < 20; i++) px(c, 20 + i, y0 + i * 0.9, 2, 1, shade(s.tote, 0.8));
+    shaded(c, back ? 9 : 43, y0 + 18, 13, 15, 2, s.tote);
+    if (!back) round(c, 46, y0 + 23, 6, 6, 3, '#e83a8a');
   }
-  if (s.badges && !back) s.badges.forEach((b, i) => px(c, 17 + (i % 2) * 2, 28 + i * 2, 2, 2, b));
-  if (s.stick && !back) {
-    px(c, 7, 36, 1, 11, s.stick);
-    px(c, 6, 35, 3, 1, s.stick);
-  }
+  if (s.stick && !back) staff(c, s, 12, y0 + 18);
 }
 
-/** A stiff little handbag with a clasp, hung from the arm. */
 function handbag(c: Ctx, colour: string, x: number, y: number) {
-  px(c, x + 1, y - 2, 4, 1, colour);
-  px(c, x, y - 1, 1, 2, colour);
-  px(c, x + 5, y - 1, 1, 2, colour);
-  round(c, x - 1, y + 1, 8, 7, 2, colour);
-  px(c, x, y + 2, 6, 1, shade(colour, 1.6));
-  px(c, x + 2, y + 1, 2, 1, '#e8c040');
+  px(c, x + 2, y - 4, 8, 2, colour);
+  px(c, x, y - 2, 2, 3, colour);
+  px(c, x + 10, y - 2, 2, 3, colour);
+  shaded(c, x - 2, y + 1, 16, 12, 3, colour, 0.3, 0.3);
+  px(c, x, y + 3, 12, 1, shade(colour, 1.8));
+  px(c, x + 4, y + 1, 4, 2, '#e8c040');
 }
 
-function hairBack(c: Ctx, s: Style, side: Side) {
-  if (s.hairStyle === 'bouffant')
-    round(c, side === 'left' ? 5 : 2, 1, side === 'left' ? 24 : 28, 21, 10, s.hair);
-  if (s.hairStyle === 'long')
-    round(c, side === 'left' ? 9 : 4, 8, side === 'left' ? 19 : 24, 24, 7, s.hair);
-  if (s.hairStyle === 'bob')
-    round(c, side === 'left' ? 8 : 3, 6, side === 'left' ? 21 : 26, 18, 5, s.hair);
+function staff(c: Ctx, s: Style, x: number, y: number) {
+  px(c, x, y - 2, 3, 40, s.stick!);
+  px(c, x, y - 2, 1, 40, shade(s.stick!, 1.8));
+  if (s.stickTop) {
+    round(c, x - 2, y - 10, 7, 9, 3, s.stickTop);
+    px(c, x - 1, y - 9, 2, 3, shade(s.stickTop, 1.5));
+    px(c, x - 2, y - 2, 7, 2, shade(s.stickTop, 0.75));
+  }
 }
 
-/** The head: hair, face and hat, for each facing. */
-function head(c: Ctx, s: Style, side: Side) {
-  const hairDark = shade(s.hair, 0.72);
-  const hairLight = shade(s.hair, 1.3);
-  const skinDark = shade(s.skin, 0.86);
+function bodySide(c: Ctx, s: Style, p: Pose) {
+  const y0 = 37 + p.lift;
+  const long = LONG.has(s.topKind);
+  const h = s.topKind === 'agbada' ? 42 : s.topKind === 'gown' ? 40 : long ? 34 : 29;
+  const swing = p.stride * 3;
+  // The far arm, behind, swinging the other way.
+  const far = shade(s.top, 0.7);
+  if (s.guitar) {
+    c.save();
+    c.translate(42, y0 + 16);
+    c.rotate(-0.5);
+    round(c, -6, -4, 12, 22, 5, shade(s.guitar, 0.85));
+    px(c, -2, -26, 4, 24, shade(s.guitar, 0.6));
+    c.restore();
+  }
+  if (s.bag) shaded(c, 38, y0 + 4, 10, 22, 4, s.bag, 0.3, 0.3);
+  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, far, 0.1, 0.4);
+  shaded(c, 21, y0, 22, h, 5, s.top, 0.3, 0.25);
+  px(c, 21, y0 + h - 1, 22, 1, shade(s.top, 0.6));
+  if (s.topKind === 'hivis') {
+    px(c, 21, y0 + 11, 22, 3, s.trim);
+    px(c, 21, y0 + 19, 22, 3, s.trim);
+  }
+  if (s.topKind === 'jacket') {
+    px(c, 21, y0, 9, 4, s.trim);
+    px(c, 21, y0 + 9, 22, 2, s.trim);
+  }
+  if (s.topKind === 'suit' || s.topKind === 'waistcoat') px(c, 21, y0, 5, 12, s.trim);
+  if (s.topKind === 'agbada' && s.emblem) {
+    round(c, 27, y0 + 14, 7, 7, 3, s.emblem);
+    round(c, 28, y0 + 15, 5, 5, 2, shade(s.top, 1.15));
+  }
+  if (!long && s.topKind !== 'jumper') px(c, 21, y0 + h - 2, 22, 2, shade(s.legs, 0.6));
+  if (s.beads) for (let i = 0; i < 9; i++) px(c, 20 + i * 0.4, y0 + 2 + i * 3, 3, 3, s.beads);
+  if (s.pearls) for (let i = 0; i < 5; i++) px(c, 20 + i, y0 + 2 + i * 0.6, 2, 2, '#f8f4ec');
+  // The near arm, in front.
+  const wide = s.topKind === 'agbada' || s.topKind === 'gown';
+  const ax = 27 - swing;
+  shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
+  px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
+  if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
+  if (s.tote) shaded(c, 34, y0 + 16, 11, 14, 2, s.tote);
+  if (s.stick) staff(c, s, ax - 3, y0 + 18);
+}
+
+// ---------- the head ----------
+
+function head(c: Ctx, s: Style, side: Side, p: Pose) {
+  const y = p.lift;
+  const hairDark = shade(s.hair, 0.7);
+  const hairLight = shade(s.hair, 1.35);
+  const skinDark = shade(s.skin, 0.84);
+  const skinLight = shade(s.skin, 1.08);
   const bald = s.hairStyle === 'balding' || s.hairStyle === 'none';
+  const covered = !!s.hat;
+
+  // Hair that falls behind the head: long, bobbed, bouffant.
+  if (side !== 'up') {
+    if (s.hairStyle === 'long')
+      round(c, side === 'left' ? 24 : 15, 12 + y, side === 'left' ? 24 : 34, 36, 9, hairDark);
+    if (s.hairStyle === 'bob')
+      round(c, side === 'left' ? 22 : 13, 10 + y, side === 'left' ? 26 : 38, 26, 8, s.hair);
+  }
+  if (s.hairStyle === 'bouffant') round(c, 11, 1 + y, 42, 30, 14, s.hair);
+
+  // Neck.
+  px(c, 28, 33 + y, 9, 6, skinDark);
+
   if (side === 'up') {
-    round(c, 4, 3, 24, 23, 9, bald ? s.skin : s.hair);
-    if (bald && s.hairStyle === 'balding') round(c, 4, 12, 24, 13, 6, s.hair);
-    px(c, 12, 23, 8, 2, skinDark);
-    px(c, 8, 6, 8, 2, hairLight);
-    px(c, 24, 10, 2, 12, hairDark);
-  } else if (side === 'down') {
-    round(c, 4, 3, 24, 23, 9, bald ? s.skin : s.hair);
-    round(c, 7, 9, 18, 16, 6, s.skin);
-    px(c, 5, 15, 2, 5, s.skin);
-    px(c, 25, 15, 2, 5, s.skin);
+    round(c, 18, 6 + y, 28, 30, 11, bald ? s.skin : s.hair);
     if (s.hairStyle === 'balding') {
-      px(c, 4, 11, 4, 9, s.hair);
-      px(c, 24, 11, 4, 9, s.hair);
+      round(c, 18, 18 + y, 28, 16, 8, s.hair);
+      px(c, 24, 9 + y, 10, 3, skinLight);
     } else if (!bald) {
-      // A fringe, ragged along the bottom.
-      for (let x = 7; x < 25; x++) {
-        const drop = s.hairStyle === 'slick' ? 0 : (x * 5) % 3;
-        px(c, x, 8, 1, 3 + drop, s.hair);
-      }
-      px(c, 5, 10, 2, 6, s.hair);
-      px(c, 25, 10, 2, 6, s.hair);
-      px(c, 9, 5, 7, 2, hairLight);
+      // Strands down the back of the head, and a shine on the crown.
+      for (let x = 22; x < 44; x += 4) px(c, x, 14 + y, 1, 18, hairDark);
+      round(c, 23, 8 + y, 12, 5, 2, hairLight);
+      if (s.hairStyle === 'long') round(c, 17, 20 + y, 30, 30, 8, s.hair);
+      if (s.hairStyle === 'bob') round(c, 15, 12 + y, 34, 24, 8, s.hair);
+      if (s.hairStyle === 'bun') round(c, 26, 1 + y, 12, 10, 5, s.hair);
+      if (s.hairStyle === 'spiky')
+        for (const x of [18, 25, 32, 39]) {
+          px(c, x, 3 + y, 6, 6, s.hair);
+          px(c, x + 2, y, 2, 4, s.hair);
+        }
     }
-    px(c, 8, 11, 16, 1, skinDark);
-    // Eyes with a shine, brows, cheeks and a small mouth.
-    for (const x of [10, 19]) {
-      px(c, x, 15, 3, 1, s.hairStyle === 'none' ? INK : hairDark);
-      px(c, x, 16, 3, 4, '#283048');
-      px(c, x, 16, 1, 1, '#ffffff');
+    // Ears either side.
+    round(c, 15, 20 + y, 5, 8, 2, skinDark);
+    round(c, 44, 20 + y, 5, 8, 2, skinDark);
+    if (s.beard) px(c, 20, 31 + y, 24, 3, s.beard);
+  } else if (side === 'down') {
+    // The face: a rounded jaw, ears, cheeks.
+    round(c, 18, 8 + y, 28, 28, 11, s.skin);
+    round(c, 15, 19 + y, 5, 8, 2, skinDark);
+    round(c, 44, 19 + y, 5, 8, 2, skinDark);
+    px(c, 16, 21 + y, 2, 4, shade(s.skin, 0.72));
+    px(c, 46, 21 + y, 2, 4, shade(s.skin, 0.72));
+    round(c, 38, 12 + y, 8, 22, 6, skinDark);
+    round(c, 20, 10 + y, 6, 14, 3, skinLight);
+    if (s.beard) {
+      // A full beard round the jaw, the mouth showing through.
+      round(c, 18, 24 + y, 28, 14, 8, s.beard);
+      px(c, 18, 18 + y, 4, 8, s.beard);
+      px(c, 42, 18 + y, 4, 8, s.beard);
+      round(c, 26, 26 + y, 12, 4, 2, shade(s.beard, 1.15));
+      for (let x = 21; x < 44; x += 3) px(c, x, 30 + y, 1, 5, shade(s.beard, 0.8));
     }
-    px(c, 8, 20, 2, 1, '#f0a090');
-    px(c, 22, 20, 2, 1, '#f0a090');
-    px(c, 15, 22, 2, 1, '#b85a50');
-    if (s.glasses === 'shades') px(c, 9, 15, 14, 4, '#141418');
+    // Eyes: a brow, the white, the iris with its shine, a lid line.
+    for (const ex of [23, 35]) {
+      px(c, ex - 1, 17 + y, 8, 2, bald && !s.beard ? shade(s.skin, 0.6) : hairDark);
+      px(c, ex, 20 + y, 6, 5, '#f8f8f8');
+      px(c, ex + (ex < 32 ? 2 : 1), 20 + y, 3, 5, '#2c3c64');
+      px(c, ex + (ex < 32 ? 3 : 2), 21 + y, 1, 2, '#0c1020');
+      px(c, ex + (ex < 32 ? 2 : 1), 20 + y, 1, 1, '#ffffff');
+      px(c, ex, 19 + y, 6, 1, '#3a2a2a');
+    }
+    // Nose, cheeks and mouth.
+    px(c, 31, 25 + y, 2, 3, skinDark);
+    px(c, 33, 26 + y, 1, 2, shade(s.skin, 0.72));
+    px(c, 21, 27 + y, 4, 2, '#f4a8a0');
+    px(c, 39, 27 + y, 4, 2, '#f4a8a0');
+    px(c, 28, 30 + y, 8, 1, '#a04a48');
+    px(c, 29, 31 + y, 6, 1, '#d87a78');
+    if (s.nosering) px(c, 32, 28 + y, 2, 1, '#c8ccd4');
+    if (s.glasses === 'shades') {
+      round(c, 20, 19 + y, 11, 7, 2, '#141418');
+      round(c, 33, 19 + y, 11, 7, 2, '#141418');
+      px(c, 30, 20 + y, 4, 1, '#141418');
+      px(c, 22, 20 + y, 3, 1, '#5a6a8a');
+      px(c, 35, 20 + y, 3, 1, '#5a6a8a');
+    }
     if (s.glasses === 'glasses') {
-      for (const x of [9, 18]) {
-        px(c, x, 15, 5, 1, INK);
-        px(c, x, 19, 5, 1, INK);
-        px(c, x, 15, 1, 5, INK);
-        px(c, x + 4, 15, 1, 5, INK);
+      for (const gx of [21, 33]) {
+        px(c, gx, 18 + y, 10, 1, INK);
+        px(c, gx, 26 + y, 10, 1, INK);
+        px(c, gx, 18 + y, 1, 9, INK);
+        px(c, gx + 9, 18 + y, 1, 9, INK);
+        px(c, gx + 2, 19 + y, 2, 1, 'rgb(255 255 255 / 0.7)');
       }
-      px(c, 14, 16, 4, 1, INK);
+      px(c, 30, 20 + y, 4, 1, INK);
+    }
+    // Hair over the top: a fringe with strands and a shine.
+    if (!bald) {
+      const fringe =
+        s.hairStyle === 'slick' || s.hairStyle === 'bouffant' ? 4 : s.hairStyle === 'bob' ? 9 : 7;
+      round(c, 16, 3 + y, 32, 12, 8, s.hair);
+      for (let x = 18; x < 47; x++) {
+        const drop = s.hairStyle === 'slick' ? 0 : s.hairStyle === 'bob' ? 0 : (x * 7) % 4;
+        px(c, x, 10 + y, 1, fringe - 4 + drop, s.hair);
+      }
+      for (let x = 20; x < 45; x += 4) px(c, x, 6 + y, 1, fringe, hairDark);
+      round(c, 21, 4 + y, 13, 3, 1, hairLight);
+      px(c, 15, 12 + y, 4, 10, s.hair);
+      px(c, 45, 12 + y, 4, 10, s.hair);
+      if (s.hairStyle === 'bob') {
+        px(c, 12, 12 + y, 6, 22, s.hair);
+        px(c, 46, 12 + y, 6, 22, s.hair);
+        px(c, 26, 3 + y, 4, 12, hairLight);
+      }
+      if (s.hairStyle === 'long') {
+        px(c, 13, 12 + y, 5, 26, s.hair);
+        px(c, 46, 12 + y, 5, 26, s.hair);
+      }
+      if (s.hairStyle === 'spiky')
+        for (const x of [17, 24, 31, 38]) {
+          px(c, x, 0 + y, 7, 6, s.hair);
+          px(c, x + 2, -2 + y, 3, 3, s.hair);
+          px(c, x + 1, 1 + y, 2, 3, hairLight);
+        }
+      if (s.hairStyle === 'bun') round(c, 26, 0 + y, 12, 9, 5, s.hair);
+      if (s.hairStyle === 'bouffant') {
+        round(c, 13, 0 + y, 38, 14, 7, s.hair);
+        round(c, 18, 2 + y, 22, 4, 2, hairLight);
+        px(c, 18, 11 + y, 26, 1, hairDark);
+      }
+    } else if (s.hairStyle === 'balding') {
+      px(c, 15, 14 + y, 5, 12, s.hair);
+      px(c, 44, 14 + y, 5, 12, s.hair);
+      px(c, 24, 9 + y, 10, 2, skinLight);
     }
   } else {
-    // Facing left: the face on the left, the hair round the back.
-    round(c, 5, 3, 23, 23, 9, bald ? s.skin : s.hair);
-    round(c, 5, 9, 14, 16, 5, s.skin);
-    px(c, 3, 17, 2, 3, s.skin);
-    px(c, 18, 15, 3, 5, skinDark);
-    if (s.hairStyle === 'balding') round(c, 15, 10, 12, 12, 4, s.hair);
-    else if (!bald) {
-      for (let x = 6; x < 19; x++) px(c, x, 8, 1, 2 + ((x * 5) % 3), s.hair);
-      px(c, 8, 5, 6, 2, hairLight);
-      px(c, 24, 10, 3, 12, hairDark);
+    // Facing left: a profile, with the nose, one eye and the ear.
+    round(c, 18, 8 + y, 26, 28, 10, s.skin);
+    round(c, 34, 12 + y, 10, 22, 6, skinDark);
+    px(c, 15, 22 + y, 4, 5, s.skin);
+    px(c, 15, 26 + y, 3, 1, skinDark);
+    round(c, 34, 18 + y, 6, 9, 2, skinDark);
+    px(c, 36, 20 + y, 2, 5, shade(s.skin, 0.7));
+    if (s.beard) {
+      round(c, 18, 25 + y, 20, 13, 7, s.beard);
+      px(c, 33, 18 + y, 4, 10, s.beard);
+      for (let x = 20; x < 36; x += 3) px(c, x, 31 + y, 1, 5, shade(s.beard, 0.8));
+      px(c, 18, 29 + y, 6, 1, shade(s.beard, 0.7));
     }
-    px(c, 7, 15, 3, 1, s.hairStyle === 'none' ? INK : hairDark);
-    px(c, 7, 16, 3, 4, '#283048');
-    px(c, 7, 16, 1, 1, '#ffffff');
-    px(c, 6, 20, 2, 1, '#f0a090');
-    px(c, 6, 22, 2, 1, '#b85a50');
-    if (s.glasses === 'shades') px(c, 4, 15, 9, 4, '#141418');
+    px(c, 20, 17 + y, 8, 2, bald ? shade(s.skin, 0.6) : hairDark);
+    px(c, 21, 20 + y, 5, 5, '#f8f8f8');
+    px(c, 21, 20 + y, 3, 5, '#2c3c64');
+    px(c, 21, 21 + y, 1, 2, '#0c1020');
+    px(c, 22, 20 + y, 1, 1, '#ffffff');
+    px(c, 21, 19 + y, 5, 1, '#3a2a2a');
+    px(c, 19, 30 + y, 5, 1, '#a04a48');
+    px(c, 24, 27 + y, 4, 2, '#f4a8a0');
+    if (s.nosering) px(c, 16, 26 + y, 1, 2, '#c8ccd4');
+    if (s.glasses === 'shades') round(c, 17, 19 + y, 12, 7, 2, '#141418');
     if (s.glasses === 'glasses') {
-      px(c, 5, 15, 7, 1, INK);
-      px(c, 5, 19, 7, 1, INK);
-      px(c, 11, 15, 1, 5, INK);
-      px(c, 12, 16, 7, 1, INK);
+      px(c, 18, 18 + y, 10, 1, INK);
+      px(c, 18, 26 + y, 10, 1, INK);
+      px(c, 18, 18 + y, 1, 9, INK);
+      px(c, 27, 18 + y, 1, 9, INK);
+      px(c, 28, 20 + y, 9, 1, INK);
     }
+    if (!bald) {
+      round(c, 20, 3 + y, 28, 14, 8, s.hair);
+      px(c, 36, 12 + y, 10, 12, s.hair);
+      for (let x = 20; x < 32; x++) px(c, x, 11 + y, 1, 2 + ((x * 7) % 4), s.hair);
+      for (let x = 24; x < 46; x += 4) px(c, x, 6 + y, 1, 10, hairDark);
+      round(c, 22, 4 + y, 12, 3, 1, hairLight);
+      if (s.hairStyle === 'long') px(c, 38, 14 + y, 10, 26, s.hair);
+      if (s.hairStyle === 'bob') px(c, 34, 12 + y, 16, 22, s.hair);
+      if (s.hairStyle === 'spiky')
+        for (const x of [24, 31, 38, 44]) {
+          px(c, x, 0 + y, 6, 6, s.hair);
+          px(c, x + 2, -2 + y, 3, 3, s.hair);
+        }
+      if (s.hairStyle === 'bun') round(c, 40, 2 + y, 10, 10, 5, s.hair);
+      if (s.hairStyle === 'bouffant') round(c, 14, 0 + y, 36, 15, 7, s.hair);
+    } else if (s.hairStyle === 'balding') round(c, 34, 12 + y, 12, 14, 4, s.hair);
   }
-  if (s.hairStyle === 'spiky') {
-    const spikes = side === 'left' ? [10, 16, 22, 27] : [6, 12, 18, 24];
-    for (const x of spikes) {
-      px(c, x, 2, 3, 3, s.hair);
-      px(c, x + 1, 0, 1, 2, s.hair);
-    }
-  }
-  if (s.hairStyle === 'bun') round(c, 12, 0, 8, 6, 3, s.hair);
-  if (s.hairStyle === 'bob' && side !== 'up') {
-    // A blunt fringe straight across, and a lighter streak.
-    if (side === 'down') {
-      px(c, 7, 8, 18, 5, s.hair);
-      px(c, 7, 12, 18, 1, shade(s.hair, 0.72));
-      px(c, 3, 10, 4, 13, s.hair);
-      px(c, 25, 10, 4, 13, s.hair);
-      px(c, 11, 4, 3, 8, shade(s.hair, 1.45));
-    } else {
-      px(c, 5, 8, 14, 5, s.hair);
-      px(c, 5, 12, 14, 1, shade(s.hair, 0.72));
-      px(c, 18, 9, 9, 14, s.hair);
-      px(c, 9, 4, 3, 8, shade(s.hair, 1.45));
-    }
-  }
-  if (s.hairStyle === 'bob' && side === 'up') round(c, 3, 3, 26, 21, 6, s.hair);
-  if (s.nosering && side === 'down') px(c, 15, 21, 2, 1, '#c8ccd4');
-  if (s.nosering && side === 'left') px(c, 4, 20, 1, 1, '#c8ccd4');
-  if (s.hairStyle === 'bouffant' && side !== 'up') {
-    // The famous set: a swept wave of hair over the forehead.
-    round(c, side === 'left' ? 4 : 5, 2, side === 'left' ? 20 : 22, 9, 5, s.hair);
-    px(c, side === 'left' ? 7 : 9, 4, 10, 2, shade(s.hair, 1.3));
-    px(c, side === 'left' ? 6 : 8, 9, 12, 1, shade(s.hair, 0.8));
-  }
-  if (s.hairStyle === 'bouffant' && side === 'up') round(c, 2, 1, 28, 23, 10, s.hair);
   if (s.earrings && side !== 'up') {
-    for (const x of side === 'left' ? [19] : [4, 26]) {
-      px(c, x, 20, 2, 1, s.earrings);
-      px(c, x - 1, 21, 1, 2, s.earrings);
-      px(c, x + 2, 21, 1, 2, s.earrings);
-      px(c, x, 23, 2, 1, s.earrings);
+    for (const ex of side === 'left' ? [36] : [15, 46]) {
+      round(c, ex, 27 + y, 4, 5, 2, s.earrings);
+      px(c, ex + 1, 28 + y, 2, 3, side === 'left' ? s.skin : shade(s.skin, 0.84));
     }
   }
-  if (s.hat) hat(c, s, side);
+  if (covered) hat(c, s, side, y);
 }
 
-function hat(c: Ctx, s: Style, side: Side) {
+function hat(c: Ctx, s: Style, side: Side, y: number) {
   const { kind, colour, trim } = s.hat!;
   const dark = shade(colour, 0.7);
   const light = shade(colour, 1.3);
   const left = side === 'left';
   switch (kind) {
     case 'cap':
-      round(c, 5, 1, 22, 11, 7, colour);
-      if (trim) {
-        // A white front panel with a little badge, like the hero's.
-        if (side === 'down') {
-          round(c, 9, 2, 14, 8, 4, trim);
-          px(c, 14, 5, 4, 3, colour);
-        } else if (left) round(c, 6, 2, 10, 8, 4, trim);
+      shaded(c, 16, 1 + y, 32, 16, 10, colour, 0.25, 0.25);
+      if (trim && side === 'down') {
+        round(c, 22, 3 + y, 20, 11, 5, trim);
+        round(c, 28, 6 + y, 8, 6, 3, colour);
+        px(c, 30, 7 + y, 4, 4, trim);
+      } else if (trim && left) round(c, 17, 3 + y, 14, 11, 5, trim);
+      px(c, 30, 1 + y, 4, 2, dark);
+      if (side === 'down') {
+        round(c, 16, 14 + y, 32, 5, 2, dark);
+        px(c, 18, 14 + y, 28, 1, shade(colour, 0.55));
       }
-      px(c, 8, 2, 6, 1, light);
-      if (side === 'down') px(c, 6, 10, 20, 3, dark);
-      if (left) px(c, 0, 10, 10, 3, dark);
+      if (left) round(c, 6, 14 + y, 18, 5, 2, dark);
       if (side === 'up') {
-        px(c, 13, 9, 6, 2, s.hair);
-        px(c, 12, 8, 8, 1, dark);
+        px(c, 26, 12 + y, 12, 4, s.hair);
+        px(c, 27, 11 + y, 10, 1, dark);
       }
       break;
     case 'flat':
-      round(c, 4, 4, 24, 8, 4, colour);
-      for (let x = 6; x < 26; x += 3) px(c, x, 6, 1, 4, dark);
-      if (side === 'down') px(c, 6, 11, 20, 2, dark);
-      if (left) px(c, 1, 10, 10, 2, dark);
+      shaded(c, 15, 6 + y, 34, 11, 5, colour, 0.25, 0.25);
+      // Tweed: flecks across the cloth.
+      for (let x = 17; x < 47; x += 3)
+        for (let yy = 8; yy < 15; yy += 3) px(c, x + (yy % 2), yy + y, 1, 1, dark);
+      px(c, 16, 6 + y, 30, 1, light);
+      if (side === 'down') round(c, 16, 15 + y, 32, 4, 2, dark);
+      if (left) round(c, 8, 14 + y, 16, 4, 2, dark);
       break;
     case 'garda':
-      round(c, 3, 1, 26, 9, 4, colour);
-      px(c, 5, 8, 22, 2, '#101418');
-      if (side !== 'up') px(c, 14, 3, 4, 4, trim ?? '#e8c040');
-      if (side === 'down') px(c, 7, 10, 18, 3, '#101418');
-      if (left) px(c, 0, 10, 10, 3, '#101418');
+      shaded(c, 14, 2 + y, 36, 13, 5, colour, 0.25, 0.25);
+      px(c, 16, 12 + y, 32, 3, '#101418');
+      if (side !== 'up') {
+        round(c, 29, 4 + y, 7, 7, 2, trim ?? '#e8c040');
+        px(c, 31, 6 + y, 3, 3, shade(trim ?? '#e8c040', 0.7));
+      }
+      if (side === 'down') round(c, 18, 15 + y, 28, 4, 2, '#101418');
+      if (left) round(c, 6, 14 + y, 16, 4, 2, '#101418');
       break;
     case 'mortar':
-      round(c, 6, 3, 20, 8, 3, colour);
-      px(c, 1, 1, 30, 3, colour);
-      px(c, 1, 1, 30, 1, light);
-      px(c, left ? 24 : 22, 2, 1, 9, trim ?? '#e8c040');
+      shaded(c, 20, 6 + y, 24, 11, 3, colour, 0.25, 0.25);
+      px(c, 6, 2 + y, 52, 5, colour);
+      px(c, 6, 2 + y, 52, 1, light);
+      px(c, left ? 48 : 44, 4 + y, 2, 16, trim ?? '#e8c040');
+      round(c, left ? 47 : 43, 19 + y, 4, 4, 1, trim ?? '#e8c040');
       break;
     case 'beanie':
-      round(c, 5, 1, 22, 10, 7, colour);
-      px(c, 5, 9, 22, 2, dark);
-      px(c, 14, 0, 4, 2, light);
+      shaded(c, 16, 1 + y, 32, 16, 10, colour, 0.25, 0.25);
+      px(c, 16, 13 + y, 32, 4, dark);
+      for (let x = 17; x < 48; x += 2) px(c, x, 13 + y, 1, 4, shade(colour, 0.6));
+      round(c, 29, -1 + y, 6, 4, 2, light);
+      break;
+    case 'fila':
+      // A tall folded cap, its point flopping to one side.
+      shaded(c, 16, 4 + y, 32, 13, 4, colour, 0.25, 0.3);
+      for (let i = 0; i < 12; i++)
+        px(c, 22 + i * 0.8, 4 + y - i, 18 - i * 1.2, 1, i < 6 ? colour : shade(colour, 0.85));
+      px(c, 16, 14 + y, 32, 2, dark);
+      px(c, 24, 6 + y, 1, 8, dark);
+      px(c, 38, 5 + y, 10, 2, light);
       break;
   }
 }
 
 /**
- * One frame of a person. `frame` 0 and 2 stand, 1 and 3 step with each foot. Right is left,
- * mirrored. With `headless`, the head is left off, for a Ranemon's photo to go on top.
+ * One frame of a person. Frame 0 stands; 1-4 are a step with the left foot and 5-8 with the
+ * right (pass, stride, pass, land). Right is left, mirrored. With `headless`, the head is left
+ * off, for a Ranemon's photo to go on top.
  */
 export function paintPerson(
   s: Style,
@@ -659,17 +1010,18 @@ export function paintPerson(
   canvas.height = PERSON_H;
   const c = canvas.getContext('2d')!;
   const side: Side = dir === 'right' ? 'left' : dir;
-  const step = frame === 1 ? -1 : frame === 3 ? 1 : 0;
-  if (side === 'up') {
-    legs(c, s, side, step);
-    body(c, s, side, step);
-    if (!headless) head(c, s, side);
+  const p = poseOf(frame);
+  if (side === 'left') {
+    legsSide(c, s, p);
+    bodySide(c, s, p);
   } else {
-    if (!headless) hairBack(c, s, side);
-    legs(c, s, side, step);
-    body(c, s, side, step);
-    if (!headless) head(c, s, side);
+    const back = side === 'up';
+    if (!back && s.guitar) torsoFront(c, { ...s, guitar: undefined }, p, true);
+    legsFront(c, s, p, back);
+    torsoFront(c, s, p, back);
+    armsFront(c, s, p, back);
   }
+  if (!headless) head(c, s, side, p);
   outline(c);
   if (dir !== 'right') return canvas;
   const flipped = document.createElement('canvas');

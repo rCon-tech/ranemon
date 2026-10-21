@@ -1,3 +1,4 @@
+import { LEGEND, LEGEND_LEVEL } from '@/lib/battle/legend';
 import { CERT, HM } from '@/lib/story/keys';
 import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
@@ -113,6 +114,205 @@ const DONKEY_VET: Step[] = [
     ],
   },
 ];
+
+/**
+ * The legend of Dublin. Three coral beads, from an old woman on the quays, a busker's song and
+ * a barman in Temple Bar, open the Hellfire Club, where something ancient is waiting. Nobody
+ * ever says its name: you only find out who it is when you face it.
+ */
+export const LEGEND_FLAG = 'legend:beads';
+const BEADS = ['bead:liffey', 'bead:busker', 'bead:templebar'];
+const bead = (flag: string): Step[] => [
+  { do: 'say', text: 'You got a CORAL BEAD! It is warm, as if someone was just holding it.' },
+  { do: 'flag', flag },
+  ...BEADS.reduceRight<Step[]>(
+    (then, f) => [{ do: 'if', flag: f, then }],
+    [
+      {
+        do: 'say',
+        text: 'The three coral beads glow together in your bag. Somewhere on the hill, an old door creaks.',
+      },
+      { do: 'flag', flag: LEGEND_FLAG },
+    ],
+  ),
+];
+
+const OLD_WOMAN: Step[] = [
+  {
+    do: 'if',
+    flag: BEADS[0],
+    then: [
+      {
+        do: 'say',
+        text: 'OLD WOMAN: The other beads? Follow the music, love. The busker up by the Park sings the old song.',
+      },
+    ],
+    else: [
+      {
+        do: 'say',
+        text: 'OLD WOMAN: You’ve the look of someone who’s walked a long way. Did you ever hear tell of the legend?',
+      },
+      {
+        do: 'say',
+        text: 'OLD WOMAN: A Ranemon older than the city. Cream robes, a coral necklace, a staff topped with gold. Nobody’s seen him in years. Most say he was never real at all.',
+      },
+      {
+        do: 'say',
+        text: 'OLD WOMAN: My granny swore she saw him on the quays one night. All he left was this. I fished it out of the Liffey seventy years ago.',
+      },
+      ...bead(BEADS[0]),
+      {
+        do: 'say',
+        text: 'OLD WOMAN: The busker up by the Park sings the old song about him. Ask him for the second verse.',
+      },
+    ],
+  },
+];
+
+const BUSKER: Step[] = [
+  {
+    do: 'if',
+    flag: BEADS[1],
+    then: [
+      {
+        do: 'say',
+        text: 'BUSKER: The last verse is about Temple Bar. Ask the barman about the stranger with the gold staff.',
+      },
+    ],
+    else: [
+      {
+        do: 'if',
+        flag: BEADS[0],
+        then: [
+          {
+            do: 'say',
+            text: 'BUSKER: Is that a coral bead? Where’d you get that? Then you’ll want the second verse.',
+          },
+          {
+            do: 'say',
+            text: 'BUSKER: ♪ In robes of cream and coral red, he walked the hills while Dublin slept. A staff of gold, a name unsaid, and a bead for every promise kept. ♪',
+          },
+          {
+            do: 'say',
+            text: 'BUSKER: Someone dropped this in my guitar case the night I wrote that. Never saw who.',
+          },
+          ...bead(BEADS[1]),
+          {
+            do: 'say',
+            text: 'BUSKER: The old barman in Temple Bar’s been pouring since the seventies. He’ll know the last verse.',
+          },
+        ],
+        else: [
+          {
+            do: 'say',
+            text: 'BUSKER: ♪ In Dublin’s fair city… ♪ Sorry, I only do the old songs for people who know the story.',
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const TEMPLE_BAR: Step[] = [
+  {
+    do: 'if',
+    flag: BEADS[2],
+    then: [
+      {
+        do: 'say',
+        text: 'BARMAN: The Hellfire Club, up the hill at the edge of town. Mind yourself up there.',
+      },
+    ],
+    else: [
+      {
+        do: 'if',
+        flag: BEADS[1],
+        then: [
+          {
+            do: 'say',
+            text: 'BARMAN: A bead like that? A stranger left one on this counter in 1979. Paid for a pint with it, then walked out into the fog.',
+          },
+          ...bead(BEADS[2]),
+          {
+            do: 'say',
+            text: 'BARMAN: He went up toward the Hellfire Club, the old ruin on the hill. Nobody’s got that door open in two hundred years.',
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const HELLFIRE: Step[] = [
+  {
+    do: 'if',
+    flag: 'caught:tobymon',
+    then: [{ do: 'say', text: 'THE HELLFIRE CLUB. Only coral dust, and the quiet of the hill.' }],
+    else: [
+      {
+        do: 'say',
+        text: 'THE HELLFIRE CLUB. Mist hangs inside the ruin, and the air smells of old incense.',
+      },
+    ],
+  },
+];
+
+const HELLFIRE_ROOM = {
+  name: 'The Hellfire Club',
+  rows: [
+    'WWWWWWWWWW',
+    'WwwwwwwwwW',
+    'Ww::1:::wW',
+    'W::::::::W',
+    'W:X:rr:X:W',
+    'W:::rr:::W',
+    'Ww::rr:::W',
+    'Ww::@:::wW',
+    'WWWWEWWWWW',
+  ],
+  things: {
+    X: 'A standing stone carved with a figure leaning on a staff. The face has worn away.',
+  },
+  npcs: [
+    {
+      look: 'legend' as const,
+      face: 'down' as const,
+      showIf: LEGEND_FLAG,
+      hideIf: 'caught:tobymon',
+      talk: [
+        {
+          do: 'say' as const,
+          text: 'A figure in cream robes stands among the ruins, leaning on a gold-topped staff. Coral beads glow at his neck.',
+        },
+        {
+          do: 'say' as const,
+          text: '???: …So. You carry my beads. Then the old stories found you, as once they found me.',
+        },
+        {
+          do: 'say' as const,
+          text: '???: Show me what kind of trainer walks this far for a myth.',
+        },
+        { do: 'wild' as const, species: LEGEND.id, level: LEGEND_LEVEL },
+        {
+          do: 'if' as const,
+          flag: 'caught:tobymon',
+          then: [
+            {
+              do: 'say' as const,
+              text: 'The legend was real. The coral beads crumble to dust in your bag. Nobody in Dublin will ever believe you.',
+            },
+          ],
+          else: [
+            {
+              do: 'say' as const,
+              text: 'The figure fades into the mist. The beads are still warm. He will be waiting here.',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
 
 export const MAPS: GameMap[] = [
   {
@@ -659,13 +859,13 @@ export const MAPS: GameMap[] = [
       'TTTTTTTTTTTTTTTTTTTTTTTT',
       'T,,,,,,,,,..^^^^^^..^^^T',
       'T,,,,,,,,,..###L##..#M#T',
-      'T,,,,1,,,,.....=.......T',
+      'T,,,,1,,,,.....=..6....T',
       '@==============.......*T',
-      'T.............=........T',
+      'T...5.........=........T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
-      'T.............=..2.....T',
-      'T..^^^^..^^^^.=........T',
+      'T.............=..2.^^^.T',
+      'T..^^^^..^^^^.=....#L#.T',
       'T..#P##..#H##.=======>4.',
       'T..S........3..........T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
@@ -707,6 +907,8 @@ export const MAPS: GameMap[] = [
         ],
         hideIf: 'jersey:all',
       },
+      { look: 'local', face: 'down', talk: OLD_WOMAN },
+      { look: 'busker', face: 'down', talk: BUSKER },
     ],
     signs: ['DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.'],
     houses: [
@@ -715,6 +917,7 @@ export const MAPS: GameMap[] = [
           do: 'say',
           text: 'TEMPLE BAR. A man in a Dublin jersey is selling Blue Ghosts out of a sports bag. You decide to buy from Vapes instead.',
         },
+        ...TEMPLE_BAR,
       ],
     ],
     landmarks: [
@@ -734,7 +937,18 @@ export const MAPS: GameMap[] = [
           ],
         },
       ],
+      HELLFIRE,
     ],
+    landmarkLocks: {
+      1: {
+        flag: LEGEND_FLAG,
+        locked:
+          'THE HELLFIRE CLUB. An old hunting lodge, boarded up for two hundred years. The door won’t budge.',
+        opened:
+          'The three coral beads glow warm in your bag. The boards fall away from the door on their own…',
+      },
+    },
+    landmarkRooms: { 1: HELLFIRE_ROOM },
     west: 'kildare',
     east: 'trinity',
   },

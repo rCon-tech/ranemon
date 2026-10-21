@@ -10,6 +10,7 @@ Writes, under public/sprites:
                      piece from the Pokémon it's named after (wings, spoons, a crest, ...)
   evo/mini/<id>.png
   bw/bns.png         B&S, cut from the group photo on the sheet's last page (only with --sheet)
+  bw/tobymon.png     the legendary Tobymon, wrapped in a gold-and-coral glow with sparkles
   shiny/...          the shiny palette of every sprite above (bar B&S), at the same path under
                      shiny/: gilded, ringed in gold, with sparkles on the full-size ones
 
@@ -301,6 +302,23 @@ def gild(im: Image.Image, sparkles: bool) -> Image.Image:
     return out
 
 
+# Legendary Ranemon: a two-tone glow behind them, and sparkles round about.
+LEGENDARY = {"tobymon": ((248, 200, 96), (240, 128, 88))}
+
+
+def legend(im: Image.Image, colours) -> Image.Image:
+    outer, inner = colours
+    out = aura(im, outer)
+    glow = aura(im.filter(ImageFilter.MinFilter(5)), inner)
+    out.alpha_composite(glow)
+    out.alpha_composite(im)
+    d = ImageDraw.Draw(out)
+    w, h = out.size
+    for x, y in ((10, 14), (w - 12, 10), (5, h // 2), (w - 6, h // 2 + 8), (w // 2 + 20, 4)):
+        sparkle(d, x, y, (255, 244, 180))
+    return out
+
+
 def shinies() -> None:
     for d in ("bw", "evo"):
         for path in sorted((SRC / d).glob("*.png")):
@@ -324,7 +342,10 @@ def main() -> None:
         (SRC / d).mkdir(parents=True, exist_ok=True)
     for path in sorted(SRC.glob("*.png")):
         im = Image.open(path)
-        pixelate(im, SIZE).save(SRC / "bw" / path.name)
+        big = pixelate(im, SIZE)
+        if path.stem in LEGENDARY:
+            big = legend(big, LEGENDARY[path.stem])
+        big.save(SRC / "bw" / path.name)
         outline(pixelate(im, 40, 28)).save(SRC / "bw/mini" / path.name)
     for evo, (base, kind) in EVOLUTIONS.items():
         im = evolve(evo, base, kind)
