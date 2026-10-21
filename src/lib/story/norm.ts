@@ -3,8 +3,8 @@ import type { ItemId } from './items';
 /** Set while Norm, Sibeal's dog, is walking with you. */
 export const NORM = 'norm:with-you';
 
-/** The chance, each step, that Norm turns something up. About once every 80 steps. */
-export const NORM_FIND_RATE = 1 / 80;
+/** The chance, each step, that Norm turns something up. About once every 150 steps. */
+export const NORM_FIND_RATE = 1 / 150;
 
 /** What Norm finds, and how often: mostly pints and tea, now and then something good. */
 export const NORM_FINDS: [ItemId, number][] = [
