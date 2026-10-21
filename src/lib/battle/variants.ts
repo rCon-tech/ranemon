@@ -27,6 +27,7 @@ const SUIT = 'suit';
 const RACES = 'races';
 const SHADES = 'shades';
 const THUMBS = 'thumbs';
+const DANCE = 'dance';
 
 export const VARIANTS: Record<string, Variant[]> = {
   // Olliemon in a green shirt with a tricolour pin, at twice the detail of the other sprites.
@@ -74,6 +75,11 @@ export const VARIANTS: Record<string, Variant[]> = {
     { id: THUMBS, label: 'Thumbs Up', sprite: '/sprites/bw/killemon-thumbs.png', solid: true },
   ],
   killigatr: [{ id: THUMBS, label: 'Thumbs Up', sprite: '/sprites/evo/killigatr-thumbs.png' }],
+  // Owemon dancing with a whiskey in hand, also in HD.
+  owemon: [
+    { id: DANCE, label: 'Dance Floor', sprite: '/sprites/bw/owemon-dance.png', solid: true },
+  ],
+  fearowe: [{ id: DANCE, label: 'Dance Floor', sprite: '/sprites/evo/fearowe-dance.png' }],
 };
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];
