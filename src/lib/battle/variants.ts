@@ -23,6 +23,8 @@ const WINE = 'wine';
 const TACHE = 'tache';
 const CURLS = 'curls';
 const RUGBY = 'rugby';
+const SUIT = 'suit';
+const RACES = 'races';
 
 export const VARIANTS: Record<string, Variant[]> = {
   // Olliemon in a green shirt with a tricolour pin, at twice the detail of the other sprites.
@@ -54,6 +56,14 @@ export const VARIANTS: Record<string, Variant[]> = {
   // Boydemon in a rugby kit with the ball, also in HD.
   boydemon: [{ id: RUGBY, label: 'Rugby', sprite: '/sprites/bw/boydemon-rugby.png', solid: true }],
   primeboyd: [{ id: RUGBY, label: 'Rugby', sprite: '/sprites/evo/primeboyd-rugby.png' }],
+  // Steadmon in a cream wedding suit and a bow tie, also in HD.
+  steadmon: [
+    { id: SUIT, label: 'Wedding Suit', sprite: '/sprites/bw/steadmon-suit.png', solid: true },
+  ],
+  steadakazam: [{ id: SUIT, label: 'Wedding Suit', sprite: '/sprites/evo/steadakazam-suit.png' }],
+  // Gibbsmon at the races in a flat cap, shades and a check scarf, also in HD.
+  gibbsmon: [{ id: RACES, label: 'Races', sprite: '/sprites/bw/gibbsmon-races.png', solid: true }],
+  gyaragibbs: [{ id: RACES, label: 'Races', sprite: '/sprites/evo/gyaragibbs-races.png' }],
 };
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];

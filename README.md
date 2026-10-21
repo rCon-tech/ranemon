@@ -43,7 +43,7 @@ The **2D / 3D** button beside the speed button (on the map and in battles) switc
 
 ## Second looks
 
-Some Ranemon have a second look from another photo (`src/lib/battle/variants.ts`): Olliemon (Tricolour), Oismon (Orange Cap), Endamon (Red Wine), Carlmon (Moustache), Conemon (Curls) and Boydemon (Rugby), and their evolutions. It's the same Ranemon, with the same name, types, stats and moves; only the picture changes. The new photos are cut at 192 pixels and 64 colours, twice the detail of the others (`HD` in `scripts/sprites.py`), with their own follower heads, shiny versions and evolved costumes.
+Some Ranemon have a second look from another photo (`src/lib/battle/variants.ts`): Olliemon (Tricolour), Oismon (Orange Cap), Endamon (Red Wine), Carlmon (Moustache), Conemon (Curls), Boydemon (Rugby), Steadmon (Wedding Suit) and Gibbsmon (Races), and their evolutions. It's the same Ranemon, with the same name, types, stats and moves; only the picture changes. The new photos are cut at 192 pixels and 64 colours, twice the detail of the others (`HD` in `scripts/sprites.py`), with their own follower heads, shiny versions and evolved costumes.
 
 - **Battle mode**: the team screen has a picker for each one's look, and the rival's come in a random look.
 - **Story mode**: a wild one is either look, equally likely. The look is kept when you befriend it, when it evolves (the evolution scene shows it too) and in saves, and the Ranemon following you wears it. The Ranedex page shows every look.

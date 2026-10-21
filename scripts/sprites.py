@@ -49,6 +49,8 @@ HD = {
     "carlmon-tache": (192, 64, (160, 0, 170)),
     "conemon-curls": (192, 64, (150, 0, 210)),
     "boydemon-rugby": (192, 64, (150, 0, 95)),
+    "steadmon-suit": (192, 64, (100, 0, 190)),
+    "gibbsmon-races": (192, 64, (90, 0, 130)),
 }
 
 
@@ -88,6 +90,8 @@ EVOLUTIONS = {
     "carlizard-tache": ("carlmon-tache", "hype"),
     "conix-curls": ("conemon-curls", "hype"),
     "primeboyd-rugby": ("boydemon-rugby", "brawn"),
+    "steadakazam-suit": ("steadmon-suit", "brains"),
+    "gyaragibbs-races": ("gibbsmon-races", "brawn"),
 }
 
 # Where the head is, (x centre, y top, half width) on the 96-pixel canvas, for photos where
