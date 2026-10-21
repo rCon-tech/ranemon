@@ -270,3 +270,64 @@ test('story mode in 3D: walks into the house just like 2D', async ({ page }) => 
   await expect(world).toHaveAttribute('data-x', x!);
   await expect(world).toHaveAttribute('data-y', y!);
 });
+
+test('story mode: Sibeal in Limerick lends you Norm', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:norm')) return;
+    // On the road in Limerick, just below Sibeal.
+    localStorage.setItem(
+      'ranemon.story.v1:norm',
+      JSON.stringify({
+        version: 1,
+        map: 'limerick',
+        x: 9,
+        y: 13,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 12,
+            exp: 2000,
+            hp: 40,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:limerick', 'jersey:clare'],
+        seen: [],
+        caught: [],
+        pub: { map: 'limerick', x: 2, y: 12 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Norm');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const text = page.getByTestId('story-text');
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('SIBEAL');
+  for (let i = 0; i < 8 && !(await page.getByRole('button', { name: 'YES' }).count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await page.getByRole('button', { name: 'YES' }).click();
+  await expect(text).toContainText('McGrattans');
+  for (let i = 0; i < 6 && (await text.count()); i++) await text.click();
+  await expect(text).toHaveCount(0);
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:norm')!),
+  );
+  expect(save.flags).toContain('norm:with-you');
+  expect(save.party).toHaveLength(1);
+});

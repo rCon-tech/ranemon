@@ -29,6 +29,8 @@ import { remoteSaves } from '@/lib/story/remote';
 import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
+import { devSave, isDevName } from '@/lib/story/devsave';
+import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
   catchRate,
@@ -60,6 +62,7 @@ import {
   see,
   setFlag,
   settleBattle,
+  unsetFlag,
   take,
   toGroupChat,
   type StoryState,
@@ -283,6 +286,9 @@ export function Story() {
           case 'flag':
             g = setFlag(g, s.flag);
             break;
+          case 'unflag':
+            g = unsetFlag(g, s.flag);
+            break;
           case 'if':
             q.unshift(...(hasFlag(g, s.flag) ? s.then : (s.else ?? [])));
             break;
@@ -427,6 +433,15 @@ export function Story() {
         setExclaim(null);
         run(g, challenge(spotter.item.trainer!));
       }, scaled(700));
+      return;
+    }
+
+    // Norm has a nose for things: every so often he turns something up.
+    if (hasFlag(g, NORM) && Math.random() < NORM_FIND_RATE) {
+      run(g, [
+        { do: 'say', text: 'Norm found something!' },
+        { do: 'give', item: pickFind(Math.random()) },
+      ]);
       return;
     }
 
@@ -690,10 +705,10 @@ export function Story() {
           ? `That PIN doesn’t match the online save for “${trainer.trim()}”.`
           : online.error === 'locked'
             ? 'Too many wrong PINs for that name. Try again in 15 minutes.'
-            : null;
-      return { save: local, blocked };
+            : 'Couldn’t reach online saves just now.';
+      return { save: local, blocked, offline: online.error === 'offline' };
     }
-    return { save: newer(local, parseSave(online.raw)), blocked: null };
+    return { save: newer(local, parseSave(online.raw)), blocked: null, offline: false };
   }
 
   function begin(trainer: string, g: StoryState, fresh: boolean) {
@@ -714,17 +729,19 @@ export function Story() {
       if (local) return begin(name, local, false);
     }
     setTitle({ busy: true, note: null, replace: false });
-    const { save: found, blocked } = await findSave(name);
+    const { save: found, blocked, offline } = await findSave(name);
     if (blocked)
       setTitle({
         busy: false,
         note: found
-          ? `${blocked} Check it, or tap CONTINUE again to play this browser’s save without saving online.`
-          : `${blocked} Check it, or pick another name.`,
+          ? `${blocked} ${offline ? 'Try again in a minute' : 'Check it'}, or tap CONTINUE again to play this browser’s save without saving online.`
+          : `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
         replace: false,
         localOnly: !!found,
       });
     else if (found) begin(name, found, false);
+    // The developer save starts with everything unlocked.
+    else if (await isDevName(name)) begin(name, devSave(), false);
     else
       setTitle({
         busy: false,
@@ -736,11 +753,12 @@ export function Story() {
   async function onNew() {
     if (!title.replace) {
       setTitle({ busy: true, note: null, replace: false });
-      const { save: found, blocked } = await findSave(name);
+      const { save: found, blocked, offline } = await findSave(name);
       if (blocked) {
+        // Offline, a new game could later replace an online save it couldn't see.
         setTitle({
           busy: false,
-          note: `${blocked} Check it, or pick another name.`,
+          note: `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
           replace: false,
         });
         return;
@@ -757,7 +775,8 @@ export function Story() {
         return;
       }
     }
-    begin(name, newGame(), true);
+    if (await isDevName(name)) begin(name, devSave(), false);
+    else begin(name, newGame(), true);
   }
 
   async function openTools() {
@@ -898,6 +917,7 @@ export function Story() {
   const map = mapById(game.map);
   const flags = new Set(game.flags);
   const walker = follower(game);
+  const norm = flags.has(NORM);
   const ghosts = find(map, '*').filter((p) => !flags.has(ghostFlag(map.id, p.x, p.y)));
 
   return (
@@ -910,8 +930,9 @@ export function Story() {
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
-          follower={walker?.species ?? null}
+          follower={norm ? null : (walker?.species ?? null)}
           followerShiny={!!walker?.shiny}
+          dog={norm}
           frozen={busy}
           bike={hasFlag(game, 'bike')}
           exclaim={exclaim}

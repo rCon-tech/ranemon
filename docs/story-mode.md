@@ -82,6 +82,8 @@ The route is Clare → Limerick → Tipperary → Kilkenny → Laois → Offaly 
 
 **Poseidon (side story, Donegal).** A conductor by the station path in Dublin offers the Atlantic Coast Express to Bundoran, Co. Donegal, and one there brings you back. Josh Lee, who surfs Bundoran all year, says a god lives out on the rocks by Tullan Strand and gives you his tablet: take it there and then, or later from the bag's key items. Once it's taken (it leaves the bag), Poseidon appears on the rocks: a hard boss on Hard AI with Jammon 55, Simomon 55, Olliemon 56, Owemon 56 and Poseidon himself at 60 (Chill/Brawn, base 505, his own move Trident). A party of six Lv54s beats him about 30% of the time in the simulator. The prize is €7,000 and 3 Blue Ghosts. Poseidon can't be caught and isn't in the Ranedex. Bundoran has its own McGrattans and Vapes, and long grass at Lv46 to 52. Once you've been, the Town Map shows Donegal, with the railway line from Dublin.
 
+**Norm (side story, Limerick).** Sibeal stands by the road in Limerick with her black and white dog, Norm. Say yes and Norm comes with you (flag `norm:with-you`): he walks behind you in place of your lead Ranemon, in 2D and 3D, and he never fights, so the party doesn't change. Each step there's a 1 in 150 chance that "Norm found something!" and you get an item, mostly pints, tea and chicken fillet rolls, now and then a Mulligan's or, rarely, a Blue Ghost (`NORM_FINDS` in lib/story/norm.ts). While you have him, Sibeal waits in every McGrattans; talk to her there to give him back, and she's back in Limerick if you want him again. Norm is just a flag, so he's kept in saves and save codes with no schema change.
+
 **Town Map.** START → MAP, a tap on the place name at the top of the screen, or the M key opens a flat map of Ireland in the 5th generation's style. The road runs Clare to Dublin through all ten stops; visited towns are red and the rest grey, a gold star marks each jersey won (Dublin's star is the championship), and a blinking red cap shows where you are (rooms count as their town, Trinity as Dublin). Left and right step through the towns, showing each one's county and gym. It never shows landmarks, so the legend stays hidden.
 
 **Field gates** (what stops you skipping ahead): flooded bog roads need Wellies, rivers need the Currach, a flock of sheep blocking the road into Laois moves only after the Tipperary jersey, and the Trinity Front Gate needs all 9 jerseys. Gating is by key items rather than field moves, so battle moves stay battle-only.
@@ -170,7 +172,7 @@ The target is that a player who catches as they go, without grinding, arrives at
 
 ## Items
 
-Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at Vapes, the corner shop in each town. Items used in battle take your turn, like a switch.
+Money is euro, won from trainers (leader's ace level × €40, route trainers × €20) and spent at Vapes, the corner shop in each town. Items used in battle take your turn, like a switch. Vapes only work in battle: each raises one stat of the Ranemon that's out by a stage (up to +3), and it wears off when the battle ends or it switches out.
 
 | Item                | Kind   | Effect                                                      | Where                         | Price    |
 | ------------------- | ------ | ----------------------------------------------------------- | ----------------------------- | -------- |
@@ -191,6 +193,10 @@ Money is euro, won from trainers (leader's ace level × €40, route trainers ×
 | Club Orange         | PP     | +10 PP to one move                                          | Shops from Offaly             | €1,000   |
 | Hi-Vis Vest         | Field  | No weaker wild encounters for 200 steps                     | Shops from Limerick           | €350     |
 | Taxi Home           | Field  | Back to the last pub                                        | Every shop                    | €550     |
+| Watermelon Ice      | Vape   | Defense +1 stage in battle, on the Ranemon that's out       | Shops from Limerick           | €500     |
+| Blue Razz           | Vape   | Speed +1 stage in battle                                    | Shops from Limerick           | €500     |
+| Cherry Cola         | Vape   | Attack +1 stage in battle                                   | Shops from Limerick           | €500     |
+| Mango Tango         | Vape   | Spirit +1 stage in battle                                   | Shops from Limerick           | €500     |
 
 **Key items** (never used up): Ranedex, Group Chat (storage, at pubs), High Nelly bike (double speed), Wellies (bog roads), The Round (EXP share), Currach (water), Ordnance Survey map (fly to any visited pub), and the 9 county jerseys shown on the trainer card. **Pubs** (every one is called McGrattans) do what Pokémon Centres do: the barman heals the party for free and the Group Chat is on the wall.
 

@@ -159,3 +159,16 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
   });
   return reply(200, { ok: true });
 }
+
+/**
+ * The database's address. Vercel's Neon integration names it DATABASE_URL, POSTGRES_URL, or
+ * either with a prefix chosen when connecting it, so any of those will do.
+ */
+export function databaseUrl(env: Record<string, string | undefined>): string | null {
+  const names = Object.keys(env);
+  const name =
+    ['DATABASE_URL', 'POSTGRES_URL'].find((n) => env[n]) ??
+    names.find((n) => /_DATABASE_URL$/.test(n) && env[n]) ??
+    names.find((n) => /_POSTGRES_URL$/.test(n) && env[n]);
+  return name ? env[name]! : null;
+}

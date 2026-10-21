@@ -1,3 +1,4 @@
+import { sibealInPub } from './sibeal';
 import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/world';
 
 /**
@@ -42,7 +43,7 @@ const LAYOUTS: Record<Kind, string[]> = {
     'WOWVVVVJVW',
     'WFF1FFNFFW',
     'WCCCCCCFFW',
-    'WFFFFFFFFW',
+    'WFFFFFFF3W',
     'WFUUF2FUUW',
     'WFUUFFFUUW',
     'WNFF@FFFNW',
@@ -141,6 +142,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
               },
             ],
           },
+          sibealInPub,
         ],
         things: {
           V: 'Every whiskey in Ireland, and a bottle of something from Scotland nobody orders.',

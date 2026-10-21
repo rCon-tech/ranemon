@@ -1,10 +1,11 @@
 import { chooseAction, chooseReplacement, type Difficulty } from '../battle/cpu';
-import { moveById, type Status } from '../battle/moves';
+import { moveById, type Stat, type Status } from '../battle/moves';
 import {
   activeBattler,
   aimsAtFoe,
   effectiveStat,
   legalActions,
+  MAX_STAGE,
   playTurn,
   replaceFainted,
   type Action,
@@ -38,7 +39,9 @@ export type ItemEffect =
   /** Full HP and no status. */
   | { kind: 'restore' }
   | { kind: 'revive'; fraction: number }
-  | { kind: 'cure'; status: Status };
+  | { kind: 'cure'; status: Status }
+  /** A vape: raises one stat for the rest of the battle, or until it switches out. */
+  | { kind: 'boost'; stat: Stat; stages: number };
 
 /** A pint thrown at a wild Ranemon. */
 export interface Pint {
@@ -272,6 +275,12 @@ function applyItemAction(s: Session, a: Extract<SessionAction, { type: 'item' }>
     case 'cure':
       if (b.status === a.effect.status) b.status = null;
       break;
+    case 'boost': {
+      const { stat, stages } = a.effect;
+      b.stages[stat] = Math.min(MAX_STAGE, b.stages[stat] + stages);
+      lines.push(say(`${name}’s ${stat.toUpperCase()} rose!`));
+      break;
+    }
   }
   const cured = s.state.teams[0].battlers[a.target].status !== null && b.status === null;
   if (cured) lines.push(say(`${name} feels like itself again.`));

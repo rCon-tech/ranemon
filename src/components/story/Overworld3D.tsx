@@ -8,10 +8,10 @@ import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
 import { Figure } from './figure3d';
-import { monStyle, STYLES } from './people';
+import { monStyle, paintDog, STYLES } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { placeWalk, startWalk, stepT, tickWalk, type Trail } from './walk';
+import { placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -23,6 +23,14 @@ import { placeWalk, startWalk, stepT, tickWalk, type Trail } from './walk';
 const PITCH = (50 * Math.PI) / 180;
 const DISTANCE = 15.5;
 const LEAN = -0.35;
+
+const dogTextures = new Map<string, THREE.Texture>();
+function dogTexture(dir: Dir, frame: number) {
+  const key = `${dir}:${frame}`;
+  let t = dogTextures.get(key);
+  if (!t) dogTextures.set(key, (t = pixelTexture(paintDog(dir, frame))));
+  return t;
+}
 
 const headTextures = new Map<HTMLImageElement, THREE.Texture>();
 function headTexture(img: HTMLImageElement) {
@@ -173,6 +181,15 @@ export default function Overworld3D(props: Props) {
     followerHead.rotation.x = LEAN;
     followerHead.castShadow = true;
     scene.add(followerHead);
+    const dogGeo = new THREE.PlaneGeometry(1, 1.5);
+    dogGeo.translate(0, 0.75, 0);
+    const dog = new THREE.Mesh(
+      dogGeo,
+      new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
+    );
+    dog.rotation.x = LEAN;
+    dog.castShadow = true;
+    scene.add(dog);
 
     const exclaim = new THREE.Mesh(
       new THREE.PlaneGeometry(0.62, 0.74),
@@ -369,7 +386,8 @@ export default function Overworld3D(props: Props) {
 
       const tr = trail.current;
       followerHead.visible = false;
-      if (p.follower && (tr.at.x !== w.x || tr.at.y !== w.y)) {
+      dog.visible = false;
+      if ((p.follower || p.dog) && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const moving = !!(tr.from && w.from);
         const fx = (moving ? lerp(tr.from!.x, tr.at.x) : tr.at.x) + 0.5;
         const fz = (moving ? lerp(tr.from!.y, tr.at.y) : tr.at.y) + 0.5;
@@ -378,27 +396,40 @@ export default function Overworld3D(props: Props) {
           : { x: w.x - tr.at.x, y: w.y - tr.at.y };
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
-        const img = head(p.follower, !!p.followerShiny);
-        const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
-        if (img.complete && img.naturalWidth) {
-          const bob = moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5);
-          person(
-            `mon:${colour}`,
-            () => new Figure(`mon:${colour}`, monStyle(colour), true),
-            fdir,
-            fx,
-            fz,
-            swingOf(moving),
-            bob,
-          );
-          const mat = followerHead.material as THREE.MeshLambertMaterial;
-          const tex = headTexture(img);
+        const lift = moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5);
+        if (p.dog || !p.follower) {
+          // Norm stays his 2D picture, on the same canvas as a person, so the same size as you.
+          const frame = moving ? stepPose(t, w.frame) : 0;
+          const mat = dog.material as THREE.MeshLambertMaterial;
+          const tex = dogTexture(fdir, frame);
           if (mat.map !== tex) {
             mat.map = tex;
             mat.needsUpdate = true;
           }
-          followerHead.position.set(fx, 0.62 + bob, fz + 0.05);
-          followerHead.visible = true;
+          dog.position.set(fx, lift / 2, fz);
+          dog.visible = true;
+        } else {
+          const img = head(p.follower, !!p.followerShiny);
+          const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
+          if (img.complete && img.naturalWidth) {
+            person(
+              `mon:${colour}`,
+              () => new Figure(`mon:${colour}`, monStyle(colour), true),
+              fdir,
+              fx,
+              fz,
+              swingOf(moving),
+              lift,
+            );
+            const mat = followerHead.material as THREE.MeshLambertMaterial;
+            const tex = headTexture(img);
+            if (mat.map !== tex) {
+              mat.map = tex;
+              mat.needsUpdate = true;
+            }
+            followerHead.position.set(fx, 0.62 + lift, fz + 0.05);
+            followerHead.visible = true;
+          }
         }
       }
 
@@ -440,8 +471,9 @@ export default function Overworld3D(props: Props) {
       cancelAnimationFrame(raf);
       watch.disconnect();
       level?.dispose();
-      [headGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
+      [headGeo, dogGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
       (followerHead.material as THREE.Material).dispose();
+      (dog.material as THREE.Material).dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };

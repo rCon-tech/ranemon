@@ -188,7 +188,8 @@ export default function Guide() {
           </li>
           <li>
             <b>Vapes</b> is the shop. It sells pints, healing items and more, with better stock
-            further along the road.
+            further along the road. It sells vapes too: use one in battle to raise a stat of the
+            Ranemon that’s out, like Watermelon Ice for DEFENSE. They wear off after the battle.
           </li>
           <li>
             <b>Gyms</b>: beat each county’s gym leader for the county jersey. The Garda at the
@@ -220,6 +221,11 @@ export default function Guide() {
           <li>
             <b>Donegal</b>: the conductor in Dublin runs a train to Bundoran. Have a chat with Josh
             Lee down by the waves. He knows something about the sea that nobody else does.
+          </li>
+          <li>
+            <b>Norm</b>: Sibeal in Limerick will lend you her dog. Norm walks behind you instead of
+            your Ranemon, never fights, and every so often finds you something. Give him back to
+            Sibeal in any McGrattans.
           </li>
           <li>
             <b>Your rival</b> is Margaret Thatcher, who picks the Ranemon that beats yours and turns
