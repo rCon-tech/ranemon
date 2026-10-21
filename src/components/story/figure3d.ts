@@ -221,6 +221,22 @@ const TILT = -0.3;
 
 const ANGLE: Record<Dir, number> = { down: 0, up: Math.PI, left: -Math.PI / 2, right: Math.PI / 2 };
 
+/** Turns from `angle` toward facing `dir` the short way round, quickly but not in a snap. */
+export function turnToward(angle: number | null, dir: Dir): number {
+  const want = ANGLE[dir];
+  if (angle === null) return want;
+  let delta = want - angle;
+  delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+  return angle + delta * 0.35;
+}
+
+/** Something a figure can ride: it sits on its seat and pedals. */
+export interface Ride {
+  readonly group: THREE.Group;
+  /** Where the seat is, from the ground under the ride's middle. */
+  readonly seat: { y: number; z: number };
+}
+
 /** One person standing in the world. */
 export class Figure {
   readonly group = new THREE.Group();
@@ -228,6 +244,7 @@ export class Figure {
   private readonly body = new THREE.Group();
   private readonly limbs: THREE.Mesh[] = [];
   private angle: number | null = null;
+  private ride: Ride | null = null;
 
   constructor(key: string, style: Style, headless = false) {
     const kit = kitOf(key, style, headless);
@@ -248,20 +265,47 @@ export class Figure {
    * standing): legs and arms swing opposite ways, and the body rises a little at mid-stride.
    */
   pose(x: number, z: number, dir: Dir, swing: number, bob: number) {
-    const want = ANGLE[dir];
-    if (this.angle === null) this.angle = want;
-    // Turn the short way round, quickly but not in a snap.
-    let delta = want - this.angle;
-    delta = Math.atan2(Math.sin(delta), Math.cos(delta));
-    this.angle += delta * 0.35;
-    this.group.position.set(x, bob + Math.abs(swing) * 0.03, z);
-    this.body.rotation.y = this.angle;
-    const n = this.limbs.length;
-    // The last four are always right arm, left arm, right leg, left leg.
-    const [armR, armL, legR, legL] = this.limbs.slice(n - 4);
+    this.mount(null);
+    this.place(x, bob + Math.abs(swing) * 0.03, z, dir);
+    const [armR, armL, legR, legL] = this.arms();
     legR.rotation.x = swing * 0.6;
     legL.rotation.x = -swing * 0.6;
     armR.rotation.x = -swing * 0.5;
     armL.rotation.x = swing * 0.5;
+  }
+
+  /**
+   * Sits the figure on `ride` at (x, z) facing `dir`, hands on the bars, feet on the pedals.
+   * `pedal` is how far forward the right foot is, from -1 to 1.
+   */
+  rideOn(ride: Ride, x: number, z: number, dir: Dir, pedal: number) {
+    this.mount(ride);
+    // Hips on the seat: the legs hang from 30 sprite pixels up.
+    const lift = ride.seat.y - 30 * PX;
+    this.place(x, lift, z, dir);
+    ride.group.position.set(0, -lift, -ride.seat.z);
+    const [armR, armL, legR, legL] = this.arms();
+    legR.rotation.x = -0.3 - pedal * 0.25;
+    legL.rotation.x = -0.3 + pedal * 0.25;
+    armR.rotation.x = armL.rotation.x = -0.95;
+  }
+
+  private place(x: number, y: number, z: number, dir: Dir) {
+    this.angle = turnToward(this.angle, dir);
+    this.group.position.set(x, y, z);
+    this.body.rotation.y = this.angle;
+  }
+
+  /** The last four limbs are always right arm, left arm, right leg, left leg. */
+  private arms() {
+    return this.limbs.slice(this.limbs.length - 4);
+  }
+
+  /** Puts the ride under the figure, turning with it, or takes it away. */
+  private mount(ride: Ride | null) {
+    if (this.ride === ride) return;
+    if (this.ride) this.body.remove(this.ride.group);
+    this.ride = ride;
+    if (ride) this.body.add(ride.group);
   }
 }

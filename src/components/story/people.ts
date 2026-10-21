@@ -1131,12 +1131,12 @@ export function paintPerson(
 
 // ---------- Norm ----------
 
-const DOG = '#1e1e24';
-const DOG_SHINE = '#3e3e4a';
-const DOG_WHITE = '#f4f4f0';
-const DOG_GREY = '#c8c8cc';
-const NOSE = '#0a0a0c';
-const TONGUE = '#e86a7a';
+export const DOG = '#1e1e24';
+export const DOG_SHINE = '#3e3e4a';
+export const DOG_WHITE = '#f4f4f0';
+export const DOG_GREY = '#c8c8cc';
+export const NOSE = '#0a0a0c';
+export const TONGUE = '#e86a7a';
 
 /**
  * Norm, Sibeal's black and white dog, who walks behind you in place of your Ranemon: a border
@@ -1241,15 +1241,15 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
 
 export type BikeKind = 'lime' | 'nelly';
 
-const BIKES: Record<BikeKind, { frame: string; trim: string; basket: boolean }> = {
+export const BIKES: Record<BikeKind, { frame: string; trim: string; basket: boolean }> = {
   // A Lime e-bike, as on every street in London: lime green, a step-through frame, chunky
   // tyres, a black basket up front and the battery under the seat.
   lime: { frame: '#7ad321', trim: '#f4f8f0', basket: true },
   // The High Nelly: a big black Irish roadster.
   nelly: { frame: '#202024', trim: '#c8ccd4', basket: false },
 };
-const TYRE = '#1c1c22';
-const RIM = '#9aa0a8';
+export const TYRE = '#1c1c22';
+export const RIM = '#9aa0a8';
 
 function wheel(c: Ctx, x: number, y: number, r: number, turn: number) {
   c.fillStyle = TYRE;
