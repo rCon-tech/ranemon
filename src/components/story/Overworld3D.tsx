@@ -7,7 +7,7 @@ import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
-import { monStyle, paintPerson, PERSON_H, PERSON_W, STYLES, type Style } from './people';
+import { monStyle, paintDog, paintPerson, PERSON_H, PERSON_W, STYLES, type Style } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
 import { placeWalk, startWalk, stepPose, stepT, tickWalk, type Trail } from './walk';
@@ -377,7 +377,7 @@ export default function Overworld3D(props: Props) {
       }
 
       const tr = trail.current;
-      if (p.follower && (tr.at.x !== w.x || tr.at.y !== w.y)) {
+      if ((p.follower || p.dog) && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const moving = !!(tr.from && w.from);
         const fx = (moving ? lerp(tr.from!.x, tr.at.x) : tr.at.x) + 0.5;
         const fz = (moving ? lerp(tr.from!.y, tr.at.y) : tr.at.y) + 0.5;
@@ -386,19 +386,31 @@ export default function Overworld3D(props: Props) {
           : { x: w.x - tr.at.x, y: w.y - tr.at.y };
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
-        const img = head(p.follower, !!p.followerShiny);
-        const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
         const frame = moving ? stepPose(t, w.frame) : 0;
-        if (img.complete && img.naturalWidth) {
+        const lift = moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5);
+        if (p.dog || !p.follower) {
+          // Norm, on the same canvas as a person, so the same size as you.
           stand(
-            personTexture(`mon:${p.follower}:${!!p.followerShiny}:${fdir}:${frame}`, () =>
-              followerCanvas(colour, fdir, frame, img),
-            ),
-            followerGeo,
+            personTexture(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
+            personGeo,
             fx,
             fz,
-            moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5),
+            lift / 2,
           );
+        } else {
+          const img = head(p.follower, !!p.followerShiny);
+          const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
+          if (img.complete && img.naturalWidth) {
+            stand(
+              personTexture(`mon:${p.follower}:${!!p.followerShiny}:${fdir}:${frame}`, () =>
+                followerCanvas(colour, fdir, frame, img),
+              ),
+              followerGeo,
+              fx,
+              fz,
+              lift,
+            );
+          }
         }
       }
 

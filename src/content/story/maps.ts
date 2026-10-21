@@ -2,6 +2,8 @@ import { LEGEND, LEGEND_LEVEL } from '@/lib/battle/legend';
 import { CERT, HM, TABLET, TABLET_TAKEN, TAKE_TABLET } from '@/lib/story/keys';
 import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
+import { SIBEAL_LENDS } from './sibeal';
+import { NORM } from '@/lib/story/norm';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -582,7 +584,7 @@ export const MAPS: GameMap[] = [
       'TT....==......=,,,,,...T',
       'T^^^^.==.^^^..=...^^^^^T',
       'T#P##.==.#M#..=...##G##T',
-      'T.....==......=........T',
+      'T.....==.4....=........T',
       'T..S..========.======>3.',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -600,6 +602,8 @@ export const MAPS: GameMap[] = [
       { look: 'rival', face: 'right', trainer: 'rival-2', sight: 4 },
       { look: 'lad', face: 'left', trainer: 'lads-dec', sight: 3 },
       garda('Limerick', 'jersey:limerick'),
+      // Sibeal and her dog Norm. Once he's with you she's off to McGrattans to wait for him.
+      { look: 'sibeal', face: 'down', hideIf: NORM, talk: SIBEAL_LENDS },
     ],
     signs: ['LIMERICK. Thomond Park, King John’s Castle and the Shannon.'],
     landmarks: [

@@ -52,7 +52,8 @@ export type Look =
   | 'busker'
   | 'conductor'
   | 'josh'
-  | 'poseidon';
+  | 'poseidon'
+  | 'sibeal';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -60,6 +61,7 @@ export type Step =
   | { do: 'battle'; trainer: string }
   | { do: 'give'; item: ItemId; count?: number }
   | { do: 'flag'; flag: string }
+  | { do: 'unflag'; flag: string }
   | { do: 'if'; flag: string; then: Step[]; else?: Step[] }
   /** A yes or no question; the answer picks which steps run next. */
   | { do: 'ask'; text: string; yes?: Step[]; no?: Step[] }

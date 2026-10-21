@@ -96,6 +96,10 @@ export function setFlag(s: StoryState, flag: string): StoryState {
 
 export const beatFlag = (trainer: string) => `beat:${trainer}`;
 
+export function unsetFlag(s: StoryState, flag: string): StoryState {
+  return hasFlag(s, flag) ? { ...s, flags: s.flags.filter((f) => f !== flag) } : s;
+}
+
 export function give(s: StoryState, item: ItemId, count = 1): StoryState {
   return { ...s, bag: { ...s.bag, [item]: (s.bag[item] ?? 0) + count } };
 }
