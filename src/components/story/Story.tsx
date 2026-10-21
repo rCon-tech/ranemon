@@ -704,10 +704,10 @@ export function Story() {
           ? `That PIN doesn’t match the online save for “${trainer.trim()}”.`
           : online.error === 'locked'
             ? 'Too many wrong PINs for that name. Try again in 15 minutes.'
-            : null;
-      return { save: local, blocked };
+            : 'Couldn’t reach online saves just now.';
+      return { save: local, blocked, offline: online.error === 'offline' };
     }
-    return { save: newer(local, parseSave(online.raw)), blocked: null };
+    return { save: newer(local, parseSave(online.raw)), blocked: null, offline: false };
   }
 
   function begin(trainer: string, g: StoryState, fresh: boolean) {
@@ -728,13 +728,13 @@ export function Story() {
       if (local) return begin(name, local, false);
     }
     setTitle({ busy: true, note: null, replace: false });
-    const { save: found, blocked } = await findSave(name);
+    const { save: found, blocked, offline } = await findSave(name);
     if (blocked)
       setTitle({
         busy: false,
         note: found
-          ? `${blocked} Check it, or tap CONTINUE again to play this browser’s save without saving online.`
-          : `${blocked} Check it, or pick another name.`,
+          ? `${blocked} ${offline ? 'Try again in a minute' : 'Check it'}, or tap CONTINUE again to play this browser’s save without saving online.`
+          : `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
         replace: false,
         localOnly: !!found,
       });
@@ -750,11 +750,12 @@ export function Story() {
   async function onNew() {
     if (!title.replace) {
       setTitle({ busy: true, note: null, replace: false });
-      const { save: found, blocked } = await findSave(name);
+      const { save: found, blocked, offline } = await findSave(name);
       if (blocked) {
+        // Offline, a new game could later replace an online save it couldn't see.
         setTitle({
           busy: false,
-          note: `${blocked} Check it, or pick another name.`,
+          note: `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
           replace: false,
         });
         return;
