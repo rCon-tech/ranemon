@@ -313,10 +313,10 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#e86a30',
     shoes: '#2a2a2a',
   },
-  // Sibeal, who owns Norm: dark plaited hair, a red rain jacket, jeans, a lead round her wrist.
+  // Sibeal, who owns Norm: long brown hair, a red rain jacket, jeans, a lead round her wrist.
   sibeal: {
     skin: SKIN,
-    hair: '#2e1e16',
+    hair: '#7a4a26',
     hairStyle: 'long',
     top: '#c83a3a',
     topKind: 'jacket',
