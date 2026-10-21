@@ -9,7 +9,7 @@ import { parseSave } from '@/lib/story/save';
 import { newGame, recruit } from '@/lib/story/state';
 
 describe('variants', () => {
-  it('give eleven of the lads a second look, through their evolutions', () => {
+  it('give fourteen of the lads a second look, through their evolutions', () => {
     expect(variantsOf('olliemon').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('hitmonollie').map((v) => v.id)).toEqual(['tricolour']);
     expect(variantsOf('oismon').map((v) => v.id)).toEqual(['cap']);
@@ -32,6 +32,12 @@ describe('variants', () => {
     expect(variantsOf('killigatr').map((v) => v.id)).toEqual(['thumbs']);
     expect(variantsOf('owemon').map((v) => v.id)).toEqual(['dance']);
     expect(variantsOf('fearowe').map((v) => v.id)).toEqual(['dance']);
+    expect(variantsOf('robinmon').map((v) => v.id)).toEqual(['coat']);
+    expect(variantsOf('robinsey').map((v) => v.id)).toEqual(['coat']);
+    expect(variantsOf('simomon').map((v) => v.id)).toEqual(['linen']);
+    expect(variantsOf('weezimo').map((v) => v.id)).toEqual(['linen']);
+    expect(variantsOf('lorcamon').map((v) => v.id)).toEqual(['tux']);
+    expect(variantsOf('lorchu').map((v) => v.id)).toEqual(['tux']);
     expect(variantsOf('hugomon')).toEqual([]);
   });
 

@@ -28,6 +28,9 @@ const RACES = 'races';
 const SHADES = 'shades';
 const THUMBS = 'thumbs';
 const DANCE = 'dance';
+const COAT = 'coat';
+const LINEN = 'linen';
+const TUX = 'tux';
 
 export const VARIANTS: Record<string, Variant[]> = {
   // Olliemon in a green shirt with a tricolour pin, at twice the detail of the other sprites.
@@ -80,6 +83,19 @@ export const VARIANTS: Record<string, Variant[]> = {
     { id: DANCE, label: 'Dance Floor', sprite: '/sprites/bw/owemon-dance.png', solid: true },
   ],
   fearowe: [{ id: DANCE, label: 'Dance Floor', sprite: '/sprites/evo/fearowe-dance.png' }],
+  // Robinmon in a long black coat and amber glasses, also in HD.
+  robinmon: [
+    { id: COAT, label: 'Long Coat', sprite: '/sprites/bw/robinmon-coat.png', solid: true },
+  ],
+  robinsey: [{ id: COAT, label: 'Long Coat', sprite: '/sprites/evo/robinsey-coat.png' }],
+  // Simomon in a linen suit and shades, also in HD.
+  simomon: [
+    { id: LINEN, label: 'Linen Suit', sprite: '/sprites/bw/simomon-linen.png', solid: true },
+  ],
+  weezimo: [{ id: LINEN, label: 'Linen Suit', sprite: '/sprites/evo/weezimo-linen.png' }],
+  // Lorcamon laughing in a tuxedo and bow tie, also in HD.
+  lorcamon: [{ id: TUX, label: 'Tuxedo', sprite: '/sprites/bw/lorcamon-tux.png', solid: true }],
+  lorchu: [{ id: TUX, label: 'Tuxedo', sprite: '/sprites/evo/lorchu-tux.png' }],
 };
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];
