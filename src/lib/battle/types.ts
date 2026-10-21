@@ -56,3 +56,27 @@ export function effectiveness(attack: RaneType | null, defender: readonly RaneTy
   if (attack === null) return 1;
   return defender.reduce((m, t) => m * typeMultiplier(attack, t), 1);
 }
+
+export interface Matchup {
+  /** The damage multiplier: 4, 2, 1, 0.5 or 0.25. */
+  multiplier: number;
+  /** Short, for a move button: SUPER ×2, NORMAL, WEAK ×½. */
+  short: string;
+  /** In words, for the move's details. */
+  label: string;
+  tone: 'super' | 'normal' | 'weak';
+}
+
+/** How well a move's type does against a defender, ready to show before it's used. */
+export function matchup(attack: RaneType | null, defender: readonly RaneType[]): Matchup {
+  const multiplier = effectiveness(attack, defender);
+  if (multiplier >= 4)
+    return { multiplier, short: 'SUPER ×4', label: 'Extremely effective', tone: 'super' };
+  if (multiplier >= 2)
+    return { multiplier, short: 'SUPER ×2', label: 'Super effective', tone: 'super' };
+  if (multiplier > 0.5)
+    return { multiplier, short: 'NORMAL', label: 'Normal damage', tone: 'normal' };
+  if (multiplier > 0.25)
+    return { multiplier, short: 'WEAK ×½', label: 'Not very effective', tone: 'weak' };
+  return { multiplier, short: 'WEAK ×¼', label: 'Barely effective', tone: 'weak' };
+}

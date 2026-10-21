@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effectiveness, typeMultiplier, TYPES } from '@/lib/battle/types';
+import { effectiveness, matchup, typeMultiplier, TYPES } from '@/lib/battle/types';
 
 describe('type chart', () => {
   it('matches the plan: who beats whom', () => {
@@ -34,5 +34,21 @@ describe('type chart', () => {
     expect(effectiveness('brains', ['brawn', 'hype'])).toBe(1);
     expect(effectiveness('brains', ['brains', 'hype'])).toBe(0.25);
     expect(effectiveness(null, ['brains'])).toBe(1);
+  });
+});
+
+describe('matchup', () => {
+  it('labels every multiplier a move can have', () => {
+    expect(matchup('brains', ['brawn', 'chill'])).toMatchObject({
+      multiplier: 4,
+      short: 'SUPER ×4',
+      tone: 'super',
+    });
+    expect(matchup('brains', ['brawn'])).toMatchObject({ multiplier: 2, tone: 'super' });
+    expect(matchup('brains', ['charm'])).toMatchObject({ multiplier: 1, short: 'NORMAL' });
+    expect(matchup('brains', ['brawn', 'brains'])).toMatchObject({ multiplier: 1, tone: 'normal' });
+    expect(matchup('brains', ['brains'])).toMatchObject({ multiplier: 0.5, short: 'WEAK ×½' });
+    expect(matchup('brains', ['brains', 'hype'])).toMatchObject({ multiplier: 0.25, tone: 'weak' });
+    expect(matchup(null, ['brains']).multiplier).toBe(1);
   });
 });
