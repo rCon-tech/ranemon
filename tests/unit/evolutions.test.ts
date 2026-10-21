@@ -8,6 +8,7 @@ import {
   EVOLVED_BUDGET,
   formAt,
   formById,
+  ITEM_EVOLUTIONS,
   lineOf,
 } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
@@ -19,8 +20,8 @@ describe('evolutions', () => {
     expect(EVOLUTIONS.map((e) => e.from).sort()).toEqual(ROSTER.map((c) => c.id).sort());
     const names = new Set([...ROSTER, ...EVOLVED].map((c) => c.name));
     expect(names.size).toBe(ROSTER.length * 2);
-    // Plus the one legend, who never evolves.
-    expect(DEX).toHaveLength(ROSTER.length * 2 + 1);
+    // Plus the item evolutions, and the one legend, who never evolves.
+    expect(DEX).toHaveLength(ROSTER.length * 2 + ITEM_EVOLUTIONS.length + 1);
   });
 
   it('keeps types and moves, and grows the stat budget', () => {

@@ -11,7 +11,7 @@ The core loop is: walk a county route, fight wild Ranemon in the long grass, thr
 | Brief from Rich                                       | How the plan handles it                                                                             |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Early-Pokémon top-down adventure                      | 16×16 tile overworld, grid movement, one screen of about 10×9 tiles scaled for a phone held upright |
-| Pick your first Ranemon from the full list            | All 19 are on the table at the start, each at level 5                                               |
+| Pick your first Ranemon from the full list            | All 20 are on the table at the start, each at level 5                                               |
 | Given by President Michael D Higgins                  | He hands it over in Co. Clare, where he grew up                                                     |
 | Clare to Trinity College Dublin, a gym in each county | 9 gyms: Clare, Limerick, Tipperary, Kilkenny, Laois, Offaly, Westmeath, Meath, Kildare, then Dublin |
 | B&S is the final boss in Trinity                      | B&S waits under the Campanile in Front Square                                                       |
@@ -23,7 +23,7 @@ The core loop is: walk a county route, fight wild Ranemon in the long grass, thr
 **Assumptions made where the brief was open** (each is also in Open questions at the end):
 
 - The route runs through the midlands: 9 counties with a gym, then Dublin. Clare has a gym too, as the tutorial gym.
-- The only species are the 19 friends (plus Petchemon, who only B&S have), so wild Ranemon, gym teams and B&S's team all draw from them. Duplicates are allowed. More can join through Creature Studio later.
+- The only species are the 20 friends (plus Petchemon, who only B&S have), so wild Ranemon, gym teams and B&S's team all draw from them. Duplicates are allowed. More can join through Creature Studio later.
 - B&S is a trainer with a team of 6 whose last Ranemon is a unique boss creature drawn from their photo (page 7 of the Ranemon sheet).
 - Levels run 5 to 60, and the endgame sits at level 50 so it matches the battle game's balance.
 - The player is an unnamed young trainer from Clare. The rival is Margaret Thatcher, who picks after you and is incredibly British about everything (tea, queues, pearls and the handbag). Dua Lipa pulls the pints in McGrattans and heals your party.
@@ -33,7 +33,7 @@ The core loop is: walk a county route, fight wild Ranemon in the long grass, thr
 B&S hold the title of Ranemon Champions of Ireland and have shut themselves into Trinity. Michael D wants someone from the country to go up and take it off them, and only a trainer wearing all 9 county jerseys gets past the Front Gate.
 
 1. **Prologue, Newmarket-on-Fergus, Co. Clare.** The player wakes at home. Mam says the President is in the village visiting the farm he grew up on, and he's asking for you.
-2. **Michael D's starter.** In the farmhouse kitchen, 19 pints sit on the table, one per Ranemon. You pick any one; it comes at level 5 with 2 moves. He gives you the Ranedex, 5 Pints of Guinness and the quest. Your rival picks next, choosing one with a type edge over yours, and battles you at the gate.
+2. **Michael D's starter.** In the farmhouse kitchen, 20 pints sit on the table, one per Ranemon. You pick any one; it comes at level 5 with 2 moves. He gives you the Ranedex, 5 Pints of Guinness and the quest. Your rival picks next, choosing one with a type edge over yours, and battles you at the gate.
 3. **First catch.** On Route 1 a regular at the pub shows you how to throw a pint, and you catch your first wild Ranemon.
 4. **Ennis gym (Clare).** A trad session gym in a pub. Win the Clare jersey. Michael D phones (the Nozzy Call ringtone) to say well done, which becomes his running check-in after every gym.
 5. **Limerick to Kilkenny (gyms 2 to 4).** The rival turns up twice, at Thomond Park and on the road into Kilkenny. A stag party, the Lads on Tour, is causing trouble on the routes; you beat their members as ordinary trainers.
