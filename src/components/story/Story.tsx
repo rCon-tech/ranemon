@@ -29,6 +29,7 @@ import { remoteSaves } from '@/lib/story/remote';
 import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
+import { devSave, isDevName } from '@/lib/story/devsave';
 import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
@@ -739,6 +740,8 @@ export function Story() {
         localOnly: !!found,
       });
     else if (found) begin(name, found, false);
+    // The developer save starts with everything unlocked.
+    else if (await isDevName(name)) begin(name, devSave(), false);
     else
       setTitle({
         busy: false,
@@ -771,7 +774,8 @@ export function Story() {
         return;
       }
     }
-    begin(name, newGame(), true);
+    if (await isDevName(name)) begin(name, devSave(), false);
+    else begin(name, newGame(), true);
   }
 
   async function openTools() {
