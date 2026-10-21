@@ -162,12 +162,12 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
     for (let x = 0; x < cols; x++) if (at(x, y) === 'T') trees.push([x, y, variantAt(x, y)]);
   if (!map.inside) {
     // A wood around the map, behind its own border of trees.
-    for (let y = -7; y < rows + 7; y++) {
-      for (let x = -7; x < cols + 7; x++) {
+    for (let y = -5; y < rows + 5; y++) {
+      for (let x = -5; x < cols + 5; x++) {
         if (inMap(x, y)) continue;
         const edge = at(Math.max(0, Math.min(cols - 1, x)), Math.max(0, Math.min(rows - 1, y)));
         const v = variantAt(x + 1000, y + 1000);
-        if (edge === 'T' && v % 5 < 3) trees.push([x, y, v]);
+        if (edge === 'T' && v % 2) trees.push([x, y, v]);
       }
     }
   }
@@ -423,7 +423,8 @@ function house(
 export function buildTrees(trees: [number, number, number][]) {
   const trunkGeo = new THREE.CylinderGeometry(0.09, 0.13, 0.7, 6);
   trunkGeo.translate(0, 0.35, 0);
-  const blobGeo = new THREE.IcosahedronGeometry(0.5, 1);
+  // Few faces: hundreds of trees go to the GPU twice a frame (once for the shadows).
+  const blobGeo = new THREE.DodecahedronGeometry(0.52, 0);
   const coneGeo = new THREE.ConeGeometry(0.5, 0.8, 7);
   const leaves = new THREE.MeshLambertMaterial({ flatShading: true });
   const bark = new THREE.MeshLambertMaterial({ color: '#6a4426' });
@@ -652,7 +653,8 @@ export function quality(renderer: THREE.WebGLRenderer, sun: THREE.DirectionalLig
     if (dt > 500) return false;
     frames++;
     slow = slow * 0.9 + dt * 0.1;
-    if (frames < 40 || slow < 42) return false;
+    // A second or so of slow frames is enough to tell; then give the change time to show.
+    if (frames < 12 || slow < 42) return false;
     frames = 0;
     if (renderer.getPixelRatio() > 1) {
       renderer.setPixelRatio(1);

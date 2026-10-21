@@ -565,6 +565,7 @@ export function Story() {
       const dir = dirs[e.key];
       if (dir) {
         held.current.dir = dir;
+        if (!e.repeat) held.current.tapped = dir;
         e.preventDefault();
       } else if (e.repeat) return;
       else if (e.key === 'z' || e.key === ' ') keys.current.pressA();
@@ -968,7 +969,7 @@ export function Story() {
       </div>
       <Controls
         onDir={(dir, on) => {
-          if (on) held.current.dir = dir;
+          if (on) held.current.dir = held.current.tapped = dir;
           else if (held.current.dir === dir) held.current.dir = null;
         }}
         onHoldB={(on) => (held.current.b = on)}
