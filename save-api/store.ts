@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import type { SaveRow, SaveStore } from './handler';
+import type { SaveRow, SaveStore } from './handler.js';
 
 /** The tables, made on first use, so setting up needs no SQL. */
 const SCHEMA = [
