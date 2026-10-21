@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   databaseUrl,
@@ -107,5 +107,17 @@ describe('the save server', () => {
     expect(databaseUrl({ STORAGE_DATABASE_URL: 'c' })).toBe('c');
     expect(databaseUrl({ NEON_POSTGRES_URL: 'd' })).toBe('d');
     expect(databaseUrl({ DATABASE_URL: '' })).toBeNull();
+  });
+
+  it('names each file it imports in full, as Node needs on Vercel', () => {
+    const files = [
+      'handler.ts',
+      'serve.ts',
+      'store.ts',
+      ...readdirSync('save-api/api').map((f) => `api/${f}`),
+    ];
+    for (const f of files)
+      for (const [, path] of readFileSync(`save-api/${f}`, 'utf8').matchAll(/from '(\.[^']*)'/g))
+        expect(path, `${f} imports ${path}`).toMatch(/\.js$/);
   });
 });

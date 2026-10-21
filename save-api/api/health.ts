@@ -1,3 +1,3 @@
-import { health } from '../serve';
+import { health } from '../serve.js';
 
 export const GET = health;

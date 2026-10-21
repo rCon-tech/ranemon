@@ -1,5 +1,5 @@
-import { databaseUrl, handle, type SaveStore } from './handler';
-import { neonStore } from './store';
+import { databaseUrl, handle, type SaveStore } from './handler.js';
+import { neonStore } from './store.js';
 
 let store: SaveStore | null = null;
 
