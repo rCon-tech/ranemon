@@ -5,7 +5,7 @@ import { asset } from '@/lib/asset';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
 import { find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
-import { monStyle, paintPerson, STYLES, type Style } from './people';
+import { monStyle, paintDog, paintPerson, STYLES, type Style } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
 import {
   frameOf,
@@ -46,6 +46,8 @@ export interface Props {
   follower: string | null;
   /** The follower is a shiny, so its head is the golden one. */
   followerShiny?: boolean;
+  /** Norm, Sibeal's dog, is walking behind you instead. */
+  dog?: boolean;
   /** True while a text box, menu or battle intro is up: no walking. */
   frozen: boolean;
   bike: boolean;
@@ -404,9 +406,10 @@ export function Overworld(props: Props) {
       }
 
       // The follower takes the tile you just left: its photo head on a body in its colour,
-      // as tall as you, walking the way it's going and hopping a little.
+      // as tall as you, walking the way it's going and hopping a little. Or Norm, trotting.
       const tr = trail.current;
-      if (p.follower && (tr.at.x !== w.x || tr.at.y !== w.y)) {
+      const fname = p.dog ? null : p.follower;
+      if ((fname || p.dog) && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const fx = (tr.from && w.from ? lerp(tr.from.x, tr.at.x) : tr.at.x) * TILE;
         const fy = (tr.from && w.from ? lerp(tr.from.y, tr.at.y) : tr.at.y) * TILE;
         const moving = !!(tr.from && w.from);
@@ -416,9 +419,6 @@ export function Overworld(props: Props) {
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
         const hop = moving ? Math.sin(t * Math.PI) * 1.5 : idle(0.5);
-        const img = head(p.follower, !!p.followerShiny);
-        // A shiny's body is gold to match its head.
-        const colour = p.followerShiny ? '#f8b830' : speciesById(p.follower).colour;
         const frame = moving ? stepPose(t, w.frame) : 0;
         drawn.push({
           y: fy,
@@ -427,6 +427,18 @@ export function Overworld(props: Props) {
             c.beginPath();
             c.ellipse(sx(fx + 8), sy(fy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
+            if (!fname) {
+              c.drawImage(
+                sprite(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
+                sx(fx),
+                sy(fy - 9.5 - hop / 2),
+                16,
+                24,
+              );
+              return;
+            }
+            // A shiny's body is gold to match its head.
+            const colour = p.followerShiny ? '#f8b830' : speciesById(fname).colour;
             c.drawImage(
               sprite(`mon:${colour}:${fdir}:${frame}`, () =>
                 paintPerson(monStyle(colour), fdir, frame, true),
@@ -437,6 +449,7 @@ export function Overworld(props: Props) {
               24,
             );
             // The photo always faces you, as there's no back view of it.
+            const img = head(fname, !!p.followerShiny);
             if (img.complete && img.naturalWidth) {
               c.drawImage(img, sx(fx - 2), sy(fy - 12 - hop), 20, 20);
             } else {
@@ -464,7 +477,7 @@ export function Overworld(props: Props) {
       // Tall grass hides your feet.
       const grassFrame = frameOf(TALL_GRASS, now);
       const hide = [{ x: px, y: py }];
-      if (p.follower) hide.push({ x: tr.at.x * TILE, y: tr.at.y * TILE });
+      if (p.follower || p.dog) hide.push({ x: tr.at.x * TILE, y: tr.at.y * TILE });
       for (const h of hide) {
         const tx = Math.round(h.x / TILE);
         const ty = Math.round(h.y / TILE);

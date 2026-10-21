@@ -29,6 +29,7 @@ import { remoteSaves } from '@/lib/story/remote';
 import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
+import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
   catchRate,
@@ -60,6 +61,7 @@ import {
   see,
   setFlag,
   settleBattle,
+  unsetFlag,
   take,
   toGroupChat,
   type StoryState,
@@ -283,6 +285,9 @@ export function Story() {
           case 'flag':
             g = setFlag(g, s.flag);
             break;
+          case 'unflag':
+            g = unsetFlag(g, s.flag);
+            break;
           case 'if':
             q.unshift(...(hasFlag(g, s.flag) ? s.then : (s.else ?? [])));
             break;
@@ -427,6 +432,15 @@ export function Story() {
         setExclaim(null);
         run(g, challenge(spotter.item.trainer!));
       }, scaled(700));
+      return;
+    }
+
+    // Norm has a nose for things: every so often he turns something up.
+    if (hasFlag(g, NORM) && Math.random() < NORM_FIND_RATE) {
+      run(g, [
+        { do: 'say', text: 'Norm found something!' },
+        { do: 'give', item: pickFind(Math.random()) },
+      ]);
       return;
     }
 
@@ -898,6 +912,7 @@ export function Story() {
   const map = mapById(game.map);
   const flags = new Set(game.flags);
   const walker = follower(game);
+  const norm = flags.has(NORM);
   const ghosts = find(map, '*').filter((p) => !flags.has(ghostFlag(map.id, p.x, p.y)));
 
   return (
@@ -910,8 +925,9 @@ export function Story() {
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
-          follower={walker?.species ?? null}
+          follower={norm ? null : (walker?.species ?? null)}
           followerShiny={!!walker?.shiny}
+          dog={norm}
           frozen={busy}
           bike={hasFlag(game, 'bike')}
           exclaim={exclaim}
