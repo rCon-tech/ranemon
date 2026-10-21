@@ -19,7 +19,7 @@ import { marker } from './world';
  * trainer, flag or Ranemon) is in a fresh developer save without touching this file. Only that
  * one name's save is affected; it saves like any other.
  */
-const DEV_HASH = '40f8349ee229f708610e727cfc18af6202dbbaa461a09c14516fbe87997c8c3e';
+const DEV_HASH = '93475e962f590263c21e8602e614101206d4a1b3b9ba1c3ab29bd14f30dbc3bd';
 
 /** Whether a trainer name opens the developer save. Case and spacing don't matter. */
 export async function isDevName(name: string, hash = DEV_HASH): Promise<boolean> {
