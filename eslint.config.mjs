@@ -7,6 +7,7 @@ const eslintConfig = [
       '.next/**',
       'node_modules/**',
       'save-api/node_modules/**',
+      'save-api/gen/*.js',
       'coverage/**',
       'playwright-report/**',
       'test-results/**',

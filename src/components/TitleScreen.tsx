@@ -62,6 +62,9 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
           STORY MODE
         </Link>
+        <Link href="/friends" className="pixel-btn menu-item text-[14px]" data-cmd="party">
+          FRIEND BATTLE
+        </Link>
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
           <Link href="/guide" className="underline underline-offset-4">
             HOW TO PLAY

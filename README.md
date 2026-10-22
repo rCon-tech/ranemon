@@ -35,6 +35,14 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Speed**: the ▶ button on the map and in battles cycles 1×, 2× and 4×. Walking, text, battle playback and animations all speed up (`src/lib/speed.ts`).
 - **How to play** (`/guide`, on the title screen): the game, the six types and the full type chart, battles, statuses and story mode, for new players.
 
+## Friend battles
+
+`/friends` (FRIEND BATTLE on the title screen) is a live battle against a friend with your Story mode party, through the save server (`docs/online-saves.md`). You sign in with your trainer name and PIN, open a room and share its code (like `BOKA-42`, or a link that fills it in), and both press READY. The challenger picks the levels: everyone at 50 (the default), a cap at 50, or as caught.
+
+- **The server runs the battle** (`src/lib/online/server.ts`, served by `save-api/api/battle.ts`): it takes each team from the player's online save, checks it could have come from the game (`validateTeam` in `src/lib/online/rules.ts`), keeps the seed, and plays each turn once both have chosen. Phones only send their choice and play back what happened, with their own team at the front and the foe's unseen Ranemon hidden. A game on a different version (`RULES_VERSION`, a hash of the battle data) is asked to reload.
+- **Turns** have the usual 45-second timer. If a player is gone for 100 seconds the server moves for them, and the second time in a row they lose. Closing the page and opening it again carries on with the battle.
+- **Not yet**: picking your 6 from the Group Chat, rematches, friend lists, and battles in the claude.ai play link.
+
 ## 3D look
 
 The **2D / 3D** button beside the speed button (on the map and in battles) switches to a 2.5D look, kept per browser. 2D stays the default. Only the drawing changes: maps, walking, scripts, battles and saves are the same code, and you can switch mid-game.
@@ -73,7 +81,7 @@ The 5th-generation handhelds (Black and White): full-colour pixel sprites that b
 
 ## Not yet
 
-These come next, as their own pull requests: Creature Studio (photo upload, cut-out, the creature card, the friend's approval), accounts and invite-only groups, server-side battles with a committed seed, and live friend battles.
+These come next, as their own pull requests: Creature Studio (photo upload, cut-out, the creature card, the friend's approval), accounts and invite-only groups, and friend battles in the play link.
 
 ## Running it
 

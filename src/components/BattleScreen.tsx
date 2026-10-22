@@ -17,7 +17,14 @@ import { matchup, TYPE_COLOR, TYPE_LABEL, type RaneType } from '@/lib/battle/typ
 import { canUse, type ItemUse } from '@/lib/story/items';
 import type { Foe } from '@/lib/ui/playback';
 import { scaled } from '@/lib/speed';
-import { isChoosing, reduce, startSession, type Result } from '@/lib/ui/session';
+import {
+  isChoosing,
+  reduce,
+  startSession,
+  type Outgoing,
+  type QueueItem,
+  type Result,
+} from '@/lib/ui/session';
 import { battleCues } from '@/lib/sound/cues';
 import { playJingle, playSfx } from '@/lib/sound/engine';
 import type { SongId } from '@/lib/sound/songs';
@@ -56,8 +63,19 @@ export interface StoryBattle {
 
 export type Scene = 'field' | 'city' | 'gym' | 'night';
 
+/** A live battle against a friend: the save server plays the turns (`lib/online/link.ts`). */
+export interface RemoteBattle {
+  /** The battle as the server started it (or as it stands, when coming back to it). */
+  start: { state: BattleState; events: QueueItem[] };
+  send: (out: Outgoing) => void;
+  /** Hears what happened next. Returns a function that stops listening. */
+  listen: (fn: (state: BattleState, items: QueueItem[]) => void) => () => void;
+}
+
 interface Props {
-  teams: [(Creature | Entrant)[], (Creature | Entrant)[]];
+  /** The teams for a battle played here; a remote battle brings its own. */
+  teams?: [(Creature | Entrant)[], (Creature | Entrant)[]];
+  remote?: RemoteBattle;
   difficulty: Difficulty;
   /** Battle mode fights the rival; story mode passes the trainer or a wild Ranemon. */
   foe?: Foe;
@@ -128,10 +146,15 @@ export function BattleScreen({
   story,
   scene = 'field',
   music = 'trainer',
+  remote,
   onFinish,
 }: Props) {
   const [session, dispatch] = useReducer(reduce, null, () =>
-    startSession(startBattle(teams, newSeed()), difficulty, { foe: against, timer: !story }),
+    startSession(remote?.start ?? startBattle(teams!, newSeed()), difficulty, {
+      foe: against,
+      timer: !story,
+      remote: !!remote,
+    }),
   );
   // The bag item picked in the BAG menu, waiting for a Ranemon to use it on.
   const [bagPick, setBagPick] = useState<BagEntry | null>(null);
@@ -148,6 +171,18 @@ export function BattleScreen({
     const id = setTimeout(() => dispatch({ type: 'step', random: roll() }), scaled(pause));
     return () => clearTimeout(id);
   }, [mode, queue, pause]);
+
+  // Online: send each choice, and play back what the server says happened.
+  const { outbox } = session;
+  useEffect(() => {
+    if (outbox) remote?.send(outbox);
+    // Each choice once, by its number.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outbox?.n]);
+  useEffect(
+    () => remote?.listen((state, items) => dispatch({ type: 'remote', state, items })),
+    [remote],
+  );
 
   // The turn timer: when it runs out, a random legal move is used.
   const choosing = isChoosing(mode);
