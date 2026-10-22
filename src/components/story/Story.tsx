@@ -102,6 +102,7 @@ import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
+import { FLEE_MS, type Flight } from './walk';
 
 /** The 3D overworld and its WebGL library load only when the 3D look is picked. */
 const Overworld3D = dynamic(() => import('./Overworld3D'), {
@@ -261,6 +262,7 @@ export function Story() {
   const [flash, setFlash] = useState<'plain' | 'shiny' | null>(null);
   const [exclaim, setExclaim] = useState<number | null>(null);
   const [faces, setFaces] = useState<Record<number, Dir>>({});
+  const [flight, setFlight] = useState<Flight | null>(null);
   const held = useRef<Held>({ dir: null, b: false });
   const World = useView() === '3d' ? Overworld3D : Overworld;
   /** On the bike lately: its theme plays until you've been off it a couple of seconds. */
@@ -348,6 +350,24 @@ export function Story() {
           case 'if':
             q.unshift(...(hasFlag(g, s.flag) ? s.then : (s.else ?? [])));
             break;
+          case 'flee': {
+            const runner = npcsOf(mapById(g.map)).find((n) => n.item.hideIf === s.flag);
+            if (!runner || !isPresent(runner.item, new Set(g.flags))) {
+              g = setFlag(g, s.flag);
+              break;
+            }
+            const gone = setFlag(g, s.flag);
+            const dur = scaled(FLEE_MS);
+            setGame(g);
+            setQueue(q);
+            setLine(null);
+            setFlight({ index: runner.index, dir: s.dir, t0: performance.now(), dur });
+            setTimeout(() => {
+              setFlight(null);
+              run(gone, q);
+            }, dur);
+            return;
+          }
           case 'heal':
             g = healParty(g);
             break;
@@ -443,7 +463,8 @@ export function Story() {
     overlay !== null ||
     fight !== null ||
     flash !== null ||
-    exclaim !== null;
+    exclaim !== null ||
+    flight !== null;
 
   function startGame(g: StoryState, fresh: boolean) {
     const map = mapById(g.map);
@@ -655,7 +676,7 @@ export function Story() {
 
   /** The Town Map, from the place name or the M key, whenever you could open the START menu. */
   function openMap() {
-    if (!game || line || fight || flash || exclaim !== null) return;
+    if (!game || line || fight || flash || exclaim !== null || flight !== null) return;
     if (overlay === 'map') setOverlay(null);
     else if (!overlay || overlay === 'menu') setOverlay('map');
   }
@@ -1028,6 +1049,7 @@ export function Story() {
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
           exclaim={exclaim}
           faces={faces}
+          flight={flight}
           ghosts={ghosts}
           held={held}
           onStep={onStep}

@@ -5,7 +5,7 @@ import { asset } from '@/lib/asset';
 import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
-import { find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
+import { DELTA, find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
 import {
   monStyle,
   paintDog,
@@ -30,11 +30,13 @@ import {
 } from './tiles';
 import {
   placeWalk,
+  runOff,
   startWalk,
   isRiding,
   stepPose,
   stepT,
   tickWalk,
+  type Flight,
   type Held,
   type Position,
   type Trail,
@@ -69,6 +71,8 @@ export interface Props {
   exclaim: number | null;
   /** People turned to face you while you talk to them. */
   faces: Record<number, Dir>;
+  /** Someone running off the map just now, if anyone is. */
+  flight?: Flight | null;
   /** Blue Ghosts still lying on this map. */
   ghosts: { x: number; y: number }[];
   held: React.RefObject<Held>;
@@ -399,6 +403,21 @@ export function Overworld(props: Props) {
 
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
+        if (p.flight?.index === n.index) {
+          // Running off, a step at a time, out of sight.
+          const run = runOff(p.flight, now);
+          const [dx, dy] = DELTA[p.flight.dir];
+          person(
+            n.item.look,
+            STYLES[n.item.look],
+            p.flight.dir,
+            stepPose(run.t, run.step),
+            (n.x + dx * run.tiles) * TILE,
+            (n.y + dy * run.tiles) * TILE,
+            Math.sin(run.t * Math.PI),
+          );
+          continue;
+        }
         person(
           n.item.look,
           STYLES[n.item.look],

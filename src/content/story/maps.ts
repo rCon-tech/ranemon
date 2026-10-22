@@ -6,6 +6,7 @@ import { SIBEAL_LENDS } from './sibeal';
 import { NORM } from '@/lib/story/norm';
 import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 import { GREYSTONES, PEARSE_ARRIVE, PEARSE_ROOM } from './greystones';
+import { MESCAL } from './mescal';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1025,7 +1026,7 @@ export const MAPS: GameMap[] = [
       'T..#P##..#H##.=======>4.',
       'T..S........3...^^^....T',
       'T...^^^^........#H#8...T',
-      'T...#L##S..............T',
+      'T...#L##S......0.......T',
       'T......................T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -1075,6 +1076,7 @@ export const MAPS: GameMap[] = [
       { look: 'conductor', face: 'left', talk: TO_DONEGAL },
       RENT_NEIGHBOUR,
       RENT_GARDA,
+      MESCAL,
     ],
     signs: [
       'DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.',

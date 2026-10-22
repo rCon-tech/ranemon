@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A famous face in Dublin',
+    notes: [
+      'A very famous, very sad man is standing about past Temple Bar, in very short shorts. Cheer him up with a battle, if you can.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'The DART',
     notes: [
       'The DART now runs south from Dublin, to a seaside town with very big houses, very nice boats and some locals who have a lot to get off their chests.',
