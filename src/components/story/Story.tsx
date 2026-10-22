@@ -78,6 +78,7 @@ import {
 import {
   DELTA,
   doorIndex,
+  crowdAt,
   doorStep,
   DOORS,
   EXIT,
@@ -596,6 +597,12 @@ export function Story() {
       if (npc.item.talk) return run(game, npc.item.talk);
       if (t) return run(game, [{ do: 'say', text: trainerById(t).after }]);
       return;
+    }
+    const dancer = crowdAt(map, x, y);
+    if (dancer >= 0) {
+      if (bumped) return;
+      const lines = map.party?.lines ?? [];
+      return run(game, [{ do: 'say', text: lines[dancer % lines.length] ?? '♪ ♪ ♪' }]);
     }
     if (!bumped && map.things?.[tile]) return run(game, [{ do: 'say', text: map.things[tile] }]);
     if (DOORS.has(tile)) return goInside(map, x, y, tile);

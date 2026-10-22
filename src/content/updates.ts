@@ -14,7 +14,7 @@ export const UPDATES: Update[] = [
     date: '2026-10-22',
     title: 'The Trinity Ball',
     notes: [
-      'Beat B&S and Trinity turns into the Trinity Ball: fairy lights, black tie and everyone having the time of their lives.',
+      'Beat B&S and Trinity turns into the Trinity Ball: fairy lights, balloons, confetti, fireworks, a dance floor in the Long Room and everyone having the time of their lives.',
       'A very tall man called Carl Ryan is at the Ball, selling Blue Ghosts out of a sports bag for a tenth of the Vapes price.',
     ],
   },

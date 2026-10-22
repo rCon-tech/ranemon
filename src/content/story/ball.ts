@@ -124,7 +124,8 @@ export const TRINITY_BALL: NonNullable<GameMap['after']> = {
   ],
   signs: ['TRINITY BALL. Tonight and every night. Dress code: black tie, or whatever you won in.'],
   party: {
-    // Round Front Square under the Long Room, and out from the Campanile to each corner.
+    // Round Front Square under the Long Room, out from the Campanile to each corner, along the
+    // hedges, and twice the length of the Long Room.
     lights: [
       [1.5, 6.2, 12.5, 6.2],
       [14.5, 6.2, 21.5, 6.2],
@@ -132,7 +133,49 @@ export const TRINITY_BALL: NonNullable<GameMap['after']> = {
       [13.5, 9.5, 21, 7.5],
       [13.5, 9.5, 2, 12.5],
       [13.5, 9.5, 21, 12.5],
-      [2.5, 3, 21.5, 3],
+      [13.5, 9.5, 13.5, 6.2],
+      [2.5, 9, 2.5, 12.5],
+      [21.5, 8, 21.5, 12.5],
+      [2.5, 2.2, 21.5, 2.2],
+      [2.5, 4.4, 21.5, 4.4],
+    ],
+    crowd: [
+      // The Long Room is the dance floor.
+      { x: 3, y: 3, look: 'dancer' },
+      { x: 8, y: 4, look: 'tux' },
+      { x: 9, y: 2, look: 'debs' },
+      { x: 14, y: 4, look: 'reveller' },
+      { x: 19, y: 2, look: 'dancer' },
+      { x: 19, y: 4, look: 'lad' },
+      // And Front Square.
+      { x: 9, y: 7, look: 'tux' },
+      { x: 10, y: 8, look: 'dancer' },
+      { x: 12, y: 11, look: 'reveller' },
+      { x: 3, y: 11, look: 'debs' },
+      { x: 15, y: 11, look: 'lad' },
+      { x: 17, y: 10, look: 'dancer' },
+      { x: 18, y: 7, look: 'tux' },
+    ],
+    lines: [
+      'WOOOO! TRINITY BALL!',
+      'This is my song! They’re ALL my song!',
+      'Has anyone seen my shoe? Doesn’t matter. DANCING.',
+      'B&S are on the decks later. Apparently they do a set called “Last Orders”.',
+      'I came in my county jersey. Nobody said a word. Best night ever.',
+      'Carl Ryan sold me a Blue Ghost and now I can hear colours.',
+      'We’re going to the chipper after. And then back in. And then the chipper again.',
+      'I love you. I don’t know you. I love you anyway!',
+    ],
+    balloons: [
+      [3, 9],
+      [4, 10],
+      [19, 9],
+      [20, 10],
+      [2, 5],
+      [10, 5],
+      [17, 5],
+      [13, 9],
+      [3, 12],
     ],
   },
 };

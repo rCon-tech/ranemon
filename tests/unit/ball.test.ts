@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { STYLES, TALL, scaleOf } from '@/components/story/people';
-import { bulbsOf } from '@/components/story/fairylights';
+import { BEAT_MS, bulbsOf, dance, fireworks } from '@/components/story/partyfx';
 import { BALL_FLAG, CARL_PRICE, CARL_STALL } from '@/content/story/ball';
 import { AFTER_MAPS, mapById, mapFor } from '@/content/story/maps';
 import { trainerById } from '@/content/story/trainers';
 import { itemById, priceOf } from '@/lib/story/items';
-import { find, isWalkable, npcsOf, tileAt } from '@/lib/story/world';
+import {
+  canEnter,
+  crowdAt,
+  DELTA,
+  find,
+  isWalkable,
+  marker,
+  npcsOf,
+  tileAt,
+} from '@/lib/story/world';
 
 const plain = mapById('trinity');
 const ball = mapFor('trinity', [BALL_FLAG]);
@@ -74,5 +83,58 @@ describe('the Trinity Ball', () => {
     expect(priceOf('blue-ghost')).toBe(itemById('blue-ghost').price);
     expect(priceOf('pint', CARL_STALL)).toBe(Infinity);
     expect(find(ball, '8')).toHaveLength(1);
+  });
+
+  it('has a crowd dancing, out of everyone’s way', () => {
+    const crowd = ball.party!.crowd!;
+    expect(crowd.length).toBeGreaterThanOrEqual(10);
+    const flags = new Set([BALL_FLAG]);
+    const people = npcsOf(ball);
+    for (const d of crowd) {
+      expect(isWalkable(tileAt(ball, d.x, d.y)), `${d.x},${d.y}`).toBe(true);
+      expect(ball.rows[d.y][d.x], `${d.x},${d.y}`).toMatch(/[.F]/);
+      expect(people.some((n) => n.x === d.x && n.y === d.y)).toBe(false);
+      expect(canEnter(ball, d.x, d.y, flags)).toBe(false);
+    }
+    expect(crowdAt(ball, crowd[0].x, crowd[0].y)).toBe(0);
+    expect(crowdAt(plain, crowd[0].x, crowd[0].y)).toBe(-1);
+    expect(ball.party!.lines!.length).toBeGreaterThanOrEqual(5);
+
+    // With the crowd in the way, you can still reach everyone, the sign and both ends of the map.
+    const start = marker(ball, '@');
+    const seen = new Set([`${start.x},${start.y}`]);
+    const queue = [start];
+    while (queue.length) {
+      const { x, y } = queue.shift()!;
+      for (const [dx, dy] of Object.values(DELTA)) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (seen.has(`${nx},${ny}`) || !canEnter(ball, nx, ny, flags)) continue;
+        seen.add(`${nx},${ny}`);
+        queue.push({ x: nx, y: ny });
+      }
+    }
+    const near = (x: number, y: number) =>
+      Object.values(DELTA).some(([dx, dy]) => seen.has(`${x + dx},${y + dy}`));
+    for (const n of people) expect(near(n.x, n.y), `person ${n.index + 1}`).toBe(true);
+    for (const d of crowd) expect(near(d.x, d.y), `dancer at ${d.x},${d.y}`).toBe(true);
+    for (const s of find(ball, 'S')) expect(near(s.x, s.y)).toBe(true);
+  });
+
+  it('has balloons tied to things, not floating in your way', () => {
+    for (const [x, y] of ball.party!.balloons!) expect(isWalkable(tileAt(ball, x, y))).toBe(false);
+  });
+
+  it('dances on the beat, and fireworks keep going off', () => {
+    const steps = new Set([0, 1, 2, 3, 4, 5, 6, 7].map((b) => dance(3, b * BEAT_MS * 2).dir));
+    expect(steps.size).toBeGreaterThan(1);
+    expect(dance(3, 0).hop).toBeGreaterThanOrEqual(0);
+    expect(dance(3, BEAT_MS / 2).hop).toBeLessThanOrEqual(1);
+    const now = fireworks(1000);
+    expect(now).toHaveLength(2);
+    for (const f of now) {
+      expect(f.t).toBeGreaterThanOrEqual(0);
+      expect(f.t).toBeLessThan(1);
+    }
   });
 });

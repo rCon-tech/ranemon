@@ -608,6 +608,33 @@ export const STYLES: Record<Look | 'player', Style> = {
     earrings: '#f0c040',
     handbag: '#d4a838',
   },
+  // At the Ball in a sparkly blue dress, hair up in a bun.
+  dancer: {
+    skin: '#c88a5a',
+    hair: '#1c1418',
+    hairStyle: 'bun',
+    top: '#2a6ad8',
+    topKind: 'shirt',
+    trim: '#9cd4ff',
+    legs: '#c88a5a',
+    shoes: '#e8e8f0',
+    skirt: '#2a6ad8',
+    earrings: '#e8e8f0',
+    pearls: true,
+  },
+  // At the Ball in a white dinner jacket and a red bow tie.
+  tux: {
+    skin: SKIN,
+    hair: '#2a1a12',
+    hairStyle: 'spiky',
+    top: '#f4f0e6',
+    topKind: 'suit',
+    trim: '#1c1c24',
+    tie: '#d02840',
+    legs: '#1c1c24',
+    shoes: '#0c0c10',
+    glasses: 'shades',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */

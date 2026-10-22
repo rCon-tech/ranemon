@@ -17,7 +17,17 @@ import {
   type Style,
 } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
-import { bulbsOf, glowOf, type Bulb } from './fairylights';
+import {
+  balloonsAt,
+  bulbsOf,
+  CONFETTI_COLOURS,
+  dance,
+  fireworks,
+  glowOf,
+  hash,
+  SPARKS,
+  type Bulb,
+} from './partyfx';
 import {
   frameOf,
   grassFront,
@@ -152,6 +162,9 @@ function doors(map: GameMap) {
 }
 
 const SIGN_COLOUR: Record<string, string> = { P: '#2f8a4a', M: '#3a70c8', G: '#d03838' };
+
+/** Dancing: standing, then a step one way and the other. */
+const DANCE_FRAMES = [0, 2, 0, 6];
 
 const bulbCache = new Map<GameMap, Bulb[]>();
 function bulbsAt(map: GameMap) {
@@ -425,14 +438,16 @@ export function Overworld(props: Props) {
           );
           continue;
         }
+        // At a party everyone dances, except a trainer on the lookout or whoever you're talking to.
+        const moves = map.party && !n.item.sight && !p.faces[n.index] ? dance(n.index, now) : null;
         person(
           n.item.look,
           STYLES[n.item.look],
-          p.faces[n.index] ?? n.item.face,
-          0,
+          moves?.dir ?? p.faces[n.index] ?? n.item.face,
+          moves ? DANCE_FRAMES[moves.beat % DANCE_FRAMES.length] : 0,
           n.x * TILE,
           n.y * TILE,
-          idle(n.index * 0.37),
+          moves ? moves.hop * 2 : idle(n.index * 0.37),
         );
         if (p.exclaim === n.index) {
           drawn.push({
@@ -451,6 +466,51 @@ export function Overworld(props: Props) {
           });
         }
       }
+
+      // A party's crowd, dancing, and bunches of balloons bobbing on their strings.
+      map.party?.crowd?.forEach((d, i) => {
+        const moves = dance(i + 10, now);
+        person(
+          d.look,
+          STYLES[d.look],
+          moves.dir,
+          DANCE_FRAMES[moves.beat % DANCE_FRAMES.length],
+          d.x * TILE,
+          d.y * TILE,
+          moves.hop * 2,
+        );
+      });
+      map.party?.balloons?.forEach(([bx, by], i) =>
+        drawn.push({
+          y: by * TILE + 1,
+          paint: () => {
+            const tx = sx(bx * TILE + 8);
+            const ty = sy(by * TILE + 10);
+            for (const b of balloonsAt(i, now)) {
+              const hx = tx + b.dx * TILE;
+              const hy = ty - b.rise * TILE;
+              c.strokeStyle = 'rgb(240 240 240 / 0.8)';
+              c.lineWidth = 0.4;
+              c.beginPath();
+              c.moveTo(tx, ty);
+              c.lineTo(hx, hy + 4);
+              c.stroke();
+              c.fillStyle = INK;
+              c.beginPath();
+              c.ellipse(hx, hy, 3.4, 4.2, 0, 0, Math.PI * 2);
+              c.fill();
+              c.fillStyle = b.colour;
+              c.beginPath();
+              c.ellipse(hx, hy, 3, 3.8, 0, 0, Math.PI * 2);
+              c.fill();
+              c.fillStyle = 'rgb(255 255 255 / 0.6)';
+              c.fillRect(hx - 1.5, hy - 2.5, 1, 1.5);
+              c.fillStyle = b.colour;
+              c.fillRect(hx - 0.5, hy + 3.6, 1, 1);
+            }
+          },
+        }),
+      );
 
       // The follower takes the tile you just left: its photo head on a body in its colour,
       // as tall as you, walking the way it's going and hopping a little. Or Norm, trotting.
@@ -564,6 +624,20 @@ export function Overworld(props: Props) {
       }
       c.globalAlpha = 1;
 
+      // Confetti drifting down over everything.
+      if (map.party) {
+        for (let i = 0; i < 60; i++) {
+          const life = 5000 + hash(i) * 4000;
+          const tt = ((now + hash(i + 99) * life) % life) / life;
+          const cx =
+            ((hash(i + 7) * (SCREEN_W + 20) + Math.sin(tt * 9 + i) * 8) % (SCREEN_W + 20)) - 10;
+          const cy = tt * (SCREEN_H + 10) - 5;
+          const flip = Math.abs(Math.sin(now / 150 + i));
+          c.fillStyle = CONFETTI_COLOURS[i % CONFETTI_COLOURS.length];
+          c.fillRect(cx, cy, 1.5 * flip + 0.3, 1);
+        }
+      }
+
       // Tall grass hides your feet.
       const grassFrame = frameOf(TALL_GRASS, now);
       const hide = [{ x: px, y: py }];
@@ -643,6 +717,52 @@ export function Overworld(props: Props) {
         }
         c.restore();
       }
+      if (map.party) {
+        c.save();
+        c.globalCompositeOperation = 'lighter';
+        // Coloured beams sweeping the square from the stage lights, brighter after dark.
+        const beams = ['#ff4d6d', '#4dabff', '#4be08a', '#b06bff'];
+        beams.forEach((colour, i) => {
+          const from = { x: i % 2 ? SCREEN_W + 10 : -10, y: SCREEN_H + 10 };
+          const angle = -Math.PI / 2 + Math.sin(now / (1700 + i * 300) + i * 2) * 0.75;
+          const reach = 230;
+          const spread = 0.1;
+          c.globalAlpha = 0.07 + 0.08 * light.night;
+          c.fillStyle = colour;
+          c.beginPath();
+          c.moveTo(from.x, from.y);
+          c.lineTo(
+            from.x + Math.cos(angle - spread) * reach,
+            from.y + Math.sin(angle - spread) * reach,
+          );
+          c.lineTo(
+            from.x + Math.cos(angle + spread) * reach,
+            from.y + Math.sin(angle + spread) * reach,
+          );
+          c.fill();
+        });
+        // Fireworks overhead: a rocket goes up, bursts and the sparks fall away.
+        for (const f of fireworks(now)) {
+          const fx = f.x * SCREEN_W;
+          const top = 8 + f.y * 50;
+          if (f.t < 0.25) {
+            c.globalAlpha = 0.9;
+            c.fillStyle = '#fff2c0';
+            c.fillRect(fx, top + (1 - f.t / 0.25) * 40, 1, 2.5);
+            continue;
+          }
+          const k = (f.t - 0.25) / 0.75;
+          c.globalAlpha = 1 - k;
+          c.fillStyle = f.colour;
+          for (let i = 0; i < SPARKS; i++) {
+            const a = (i / SPARKS) * Math.PI * 2 + f.n;
+            const r = Math.sqrt(k) * 22;
+            c.fillRect(fx + Math.cos(a) * r, top + Math.sin(a) * r + k * k * 10, 1.5, 1.5);
+          }
+        }
+        c.restore();
+      }
+
       // The fairy lights glow through the dark.
       if (bulbs.length) {
         c.save();
