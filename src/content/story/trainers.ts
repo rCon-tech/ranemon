@@ -3,6 +3,18 @@ import { effectiveness } from '@/lib/battle/types';
 import { speciesById } from '@/lib/story/party';
 import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
+import { NEVER_FIND_OUT, RENT_DONE } from './rent';
+
+/** Beating whoever you accused of taking the rent: thanks, but still no rent. */
+const RENT_REWARD: Step[] = [
+  { do: 'flag', flag: RENT_DONE },
+  { do: 'say', text: 'Ollie and Simo look at each other. The biscuit tin is still empty.' },
+  {
+    do: 'say',
+    text: 'SIMO: Well, we’re no closer to the rent. But fair play for trying. Have these, for the road.',
+  },
+  { do: 'give', item: 'full-irish', count: 2 },
+];
 
 /** A gym win: the jersey, Michael D on the phone, and the leader's prize. */
 function jersey(county: string, next: string, extra: Step[] = []): Step[] {
@@ -321,6 +333,36 @@ const T: Trainer[] = [
         text: 'Poseidon dives under a wave the size of a house and is gone. The sea goes quiet.',
       },
     ],
+  },
+
+  // ---------- the missing rent: whoever you accuse ----------
+  {
+    id: 'rent-mc',
+    name: 'MC',
+    team: [
+      ['conemon', 45],
+      ['robinmon', 46],
+      ['jammon', 47],
+    ],
+    ai: 'normal',
+    prize: 1100,
+    before: 'MC: Small but mighty!',
+    after: `MC: ${NEVER_FIND_OUT}`,
+    reward: RENT_REWARD,
+  },
+  {
+    id: 'rent-melchior',
+    name: 'Melchior',
+    team: [
+      ['vinnimon', 43],
+      ['lorcamon', 44],
+      ['skehemon', 45],
+    ],
+    ai: 'normal',
+    prize: 1100,
+    before: 'MELCHIOR: Vive le roi!',
+    after: `MELCHIOR: ${NEVER_FIND_OUT}`,
+    reward: RENT_REWARD,
   },
 
   // ---------- route trainers ----------

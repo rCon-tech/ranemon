@@ -143,9 +143,12 @@ describe('trainers', () => {
   });
 
   it('every trainer is met somewhere', () => {
+    const scripts = [...MAPS, ...INTERIORS].flatMap((m) => m.npcs.map((n) => n.talk ?? []));
     const met = new Set([
       ...MAPS.flatMap((m) => m.npcs.map((n) => n.trainer)),
       ...MAPS.map((m) => m.gym?.trainer),
+      // Some are fought from a script, such as whoever you accuse of taking the rent.
+      ...scripts.flatMap(stepsOf).map((s) => (s.do === 'battle' ? s.trainer : undefined)),
     ]);
     for (const t of TRAINERS) expect(met.has(t.id), t.id).toBe(true);
   });

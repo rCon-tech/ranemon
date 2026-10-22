@@ -4,6 +4,7 @@ import type { GameMap, Step } from '@/lib/story/world';
 import { interiorsOf } from './interiors';
 import { SIBEAL_LENDS } from './sibeal';
 import { NORM } from '@/lib/story/norm';
+import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1018,10 +1019,12 @@ export const MAPS: GameMap[] = [
       'T...5.........=....7...T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
-      'T.............=..2.^^^.T',
+      'T.......9.....=..2.^^^.T',
       'T..^^^^..^^^^.=....#L#.T',
       'T..#P##..#H##.=======>4.',
-      'T..S........3..........T',
+      'T..S........3...^^^....T',
+      'T...............#H#8...T',
+      'T......................T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
     wild: {
@@ -1068,6 +1071,8 @@ export const MAPS: GameMap[] = [
       { look: 'local', face: 'down', talk: OLD_WOMAN },
       { look: 'busker', face: 'down', talk: BUSKER },
       { look: 'conductor', face: 'left', talk: TO_DONEGAL },
+      RENT_NEIGHBOUR,
+      RENT_GARDA,
     ],
     signs: ['DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.'],
     houses: [
@@ -1078,7 +1083,9 @@ export const MAPS: GameMap[] = [
         },
         ...TEMPLE_BAR,
       ],
+      RENT_ARRIVE,
     ],
+    houseRooms: { 1: RENT_ROOM },
     landmarks: [
       [
         { do: 'say', text: 'ST JAMES’S GATE. The smell of roasting barley.' },

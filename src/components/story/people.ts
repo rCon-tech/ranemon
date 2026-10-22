@@ -13,7 +13,7 @@ export const PERSON_W = 64;
 export const PERSON_H = 96;
 
 type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'bob' | 'none';
-type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila' | 'crown';
+type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila' | 'crown' | 'beret';
 type Top =
   'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat' | 'agbada';
 
@@ -55,7 +55,14 @@ export interface Style {
   emblem?: string;
   /** A guitar slung across the back. */
   guitar?: string;
+  /** Hoops round the top, like a Breton shirt. */
+  stripes?: string;
+  /** A child, or anyone short: drawn smaller. */
+  small?: boolean;
 }
+
+/** How tall someone `small` stands, next to everyone else. */
+export const SMALL = 0.78;
 
 const SKIN = '#f8d0a8';
 
@@ -355,6 +362,58 @@ export const STYLES: Record<Look | 'player', Style> = {
     trident: true,
     emblem: '#2a8ad0',
   },
+  // Ollie, in the house by the river: a black beret, a Breton top and a red neckerchief.
+  ollie: {
+    skin: SKIN,
+    hair: '#3a2618',
+    hairStyle: 'short',
+    hat: { kind: 'beret', colour: '#1c1c22' },
+    top: '#f4f4f0',
+    topKind: 'shirt',
+    trim: '#d03a3a',
+    stripes: '#1f3a8a',
+    legs: '#2a3048',
+    shoes: '#5a3a24',
+  },
+  // Simo, his housemate: a swept-back quiff, a teal shirt and white trainers.
+  simo: {
+    skin: '#f0c8a0',
+    hair: '#4a2e1a',
+    hairStyle: 'slick',
+    top: '#2aa8a0',
+    topKind: 'shirt',
+    trim: '#f4f4f0',
+    legs: '#3a3a48',
+    shoes: '#f4f4f4',
+  },
+  // MC: small, with long red hair, a green jumper, a skirt and Irish dancing shoes.
+  mc: {
+    skin: '#f8dcc0',
+    hair: '#c8582a',
+    hairStyle: 'long',
+    top: '#2f8a4a',
+    topKind: 'jumper',
+    trim: '#f4e8c8',
+    skirt: '#1f5a34',
+    legs: '#f4f4f0',
+    shoes: '#141418',
+    small: true,
+  },
+  // Melchior, King of France: a gold crown, a long dark wig, a royal blue robe trimmed with
+  // ermine, a sceptre, white stockings and red heels.
+  melchior: {
+    skin: SKIN,
+    hair: '#3a2416',
+    hairStyle: 'long',
+    hat: { kind: 'crown', colour: '#f0c040', trim: '#c83030' },
+    top: '#2a3a98',
+    topKind: 'coat',
+    trim: '#f4f0e8',
+    legs: '#f4f4f0',
+    shoes: '#c83030',
+    stick: '#c89830',
+    stickTop: '#f0c040',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -578,6 +637,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, 26, y0 + 16, 12, 6, shade(s.bag, 0.72));
     px(c, 28, y0 + 18, 8, 1, shade(s.bag, 1.3));
   }
+  if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
@@ -790,6 +850,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     px(c, 21, y0 + 11, 22, 3, s.trim);
     px(c, 21, y0 + 19, 22, 3, s.trim);
   }
+  if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 21, y, 22, 2, s.stripes);
   if (s.topKind === 'jacket') {
     px(c, 21, y0, 9, 4, s.trim);
     px(c, 21, y0 + 9, 22, 2, s.trim);
@@ -1086,6 +1147,13 @@ function hat(c: Ctx, s: Style, side: Side, y: number) {
       }
       px(c, 17, 10 + y, 30, 1, light);
       if (side !== 'up') round(c, 30, 11 + y, 4, 4, 1, trim ?? '#3a8ac8');
+      break;
+    case 'beret':
+      // Soft and flat, slouched to one side, with a little stalk on top.
+      shaded(c, left ? 10 : 14, 4 + y, 38, 11, 5, colour, 0.25, 0.3);
+      px(c, 16, 13 + y, 32, 2, dark);
+      px(c, left ? 16 : 20, 5 + y, 16, 1, light);
+      px(c, 31, 1 + y, 2, 4, dark);
       break;
   }
 }

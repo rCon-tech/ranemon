@@ -73,3 +73,28 @@ it(`Poseidon is a hard fight over ${RUNS} runs`, () => {
   expect(won / RUNS).toBeGreaterThanOrEqual(0.2);
   expect(won / RUNS).toBeLessThanOrEqual(0.65);
 });
+
+/**
+ * Whoever you accuse of taking the rent: a party of 6 at Lv44, as you arrive in Dublin, from
+ * the Dublin long grass, should usually win, but not every time: between 60% and 97%.
+ */
+it.each(['rent-mc', 'rent-melchior'])(`%s is a fair side fight over ${RUNS} runs`, (id) => {
+  const rng = new Rng(1916);
+  const foe = trainerById(id);
+  const wild = mapById('dublin').wild!.table.map(([id]) => id);
+  let won = 0;
+  for (let i = 0; i < RUNS; i++) {
+    const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+      makeMember(wild[rng.int(0, wild.length - 1)], 44, j),
+    );
+    const foes = foe.team.map(([id, level], j) => makeMember(id, level, 100 + j));
+    const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 13, [
+      'hard',
+      foe.ai,
+    ]);
+    if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+  }
+  console.log(`${foe.name} win rate`, won / RUNS);
+  expect(won / RUNS).toBeGreaterThanOrEqual(0.6);
+  expect(won / RUNS).toBeLessThanOrEqual(0.97);
+});
