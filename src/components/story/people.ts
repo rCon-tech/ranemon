@@ -432,20 +432,6 @@ export const STYLES: Record<Look | 'player', Style> = {
     stick: '#c89830',
     stickTop: '#f0c040',
   },
-  // Alex Simonin, who only has eyes for Simomon: pink from his beanie to his shoes, with love
-  // hearts all over.
-  alex: {
-    skin: SKIN,
-    hair: '#6a3a1e',
-    hairStyle: 'short',
-    hat: { kind: 'beanie', colour: '#f070a8' },
-    top: '#f48cb8',
-    topKind: 'jumper',
-    trim: '#fbc4dc',
-    legs: '#e8609c',
-    shoes: '#fbc4dc',
-    hearts: '#d81e5b',
-  },
   // A DART driver: Iarnród Éireann green, with the DART's yellow-green trim and a peaked cap.
   dart: {
     skin: SKIN,
@@ -520,6 +506,20 @@ export const STYLES: Record<Look | 'player', Style> = {
     trim: '#1c1c1c',
     legs: '#1c1c1c',
     shoes: '#f4f4f4',
+  },
+  // Alex Simonin, who only has eyes for Simomon: pink from his beanie to his shoes, with love
+  // hearts all over.
+  alex: {
+    skin: SKIN,
+    hair: '#6a3a1e',
+    hairStyle: 'short',
+    hat: { kind: 'beanie', colour: '#f070a8' },
+    top: '#f48cb8',
+    topKind: 'jumper',
+    trim: '#fbc4dc',
+    legs: '#e8609c',
+    shoes: '#fbc4dc',
+    hearts: '#d81e5b',
   },
 };
 

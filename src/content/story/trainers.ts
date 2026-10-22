@@ -369,21 +369,6 @@ const T: Trainer[] = [
     reward: RENT_REWARD,
   },
 
-  // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
-  {
-    id: 'trinity-alex',
-    name: 'Alex Simonin',
-    team: [
-      ['simomon', 45],
-      ['simomon', 46],
-      ['simomon', 47],
-    ],
-    ai: 'hard',
-    prize: 1880,
-    before: ALEX,
-    after: ALEX,
-    line: ALEX,
-  },
   // ---------- Greystones: the Happy Pear Twins, back to back with no healing between ----------
   {
     id: 'pear-dave',
@@ -411,6 +396,22 @@ const T: Trainer[] = [
     before: 'STEVE: Bring it on! It’s leg day!',
     after: 'STEVE: Wow. Fair play to you. We’ll have to start doing two sea swims a day.',
     reward: PEAR_REWARD,
+  },
+
+  // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
+  {
+    id: 'trinity-alex',
+    name: 'Alex Simonin',
+    team: [
+      ['simomon', 45],
+      ['simomon', 46],
+      ['simomon', 47],
+    ],
+    ai: 'hard',
+    prize: 1880,
+    before: ALEX,
+    after: ALEX,
+    line: ALEX,
   },
 
   // ---------- route trainers ----------
