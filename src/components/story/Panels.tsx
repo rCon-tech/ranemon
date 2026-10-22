@@ -26,6 +26,7 @@ import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
+import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 
 /** A full-screen GB menu: a bordered box with a title and a BACK button. */
@@ -586,10 +587,11 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
           return (
             <div
               key={id}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 border-frame p-1 text-[8px] ${won ? 'bg-gold text-ink' : 'bg-mist'}`}
+              className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 text-[8px] ${won ? 'border-gold' : 'border-frame'}`}
               title={name}
+              aria-label={`${county} jersey${won ? '' : ' not won'}`}
             >
-              <Jersey filled={won} />
+              <Jersey county={id} won={won} />
               {county}
             </div>
           );
@@ -599,15 +601,39 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
   );
 }
 
-function Jersey({ filled }: { filled: boolean }) {
+const JERSEY = 'M5 0h6l5 3-2 4-2-1v8H4V6L2 7 0 3z';
+
+/** A county jersey: in its colours once won, a grey silhouette until then. */
+function Jersey({ county, won }: { county: string; won: boolean }) {
+  if (!won) {
+    return (
+      <svg viewBox="0 0 16 14" className="h-6 w-7" shapeRendering="crispEdges" aria-hidden="true">
+        <path d={JERSEY} fill="var(--color-shell)" stroke="var(--color-frame)" strokeWidth="1" />
+      </svg>
+    );
+  }
+  const kit = jerseyOf(county);
+  const clip = `jersey-${county}`;
   return (
-    <svg viewBox="0 0 16 14" className="h-6 w-7" shapeRendering="crispEdges" aria-hidden="true">
-      <path
-        d="M5 0h6l5 3-2 4-2-1v8H4V6L2 7 0 3z"
-        fill={filled ? 'var(--color-paper)' : 'none'}
-        stroke={filled ? 'var(--color-paper)' : 'var(--color-ink)'}
-        strokeWidth="1"
-      />
+    <svg
+      viewBox="-0.5 -0.5 17 15"
+      className="h-6 w-7"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      data-jersey={county}
+    >
+      <clipPath id={clip}>
+        <path d={JERSEY} />
+      </clipPath>
+      <g clipPath={`url(#${clip})`}>
+        <path d={JERSEY} fill={kit.body} />
+        {bandsOf(kit).map(([y, h, colour]) => (
+          <rect key={y} x="0" y={y} width="16" height={h} fill={colour} />
+        ))}
+        {/* Collar and cuffs. */}
+        <path d="M6 0l2 2 2-2M0 3l2 4M16 3l-2 4" fill="none" stroke={kit.trim} strokeWidth="1.5" />
+      </g>
+      <path d={JERSEY} fill="none" stroke="var(--color-ink)" strokeWidth="1" />
     </svg>
   );
 }
