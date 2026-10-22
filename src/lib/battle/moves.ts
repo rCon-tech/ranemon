@@ -859,6 +859,9 @@ const BY_ID = new Map(
   ].map((m) => [m.id, m]),
 );
 
+/** Every move in the game, for the online rules' version hash. */
+export const allMoves = (): Move[] => [...BY_ID.values()];
+
 export function moveById(id: string): Move {
   const move = BY_ID.get(id);
   if (!move) throw new Error(`Unknown move: ${id}`);
