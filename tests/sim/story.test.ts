@@ -6,6 +6,7 @@ import { ROSTER } from '@/lib/battle/roster';
 import { simulateBattle } from '@/lib/battle/simulate';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { RAVE_TRAINERS } from '@/content/story/rave';
+import { ARCADE_KING, BRIGHTON_TRAINERS } from '@/content/story/brighton';
 import { afterBattle, makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
 
 const RUNS = Number(process.env.SIM_RUNS ?? 400);
@@ -222,4 +223,39 @@ it(`the Rave Cave gets harder from the door to the DJ over ${RUNS} runs`, () => 
   expect(last.Lv46).toBeLessThan(first.Lv46);
   expect(last.Lv54).toBeGreaterThanOrEqual(0.2);
   expect(last.Lv54).toBeLessThanOrEqual(0.9);
+});
+
+/**
+ * Brighton, by the Sail & Rail: a party of 6 at Lv48 from the Brighton long grass, a little
+ * past Dublin, should usually beat the fans and the gamers on the way, and one at Lv52 should
+ * beat the Arcade King some of the time but not most: between 30% and 75%.
+ */
+it(`Brighton builds up to a hard Arcade King over ${RUNS} runs`, () => {
+  const rng = new Rng(1901);
+  const wild = mapById('brighton').wild!.table.map(([id]) => id);
+  const rate = (id: string, level: number) => {
+    const foe = trainerById(id);
+    let won = 0;
+    for (let i = 0; i < RUNS; i++) {
+      const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+        makeMember(wild[rng.int(0, wild.length - 1)], level, j),
+      );
+      const foes = foe.team.map(([s, l], j) => makeMember(s, l, 100 + j));
+      const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 29, [
+        'hard',
+        foe.ai,
+      ]);
+      if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+    }
+    return won / RUNS;
+  };
+  const rates = Object.fromEntries(
+    BRIGHTON_TRAINERS.map((t) => [t.name, { Lv48: rate(t.id, 48), Lv52: rate(t.id, 52) }]),
+  );
+  console.table(rates);
+  for (const t of BRIGHTON_TRAINERS.filter((t) => t.id !== ARCADE_KING))
+    expect(rates[t.name].Lv48, t.name).toBeGreaterThanOrEqual(0.6);
+  const king = rates[trainerById(ARCADE_KING).name];
+  expect(king.Lv52).toBeGreaterThanOrEqual(0.3);
+  expect(king.Lv52).toBeLessThanOrEqual(0.75);
 });

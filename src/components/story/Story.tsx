@@ -219,12 +219,15 @@ function EvolutionScene({ text, party }: { text: string; party: Member[] }) {
   );
 }
 
-/** The battlefield's backdrop: B&S and the legend at night, gyms indoors, Dublin's streets, or the fields. */
+/**
+ * The battlefield's backdrop: B&S and the legend at night, gyms indoors, the streets of Dublin
+ * and Brighton, or the fields.
+ */
 function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   if (trainer?.startsWith('bns') || foe === LEGEND.id) return 'night';
   if (trainer && map.gym?.trainer === trainer) return 'gym';
   const outside = outsideOf(map).id;
-  if (outside === 'dublin' || outside === 'trinity') return 'city';
+  if (outside === 'dublin' || outside === 'trinity' || outside === 'brighton') return 'city';
   return 'field';
 }
 

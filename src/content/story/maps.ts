@@ -10,6 +10,8 @@ import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
 import { HIGGINS, TRINITY_BALL } from './ball';
 import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
+import { ENDA_BY_ROAD, ENDA_IN_ROAD } from './enda';
+import { BRIGHTON } from './brighton';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -947,8 +949,8 @@ export const MAPS: GameMap[] = [
       'T........=.............T',
       'T..^^^^^^^^......2.....T',
       'T..####G###............T',
-      'T......=.........=.....T',
-      'T..S...===========.==>3.',
+      'T......=.........=..5ffT',
+      'T..S...===========.=>43.',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
     wild: {
@@ -964,6 +966,9 @@ export const MAPS: GameMap[] = [
       { look: 'trainer', face: 'down', trainer: 'kildare-soldier', sight: 3 },
       { look: 'rival', face: 'down', trainer: 'rival-4', sight: 3 },
       garda('Kildare', 'jersey:kildare'),
+      // Enda stands in the road to Dublin until you've met him, then steps aside.
+      ENDA_IN_ROAD,
+      ENDA_BY_ROAD,
     ],
     signs: ['THE CURRAGH. Army camp. Gibbsmon was last seen calling in bombers.'],
     gym: { trainer: 'gym-kildare', place: 'The Curragh' },
@@ -1217,6 +1222,7 @@ export const MAPS: GameMap[] = [
     ],
   },
   GREYSTONES,
+  BRIGHTON,
 ];
 
 /** The rooms behind every door. */

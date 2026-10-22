@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { ARCADE_KING } from '@/content/story/brighton';
+import { BRIGHTON_DONE } from '@/content/story/enda';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
@@ -53,7 +55,8 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
-    for (const f of storyFlags().filter((f) => f !== NORM)) expect(flags.has(f), f).toBe(true);
+    for (const f of storyFlags().filter((f) => f !== NORM && f !== BRIGHTON_DONE))
+      expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
     expect(g.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all')).toHaveLength(9);
     expect(flags.has('jersey:all')).toBe(true);
@@ -62,12 +65,14 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch and the twins to fight', () => {
-    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS];
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins and the Arcade King to fight', () => {
+    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS, ARCADE_KING];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);
     for (const id of bosses) expect(flags.has(beatFlag(id)), id).toBe(false);
     expect(flags.has(NORM)).toBe(false);
+    // The end of the Brighton trip comes with beating the King, so that's left to play too.
+    expect(flags.has(BRIGHTON_DONE)).toBe(false);
   });
 
   it('has a bag full of everything and money to burn', () => {

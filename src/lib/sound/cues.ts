@@ -105,28 +105,38 @@ export function lineCues(text: string): Cue[] {
 /** The kind of room behind a door, from its id: `clare-P0` is a McGrattans. */
 const roomKind = (id: string) => /-([PMGHL])\d+$/.exec(id)?.[1] ?? null;
 
+/** Where the city's music plays instead of the road's. */
+const CITIES = ['dublin', 'trinity', 'brighton'];
+
 /**
  * The music for a map: McGrattans has its reel, the gyms their own theme, homes and shops a quiet
- * one, Dublin and Trinity the city's, and the road its jig. Landmarks keep the music outside.
+ * one, Dublin, Trinity and Brighton the city's, and the road its jig. Landmarks keep the music
+ * outside.
  */
 export function areaSong(mapId: string, outsideId: string): SongId {
   const kind = roomKind(mapId);
   if (kind === 'P') return 'pub';
   if (kind === 'G') return 'gym';
   if (kind === 'H' || kind === 'M') return 'home';
-  return outsideId === 'dublin' || outsideId === 'trinity' ? 'city' : 'route';
+  return CITIES.includes(outsideId) ? 'city' : 'route';
 }
 
 /**
- * The battle music: night scenes, Poseidon and the Happy Pear Twins are bosses, a gym's leader
- * has their own.
+ * The battle music: night scenes, Poseidon, the Happy Pear Twins and the Arcade King are bosses,
+ * a gym's leader has their own.
  */
 export function battleSong(
   scene: 'field' | 'city' | 'gym' | 'night',
   wild: boolean,
   trainer: string | null,
 ): SongId {
-  if (scene === 'night' || trainer === 'poseidon' || trainer?.startsWith('pear-')) return 'boss';
+  if (
+    scene === 'night' ||
+    trainer === 'poseidon' ||
+    trainer === 'arcade-king' ||
+    trainer?.startsWith('pear-')
+  )
+    return 'boss';
   if (scene === 'gym') return 'leader';
   return wild ? 'wild' : 'trainer';
 }

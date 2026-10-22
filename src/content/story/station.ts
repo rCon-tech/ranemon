@@ -1,4 +1,5 @@
 import { BOYDE } from './boyde';
+import { ENDA_ASKED } from './enda';
 import { interiorId } from './interiors';
 import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
 
@@ -93,8 +94,34 @@ export const DEPARTURES: (Departure | Line)[] = [
       notNow: 'CONDUCTOR: Enjoy the waves.',
     },
   },
-  { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 3, soon: true },
-  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 4, soon: true },
+  {
+    id: 'brighton',
+    line: 'Sail & Rail',
+    to: 'Brighton, England',
+    platform: 3,
+    at: { x: 4, y: 4, face: 'up' },
+    staff: 'sailor',
+    ask: 'SAILOR: The Sail & Rail: the ferry to Holyhead, then trains all the way to Brighton, England. All aboard?',
+    notNow: 'SAILOR: No rush. The ferry waits for nobody, but I’ll wait for you.',
+    ride: [
+      'A train to Dublin Port, then the ferry across the Irish Sea. Enda would have made best friends with the whole ferry bar by now.',
+      'Holyhead, then trains across Wales and England, through London and down to the south coast. You can smell the sea, and chips.',
+    ],
+    first:
+      'BRIGHTON, ENGLAND. Seagulls, a pier and the sea, and it’s match day: the whole town is in blue and white stripes.',
+    lock: {
+      flag: ENDA_ASKED,
+      locked:
+        'CLERK: The Sail & Rail to Brighton? Nobody books that on their own. There’s a very small man in Kildare asking everyone he meets to go to Brighton with him, mind. Have you met Enda?',
+    },
+    back: {
+      ask: 'SAILOR: The Sail & Rail, back to Dublin Connolly?',
+      ride: 'Back up through England and Wales, over the Irish Sea, and into Connolly.',
+      notNow: 'SAILOR: Enjoy Brighton. Mind your chips.',
+    },
+  },
+  { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 4, soon: true },
+  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 5, soon: true },
 ];
 
 export const isRunning = (d: Departure | Line): d is Departure => !d.soon;

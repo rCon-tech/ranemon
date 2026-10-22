@@ -232,6 +232,11 @@ export default function Guide() {
             there have plenty to say about who really runs the town.
           </li>
           <li>
+            <b>Brighton</b>: Enda is waiting on the road out of Kildare. Say yes to his trip and the
+            Sail &amp; Rail from Connolly Station takes you to Brighton, England, for a match at the
+            Amex and then the arcade. Missed him? Go back to Kildare: he’s still there.
+          </li>
+          <li>
             <b>Held items</b>: some items are given to a Ranemon to hold from the BAG, and help it
             in every battle. Take them back from PARTY.
           </li>

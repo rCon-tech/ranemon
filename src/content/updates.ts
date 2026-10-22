@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A new best friend',
+    notes: [
+      'Someone very friendly is waiting on the road out of Kildare, and he has big plans for a trip abroad. If you’re already past Kildare, go back and say hello.',
+      'A new line runs from Connolly Station once you’ve been invited: a match, an arcade, and a few battles along the way.',
+      'Some things to hold now work for any Ranemon, not only one kind.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A pint for old friends',
     notes: [
       'A wild Ranemon you’ve befriended before now has a wee pint next to its name in battle, so you know you’ve already got one.',

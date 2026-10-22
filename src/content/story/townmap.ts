@@ -72,10 +72,12 @@ const WHERE: Record<string, [number, number]> = {
   // By train from Dublin, once you've been.
   donegal: [-8.28, 54.48],
   greystones: [-6.07, 53.14],
+  // Brighton is far off the edge of Ireland, so it sits in the corner of the map, out to sea.
+  brighton: [-5.55, 51.5],
 };
 
 /** Stops off the road, reached by train from Dublin: only on the map once you've been. */
-export const SIDE_TRIPS = ['donegal', 'greystones'];
+export const SIDE_TRIPS = ['donegal', 'greystones', 'brighton'];
 
 /** The view: the whole island. */
 const WEST = -10.7;

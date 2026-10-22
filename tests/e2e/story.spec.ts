@@ -1067,3 +1067,90 @@ for (const view of ['2d', '3d'] as const) {
     await expect(text).toContainText('CARL RYAN: Enjoy the Ball', { timeout: 10_000 });
   });
 }
+
+test('story mode: Enda stands in the road out of Kildare and asks you to Brighton', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:enda')) return;
+    // On the Curragh with the Kildare jersey won, a few steps from the way out to Dublin.
+    localStorage.setItem(
+      'ranemon.story.v1:enda',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'kildare',
+        x: 17,
+        y: 11,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: [
+          'starter',
+          'visited:kildare',
+          'jersey:kildare',
+          'beat:kildare-soldier',
+          'beat:rival-4',
+        ],
+        seen: [],
+        caught: [],
+        pub: { map: 'kildare', x: 20, y: 4 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Enda');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  const walk = async (key: string, n: number) => {
+    for (let i = 0; i < n; i++) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(250);
+    }
+  };
+  const save = () =>
+    page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1:enda')!));
+
+  // Try to walk out to Dublin: Enda is in the road, and won't budge.
+  await walk('ArrowRight', 6);
+  await page.waitForTimeout(300);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('very small man');
+  for (let i = 0; i < 10 && !(await page.getByRole('button', { name: 'YES' }).count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await page.getByRole('button', { name: 'YES', exact: true }).click();
+  await expect(text).toContainText('Best friends on tour');
+  for (let i = 0; i < 8 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+  expect((await save()).flags).toEqual(expect.arrayContaining(['enda:met', 'enda:asked']));
+
+  // He's stepped aside, so the road to Dublin is open.
+  await page.keyboard.down('ArrowRight');
+  await expect(world).toHaveAttribute('aria-label', /^Dublin City/, { timeout: 10_000 });
+  await page.keyboard.up('ArrowRight');
+  expect((await save()).map).toBe('dublin');
+});

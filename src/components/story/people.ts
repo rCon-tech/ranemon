@@ -61,6 +61,8 @@ export interface Style {
   hearts?: string;
   /** A child, or anyone short: drawn smaller. */
   small?: boolean;
+  /** Anyone very short, like Enda: smaller again. */
+  tiny?: boolean;
   /** Anyone very tall: drawn bigger, head and shoulders over everyone. */
   tall?: boolean;
   /** Big DJ headphones over the head, in this colour. */
@@ -81,11 +83,14 @@ export interface Style {
 /** How tall someone `small` stands, next to everyone else. */
 export const SMALL = 0.78;
 
+/** How tall someone `tiny` stands, next to everyone else. */
+export const TINY = 0.64;
+
 /** How tall someone `tall` stands, next to everyone else. */
 export const TALL = 1.22;
 
 /** How big someone is drawn, next to everyone else. */
-export const scaleOf = (s: Style) => (s.small ? SMALL : s.tall ? TALL : 1);
+export const scaleOf = (s: Style) => (s.tiny ? TINY : s.small ? SMALL : s.tall ? TALL : 1);
 
 const SKIN = '#f8d0a8';
 
@@ -700,6 +705,99 @@ export const STYLES: Record<Look | 'player', Style> = {
     tie: '#18181c',
     legs: '#18181c',
     shoes: '#0c0c10',
+  },
+  // Enda, in Kildare and Brighton: very small, brown hair, a big smile, a cosy blue jumper with
+  // little red hearts all over it, and his good runners for the trip.
+  enda: {
+    skin: SKIN,
+    hair: '#6a3e1e',
+    hairStyle: 'short',
+    top: '#3a6ac8',
+    topKind: 'jumper',
+    trim: '#f4f4f0',
+    hearts: '#e8445a',
+    legs: '#2a3048',
+    shoes: '#f4f4f4',
+    tiny: true,
+  },
+  // The Sail & Rail's sailor: a white peaked cap and a navy jacket with gold trim.
+  sailor: {
+    skin: '#f0c49a',
+    hair: '#4a3020',
+    hairStyle: 'short',
+    hat: { kind: 'garda', colour: '#f4f4f4', trim: '#1c2848' },
+    top: '#1c2848',
+    topKind: 'jacket',
+    trim: '#e8c040',
+    beard: '#4a3020',
+    legs: '#1c2848',
+    shoes: '#141418',
+  },
+  // On a hen do on the seafront: a pink top, a sash's worth of glitter and a tiara.
+  hen: {
+    skin: '#f8c8a0',
+    hair: '#e8c870',
+    hairStyle: 'long',
+    hat: { kind: 'crown', colour: '#f0d0f0', trim: '#f040a0' },
+    top: '#f070b0',
+    topKind: 'shirt',
+    trim: '#f8f0f8',
+    skirt: '#1c1c24',
+    legs: '#f8c8a0',
+    shoes: '#f4f4f4',
+    earrings: '#f0c040',
+  },
+  // A Seagulls fan: the Brighton home shirt, blue and white stripes.
+  fan: {
+    skin: SKIN,
+    hair: '#5a3a22',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#1f5fb8',
+    stripes: '#1f5fb8',
+    legs: '#283048',
+    shoes: '#f4f4f4',
+  },
+  // A Crystal Palace fan: red and blue, a scarf's worth of rage, and a shaved head.
+  palace: {
+    skin: '#f0c49a',
+    hair: '#f0c49a',
+    hairStyle: 'none',
+    top: '#c8283a',
+    topKind: 'shirt',
+    trim: '#1f3a8a',
+    stripes: '#1f3a8a',
+    legs: '#2a2a30',
+    shoes: '#141418',
+  },
+  // In the arcade: a hoodie, a cap on backwards and headphones round the neck.
+  gamer: {
+    skin: '#e8b890',
+    hair: '#2a1a12',
+    hairStyle: 'short',
+    hat: { kind: 'cap', colour: '#70f040', trim: '#18161c' },
+    top: '#3a2a5a',
+    topKind: 'jumper',
+    trim: '#30d0f0',
+    legs: '#24242c',
+    shoes: '#f4f4f4',
+    glasses: 'glasses',
+  },
+  // The Arcade King: a gold crown, shades indoors and a leather jacket with a gold zip.
+  king: {
+    skin: '#f0c8a0',
+    hair: '#2a1a12',
+    hairStyle: 'slick',
+    hat: { kind: 'crown', colour: '#f0c040', trim: '#c83030' },
+    glasses: 'shades',
+    top: '#18181e',
+    topKind: 'jacket',
+    trim: '#f0c040',
+    moustache: '#2a1a12',
+    legs: '#2a3048',
+    shoes: '#f4f4f4',
+    tall: true,
   },
 };
 

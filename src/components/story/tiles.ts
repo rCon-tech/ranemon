@@ -1133,6 +1133,66 @@ function speaker(c: Ctx, r: () => number, around: Around) {
   ellipse(c, 16, 21, 2, 2, '#8a8690');
 }
 
+/** Screen colours for the arcade machines (`m`), one per machine. */
+const ARCADE = ['#30d0f0', '#f040a0', '#70f040', '#f8d030'];
+
+/** An arcade machine (`m`): a tall cabinet with a glowing screen, a joystick and two buttons. */
+function arcadeMachine(c: Ctx, r: () => number, around: Around, variant: number) {
+  ground(c, r, around);
+  const glow = ARCADE[variant % ARCADE.length];
+  ellipse(c, 16, 30, 12, 2, 'rgb(0 0 0 / 0.3)');
+  px(c, 5, 1, 22, 29, '#1c1830');
+  px(c, 5, 1, 22, 4, glow);
+  px(c, 6, 2, 20, 2, 'rgb(255 255 255 / 0.35)');
+  px(c, 8, 7, 16, 11, '#0c0a14');
+  px(c, 9, 8, 14, 9, shadeOf(glow));
+  // A little game on the screen: a ship and a row of invaders.
+  for (let x = 10; x < 22; x += 3) px(c, x, 9 + ((x / 3) % 2), 2, 1, '#f4f4f4');
+  px(c, 15, 15, 2, 1, glow);
+  px(c, 7, 19, 18, 4, '#2a2640');
+  px(c, 10, 19, 1, 3, '#d8d8e0');
+  px(c, 9, 19, 3, 1, '#e03c3a');
+  px(c, 16, 20, 2, 2, '#e03c3a');
+  px(c, 20, 20, 2, 2, '#3a70c8');
+  px(c, 13, 25, 6, 3, '#0c0a14');
+  px(c, 15, 26, 2, 1, '#f8d030');
+}
+
+/** The colour of a screen showing a game: the machine's colour, dimmed. */
+const shadeOf = (hex: string) =>
+  `rgb(${[1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * 0.35)).join(' ')})`;
+
+/** A row of stadium seats (`n`), blue and white, with a fan in a striped shirt here and there. */
+function seats(c: Ctx, r: () => number) {
+  px(c, 0, 0, T, T, '#5a5a64');
+  px(c, 0, 0, T, 2, '#6c6c76');
+  for (let x = 1; x < T; x += 8) {
+    const blue = (x >> 3) % 2 === 0;
+    px(c, x, 6, 6, 12, '#1c2a48');
+    px(c, x, 6, 6, 10, blue ? '#1f5fb8' : '#f0f0f4');
+    px(c, x, 16, 6, 6, blue ? '#18488c' : '#c8c8d0');
+    if (r() < 0.45) {
+      // Someone standing up in front of their seat.
+      px(c, x + 1, 14, 4, 10, '#f4f4f4');
+      px(c, x + 2, 14, 1, 10, '#1f5fb8');
+      px(c, x + 1, 9, 4, 5, r() < 0.5 ? '#f8d0a8' : '#c88a5a');
+      px(c, x + 1, 8, 4, 2, r() < 0.5 ? '#3a2a1e' : '#c89048');
+    }
+  }
+  px(c, 0, 26, T, 6, '#4a4a54');
+}
+
+/** The pitch (`x`): mown in stripes, with white lines along its edges. */
+function pitch(c: Ctx, around: Around) {
+  px(c, 0, 0, T, T, '#3a9a3a');
+  px(c, 0, 0, T / 2, T, '#44a844');
+  const line = '#f4f4f0';
+  if (around.n !== 'x') px(c, 0, 1, T, 2, line);
+  if (around.s !== 'x') px(c, 0, T - 3, T, 2, line);
+  if (around.w !== 'x') px(c, 1, 0, 2, T, line);
+  if (around.e !== 'x') px(c, T - 3, 0, 2, T, line);
+}
+
 /** A bed: a pillow at the head, a patchwork quilt below. */
 function bed(c: Ctx, r: () => number, around: Around) {
   floor(c, r);
@@ -1355,6 +1415,15 @@ export function tileImage(
         break;
       case 'I':
         speaker(c, r, around);
+        break;
+      case 'm':
+        arcadeMachine(c, r, around, v);
+        break;
+      case 'n':
+        seats(c, r);
+        break;
+      case 'x':
+        pitch(c, around);
         break;
       case 'W':
         room(c, r, around);
