@@ -414,6 +414,10 @@ export function Story() {
             return;
           case 'travel': {
             g = setFlag({ ...g, map: s.map, x: s.x, y: s.y, face: s.face }, `visited:${s.map}`);
+            // Somewhere outdoors with something to say every time you arrive, such as Kildare: said
+            // once the rest of the script (the ride, the Lime) is done.
+            const there = mapFor(s.map, g.flags);
+            if (!there.inside) q.push(...(there.arrive ?? []));
             break;
           }
           case 'wild': {
@@ -509,6 +513,7 @@ export function Story() {
       let g: StoryState = { ...game, map: nextId, ...at, face: to.face };
       const steps: Run[] = [];
       if (next.enter && !hasFlag(g, `visited:${nextId}`)) steps.push(...next.enter);
+      steps.push(...(next.arrive ?? []));
       g = setFlag(g, `visited:${nextId}`);
       persist(g);
       run(g, steps);

@@ -1154,3 +1154,56 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   await page.keyboard.up('ArrowRight');
   expect((await save()).map).toBe('dublin');
 });
+
+test('story mode: Enda waves you over as you walk into Kildare', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:wave')) return;
+    // On the road at the east edge of Meath, a step from Kildare, with the Meath jersey.
+    localStorage.setItem(
+      'ranemon.story.v1:wave',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'meath',
+        x: 22,
+        y: 12,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:meath', 'visited:kildare', 'jersey:meath'],
+        seen: [],
+        caught: [],
+        pub: { map: 'meath', x: 4, y: 8 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Wave');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(250);
+  await page.keyboard.press('ArrowRight');
+  await expect(world).toHaveAttribute('aria-label', /^The Curragh, Co\. Kildare/, {
+    timeout: 10_000,
+  });
+  await expect(page.getByTestId('story-text')).toContainText('Over here!');
+});

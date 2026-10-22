@@ -228,7 +228,10 @@ export interface GameMap {
   enter?: Step[];
   /** A room: the map and door outside it. */
   inside?: { map: string; x: number; y: number };
-  /** Run every time you come in, such as Mam's welcome. */
+  /**
+   * Run every time you come in, such as Mam's welcome. Outdoors, every time you walk in from the
+   * next map or arrive by train or Lime, such as Enda calling you over in Kildare.
+   */
   arrive?: Step[];
   /** Slate roofs on every building, not only the gym: the look of a well-off town. */
   slate?: boolean;

@@ -10,7 +10,7 @@ import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
 import { HIGGINS, TRINITY_BALL } from './ball';
 import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
-import { ENDA_BY_ROAD, ENDA_IN_ROAD } from './enda';
+import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
 
 /**
@@ -972,6 +972,7 @@ export const MAPS: GameMap[] = [
     ],
     signs: ['THE CURRAGH. Army camp. Gibbsmon was last seen calling in bombers.'],
     gym: { trainer: 'gym-kildare', place: 'The Curragh' },
+    arrive: ENDA_CALLS,
     west: 'meath',
     east: 'dublin',
   },
