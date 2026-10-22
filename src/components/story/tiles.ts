@@ -826,9 +826,9 @@ function campanile(): HTMLCanvasElement {
 // ---------- indoors ----------
 
 /** Walls and the dark beyond them, for joining up wall tiles. */
-const WALLISH = new Set(['W', 'O', 'J', 'E', 'T', 'Y', 'V', 'A']);
+const WALLISH = new Set(['W', 'O', 'J', 'E', 'T', 'Y', 'V', 'A', 'D']);
 /** Walls only, without the shelves standing against them. */
-const BACK_WALL = new Set(['W', 'O', 'J', 'T']);
+const BACK_WALL = new Set(['W', 'O', 'J', 'T', 'D']);
 
 /** The floor under a piece of furniture: the gym's boards in a gym, floorboards elsewhere. */
 function ground(c: Ctx, r: () => number, around: Around) {
@@ -881,6 +881,36 @@ function window_(c: Ctx, r: () => number) {
   }
   px(c, 12, 5, 2, 1, '#ffffff');
   px(c, 5, 16, 22, 2, '#e0d4c0');
+}
+
+/**
+ * A station's departures board (`D`) on the back wall: a black panel in a steel frame with rows
+ * of amber dot-matrix text, joined up along its length.
+ */
+function board(c: Ctx, r: () => number, around: Around) {
+  wallpaper(c, r);
+  const left = around.w !== 'D' ? 2 : 0;
+  const right = around.e !== 'D' ? 2 : 0;
+  px(c, left, 2, T - left - right, 17, '#8a929c');
+  px(
+    c,
+    left + (left ? 1 : 0),
+    3,
+    T - left - right - (left ? 1 : 0) - (right ? 1 : 0),
+    15,
+    '#141418',
+  );
+  for (const y of [5, 9, 13]) {
+    let x = left + 2;
+    while (x < T - right - 3) {
+      const w = 2 + ((r() * 4) | 0);
+      px(c, x, y, Math.min(w, T - right - 3 - x), 2, r() < 0.15 ? '#5ad060' : '#f8b820');
+      x += w + 1 + ((r() * 2) | 0);
+    }
+  }
+  // Brackets up to the ceiling.
+  if (left) px(c, 4, 0, 2, 2, '#5a6068');
+  if (right) px(c, T - 6, 0, 2, 2, '#5a6068');
 }
 
 /** A fireplace: a stone surround and a turf fire that flickers. */
@@ -1208,6 +1238,9 @@ export function tileImage(
         break;
       case 'J':
         fire(c, r, frame);
+        break;
+      case 'D':
+        board(c, r, around);
         break;
       case 'Y':
       case 'V':

@@ -1,0 +1,211 @@
+import { interiorId } from './interiors';
+import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
+
+/**
+ * Connolly Station, Dublin: one door for every train out of the city. The clerk at the ticket
+ * desk shows the departures board and sells you a ticket to anywhere it runs; the staff on the
+ * platforms will also take you straight onto their own train.
+ *
+ * Every line is a row in `DEPARTURES`. To add one: make its map, add a `Departure` here (its
+ * staff stand on the platforms and its stop goes on the board without any other change), and
+ * put `homeward(id)` on whoever brings you back. A line that isn't ready yet can go on the board
+ * as `soon`, and one that opens later in the story takes a `lock`.
+ */
+
+/** The station is the third landmark door in Dublin. */
+export const STATION_ID = interiorId('dublin', 'L', 2);
+
+/** Where a train back to Dublin leaves you: on the concourse, just off the platforms. */
+export const PLATFORM = { x: 4, y: 3, face: 'down' as Dir };
+
+export interface Line {
+  /** The map the train goes to. */
+  id: string;
+  /** The line, as it's shown on the board: DART, Intercity, Enterprise… */
+  line: string;
+  /** Where it goes, as it's shown on the board. */
+  to: string;
+  platform: number;
+  /** Not running yet: on the board as COMING SOON, and nobody can sell you a ticket. */
+  soon?: true;
+}
+
+export interface Departure extends Line {
+  soon?: undefined;
+  /** Where you get off, facing which way. */
+  at: { x: number; y: number; face: Dir };
+  /** Who stands on its platform, and what they ask you. */
+  staff: Look;
+  ask: string;
+  /** What they say if you don't get on. */
+  notNow: string;
+  /** What you see on the way down. */
+  ride: string[];
+  /** Said the first time you get off. */
+  first: string;
+  /** The flag for having been, if not `seen:` and the map's id. */
+  seen?: string;
+  /** Only runs once this flag is set: until then, the board says why not. */
+  lock?: { flag: string; locked: string };
+  /** The way home, from whoever runs it at the other end. */
+  back: { ask: string; ride: string; notNow: string };
+}
+
+export const DEPARTURES: (Departure | Line)[] = [
+  {
+    id: 'greystones',
+    line: 'DART',
+    to: 'Greystones, Co. Wicklow',
+    platform: 1,
+    at: { x: 1, y: 6, face: 'right' },
+    staff: 'dart',
+    ask: 'DART DRIVER: The DART, southbound for Greystones, Co. Wicklow. Hop on?',
+    notNow: 'DART DRIVER: No bother. There’s another one in fifteen minutes. Probably.',
+    ride: [
+      'The DART hugs the coast past Sandymount, Dún Laoghaire and Killiney Bay. Someone in big sunglasses waves from a balcony.',
+      'Through the tunnels under Bray Head, and out the other side the houses get very, very big.',
+    ],
+    first: 'GREYSTONES, CO. WICKLOW. The richest town in Ireland. Even the seagulls look well off.',
+    back: {
+      ask: 'DART DRIVER: Back to Connolly?',
+      ride: 'The DART rattles back up the coast to Dublin.',
+      notNow: 'DART DRIVER: Enjoy the sea air. It’s included in the house prices.',
+    },
+  },
+  {
+    id: 'donegal',
+    line: 'Intercity',
+    to: 'Bundoran, Co. Donegal',
+    platform: 2,
+    at: { x: 21, y: 5, face: 'left' },
+    staff: 'conductor',
+    ask: 'CONDUCTOR: The Atlantic Coast Express, Dublin to Bundoran, Co. Donegal. All aboard?',
+    notNow: 'CONDUCTOR: No bother. Trains run all day.',
+    ride: [
+      'The train rattles north through Meath and Cavan, past a hundred lakes, until you can smell the sea.',
+    ],
+    first: 'BUNDORAN, CO. DONEGAL. Surf capital of Ireland. The Atlantic is roaring.',
+    seen: 'seen:bundoran',
+    back: {
+      ask: 'CONDUCTOR: Back to Dublin Connolly?',
+      ride: 'The train winds back down through the lakes to Dublin.',
+      notNow: 'CONDUCTOR: Enjoy the waves.',
+    },
+  },
+  { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 3, soon: true },
+  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 4, soon: true },
+];
+
+export const isRunning = (d: Departure | Line): d is Departure => !d.soon;
+
+export const RUNNING = DEPARTURES.filter(isRunning);
+
+export function departureTo(id: string): Departure {
+  const d = RUNNING.find((r) => r.id === id);
+  if (!d) throw new Error(`No train to ${id}`);
+  return d;
+}
+
+/** Getting on: the ride, the arrival, and the welcome the first time. */
+export function ride(d: Departure): Step[] {
+  const seen = d.seen ?? `seen:${d.id}`;
+  return [
+    ...d.ride.map((text) => ({ do: 'say' as const, text })),
+    { do: 'travel', map: d.id, ...d.at },
+    {
+      do: 'if',
+      flag: seen,
+      then: [],
+      else: [
+        { do: 'say', text: d.first },
+        { do: 'flag', flag: seen },
+      ],
+    },
+  ];
+}
+
+/** A ticket from the desk: the ride, unless the line isn't open to you yet. */
+export function ticket(d: Departure): Step[] {
+  if (!d.lock) return ride(d);
+  return [
+    { do: 'if', flag: d.lock.flag, then: ride(d), else: [{ do: 'say', text: d.lock.locked }] },
+  ];
+}
+
+/** What the staff on its platform say: a yes or no to their own train. */
+export function aboard(d: Departure): Step[] {
+  return [{ do: 'ask', text: d.ask, yes: ticket(d), no: [{ do: 'say', text: d.notNow }] }];
+}
+
+/** The way back to Connolly, from whoever runs the line at the other end. */
+export function homeward(id: string): Step[] {
+  const { back } = departureTo(id);
+  return [
+    {
+      do: 'ask',
+      text: back.ask,
+      yes: [
+        { do: 'say', text: back.ride },
+        { do: 'travel', map: STATION_ID, ...PLATFORM },
+      ],
+      no: [{ do: 'say', text: back.notNow }],
+    },
+  ];
+}
+
+/** The departures board, as it reads on the wall. */
+export function boardText(): string {
+  const rows = DEPARTURES.map(
+    (d) => `Platform ${d.platform}: ${d.line} to ${d.to}${d.soon ? ' (coming soon)' : ''}.`,
+  );
+  return `DEPARTURES. ${rows.join(' ')}`;
+}
+
+/**
+ * The station itself, behind its door in Dublin. Platform staff stand along the top, one per
+ * running line; the clerk is behind the ticket desk by the door.
+ */
+const CLERK: Step[] = [
+  { do: 'say', text: 'CLERK: Welcome to Connolly. Where are you off to?' },
+  { do: 'departures' },
+];
+
+/** Where the platform staff stand along the top of the concourse, in platform order. */
+const STAFF_X = [2, 7, 3, 6];
+
+export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
+  // The clerk is person 1; each running line's staff stand at the top, in platform order.
+  const staff = RUNNING.slice(0, STAFF_X.length);
+  const top = 'WNFFFFFFNW'.split('');
+  staff.forEach((_, i) => (top[STAFF_X[i]] = String(i + 2)));
+  return {
+    name: 'Connolly Station',
+    rows: [
+      'WWWWWWWWWW',
+      'WODDDDDDOW',
+      top.join(''),
+      'WFFFFFFFFW',
+      'WUUFFFFUUW',
+      'WF1FFFFFFW',
+      'WCCCFFFFNW',
+      'WFFF@FFFFW',
+      'WWWWEWWWWW',
+    ],
+    npcs: [
+      { look: 'clerk', face: 'down', talk: CLERK },
+      ...staff.map((d) => ({ look: d.staff, face: 'down' as Dir, talk: aboard(d) })),
+    ],
+    things: {
+      D: boardText(),
+      U: 'A bench. Someone has left a copy of the property supplement open at Greystones.',
+    },
+  };
+}
+
+/** Said every time you come into the station. */
+export const STATION_ARRIVE: Step[] = [
+  {
+    do: 'say',
+    text: 'CONNOLLY STATION. Trains are humming at every platform. The ticket desk is by the door.',
+  },
+];

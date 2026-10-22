@@ -5,7 +5,8 @@ import { interiorsOf } from './interiors';
 import { SIBEAL_LENDS } from './sibeal';
 import { NORM } from '@/lib/story/norm';
 import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
-import { GREYSTONES, PEARSE_ARRIVE, PEARSE_ROOM } from './greystones';
+import { GREYSTONES } from './greystones';
+import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
 
 /**
@@ -323,48 +324,7 @@ const HELLFIRE_ROOM = {
  * The Donegal side story: the train from Dublin to Bundoran, where Josh Lee surfs all year and
  * hands out a tablet that lets you see Poseidon, out on the rocks. Poseidon is a boss trainer.
  */
-const DONEGAL_AT = { x: 21, y: 5 };
-const DUBLIN_AT = { x: 18, y: 5 };
 const BEAT_POSEIDON = 'beat:poseidon';
-
-const TO_DONEGAL: Step[] = [
-  {
-    do: 'ask',
-    text: 'CONDUCTOR: The Atlantic Coast Express, Dublin to Bundoran, Co. Donegal. All aboard?',
-    yes: [
-      {
-        do: 'say',
-        text: 'The train rattles north through Meath and Cavan, past a hundred lakes, until you can smell the sea.',
-      },
-      { do: 'travel', map: 'donegal', ...DONEGAL_AT, face: 'left' },
-      {
-        do: 'if',
-        flag: 'seen:bundoran',
-        then: [],
-        else: [
-          {
-            do: 'say',
-            text: 'BUNDORAN, CO. DONEGAL. Surf capital of Ireland. The Atlantic is roaring.',
-          },
-          { do: 'flag', flag: 'seen:bundoran' },
-        ],
-      },
-    ],
-    no: [{ do: 'say', text: 'CONDUCTOR: No bother. Trains run all day.' }],
-  },
-];
-
-const TO_DUBLIN: Step[] = [
-  {
-    do: 'ask',
-    text: 'CONDUCTOR: Back to Dublin Connolly?',
-    yes: [
-      { do: 'say', text: 'The train winds back down through the lakes to Dublin.' },
-      { do: 'travel', map: 'dublin', ...DUBLIN_AT, face: 'right' },
-    ],
-    no: [{ do: 'say', text: 'CONDUCTOR: Enjoy the waves.' }],
-  },
-];
 
 const JOSH: Step[] = [
   {
@@ -1018,15 +978,15 @@ export const MAPS: GameMap[] = [
       'T,,,,,,,,,..###L##..#M#T',
       'T,,,,1,,,,.....=..6....T',
       '@==============.......*T',
-      'T...5.........=....7...T',
+      'T...5.........=........T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
       'T~~~~~~~~~~~~~B~~~~~~~~T',
-      'T.......9.....=..2.^^^.T',
+      'T.......8.....=..2.^^^.T',
       'T..^^^^..^^^^.=....#L#.T',
       'T..#P##..#H##.=======>4.',
       'T..S........3...^^^....T',
-      'T...^^^^........#H#8...T',
-      'T...#L##S......0.......T',
+      'T...^^^^........#H#7...T',
+      'T...#L##S......9.......T',
       'T......................T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -1073,14 +1033,13 @@ export const MAPS: GameMap[] = [
       },
       { look: 'local', face: 'down', talk: OLD_WOMAN },
       { look: 'busker', face: 'down', talk: BUSKER },
-      { look: 'conductor', face: 'left', talk: TO_DONEGAL },
       RENT_NEIGHBOUR,
       RENT_GARDA,
       MESCAL,
     ],
     signs: [
       'DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.',
-      'PEARSE STATION. DART southbound for Greystones, Co. Wicklow.',
+      'CONNOLLY STATION. Trains to Greystones, Bundoran and beyond. Tickets inside.',
     ],
     houses: [
       [
@@ -1111,7 +1070,7 @@ export const MAPS: GameMap[] = [
         },
       ],
       HELLFIRE,
-      PEARSE_ARRIVE,
+      STATION_ARRIVE,
     ],
     landmarkLocks: {
       1: {
@@ -1122,7 +1081,7 @@ export const MAPS: GameMap[] = [
           'The three coral beads glow warm in your bag. The boards fall away from the door on their own…',
       },
     },
-    landmarkRooms: { 1: HELLFIRE_ROOM, 2: PEARSE_ROOM },
+    landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom() },
     west: 'kildare',
     east: 'trinity',
   },
@@ -1231,7 +1190,7 @@ export const MAPS: GameMap[] = [
         hideIf: BEAT_POSEIDON,
         trainer: 'poseidon',
       },
-      { look: 'conductor', face: 'left', talk: TO_DUBLIN },
+      { look: 'conductor', face: 'left', talk: homeward('donegal') },
     ],
     signs: [
       'BUNDORAN STATION. Trains to Dublin Connolly. Surfboards in the guard’s van, please.',

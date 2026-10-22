@@ -609,13 +609,13 @@ test('story mode: Alex Simonin in Trinity only ever says the one thing', async (
   });
 });
 
-test('story mode: the DART from Pearse Station to Greystones, where Kill has a complaint', async ({
+test('story mode: a ticket from Connolly Station to Greystones, where Kill has a complaint', async ({
   page,
 }) => {
   await unlock(page);
   await page.addInitScript(() => {
     if (localStorage.getItem('ranemon.story.v1:dart')) return;
-    // In Dublin, just below the door of Pearse Station.
+    // In Dublin, just below the door of Connolly Station.
     localStorage.setItem(
       'ranemon.story.v1:dart',
       JSON.stringify({
@@ -670,18 +670,21 @@ test('story mode: the DART from Pearse Station to Greystones, where Kill has a c
   };
 
   await page.keyboard.down('ArrowUp');
-  await expect(world).toHaveAttribute('aria-label', /^Pearse Station, Dublin City/, {
+  await expect(world).toHaveAttribute('aria-label', /^Connolly Station, Dublin City/, {
     timeout: 10_000,
   });
   await page.keyboard.up('ArrowUp');
-  await expect(text).toContainText('PEARSE STATION');
+  await expect(text).toContainText('CONNOLLY STATION');
   await dismiss();
 
-  // Up the platform to the DART driver.
-  await walk('ArrowLeft', 1);
-  await walk('ArrowUp', 4);
+  // Over to the ticket desk, and the clerk shows the departures board.
+  await walk('ArrowLeft', 2);
+  await walk('ArrowUp', 1);
   await page.keyboard.press('z');
-  await page.getByRole('button', { name: 'YES' }).click();
+  await expect(text).toContainText('CLERK');
+  await dismiss();
+  await expect(page.getByTestId('departure-belfast')).toBeDisabled();
+  await page.getByTestId('departure-greystones').click();
   // The ride down the coast, then Greystones.
   await dismiss();
   await expect(world).toHaveAttribute('aria-label', /^Greystones, Co\. Wicklow/, {

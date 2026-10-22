@@ -61,11 +61,12 @@ describe('Paul Mescal', () => {
     expect(mescal.team[0][0]).toBe('paulimon');
   });
 
-  it('is the tenth person in Dublin, down past Temple Bar, looking along the street', () => {
-    expect(dublin.npcs).toHaveLength(10);
-    expect(slot(9)).toBe('0');
-    expect(find(dublin, '0')).toEqual([{ x: here.x, y: here.y }]);
-    expect(here.index).toBe(9);
+  // The ninth since the Bundoran conductor moved into Connolly Station.
+  it('is the ninth person in Dublin, down past Temple Bar, looking along the street', () => {
+    expect(dublin.npcs).toHaveLength(9);
+    expect(slot(8)).toBe('9');
+    expect(find(dublin, '9')).toEqual([{ x: here.x, y: here.y }]);
+    expect(here.index).toBe(8);
     expect(tileAt(dublin, here.x, here.y)).toBe('.');
     const beaten = () => false;
     for (let d = 1; d <= MESCAL.sight!; d++) {

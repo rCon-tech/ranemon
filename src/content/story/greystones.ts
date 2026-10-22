@@ -1,7 +1,8 @@
+import { homeward } from './station';
 import type { GameMap, Npc, Step } from '@/lib/story/world';
 
 /**
- * Greystones, Co. Wicklow, by DART from Pearse Station in Dublin: the richest town in Ireland,
+ * Greystones, Co. Wicklow, by DART from Connolly Station in Dublin: the richest town in Ireland,
  * with the slate roofs, palm trees, yachts and jeeps to prove it. Kill, Stead and Cramps live
  * here, and all three say the town is under the terrible rule of the Happy Pear Twins, who are
  * down on the beach after their sea swim. Beat both twins, back to back, for the Vegan Stone.
@@ -13,58 +14,6 @@ export const PEAR_HEARD = 'greystones:heard';
 export const PEAR_TRAINERS = ['pear-dave', 'pear-steve'] as const;
 /** Beating the second twin is beating the pair. */
 export const BEAT_PEARS = `beat:${PEAR_TRAINERS[1]}`;
-
-/** Where the DART leaves you: Greystones station, and back outside Pearse Station in Dublin. */
-export const GREYSTONES_AT = { x: 1, y: 6 };
-export const PEARSE_AT = { x: 5, y: 14 };
-
-export const TO_GREYSTONES: Step[] = [
-  {
-    do: 'ask',
-    text: 'DART DRIVER: The DART, southbound for Greystones, Co. Wicklow. Hop on?',
-    yes: [
-      {
-        do: 'say',
-        text: 'The DART hugs the coast past Sandymount, Dún Laoghaire and Killiney Bay. Someone in big sunglasses waves from a balcony.',
-      },
-      {
-        do: 'say',
-        text: 'Through the tunnels under Bray Head, and out the other side the houses get very, very big.',
-      },
-      { do: 'travel', map: 'greystones', ...GREYSTONES_AT, face: 'right' },
-      {
-        do: 'if',
-        flag: 'seen:greystones',
-        then: [],
-        else: [
-          {
-            do: 'say',
-            text: 'GREYSTONES, CO. WICKLOW. The richest town in Ireland. Even the seagulls look well off.',
-          },
-          { do: 'flag', flag: 'seen:greystones' },
-        ],
-      },
-    ],
-    no: [
-      {
-        do: 'say',
-        text: 'DART DRIVER: No bother. There’s another one in fifteen minutes. Probably.',
-      },
-    ],
-  },
-];
-
-const TO_PEARSE: Step[] = [
-  {
-    do: 'ask',
-    text: 'DART DRIVER: Back to Pearse Station?',
-    yes: [
-      { do: 'say', text: 'The DART rattles back up the coast to Dublin.' },
-      { do: 'travel', map: 'dublin', ...PEARSE_AT, face: 'down' },
-    ],
-    no: [{ do: 'say', text: 'DART DRIVER: Enjoy the sea air. It’s included in the house prices.' }],
-  },
-];
 
 /** Someone in Greystones: what they say before you beat the twins, then after. */
 function local(before: Step[], after: string): Step[] {
@@ -217,7 +166,7 @@ export const PEAR_REWARD: Step[] = [
   },
 ];
 
-const DART_DRIVER: Npc = { look: 'dart', face: 'down', talk: TO_PEARSE };
+const DART_DRIVER: Npc = { look: 'dart', face: 'down', talk: homeward('greystones') };
 
 export const GREYSTONES: GameMap = {
   id: 'greystones',
@@ -274,7 +223,7 @@ export const GREYSTONES: GameMap = {
     { look: 'cyclist', face: 'left', trainer: 'greystones-cyclist', sight: 3 },
   ],
   signs: [
-    'GREYSTONES STATION. DART to Bray, Dún Laoghaire and Pearse Station, Dublin.',
+    'GREYSTONES STATION. DART to Bray, Dún Laoghaire and Connolly Station, Dublin.',
     'GREYSTONES MARINA. Moorings €40,000 a year. Waiting list: eleven years.',
     'GREYSTONES GOLF CLUB. Members only. The long grass is full of lost balls and wild Ranemon.',
   ],
@@ -316,29 +265,3 @@ export const GREYSTONES: GameMap = {
     ],
   ],
 };
-
-/** Pearse Station in Dublin: the DART's platform, behind its own door. */
-export const PEARSE_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> = {
-  name: 'Pearse Station',
-  rows: [
-    'WWWWWWWWWW',
-    'WOWWYYWWOW',
-    'WNFFFFFFNW',
-    'WFF1FFFFFW',
-    'WFFFFFFFFW',
-    'WUUFFFFUUW',
-    'WFFFFFFFFW',
-    'WNFF@FFFNW',
-    'WWWWEWWWWW',
-  ],
-  npcs: [{ look: 'dart', face: 'down', talk: TO_GREYSTONES }],
-  things: {
-    Y: 'DEPARTURES. DART southbound: Greystones, every 15 minutes. Mostly.',
-    U: 'A bench. Someone has left a copy of the property supplement open at Greystones.',
-  },
-};
-
-/** Said every time you come into Pearse Station. */
-export const PEARSE_ARRIVE: Step[] = [
-  { do: 'say', text: 'PEARSE STATION. A green DART hums at the platform, ready to head south.' },
-];

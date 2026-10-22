@@ -47,6 +47,7 @@ const HEIGHT: Record<string, number> = {
   A: 1.1,
   W: 1.6,
   O: 1.6,
+  D: 1.6,
   J: 1.6,
   '#': WALL_H,
 };

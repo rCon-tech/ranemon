@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BEAT_PEARS, PEAR_HEARD, PEAR_TRAINERS, TO_GREYSTONES } from '@/content/story/greystones';
-import { interiorId } from '@/content/story/interiors';
+import { BEAT_PEARS, PEAR_HEARD, PEAR_TRAINERS } from '@/content/story/greystones';
+import { PLATFORM, STATION_ID, aboard, departureTo } from '@/content/story/station';
 import { mapById } from '@/content/story/maps';
 import { stopsOf } from '@/content/story/townmap';
 import { trainerById } from '@/content/story/trainers';
@@ -63,29 +63,28 @@ const travelIn = (said: string[]) => {
 describe('the DART to Greystones', () => {
   const dublin = mapById('dublin');
   const greystones = mapById('greystones');
-  const station = mapById(interiorId('dublin', 'L', 2));
+  const station = mapById(STATION_ID);
   const npc = (map: GameMap, look: Look) => npcsOf(map).find((n) => n.item.look === look)!;
 
-  it('leaves from Pearse Station, a door of its own in Dublin', () => {
+  it('leaves from Connolly Station, the door at the bottom of Dublin', () => {
     expect(find(dublin, 'L')).toHaveLength(3);
-    expect(station.name).toBe('Pearse Station, Dublin City');
-    expect(npc(station, 'dart').item.talk).toBe(TO_GREYSTONES);
-    expect(dublin.signs).toContain('PEARSE STATION. DART southbound for Greystones, Co. Wicklow.');
+    expect(station.id).toBe(STATION_ID);
+    expect(station.name).toBe('Connolly Station, Dublin City');
+    expect(npc(station, 'dart').item.talk).toEqual(aboard(departureTo('greystones')));
   });
 
   it('runs to Greystones and back, onto open ground', () => {
-    const there = travelIn(play(TO_GREYSTONES, new Set()));
+    const there = travelIn(play(npc(station, 'dart').item.talk!, new Set()));
     const back = travelIn(play(npc(greystones, 'dart').item.talk!, new Set()));
     expect(there.map.id).toBe('greystones');
-    expect(back.map.id).toBe('dublin');
     for (const { map, x, y } of [there, back]) expect(isWalkable(tileAt(map, x, y))).toBe(true);
-    // Back in Dublin, you're standing right outside the station.
-    const door = find(dublin, 'L')[2];
-    expect(back).toMatchObject({ x: door.x, y: door.y + 1 });
+    // Back in Dublin, you're on the concourse at Connolly.
+    expect(back).toMatchObject({ map: station, x: PLATFORM.x, y: PLATFORM.y });
   });
 
   it('says nothing if you stay on the platform', () => {
-    expect(play(TO_GREYSTONES, new Set(), false).some((l) => l.startsWith('TRAVEL'))).toBe(false);
+    const talk = npc(station, 'dart').item.talk!;
+    expect(play(talk, new Set(), false).some((l) => l.startsWith('TRAVEL'))).toBe(false);
   });
 
   it('makes Greystones look the part: slate roofs, palms, yachts, jeeps and a beach', () => {

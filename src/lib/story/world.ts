@@ -60,13 +60,14 @@ export type Look =
   | 'simo'
   | 'mc'
   | 'melchior'
+  | 'alex'
   | 'dart'
   | 'kill'
   | 'stead'
   | 'cramps'
   | 'pear'
   | 'cyclist'
-  | 'alex'
+  | 'clerk'
   | 'mescal';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
@@ -94,6 +95,8 @@ export type Step =
   | { do: 'starter' }
   | { do: 'pub' }
   | { do: 'shop' }
+  /** The departures board at Connolly Station: pick a train, and the ride runs next. */
+  | { do: 'departures' }
   | { do: 'ending' };
 
 export interface Trainer {
