@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Dir } from '@/lib/story/world';
-import { paintPerson, PERSON_H, PERSON_W, type Style } from './people';
+import { paintPerson, PERSON_H, PERSON_W, SMALL, type Style } from './people';
 import { pixelTexture } from './scene3d';
 
 /**
@@ -302,6 +302,7 @@ export class Figure {
   constructor(key: string, style: Style, headless = false) {
     const kit = kitOf(key, style, headless);
     this.group.rotation.x = TILT;
+    if (style.small) this.group.scale.setScalar(SMALL);
     this.group.add(this.body);
     for (const part of kit.parts) {
       const mesh = new THREE.Mesh(part.geo, kit.material);

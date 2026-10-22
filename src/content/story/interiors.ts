@@ -194,6 +194,8 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
     }
     case 'H': {
       const steps = outside.houses?.[index] ?? [];
+      const own = outside.houseRooms?.[index];
+      if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
       const npc: Npc = { look: home ? 'mam' : 'local', face: 'down', talk: steps };
       return {
         ...base,

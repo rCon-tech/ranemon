@@ -11,6 +11,7 @@ import {
   paintDog,
   paintPerson,
   paintRider,
+  SMALL,
   STYLES,
   type BikeKind,
   type Style,
@@ -377,12 +378,14 @@ export function Overworld(props: Props) {
             c.beginPath();
             c.ellipse(sx(wx + 8), sy(wy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
+            // Someone small is drawn smaller, standing on the same spot.
+            const k = style.small ? SMALL : 1;
             c.drawImage(
               sprite(`p:${key}:${dir}:${frame}`, () => paintPerson(style, dir, frame)),
-              sx(wx),
-              sy(wy - 9.5 - bob),
-              16,
-              24,
+              sx(wx + 8 - 8 * k),
+              sy(wy + 14.5 - 24 * k - bob),
+              16 * k,
+              24 * k,
             );
           },
         });

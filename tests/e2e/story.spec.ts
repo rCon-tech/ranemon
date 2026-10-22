@@ -470,3 +470,79 @@ for (const view of ['2d', '3d'] as const) {
     await expect(page.getByRole('button', { name: 'No.005 Endamon' })).toHaveCount(0);
   });
 }
+
+test('story mode: the missing rent starts with Ollie, in the house by the river', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:rent')) return;
+    // On the path in Dublin, just below the house by the river.
+    localStorage.setItem(
+      'ranemon.story.v1:rent',
+      JSON.stringify({
+        version: 1,
+        map: 'dublin',
+        x: 17,
+        y: 13,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 45,
+            exp: 100000,
+            hp: 150,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:dublin', 'jersey:kildare'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Rent');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+
+  await page.keyboard.down('ArrowUp');
+  await expect(world).toHaveAttribute('aria-label', /^A house, Dublin City/, { timeout: 10_000 });
+  await page.keyboard.up('ArrowUp');
+  await expect(text).toContainText('French');
+  for (let i = 0; i < 4 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+
+  // Round the table to Ollie.
+  const walk = async (key: string, n: number) => {
+    for (let i = 0; i < n; i++) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(250);
+    }
+  };
+  await walk('ArrowLeft', 1);
+  await walk('ArrowUp', 4);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('OLLIE');
+  for (let i = 0; i < 8 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:rent')!),
+  );
+  expect(save.flags).toContain('rent:start');
+});

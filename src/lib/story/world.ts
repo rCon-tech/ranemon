@@ -54,7 +54,11 @@ export type Look =
   | 'josh'
   | 'poseidon'
   | 'sibeal'
-  | 'lime';
+  | 'lime'
+  | 'ollie'
+  | 'simo'
+  | 'mc'
+  | 'melchior';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -148,6 +152,8 @@ export interface GameMap {
   landmarkLocks?: Record<number, Lock>;
   /** A landmark's own room instead of the plain one, by landmark index. */
   landmarkRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
+  /** A house's own room instead of the plain one, by house index. */
+  houseRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
   /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
   gym?: Gym;
   west?: string;

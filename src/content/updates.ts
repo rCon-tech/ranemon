@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A mystery in Dublin',
+    notes: [
+      'There’s a new house by the river in Dublin, and the people inside are having a very bad day. Follow the clues around the city and decide who’s to blame.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'Ranedex pages',
     notes: [
       'Tap a Ranemon in the Ranedex, or pick it with the D-pad and press A, for a page of its own: a big picture with all its looks, its stats, how it evolves, every move it learns and what each one is good against, and where to find it.',
