@@ -61,6 +61,8 @@ export interface Style {
   hearts?: string;
   /** A child, or anyone short: drawn smaller. */
   small?: boolean;
+  /** Anyone very tall: drawn bigger, head and shoulders over everyone. */
+  tall?: boolean;
   /** Big DJ headphones over the head, in this colour. */
   headphones?: string;
   /** A St George's cross on the chest. */
@@ -76,6 +78,12 @@ export interface Style {
 
 /** How tall someone `small` stands, next to everyone else. */
 export const SMALL = 0.78;
+
+/** How tall someone `tall` stands, next to everyone else. */
+export const TALL = 1.22;
+
+/** How big someone is drawn, next to everyone else. */
+export const scaleOf = (s: Style) => (s.small ? SMALL : s.tall ? TALL : 1);
 
 const SKIN = '#f8d0a8';
 
@@ -557,6 +565,48 @@ export const STYLES: Record<Look | 'player', Style> = {
     shorts: '#1a1a22',
     socks: '#f4f4f4',
     shoes: '#141418',
+  },
+  // Carl Ryan at the Trinity Ball: very tall, in black tie with a Blue Ghost blue bow tie, and a
+  // blue sports bag full of cans over his shoulder.
+  carl: {
+    skin: SKIN,
+    hair: '#3a2a1e',
+    hairStyle: 'short',
+    top: '#18181e',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    tie: '#3a8ae8',
+    legs: '#18181e',
+    shoes: '#0c0c10',
+    bag: '#3a8ae8',
+    beard: '#3a2a1e',
+    tall: true,
+  },
+  // At the Ball in black tie, bow tie loosened.
+  reveller: {
+    skin: '#e8b890',
+    hair: '#c89048',
+    hairStyle: 'slick',
+    top: '#1c1c24',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    tie: '#1c1c24',
+    legs: '#1c1c24',
+    shoes: '#0c0c10',
+  },
+  // At the Ball in a long red dress, with gold earrings and a little clutch bag.
+  debs: {
+    skin: SKIN,
+    hair: '#e0c068',
+    hairStyle: 'long',
+    top: '#c8284a',
+    topKind: 'shirt',
+    trim: '#e8506e',
+    legs: '#f0c8a8',
+    shoes: '#d4a838',
+    skirt: '#c8284a',
+    earrings: '#f0c040',
+    handbag: '#d4a838',
   },
 };
 

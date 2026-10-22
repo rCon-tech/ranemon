@@ -69,7 +69,10 @@ export type Look =
   | 'cyclist'
   | 'clerk'
   | 'mescal'
-  | 'boyde';
+  | 'boyde'
+  | 'carl'
+  | 'reveller'
+  | 'debs';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -95,10 +98,18 @@ export type Step =
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }
-  | { do: 'shop' }
+  /** Vapes, or someone's own stall with its own prices. */
+  | { do: 'shop'; stall?: Stall }
   /** The departures board at Connolly Station: pick a train, and the ride runs next. */
   | { do: 'departures' }
   | { do: 'ending' };
+
+/** Someone selling a few things at their own prices, outside any shop. */
+export interface Stall {
+  /** The panel's title. */
+  name: string;
+  stock: { item: ItemId; price: number }[];
+}
 
 export interface Trainer {
   id: string;
@@ -188,6 +199,13 @@ export interface GameMap {
   slate?: boolean;
   /** What the things in a room say when you look at them, by tile. */
   things?: Record<string, string>;
+  /**
+   * The map as it is once a flag is set, such as Trinity turning into the Trinity Ball after
+   * B&S are beaten. Its fields replace the plain map's; the id stays the same.
+   */
+  after?: { flag: string } & Partial<Omit<GameMap, 'id' | 'after'>>;
+  /** A party: strings of fairy lights hung over the map, each from one tile point to another. */
+  party?: { lights: [number, number, number, number][] };
 }
 
 export interface Placed<T> {

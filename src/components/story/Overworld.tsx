@@ -11,12 +11,13 @@ import {
   paintDog,
   paintPerson,
   paintRider,
-  SMALL,
+  scaleOf,
   STYLES,
   type BikeKind,
   type Style,
 } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
+import { bulbsOf, glowOf, type Bulb } from './fairylights';
 import {
   frameOf,
   grassFront,
@@ -151,6 +152,12 @@ function doors(map: GameMap) {
 }
 
 const SIGN_COLOUR: Record<string, string> = { P: '#2f8a4a', M: '#3a70c8', G: '#d03838' };
+
+const bulbCache = new Map<GameMap, Bulb[]>();
+function bulbsAt(map: GameMap) {
+  if (!bulbCache.has(map)) bulbCache.set(map, bulbsOf(map.party?.lights ?? []));
+  return bulbCache.get(map)!;
+}
 
 const gymRoofCache = new Map<string, Set<string>>();
 /**
@@ -387,8 +394,8 @@ export function Overworld(props: Props) {
             c.beginPath();
             c.ellipse(sx(wx + 8), sy(wy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
-            // Someone small is drawn smaller, standing on the same spot.
-            const k = style.small ? SMALL : 1;
+            // Someone small is drawn smaller and someone tall bigger, standing on the same spot.
+            const k = scaleOf(style);
             c.drawImage(
               sprite(`p:${key}:${dir}:${frame}`, () => paintPerson(style, dir, frame)),
               sx(wx + 8 - 8 * k),
@@ -537,6 +544,26 @@ export function Overworld(props: Props) {
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
 
+      // A party's fairy lights, strung over everyone's heads.
+      const bulbs = map.party ? bulbsAt(map) : [];
+      const bulbAt = (b: Bulb) => [sx(b.x * TILE), sy((b.y - b.h) * TILE)] as const;
+      c.strokeStyle = 'rgb(30 30 40 / 0.7)';
+      c.lineWidth = 0.5;
+      c.beginPath();
+      bulbs.forEach((b) => {
+        const [bx, by] = bulbAt(b);
+        if (b.start) c.moveTo(bx, by);
+        else c.lineTo(bx, by);
+      });
+      c.stroke();
+      for (const b of bulbs) {
+        const [bx, by] = bulbAt(b);
+        c.fillStyle = b.colour;
+        c.globalAlpha = glowOf(b, now);
+        c.fillRect(bx - 1, by, 2, 2);
+      }
+      c.globalAlpha = 1;
+
       // Tall grass hides your feet.
       const grassFrame = frameOf(TALL_GRASS, now);
       const hide = [{ x: px, y: py }];
@@ -613,6 +640,21 @@ export function Overworld(props: Props) {
           g.addColorStop(1, 'rgb(255 190 90 / 0)');
           c.fillStyle = g;
           c.fillRect(gx - 26, gy - 26, 52, 52);
+        }
+        c.restore();
+      }
+      // The fairy lights glow through the dark.
+      if (bulbs.length) {
+        c.save();
+        c.globalCompositeOperation = 'lighter';
+        for (const b of bulbs) {
+          const [bx, by] = bulbAt(b);
+          if (bx < -8 || by < -8 || bx > SCREEN_W + 8 || by > SCREEN_H + 8) continue;
+          c.globalAlpha = (0.25 + 0.35 * light.night) * glowOf(b, now);
+          c.fillStyle = b.colour;
+          c.beginPath();
+          c.arc(bx, by + 1, 3, 0, Math.PI * 2);
+          c.fill();
         }
         c.restore();
       }

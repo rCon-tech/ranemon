@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { find, tileAt, type GameMap } from '@/lib/story/world';
+import { bulbsOf, glowOf, type Bulb } from './fairylights';
 import { DOOR_LABEL, INK, LIGHT } from './pixels';
 import {
   CAR_COLOURS,
@@ -264,9 +265,16 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
     for (const d of find(map, door)) group.add(sign(label, door, d.x, d.y, own));
   }
 
+  // ---------- a party's fairy lights, strung overhead ----------
+  const lights = map.party ? fairyLights(bulbsOf(map.party.lights), own) : null;
+  if (lights) group.add(lights.group);
+
   return {
     group,
-    animate,
+    animate: (now) => {
+      animate(now);
+      lights?.animate(now);
+    },
     trees: forest.crowns,
     doors: ['P', 'M', 'G', 'H', 'L'].flatMap((d) => find(map, d)),
     dispose: () => {
@@ -529,6 +537,43 @@ export function buildTrees(trees: [number, number, number][]) {
 const STONE = new THREE.MeshLambertMaterial({ color: '#d8d6d0' });
 
 /** The Campanile: a stone plinth, four columns round the bell, a carved top and a little dome. */
+/** Strings of glowing bulbs, with a thin dark wire between them and a chase running along. */
+function fairyLights(bulbs: Bulb[], own: Own) {
+  const group = new THREE.Group();
+  const wire: number[] = [];
+  bulbs.forEach((b, i) => {
+    if (b.start) return;
+    const a = bulbs[i - 1];
+    wire.push(a.x, a.h, a.y, b.x, b.h, b.y);
+  });
+  const wireGeo = own(new THREE.BufferGeometry());
+  wireGeo.setAttribute('position', new THREE.Float32BufferAttribute(wire, 3));
+  group.add(
+    new THREE.LineSegments(wireGeo, own(new THREE.LineBasicMaterial({ color: '#2a2a34' }))),
+  );
+  const mesh = new THREE.InstancedMesh(
+    own(new THREE.SphereGeometry(0.06, 8, 6)),
+    own(new THREE.MeshBasicMaterial()),
+    bulbs.length,
+  );
+  const m = new THREE.Matrix4();
+  const colour = new THREE.Color();
+  bulbs.forEach((b, i) => mesh.setMatrixAt(i, m.makeTranslation(b.x, b.h - 0.05, b.y)));
+  let beat = -1;
+  const animate = (now: number) => {
+    const next = Math.floor(now / 350);
+    if (next === beat) return;
+    beat = next;
+    bulbs.forEach((b, i) =>
+      mesh.setColorAt(i, colour.set(b.colour).multiplyScalar(glowOf(b, now))),
+    );
+    mesh.instanceColor!.needsUpdate = true;
+  };
+  animate(0);
+  group.add(mesh);
+  return { group, animate };
+}
+
 function campanile(x: number, y: number) {
   const out = new THREE.Group();
   const part = (w: number, h: number, d: number, px: number, py: number, pz: number) => {
