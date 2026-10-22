@@ -16,6 +16,9 @@ const RENT_REWARD: Step[] = [
   { do: 'give', item: 'full-irish', count: 2 },
 ];
 
+/** All Romeo Ruairí ever says: before, during and after a battle. */
+export const ROMEO = 'ROMEO RUAIRÍ: How do we always end up here?';
+
 /** A gym win: the jersey, Michael D on the phone, and the leader's prize. */
 function jersey(county: string, next: string, extra: Step[] = []): Step[] {
   return [
@@ -363,6 +366,21 @@ const T: Trainer[] = [
     before: 'MELCHIOR: Vive le roi!',
     after: `MELCHIOR: ${NEVER_FIND_OUT}`,
     reward: RENT_REWARD,
+  },
+
+  // ---------- Romeo Ruairí, outside Sean's Bar: Simomon only, and only the one line ----------
+  {
+    id: 'wm-romeo',
+    name: 'Romeo Ruairí',
+    team: [
+      ['simomon', 28],
+      ['simomon', 30],
+    ],
+    ai: 'easy',
+    prize: 600,
+    before: ROMEO,
+    after: ROMEO,
+    line: ROMEO,
   },
 
   // ---------- route trainers ----------

@@ -225,6 +225,7 @@ function step(s: Session, random: number): Session {
     }
     if (event.kind === 'send-out') {
       next = { ...next, entries: bump(next.entries, event.side) };
+      if (event.side === 1 && s.foe.line) next = { ...next, queue: [say(s.foe.line), ...rest] };
       if (event.side === 0 && !next.fought.includes(event.index)) {
         next = { ...next, fought: [...next.fought, event.index] };
       }

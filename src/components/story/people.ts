@@ -57,6 +57,8 @@ export interface Style {
   guitar?: string;
   /** Hoops round the top, like a Breton shirt. */
   stripes?: string;
+  /** Little love hearts all over the clothes, in this colour. */
+  hearts?: string;
   /** A child, or anyone short: drawn smaller. */
   small?: boolean;
 }
@@ -414,6 +416,20 @@ export const STYLES: Record<Look | 'player', Style> = {
     stick: '#c89830',
     stickTop: '#f0c040',
   },
+  // Romeo Ruairí, who only has eyes for Simomon: pink from his beanie to his shoes, with love
+  // hearts all over.
+  romeo: {
+    skin: SKIN,
+    hair: '#6a3a1e',
+    hairStyle: 'short',
+    hat: { kind: 'beanie', colour: '#f070a8' },
+    top: '#f48cb8',
+    topKind: 'jumper',
+    trim: '#fbc4dc',
+    legs: '#e8609c',
+    shoes: '#fbc4dc',
+    hearts: '#d81e5b',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -445,6 +461,16 @@ function px(c: Ctx, x: number, y: number, w: number, h: number, colour: string) 
   if (w <= 0 || h <= 0) return;
   c.fillStyle = colour;
   c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+}
+
+/** A little love heart, 5 device pixels wide and 4 tall, with its top left at x, y. */
+function heart(c: Ctx, x: number, y: number, colour: string) {
+  px(c, x, y, 2, 1, colour);
+  px(c, x + 3, y, 2, 1, colour);
+  px(c, x, y + 1, 5, 1, colour);
+  px(c, x + 1, y + 2, 3, 1, colour);
+  px(c, x + 2, y + 3, 1, 1, colour);
+  px(c, x + 1, y + 1, 1, 1, shade(colour, 1.6));
 }
 
 /** The rows of a rectangle with rounded corners, in hard pixels. */
@@ -550,6 +576,8 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, x + 5, top + 6, 1, h - 8, dark);
       px(c, x, top + h - 2, 11, 1, dark);
     }
+    if (s.hearts)
+      for (const dy of foot < 0 ? [5, 14] : [9, 17]) heart(c, x + 3, top + dy, s.hearts);
     // The shoe: an upper, a lighter toe cap and a dark sole.
     const sy = top + h - 1;
     shaded(c, x - 1, sy, 13, 7, 3, s.shoes, 0.3, 0.3);
@@ -598,6 +626,16 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
 
 const LONG = new Set<Top>(['gown', 'agbada', 'coat']);
 
+/** Where the love hearts sit on the front or back of a top, clear of the middle seam. */
+const HEARTS_TORSO = [
+  [20, 5],
+  [39, 7],
+  [24, 13],
+  [36, 15],
+  [20, 20],
+  [40, 21],
+] as const;
+
 function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   const y0 = 37 + p.lift;
   const long = LONG.has(s.topKind);
@@ -638,6 +676,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, 28, y0 + 18, 8, 1, shade(s.bag, 1.3));
   }
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
+  if (s.hearts && back) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
@@ -741,6 +780,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   // A belt on the shorter tops.
   if (!long && s.topKind !== 'jumper' && s.topKind !== 'hivis')
     px(c, 18, y0 + h - 2, 28, 2, shade(s.legs, 0.6));
+  if (s.hearts) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
   if (s.pearls)
     for (let i = 0; i < 9; i++)
@@ -783,6 +823,7 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, x + 1, ay + 11, 5, 1, shade(s.top, 0.72));
       const cuff = s.topKind === 'jacket' || s.topKind === 'hivis' ? s.trim : shade(s.top, 0.85);
       px(c, x, ay + 19, 7, 3, cuff);
+      if (s.hearts) heart(c, x + 1, ay + 5, s.hearts);
     }
     if (!back || !wide) {
       round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
@@ -851,6 +892,14 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     px(c, 21, y0 + 19, 22, 3, s.trim);
   }
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 21, y, 22, 2, s.stripes);
+  if (s.hearts)
+    for (const [x, y] of [
+      [24, 5],
+      [36, 11],
+      [25, 19],
+      [37, 22],
+    ])
+      heart(c, x, y0 + y, s.hearts);
   if (s.topKind === 'jacket') {
     px(c, 21, y0, 9, 4, s.trim);
     px(c, 21, y0 + 9, 22, 2, s.trim);
@@ -868,6 +917,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
   const ax = 27 - swing;
   shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
   px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  if (s.hearts) heart(c, ax + 2, y0 + 5, s.hearts);
   round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
   if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
   if (s.tote) shaded(c, 34, y0 + 16, 11, 14, 2, s.tote);

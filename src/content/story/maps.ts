@@ -870,7 +870,7 @@ export const MAPS: GameMap[] = [
       'TTTTTTTTTTTTTTTTTTTTTTTT',
       'T..^^^^^.....,,,,,,,,..T',
       'T..##L##.....,,,,,,,,..T',
-      'T....=.......,,,,1,,,..T',
+      'T....=.4.....,,,,1,,,..T',
       '@=========.........=...T',
       'T~~~~~~~B~~~~~~~~~~=~~~T',
       'T~~~~~~~B~~~~~~~~~~=~~~T',
@@ -895,6 +895,7 @@ export const MAPS: GameMap[] = [
       { look: 'trainer', face: 'left', trainer: 'wm-fan', sight: 3 },
       { look: 'lad', face: 'up', trainer: 'lads-fiach', sight: 2 },
       garda('Westmeath', 'jersey:westmeath'),
+      { look: 'romeo', face: 'left', trainer: 'wm-romeo', sight: 2 },
     ],
     signs: ['MULLINGAR. The pop star is home for one night only.'],
     landmarks: [

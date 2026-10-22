@@ -98,3 +98,28 @@ it.each(['rent-mc', 'rent-melchior'])(`%s is a fair side fight over ${RUNS} runs
   expect(won / RUNS).toBeGreaterThanOrEqual(0.6);
   expect(won / RUNS).toBeLessThanOrEqual(0.97);
 });
+
+/**
+ * Romeo Ruairí outside Sean's Bar: a party of 6 at Lv29 from the Westmeath long grass should
+ * beat him almost every time, like the other route trainers, but not as a pure formality.
+ */
+it(`Romeo Ruairí is a fair route fight over ${RUNS} runs`, () => {
+  const rng = new Rng(1916);
+  const foe = trainerById('wm-romeo');
+  const wild = mapById('westmeath').wild!.table.map(([id]) => id);
+  let won = 0;
+  for (let i = 0; i < RUNS; i++) {
+    const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+      makeMember(wild[rng.int(0, wild.length - 1)], 29, j),
+    );
+    const foes = foe.team.map(([id, level], j) => makeMember(id, level, 100 + j));
+    const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 13, [
+      'hard',
+      foe.ai,
+    ]);
+    if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+  }
+  console.log(`${foe.name} win rate`, won / RUNS);
+  expect(won / RUNS).toBeGreaterThanOrEqual(0.8);
+  expect(won / RUNS).toBeLessThanOrEqual(0.99);
+});

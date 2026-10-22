@@ -6,6 +6,8 @@ export interface Foe {
   kind: 'rival' | 'trainer' | 'wild';
   /** A trainer's name, such as "Nóra". */
   name?: string;
+  /** What the trainer says each time they send out a Ranemon. */
+  line?: string;
 }
 
 export const RIVAL: Foe = { kind: 'rival' };
