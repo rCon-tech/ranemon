@@ -133,6 +133,11 @@ export function see(s: StoryState, species: string): StoryState {
   return s.seen.includes(species) ? s : { ...s, seen: [...s.seen, species] };
 }
 
+/** Whether a wild Ranemon's kind has been befriended before, for the pint by its name in battle. */
+export function caughtBefore(s: StoryState, species: string): boolean {
+  return s.caught.includes(species);
+}
+
 /** Adds a new friend to the party, or to the Group Chat when the party is full. */
 export function recruit(
   s: StoryState,

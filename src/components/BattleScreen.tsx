@@ -55,6 +55,8 @@ export interface StoryBattle {
   bag: BagEntry[];
   /** The befriend rate of the wild Ranemon. */
   rate: number;
+  /** Whether you've befriended the wild Ranemon's kind before, for the pint by its name. */
+  caught?: boolean;
   /** Called when an item is used, so the story can take it out of the bag. */
   onUse: (id: string) => void;
   /** How far through its level each of your Ranemon is, 0 to 1. */
@@ -335,6 +337,7 @@ export function BattleScreen({
             hp={view[1].hp[view[1].active]}
             status={view[1].status[view[1].active]}
             mine={false}
+            caught={story?.caught}
           />
         )}
         {view[0].shown && (
