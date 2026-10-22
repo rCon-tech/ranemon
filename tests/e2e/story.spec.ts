@@ -759,8 +759,13 @@ test('story mode: Jamie Boyde on the concourse at Connolly has a question', asyn
   await page.keyboard.press('z');
   await expect(page.getByText('Should I put this pill in my ass?')).toBeVisible();
   await no.click();
-  await expect(text).toContainText('The ear, so?');
-  for (let i = 0; i < 4 && (await text.count()); i++) {
+  await expect(text).toContainText('I’m doing it anyway.');
+  for (let i = 0; i < 4 && !(await text.textContent())?.includes('puts the pill'); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toContainText('Jamie Boyde puts the pill in his ass.');
+  for (let i = 0; i < 8 && (await text.count()); i++) {
     await text.click();
     await page.waitForTimeout(100);
   }

@@ -14,7 +14,7 @@ export const UPDATES: Update[] = [
     date: '2026-10-22',
     title: 'A question at Connolly',
     notes: [
-      'Someone in a rugby kit is hanging around the concourse at Connolly Station. He has a question for you, and there is no right answer.',
+      'Someone in a rugby kit is hanging around the concourse at Connolly Station. He has a question for you. It doesn’t matter what you say.',
     ],
   },
   {

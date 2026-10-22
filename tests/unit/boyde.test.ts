@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { STYLES } from '@/components/story/people';
-import { BOYDE, BOYDE_ASKS, BOYDE_NO, BOYDE_YES } from '@/content/story/boyde';
+import {
+  BOYDE,
+  BOYDE_AFTER,
+  BOYDE_ASKS,
+  BOYDE_DOES_IT,
+  BOYDE_NO,
+  BOYDE_YES,
+} from '@/content/story/boyde';
 import { mapById } from '@/content/story/maps';
 import { RUNNING, STATION_ID } from '@/content/story/station';
 import { isWalkable, npcsOf, tileAt } from '@/lib/story/world';
@@ -27,10 +34,15 @@ describe('Jamie Boyde', () => {
     if (ask.do !== 'ask') throw new Error('Jamie should ask');
     expect(ask.text).toBe(BOYDE_ASKS);
     expect(ask.text).toContain('Should I put this pill in my ass?');
-    // Whatever you say, that's all there is to it.
-    expect(ask.yes).toEqual([{ do: 'say', text: BOYDE_YES }]);
-    expect(ask.no).toEqual([{ do: 'say', text: BOYDE_NO }]);
-    for (const line of [BOYDE_ASKS, BOYDE_YES, BOYDE_NO]) expect(line).toMatch(/^JAMIE BOYDE: /);
+    // Whatever you say, he puts the pill in his ass anyway.
+    const anyway = [
+      { do: 'say', text: BOYDE_DOES_IT },
+      { do: 'say', text: BOYDE_AFTER },
+    ];
+    expect(ask.yes).toEqual([{ do: 'say', text: BOYDE_YES }, ...anyway]);
+    expect(ask.no).toEqual([{ do: 'say', text: BOYDE_NO }, ...anyway]);
+    for (const line of [BOYDE_ASKS, BOYDE_YES, BOYDE_NO, BOYDE_AFTER])
+      expect(line).toMatch(/^JAMIE BOYDE: /);
   });
 
   it('wears the rugby kit of Boydemon’s second look', () => {
