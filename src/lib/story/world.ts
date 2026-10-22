@@ -138,6 +138,8 @@ export interface Npc {
   /** What talking to them does. A trainer's battle comes first if it hasn't been won. */
   talk?: Step[];
   trainer?: string;
+  /** A trainer who won't battle until this flag is set: until then, talking runs `talk`. */
+  readyIf?: string;
   /** Tiles a trainer can see along its facing; walking into view starts the battle. */
   sight?: number;
   /** Only there while this flag is set / not set. */
@@ -326,6 +328,7 @@ export function spottedBy(
   for (const n of npcsOf(map)) {
     const npc = n.item;
     if (!npc.trainer || !npc.sight || !isPresent(npc, flags) || beaten(npc.trainer)) continue;
+    if (npc.readyIf && !flags.has(npc.readyIf)) continue;
     const [dx, dy] = DELTA[npc.face];
     for (let d = 1; d <= npc.sight; d++) {
       const tx = n.x + dx * d;
