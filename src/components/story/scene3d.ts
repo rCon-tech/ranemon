@@ -1,6 +1,16 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { find, tileAt, type GameMap } from '@/lib/story/world';
+import { find, tileAt, type GameMap, type Party } from '@/lib/story/world';
+import {
+  balloonsAt,
+  bulbsOf,
+  CONFETTI_COLOURS,
+  fireworks,
+  glowOf,
+  hash,
+  SPARKS,
+  type Bulb,
+} from './partyfx';
 import { DOOR_LABEL, INK, LIGHT } from './pixels';
 import {
   CAR_COLOURS,
@@ -266,9 +276,19 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
     for (const d of find(map, door)) group.add(sign(label, door, d.x, d.y, own));
   }
 
+  // ---------- a party's fairy lights, strung overhead ----------
+  const lights = map.party ? fairyLights(bulbsOf(map.party.lights), own) : null;
+  if (lights) group.add(lights.group);
+  const fun = map.party ? partyExtras(map.party, at, cols, rows, own) : null;
+  if (fun) group.add(fun.group);
+
   return {
     group,
-    animate,
+    animate: (now) => {
+      animate(now);
+      lights?.animate(now);
+      fun?.animate(now);
+    },
     trees: forest.crowns,
     doors: ['P', 'M', 'G', 'H', 'L'].flatMap((d) => find(map, d)),
     dispose: () => {
@@ -531,6 +551,200 @@ export function buildTrees(trees: [number, number, number][]) {
 const STONE = new THREE.MeshLambertMaterial({ color: '#d8d6d0' });
 
 /** The Campanile: a stone plinth, four columns round the bell, a carved top and a little dome. */
+/** Strings of glowing bulbs, with a thin dark wire between them and a chase running along. */
+function fairyLights(bulbs: Bulb[], own: Own) {
+  const group = new THREE.Group();
+  const wire: number[] = [];
+  bulbs.forEach((b, i) => {
+    if (b.start) return;
+    const a = bulbs[i - 1];
+    wire.push(a.x, a.h, a.y, b.x, b.h, b.y);
+  });
+  const wireGeo = own(new THREE.BufferGeometry());
+  wireGeo.setAttribute('position', new THREE.Float32BufferAttribute(wire, 3));
+  group.add(
+    new THREE.LineSegments(wireGeo, own(new THREE.LineBasicMaterial({ color: '#2a2a34' }))),
+  );
+  const mesh = new THREE.InstancedMesh(
+    own(new THREE.SphereGeometry(0.06, 8, 6)),
+    own(new THREE.MeshBasicMaterial()),
+    bulbs.length,
+  );
+  const m = new THREE.Matrix4();
+  const colour = new THREE.Color();
+  bulbs.forEach((b, i) => mesh.setMatrixAt(i, m.makeTranslation(b.x, b.h - 0.05, b.y)));
+  let beat = -1;
+  const animate = (now: number) => {
+    const next = Math.floor(now / 350);
+    if (next === beat) return;
+    beat = next;
+    bulbs.forEach((b, i) =>
+      mesh.setColorAt(i, colour.set(b.colour).multiplyScalar(glowOf(b, now))),
+    );
+    mesh.instanceColor!.needsUpdate = true;
+  };
+  animate(0);
+  group.add(mesh);
+  return { group, animate };
+}
+
+/** Balloons on their strings, confetti falling, beams sweeping the sky and fireworks. */
+function partyExtras(
+  party: Party,
+  at: (x: number, y: number) => string,
+  cols: number,
+  rows: number,
+  own: Own,
+) {
+  const group = new THREE.Group();
+  const m = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const e = new THREE.Euler();
+  const v = new THREE.Vector3();
+  const one = new THREE.Vector3(1, 1, 1);
+  const colour = new THREE.Color();
+
+  // Balloons: three to a bunch, each on a string down to where they're tied.
+  const balloonGeo = own(new THREE.SphereGeometry(0.16, 12, 10));
+  balloonGeo.scale(1, 1.2, 1);
+  const bunches = (party.balloons ?? []).map(([bx, by], i) => {
+    const tile = at(bx, by);
+    const base = tile === 'K' ? 2.1 : (HEIGHT[tile] ?? 0.4);
+    const parts = balloonsAt(i, 0).map((b) => {
+      const ball = new THREE.Mesh(
+        balloonGeo,
+        own(
+          new THREE.MeshLambertMaterial({
+            color: b.colour,
+            emissive: b.colour,
+            emissiveIntensity: 0.25,
+          }),
+        ),
+      );
+      ball.castShadow = true;
+      const lineGeo = own(new THREE.BufferGeometry());
+      lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Array(6).fill(0), 3));
+      const line = new THREE.Line(lineGeo, STRING);
+      group.add(ball, line);
+      return { ball, lineGeo };
+    });
+    return { x: bx + 0.5, y: base, z: by + 0.5, i, parts };
+  });
+
+  // Confetti: little paper squares tumbling down all over the map.
+  const CONFETTI = 220;
+  const confetti = new THREE.InstancedMesh(
+    own(new THREE.PlaneGeometry(0.07, 0.11)),
+    own(new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })),
+    CONFETTI,
+  );
+  for (let i = 0; i < CONFETTI; i++)
+    confetti.setColorAt(i, colour.set(CONFETTI_COLOURS[i % CONFETTI_COLOURS.length]));
+  group.add(confetti);
+
+  // Beams of coloured light from the corners of the square, sweeping the sky.
+  const beamGeo = own(new THREE.ConeGeometry(0.7, 10, 20, 1, true));
+  beamGeo.translate(0, -5, 0);
+  beamGeo.rotateX(Math.PI);
+  const beams = ['#ff4d6d', '#4dabff', '#4be08a', '#b06bff'].map((c, i) => {
+    const beam = new THREE.Mesh(
+      beamGeo,
+      own(
+        new THREE.MeshBasicMaterial({
+          color: c,
+          transparent: true,
+          opacity: 0.13,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
+      ),
+    );
+    beam.position.set(i % 2 ? cols - 1.5 : 1.5, 0, i < 2 ? rows - 1.5 : 6.5);
+    group.add(beam);
+    return beam;
+  });
+
+  // Fireworks: a rocket, then a ring of sparks that falls and fades.
+  const sparks = new THREE.InstancedMesh(
+    own(new THREE.SphereGeometry(0.07, 6, 4)),
+    own(new THREE.MeshBasicMaterial()),
+    2 * (SPARKS + 1),
+  );
+  group.add(sparks);
+  let lastBursts = '';
+
+  const animate = (now: number) => {
+    for (const b of bunches) {
+      balloonsAt(b.i, now).forEach((p, k) => {
+        const { ball, lineGeo } = b.parts[k];
+        ball.position.set(b.x + p.dx, b.y + p.rise, b.z);
+        const pos = lineGeo.getAttribute('position') as THREE.BufferAttribute;
+        pos.setXYZ(0, b.x, b.y, b.z);
+        pos.setXYZ(1, ball.position.x, ball.position.y - 0.18, b.z);
+        pos.needsUpdate = true;
+      });
+    }
+
+    for (let i = 0; i < CONFETTI; i++) {
+      const life = 5000 + hash(i) * 4000;
+      const tt = ((now + hash(i + 99) * life) % life) / life;
+      v.set(hash(i + 7) * cols + Math.sin(tt * 9 + i) * 0.4, 4.5 - tt * 4.6, hash(i + 13) * rows);
+      q.setFromEuler(e.set(now / 300 + i, now / 400 + i * 2, 0));
+      confetti.setMatrixAt(i, m.compose(v, q, one));
+    }
+    confetti.instanceMatrix.needsUpdate = true;
+
+    beams.forEach((beam, i) => {
+      beam.rotation.set(
+        Math.sin(now / (1900 + i * 250) + i) * 0.5 - (i < 2 ? 0.25 : -0.1),
+        0,
+        Math.sin(now / (1600 + i * 300) + i * 2) * 0.6,
+      );
+    });
+
+    const bursts = fireworks(now);
+    const key = bursts.map((f) => f.n).join();
+    bursts.forEach((f, lane) => {
+      const cx = f.x * cols;
+      const cz = 5 + f.y * 3;
+      const top = 3.4;
+      const first = lane * (SPARKS + 1);
+      if (f.t < 0.25) {
+        v.set(cx, 0.5 + (top - 0.5) * (f.t / 0.25), cz);
+        sparks.setMatrixAt(first, m.compose(v, q.identity(), one));
+        for (let i = 1; i <= SPARKS; i++) sparks.setMatrixAt(first + i, m.makeScale(0, 0, 0));
+        return;
+      }
+      const k = (f.t - 0.25) / 0.75;
+      sparks.setMatrixAt(first, m.makeScale(0, 0, 0));
+      for (let i = 1; i <= SPARKS; i++) {
+        const a = (i / SPARKS) * Math.PI * 2 + f.n;
+        const r = Math.sqrt(k) * 1.6;
+        v.set(cx + Math.cos(a) * r, top + Math.sin(a) * r - k * k * 0.9, cz);
+        const size = 1 - k;
+        sparks.setMatrixAt(
+          first + i,
+          m.compose(v, q.identity(), new THREE.Vector3(size, size, size)),
+        );
+      }
+    });
+    if (key !== lastBursts) {
+      lastBursts = key;
+      bursts.forEach((f, lane) => {
+        for (let i = 0; i <= SPARKS; i++)
+          sparks.setColorAt(lane * (SPARKS + 1) + i, colour.set(i ? f.colour : '#fff2c0'));
+      });
+      sparks.instanceColor!.needsUpdate = true;
+    }
+    sparks.instanceMatrix.needsUpdate = true;
+  };
+  animate(0);
+  return { group, animate };
+}
+
+const STRING = new THREE.LineBasicMaterial({ color: '#f0f0f0' });
+
 function campanile(x: number, y: number) {
   const out = new THREE.Group();
   const part = (w: number, h: number, d: number, px: number, py: number, pz: number) => {

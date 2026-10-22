@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HOME_ID, interiorId } from '@/content/story/interiors';
-import { INTERIORS, MAPS, mapById } from '@/content/story/maps';
+import { AFTER_MAPS, INTERIORS, MAPS, mapById } from '@/content/story/maps';
 import { teamOf, TRAINERS, trainerById } from '@/content/story/trainers';
 import { speciesById } from '@/lib/story/party';
 import {
@@ -55,7 +55,10 @@ function stepsOf(steps: Step[]): Step[] {
   );
 }
 
-describe.each(MAPS.map((m) => [m.id, m]))('map %s', (_, map) => {
+describe.each([
+  ...MAPS.map((m) => [m.id, m] as const),
+  ...AFTER_MAPS.map((m) => [`${m.id} (after)`, m] as const),
+])('map %s', (_, map) => {
   it('is a rectangle with a border', () => {
     const width = map.rows[0].length;
     for (const row of map.rows) expect(row.length, row).toBe(width);

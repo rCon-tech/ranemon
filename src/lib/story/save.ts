@@ -1,4 +1,4 @@
-import { mapById } from '@/content/story/maps';
+import { mapById, mapFor } from '@/content/story/maps';
 import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
@@ -345,7 +345,7 @@ export function describe(s: StoryState): string {
   const lead = s.party[0];
   let place = s.map;
   try {
-    place = mapById(s.map).name;
+    place = mapFor(s.map, s.flags).name;
   } catch {}
   return `${place} · ${s.party.length} Ranemon${lead ? ` (Lv${lead.level} lead)` : ''} · ${jerseys} jerseys`;
 }

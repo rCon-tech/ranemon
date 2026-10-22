@@ -1,3 +1,4 @@
+import { BEAT_MS } from './partyfx';
 import { TILE } from './pixels';
 
 /**
@@ -40,8 +41,8 @@ export function frameOf(tile: string, now: number): number {
   if (tile === '~' || tile === 'B' || tile === 'b' || tile === 'y')
     return Math.floor(now / 220) % 4;
   if (tile === ',' || tile === '"') return Math.floor(now / 600) % 2;
-  // The dance floor changes colour on the beat, at about 120 a minute.
-  if (tile === 'l') return Math.floor(now / 500) % 4;
+  // The dance floor changes colour on the beat, in time with the dancers.
+  if (tile === 'l') return Math.floor(now / BEAT_MS) % 4;
   return 0;
 }
 

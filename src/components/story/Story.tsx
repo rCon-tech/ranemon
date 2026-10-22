@@ -12,7 +12,7 @@ import { areaSong, battleSong, lineCues } from '@/lib/sound/cues';
 import { playSfx } from '@/lib/sound/engine';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
-import { mapById, outsideOf } from '@/content/story/maps';
+import { mapById, mapFor, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
@@ -32,7 +32,7 @@ import {
 import { remoteSaves } from '@/lib/story/remote';
 import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
-import { applyItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
+import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
 import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
 import {
@@ -78,6 +78,7 @@ import {
 import {
   DELTA,
   doorIndex,
+  crowdAt,
   doorStep,
   DOORS,
   EXIT,
@@ -93,6 +94,7 @@ import {
   tileAt,
   type Dir,
   type GameMap,
+  type Stall,
   type Step,
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
@@ -263,6 +265,8 @@ export function Story() {
   const [overlay, setOverlay] = useState<Overlay>(null);
   /** The question on screen while the overlay is 'ask'. */
   const [ask, setAsk] = useState<Extract<Step, { do: 'ask' }> | null>(null);
+  /** Whose stall the shop is while the overlay is 'shop': null for Vapes. */
+  const [stall, setStall] = useState<Stall | null>(null);
   const [fight, setFight] = useState<Fight | null>(null);
   const [flash, setFlash] = useState<'plain' | 'shiny' | null>(null);
   const [exclaim, setExclaim] = useState<number | null>(null);
@@ -275,7 +279,7 @@ export function Story() {
   const offBike = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Music: the title, then the place you're in. Battles play their own.
-  const here = game ? mapById(game.map) : null;
+  const here = game ? mapFor(game.map, game.flags) : null;
   useMusic(
     !game || !here
       ? 'title'
@@ -285,7 +289,9 @@ export function Story() {
           ? 'wild'
           : riding
             ? 'bike'
-            : areaSong(here.id, outsideOf(here).id),
+            : here.party
+              ? 'pub'
+              : areaSong(here.id, outsideOf(here).id),
   );
   // A door's sound going in or out of a room.
   const lastMap = useRef<string | null>(null);
@@ -356,7 +362,7 @@ export function Story() {
             q.unshift(...(hasFlag(g, s.flag) ? s.then : (s.else ?? [])));
             break;
           case 'flee': {
-            const runner = npcsOf(mapById(g.map)).find((n) => n.item.hideIf === s.flag);
+            const runner = npcsOf(mapFor(g.map, g.flags)).find((n) => n.item.hideIf === s.flag);
             if (!runner || !isPresent(runner.item, new Set(g.flags))) {
               g = setFlag(g, s.flag);
               break;
@@ -399,6 +405,7 @@ export function Story() {
             setGame(g);
             setQueue(q);
             setLine(null);
+            if (s.do === 'shop') setStall(s.stall ?? null);
             setOverlay(s.do === 'offer-chat' ? 'offer-chat' : s.do === 'shop' ? 'shop' : s.do);
             return;
           case 'travel': {
@@ -479,7 +486,7 @@ export function Story() {
     flight !== null;
 
   function startGame(g: StoryState, fresh: boolean) {
-    const map = mapById(g.map);
+    const map = mapFor(g.map, g.flags);
     const intro =
       fresh && map.enter ? [...map.enter, { do: 'flag' as const, flag: `visited:${map.id}` }] : [];
     run(g, intro);
@@ -489,11 +496,11 @@ export function Story() {
 
   function onStep(to: Position) {
     if (!game) return;
-    const map = mapById(game.map);
+    const map = mapFor(game.map, game.flags);
     const width = map.rows[0].length;
     if (to.x < 0 || to.x >= width) {
       const nextId = to.x < 0 ? map.west! : map.east!;
-      const next = mapById(nextId);
+      const next = mapFor(nextId, game.flags);
       const at = marker(next, to.x < 0 ? '>' : '@');
       let g: StoryState = { ...game, map: nextId, ...at, face: to.face };
       const steps: Run[] = [];
@@ -580,7 +587,7 @@ export function Story() {
   /** What's in front of you, for A or walking into a door. */
   function interact(x: number, y: number, face: Dir, bumped: boolean) {
     if (!game || busy) return;
-    const map = mapById(game.map);
+    const map = mapFor(game.map, game.flags);
     const tile = tileAt(map, x, y);
     const flags = new Set(game.flags);
     const npc = npcsOf(map).find((n) => n.x === x && n.y === y && isPresent(n.item, flags));
@@ -597,6 +604,12 @@ export function Story() {
       if (t) return run(game, [{ do: 'say', text: trainerById(t).after }]);
       return;
     }
+    const dancer = crowdAt(map, x, y);
+    if (dancer >= 0) {
+      if (bumped) return;
+      const lines = map.party?.lines ?? [];
+      return run(game, [{ do: 'say', text: lines[dancer % lines.length] ?? '♪ ♪ ♪' }]);
+    }
     if (!bumped && map.things?.[tile]) return run(game, [{ do: 'say', text: map.things[tile] }]);
     if (DOORS.has(tile)) return goInside(map, x, y, tile);
     switch (tile) {
@@ -605,7 +618,7 @@ export function Story() {
         return;
       case EXIT: {
         if (!map.inside) return;
-        const outside = mapById(map.inside.map);
+        const outside = mapFor(map.inside.map, game.flags);
         const g: StoryState = {
           ...game,
           map: outside.id,
@@ -658,7 +671,7 @@ export function Story() {
     if (overlay === 'dex' && dexNav.current) return dexNav.current.a();
     if (!game || busy) return;
     const [dx, dy] = DELTA[game.face];
-    const map = mapById(game.map);
+    const map = mapFor(game.map, game.flags);
     // Talk across a counter to whoever is behind it.
     const across = tileAt(map, game.x + dx, game.y + dy) === 'C' ? 2 : 1;
     interact(game.x + dx * across, game.y + dy * across, game.face, false);
@@ -1035,7 +1048,7 @@ export function Story() {
     );
   }
 
-  const map = mapById(game.map);
+  const map = mapFor(game.map, game.flags);
   const flags = new Set(game.flags);
   const walker = follower(game);
   const norm = flags.has(NORM);
@@ -1197,9 +1210,10 @@ export function Story() {
         {overlay === 'shop' && (
           <ShopPanel
             game={game}
+            stall={stall}
             onClose={closeOverlay}
             onBuy={(id) => {
-              const price = itemById(id).price ?? Infinity;
+              const price = priceOf(id, stall);
               if (game.money >= price) setGame(give({ ...game, money: game.money - price }, id));
             }}
           />

@@ -298,6 +298,10 @@ const T: Trainer[] = [
       { do: 'say', text: 'B&S: And take Petchemon. He was only ever spying for us anyway.' },
       { do: 'recruit', species: 'petchemon', level: 55 },
       { do: 'ending' },
+      {
+        do: 'say',
+        text: 'Music starts up all over Front Square and the fairy lights come on. B&S have called it: the TRINITY BALL is on, and everyone’s invited!',
+      },
     ],
   },
   {

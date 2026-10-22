@@ -12,8 +12,9 @@ import { Figure } from './figure3d';
 import { Bike, Norm } from './models3d';
 import { monStyle, STYLES, type BikeKind } from './people';
 import { INK, LIGHT } from './pixels';
+import { dance } from './partyfx';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { dance, isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
+import { isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -27,6 +28,9 @@ const DISTANCE = 15.5;
 const LEAN = -0.35;
 
 /** Puts a texture on a mesh's own material. */
+/** Arms and legs on the beat: one way, then the other. */
+const danceSwing = (m: ReturnType<typeof dance>) => (m.beat % 2 ? 1 : -1) * m.hop * 0.8;
+
 function show(mesh: THREE.Mesh, map: THREE.Texture) {
   const mat = mesh.material as THREE.MeshLambertMaterial;
   if (mat.map !== map) {
@@ -389,34 +393,39 @@ export default function Overworld3D(props: Props) {
           );
           continue;
         }
-        if (n.item.dances && p.faces[n.index] === undefined) {
-          // On the dance floor: turning about, arms going, hopping on the beat.
-          const d = dance(n.index, now);
-          person(
-            `npc:${n.index}:${look}`,
-            () => new Figure(look, STYLES[look]),
-            d.face,
-            n.x + 0.5,
-            n.y + 0.5,
-            Math.sin(d.t * Math.PI) * (d.step ? 1 : -1),
-            d.hop * 0.08,
-          );
-          continue;
-        }
+        // At a party or on a dance floor everyone dances, except a trainer on the lookout or whoever you're talking to.
+        const moves =
+          (map.party || n.item.dances) && !n.item.sight && !p.faces[n.index]
+            ? dance(n.index, now)
+            : null;
         person(
           `npc:${n.index}:${look}`,
           () => new Figure(look, STYLES[look]),
-          p.faces[n.index] ?? n.item.face,
+          moves?.dir ?? p.faces[n.index] ?? n.item.face,
           n.x + 0.5,
           n.y + 0.5,
-          0,
-          idle(n.index * 0.37),
+          moves ? danceSwing(moves) : 0,
+          moves ? moves.hop * 0.08 : idle(n.index * 0.37),
         );
         if (p.exclaim === n.index) {
           exclaim.position.set(n.x + 0.5, 2.1, n.y + 0.2);
           exclaim.visible = true;
         }
       }
+
+      // A party's crowd, dancing.
+      map.party?.crowd?.forEach((d, i) => {
+        const moves = dance(i + 10, now);
+        person(
+          `crowd:${i}:${d.look}`,
+          () => new Figure(d.look, STYLES[d.look]),
+          moves.dir,
+          d.x + 0.5,
+          d.y + 0.5,
+          danceSwing(moves),
+          moves.hop * 0.08,
+        );
+      });
 
       const tr = trail.current;
       followerHead.visible = false;

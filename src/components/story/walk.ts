@@ -154,26 +154,3 @@ export function runOff(f: Flight, now: number): { tiles: number; step: number; t
   const step = Math.floor(tiles);
   return { tiles, step, t: tiles - step };
 }
-
-/** One beat of the dancing, matching the dance floor's lights. */
-export const BEAT_MS = 500;
-const MOVES: Dir[] = ['down', 'left', 'down', 'right'];
-
-/**
- * Where a dancer is at `now`: the way they face, turning on every second beat, out of step with
- * the dancer beside them, which foot is forward, and how high they're hopping (0 to 1).
- */
-export function dance(
-  index: number,
-  now: number,
-): { face: Dir; step: number; t: number; hop: number } {
-  const beats = now / BEAT_MS + index * 0.45;
-  const beat = Math.floor(beats);
-  const t = beats - beat;
-  return {
-    face: MOVES[Math.floor(beat / 2 + index) % MOVES.length],
-    step: beat % 2,
-    t,
-    hop: Math.sin(t * Math.PI),
-  };
-}

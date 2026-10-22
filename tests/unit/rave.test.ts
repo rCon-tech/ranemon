@@ -5,7 +5,7 @@ import { BOUNCER, RAVE_ID, RAVE_TRAINERS } from '@/content/story/rave';
 import { STATION_ID } from '@/content/story/station';
 import { trainerById } from '@/content/story/trainers';
 import { STYLES } from '@/components/story/people';
-import { BEAT_MS, dance } from '@/components/story/walk';
+import { BEAT_MS, dance } from '@/components/story/partyfx';
 import { find, isWalkable, npcsOf, tileAt, type Step } from '@/lib/story/world';
 
 /** Plays a script with every question answered `answer`, returning what was said and fought. */
@@ -87,9 +87,9 @@ describe('the Rave Cave', () => {
 
   it('dances on the beat, out of step with the dancer beside them', () => {
     const at = (i: number, beat: number) => dance(i, beat * BEAT_MS);
-    const faces = new Set(Array.from({ length: 8 }, (_, b) => at(0, b).face));
+    const faces = new Set(Array.from({ length: 8 }, (_, b) => at(0, b).dir));
     expect(faces.size).toBeGreaterThan(1);
-    expect(at(0, 0).face).not.toBe(at(1, 0).face);
+    expect(at(0, 0).dir).not.toBe(at(1, 0).dir);
     for (let b = 0; b < 8; b++) {
       const d = at(2, b + 0.3);
       expect(d.hop).toBeGreaterThanOrEqual(0);
