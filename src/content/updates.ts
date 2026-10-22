@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'The celebrations go on',
+    notes: [
+      'Once you’re Champion, someone is looking for you back in Dublin with an invitation abroad. Already Champion? Head out into Dublin and you’ll be found.',
+      'A fourth line runs from Connolly Station for anyone who says yes, to a night you won’t forget, if you can get past the door.',
+      'A new tune to go with it, in the Sound Test too.',
+      'This trip is in the 2D look only for now. It switches to 2D by itself while you’re there.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A new best friend',
     notes: [
       'Someone very friendly is waiting on the road out of Kildare, and he has big plans for a trip abroad. If you’re already past Kildare, go back and say hello.',

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
+import { TECHNO_DONE } from '@/content/story/cramps';
+import { TECHNO_DJ } from '@/content/story/techno';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
@@ -55,7 +57,7 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
-    for (const f of storyFlags().filter((f) => f !== NORM && f !== BRIGHTON_DONE))
+    for (const f of storyFlags().filter((f) => ![NORM, BRIGHTON_DONE, TECHNO_DONE].includes(f)))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
     expect(g.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all')).toHaveLength(9);
@@ -65,14 +67,18 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins and the Arcade King to fight', () => {
-    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS, ARCADE_KING];
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King and DJ Vandenbass to fight', () => {
+    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS, ARCADE_KING, TECHNO_DJ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);
     for (const id of bosses) expect(flags.has(beatFlag(id)), id).toBe(false);
     expect(flags.has(NORM)).toBe(false);
     // The end of the Brighton trip comes with beating the King, so that's left to play too.
     expect(flags.has(BRIGHTON_DONE)).toBe(false);
+    // Likewise the start of I Love Techno, but the guards are beaten and Cramps has asked you.
+    expect(flags.has(TECHNO_DONE)).toBe(false);
+    expect(flags.has('techno:asked')).toBe(true);
+    expect(flags.has('beat:techno-dirk')).toBe(true);
   });
 
   it('has a bag full of everything and money to burn', () => {

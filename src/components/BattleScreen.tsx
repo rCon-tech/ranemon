@@ -86,6 +86,8 @@ interface Props {
   scene?: Scene;
   /** The battle theme; battle mode's rival gets the trainers' one. */
   music?: SongId;
+  /** Only in 2D for now, whichever look is picked: battles in Ghent. */
+  flat?: boolean;
   onFinish: (result: Result, state: BattleState, fought: number[]) => void;
 }
 
@@ -149,6 +151,7 @@ export function BattleScreen({
   scene = 'field',
   music = 'trainer',
   remote,
+  flat,
   onFinish,
 }: Props) {
   const [session, dispatch] = useReducer(reduce, null, () =>
@@ -268,7 +271,8 @@ export function BattleScreen({
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
   useAnimationSpeed();
-  const look = useView();
+  const chosen = useView();
+  const look = flat ? '2d' : chosen;
 
   return (
     <div className="flex flex-1 flex-col">

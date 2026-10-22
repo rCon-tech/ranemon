@@ -1,5 +1,6 @@
 import { BOYDE } from './boyde';
 import { ENDA_ASKED } from './enda';
+import { CRAMPS_AT_STATION, TECHNO_ASKED } from './cramps';
 import { interiorId } from './interiors';
 import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
 
@@ -120,8 +121,34 @@ export const DEPARTURES: (Departure | Line)[] = [
       notNow: 'SAILOR: Enjoy Brighton. Mind your chips.',
     },
   },
-  { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 4, soon: true },
-  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 5, soon: true },
+  {
+    id: 'belgium',
+    line: 'Eurostar',
+    to: 'Ghent, Belgium',
+    platform: 4,
+    at: { x: 3, y: 4, face: 'right' },
+    staff: 'eurostar',
+    ask: 'EUROSTAR HOST: Through to Ghent, Belgium: the ferry, a train to London, then the Eurostar under the sea. All aboard for I Love Techno?',
+    notNow: 'EUROSTAR HOST: No problem. The festival goes on for twelve hours. You have time.',
+    ride: [
+      'The ferry to Holyhead, a train to London, and then the Eurostar, down into the tunnel under the sea. Cramps is playing techno off his phone the whole way.',
+      'Out the other side in France, on to Brussels, and a local train to Ghent. Half the carriage is wearing glow sticks.',
+    ],
+    first:
+      'GHENT, BELGIUM. Canals, a castle, stepped gables and waffles, and a queue for I Love Techno that goes round the block.',
+    lock: {
+      flag: TECHNO_ASKED,
+      locked:
+        'CLERK: The I Love Techno special to Ghent? Guest list only, I’m afraid. Word is Cramps the DJ is putting one together to celebrate the new Champion of Ireland.',
+    },
+    back: {
+      ask: 'EUROSTAR HOST: Back to Dublin Connolly?',
+      ride: 'Back under the sea, up through England and Wales, over the Irish Sea, and into Connolly. Your ears are still ringing.',
+      notNow: 'EUROSTAR HOST: Enjoy the festival. Bring earplugs.',
+    },
+  },
+  { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 5, soon: true },
+  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 6, soon: true },
 ];
 
 export const isRunning = (d: Departure | Line): d is Departure => !d.soon;
@@ -204,9 +231,12 @@ const STAFF_X = [2, 7, 3, 6];
 /** Where Jamie Boyde stands on the concourse, by the benches, out of everyone's way. */
 const BOYDE_AT = { x: 7, y: 5 };
 
+/** Where Cramps waits on the concourse once he's asked you to I Love Techno. */
+const CRAMPS_AT = { x: 5, y: 5 };
+
 export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
   // The clerk is person 1; each running line's staff stand at the top, in platform order, and
-  // Jamie Boyde comes after them.
+  // Jamie Boyde and Cramps come after them.
   const staff = RUNNING.slice(0, STAFF_X.length);
   const rows = [
     'WWWWWWWWWW',
@@ -221,6 +251,7 @@ export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
   ].map((r) => r.split(''));
   staff.forEach((_, i) => (rows[2][STAFF_X[i]] = String(i + 2)));
   rows[BOYDE_AT.y][BOYDE_AT.x] = String(staff.length + 2);
+  rows[CRAMPS_AT.y][CRAMPS_AT.x] = String(staff.length + 3);
   return {
     name: 'Connolly Station',
     rows: rows.map((r) => r.join('')),
@@ -228,6 +259,7 @@ export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
       { look: 'clerk', face: 'down', talk: CLERK },
       ...staff.map((d) => ({ look: d.staff, face: 'down' as Dir, talk: aboard(d) })),
       BOYDE,
+      CRAMPS_AT_STATION,
     ],
     things: {
       D: boardText(),

@@ -96,8 +96,8 @@ describe('Connolly Station', () => {
     expect(station.things?.D).toBe(boardText());
     // A line that runs goes to a real map; one that's coming soon has no staff yet.
     for (const d of RUNNING) expect(mapById(d.id)).toBeTruthy();
-    // The clerk, the staff, and Jamie Boyde on the concourse.
-    expect(npcsOf(station)).toHaveLength(RUNNING.length + 2);
+    // The clerk, the staff, and Jamie Boyde and Cramps on the concourse.
+    expect(npcsOf(station)).toHaveLength(RUNNING.length + 3);
   });
 
   it('keeps a locked line shut until its flag is set', () => {
