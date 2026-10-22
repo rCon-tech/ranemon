@@ -701,3 +701,108 @@ test('story mode: the DART from Pearse Station to Greystones, where Kill has a c
   expect(save.map).toBe('greystones');
   expect(save.flags).toContain('greystones:heard');
 });
+
+test('story mode: Paul Mescal is sad, loses, says look over there and runs off', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:paul')) return;
+    // Down past Temple Bar, a few steps along the street from him.
+    localStorage.setItem(
+      'ranemon.story.v1:paul',
+      JSON.stringify({
+        version: 1,
+        map: 'dublin',
+        x: 11,
+        y: 13,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 100,
+            exp: 1000000,
+            hp: 400,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:dublin'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Paul');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+
+  // One step right and he sees you.
+  await page.keyboard.press('ArrowRight');
+  await expect(text).toContainText('Academy Award nominated', { timeout: 10_000 });
+  await expect(text).toContainText('really, really sad', { timeout: 10_000 });
+  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+
+  // The battle: always the first move.
+  const fight = page.getByRole('button', { name: 'FIGHT' });
+  const proceed = page.getByRole('button', { name: 'CONTINUE' });
+  await expect(page.getByTestId('text-box')).toContainText('Paul Mescal sent out', {
+    timeout: 15_000,
+  });
+  for (let i = 0; i < 400 && !(await proceed.isVisible()); i++) {
+    if (await fight.isVisible()) {
+      await fight.click();
+      await page
+        .getByRole('group', { name: 'Moves' })
+        .getByRole('button', { disabled: false })
+        .first()
+        .click();
+      await page.getByRole('button', { name: /^USE / }).click();
+    } else if (await page.getByTestId('text-box').isVisible()) {
+      await page.getByTestId('text-box').click();
+    }
+  }
+  await proceed.click();
+
+  // Sadder still, then off he runs.
+  for (let i = 0; i < 20 && !/Look over there!/.test((await text.textContent()) ?? ''); i++) {
+    await text.click();
+    await page.waitForTimeout(150);
+  }
+  await expect(text).toContainText('even sadder');
+  // Tap until the line moves on: once to finish typing it, once more to go on.
+  for (let i = 0; i < 4 && /Look over there!/.test((await text.textContent()) ?? ''); i++) {
+    await text.click();
+    await page.waitForTimeout(200);
+  }
+  await expect(text).toHaveText(/There’s nothing over there\. Paul Mescal is gone\./, {
+    timeout: 10_000,
+  });
+  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+  await expect(text).toHaveCount(0);
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:paul')!),
+  );
+  expect(save.flags).toContain('beat:dublin-mescal');
+  expect(save.flags).toContain('mescal:gone');
+  // He's gone: you can walk on to where he stood.
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(400);
+  }
+  await expect(world).toHaveAttribute('data-x', '15', { timeout: 5_000 });
+  await expect(world).toHaveAttribute('data-y', '13');
+});

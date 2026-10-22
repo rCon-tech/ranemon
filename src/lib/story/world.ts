@@ -24,7 +24,7 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  * Indoors (see content/story/interiors.ts): `g` gym floor and `r` rug are walkable, and `E` is
  * the way out, blocked like a door.
  * Markers that are grass underneath: `@` arrival from the west (and the start), `>` arrival from
- * the east, `*` a hidden Blue Ghost, `1`-`9` the map's people in order.
+ * the east, `*` a hidden Blue Ghost, `1`-`9` the map's people in order, then `0` for a tenth.
  */
 export type Tile = string;
 
@@ -66,7 +66,8 @@ export type Look =
   | 'cramps'
   | 'pear'
   | 'cyclist'
-  | 'alex';
+  | 'alex'
+  | 'mescal';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -84,6 +85,11 @@ export type Step =
   | { do: 'recruit'; species: string; level: number }
   /** Takes you somewhere far off, by train: to a map, standing on a tile, facing a way. */
   | { do: 'travel'; map: string; x: number; y: number; face: Dir }
+  /**
+   * Whoever on this map is hidden by `flag` runs off the way given and out of sight, then the
+   * flag is set so they stay gone.
+   */
+  | { do: 'flee'; flag: string; dir: Dir }
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }
@@ -187,7 +193,10 @@ export interface Placed<T> {
   item: T;
 }
 
-const MARKERS = new Set(['@', '>', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+const MARKERS = new Set(['@', '>', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
+
+/** The marker for a map's person at an index: `1` to `9`, then `0` for the tenth. */
+export const slot = (index: number) => (index === 9 ? '0' : String(index + 1));
 
 /**
  * The tile under a position; outside the map counts as a tree. A marker takes the ground of the
@@ -221,7 +230,7 @@ export function marker(map: GameMap, c: '@' | '>'): { x: number; y: number } {
 
 export function npcsOf(map: GameMap): Placed<Npc>[] {
   return map.npcs.map((npc, i) => {
-    const at = find(map, String(i + 1))[0];
+    const at = i < 10 ? find(map, slot(i))[0] : undefined;
     if (!at) throw new Error(`${map.id} has no slot ${i + 1}`);
     return { ...at, index: i, item: npc };
   });

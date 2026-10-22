@@ -135,3 +135,22 @@ export const stepPose = (t: number, step: number) =>
 /** Whether you're on the bike: for the step you're taking, or standing with B held. */
 export const isRiding = (w: Walk, p: Walker) =>
   !!p.bike && (w.from ? w.riding : !!p.held.current?.b);
+
+/** Someone running off: which of the map's people, which way, and when they set off. */
+export interface Flight {
+  index: number;
+  dir: Dir;
+  t0: number;
+  dur: number;
+}
+
+/** How many tiles a runner covers before they're out of sight, at bike speed. */
+export const FLEE_TILES = 8;
+export const FLEE_MS = FLEE_TILES * BIKE_MS;
+
+/** Where a runner has got to at `now`: tiles from where they stood, and the step they're on. */
+export function runOff(f: Flight, now: number): { tiles: number; step: number; t: number } {
+  const tiles = Math.max(0, Math.min(FLEE_TILES, ((now - f.t0) / f.dur) * FLEE_TILES));
+  const step = Math.floor(tiles);
+  return { tiles, step, t: tiles - step };
+}
