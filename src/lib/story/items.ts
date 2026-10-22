@@ -1,5 +1,5 @@
 import { MAX_LEVEL } from '../battle/creature';
-import { itemEvolutionOf } from '../battle/evolutions';
+import { itemEvolutionOf, lineOf } from '../battle/evolutions';
 import { MAX_STAGE } from '../battle/engine';
 import type { Stat, Status } from '../battle/moves';
 import type { ItemEffect, Pint } from '../ui/session';
@@ -22,7 +22,8 @@ export type ItemId =
   | 'blue-razz'
   | 'cherry-cola'
   | 'mango-tango'
-  | 'flannel-shirt';
+  | 'flannel-shirt'
+  | 'vegan-stone';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
@@ -32,7 +33,12 @@ export type ItemUse =
   /** A vape: raises a stat of the Ranemon that's out, in battle only, until the battle ends. */
   | { kind: 'vape'; effect: Extract<ItemEffect, { kind: 'boost' }> }
   /** Sets off an item evolution (`ITEM_EVOLUTIONS`), outside battle only. */
-  | { kind: 'evolve' };
+  | { kind: 'evolve' }
+  /**
+   * Given to a Ranemon of one line to hold, outside battle. While it holds it, a stat is
+   * multiplied in every battle. Taken back from PARTY.
+   */
+  | { kind: 'hold'; line: string; stat: Stat; factor: number };
 
 export interface Item {
   id: ItemId;
@@ -183,6 +189,15 @@ export const ITEMS: Item[] = [
     from: 3,
     use: { kind: 'evolve' },
   },
+  {
+    id: 'vegan-stone',
+    name: 'Vegan Stone',
+    about:
+      'A smooth green stone from the Happy Pear Twins. Give it to Conemon or Conix to hold: Attack up 20% in every battle.',
+    price: null,
+    from: 99,
+    use: { kind: 'hold', line: 'conemon', stat: 'attack', factor: 1.2 },
+  },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
@@ -209,6 +224,7 @@ export interface Target {
 export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
   if (use.kind === 'level') return t.level < MAX_LEVEL;
   if (use.kind === 'evolve') return !!item && !!t.species && !!itemEvolutionOf(t.species, item);
+  if (use.kind === 'hold') return !!t.species && lineOf(t.species) === use.line;
   if (use.kind === 'pint') return false;
   if (use.kind === 'vape')
     return !!t.active && !!t.stages && t.hp > 0 && t.stages[use.effect.stat] < MAX_STAGE;
@@ -231,6 +247,13 @@ export const canUseOn = (item: Item, m: Member) =>
     { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level, species: m.species },
     item.id,
   );
+
+/** What a member's held item does in battle: its stat multipliers, if it's of the right line. */
+export function heldBoost(m: Member): Partial<Record<Stat, number>> | undefined {
+  const use = m.held && BY_ID.get(m.held)?.use;
+  if (!use || use.kind !== 'hold' || lineOf(m.species) !== use.line) return undefined;
+  return { [use.stat]: use.factor };
+}
 
 /** Applies a healing item outside battle. */
 export function applyItem(item: Item, m: Member): Member {

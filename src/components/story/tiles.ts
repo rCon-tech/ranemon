@@ -20,11 +20,11 @@ export interface Around {
 }
 
 /** Things that stand up off the ground, drawn in depth order with people. */
-export const TALL = new Set(['T', 'K']);
+export const TALL = new Set(['T', 'K', 'p', 'y']);
 /** Tall grass: its front blades are drawn again over whoever stands in it. */
 export const TALL_GRASS = ',';
 
-const GRASSY = new Set(['.', ',', '"', 'T', 'S', 'f', ':', 'b', 'h']);
+const GRASSY = new Set(['.', ',', '"', 'T', 'S', 'f', ':', 'b', 'h', 'p']);
 const DOORS: Record<string, [string, string, string]> = {
   // Base, light, dark: the pub's green, the shop's blue, the gym's red, and plain wood.
   P: ['#2f8a4a', '#4cb46a', '#1c5a30'],
@@ -37,7 +37,8 @@ const DOORS: Record<string, [string, string, string]> = {
 /** How many frames each animated tile has, and how long each lasts. */
 export function frameOf(tile: string, now: number): number {
   if (tile === 'J') return Math.floor(now / 160) % 4;
-  if (tile === '~' || tile === 'B' || tile === 'b') return Math.floor(now / 220) % 4;
+  if (tile === '~' || tile === 'B' || tile === 'b' || tile === 'y')
+    return Math.floor(now / 220) % 4;
   if (tile === ',' || tile === '"') return Math.floor(now / 600) % 2;
   return 0;
 }
@@ -228,6 +229,56 @@ function limestone(c: Ctx, r: () => number) {
     }
   }
   for (let i = 0; i < 4; i++) px(c, (r() * T) | 0, ((r() * 2) | 0) * 16 + 15, 2, 2, '#6cb850');
+}
+
+/** Golden sand, rippled by the wind, with shells and the odd pebble. */
+function sand(c: Ctx, r: () => number) {
+  px(c, 0, 0, T, T, '#f0dca0');
+  for (let y = 3; y < T; y += 7) {
+    for (let x = 0; x < T; x++) {
+      const dy = Math.round(Math.sin(((x + y * 3) / 16) * Math.PI) * 1.2);
+      px(c, x, y + dy, 1, 1, '#e0c684');
+    }
+  }
+  for (let i = 0; i < 24; i++)
+    px(c, (r() * T) | 0, (r() * T) | 0, 1, 1, r() < 0.5 ? '#f8ecc4' : '#d4b878');
+  if (r() < 0.5) {
+    const x = 4 + ((r() * 22) | 0);
+    const y = 4 + ((r() * 22) | 0);
+    px(c, x, y, 3, 2, '#f8f0f0');
+    px(c, x + 1, y, 1, 2, '#e8b8b0');
+  }
+}
+
+/** Black or white, and the 3D look picks the same one for the same tile. */
+export const CAR_COLOURS = [
+  ['#1c1c22', '#4a4a56', '#0c0c10'],
+  ['#e8e8ec', '#ffffff', '#a8acb4'],
+] as const;
+export const carColour = (variant: number) => (variant % 4) % 2;
+
+/**
+ * A parked car, seen from above and a little in front like everything else: a big black
+ * jeep with tinted glass and silver wheels. Greystones has a lot of them.
+ */
+function car(c: Ctx, r: () => number, around: Around, variant: number) {
+  path(c, r, around);
+  const [body, light, dark] = CAR_COLOURS[carColour(variant)];
+  ellipse(c, 16, 29, 14, 3, 'rgb(0 0 0 / 0.25)');
+  for (const x of [5, 23]) {
+    px(c, x, 24, 4, 6, '#141418');
+    px(c, x + 1, 26, 2, 2, '#c8ccd4');
+  }
+  px(c, 3, 10, 26, 16, body);
+  px(c, 3, 10, 26, 1, light);
+  px(c, 3, 24, 26, 2, dark);
+  px(c, 6, 4, 20, 8, body);
+  px(c, 7, 5, 18, 6, '#2a3440');
+  px(c, 8, 5, 6, 2, '#5a6a80');
+  px(c, 3, 15, 26, 1, dark);
+  px(c, 4, 18, 4, 2, '#f8f0c0');
+  px(c, 24, 18, 4, 2, '#f8f0c0');
+  px(c, 12, 20, 8, 3, '#d8dce4');
 }
 
 function water(c: Ctx, frame: number, around: Around) {
@@ -662,6 +713,97 @@ function pineTop(r: () => number): HTMLCanvasElement {
   return cv;
 }
 
+/** How far a palm's fronds spread past its tile, and how high it stands above it. */
+const PALM_SPREAD = 6;
+const PALM_RISE = 20;
+
+/**
+ * A cabbage palm, as in every good garden on the east coast: a slim, ringed, slightly bent
+ * trunk with a burst of spiky fronds on top.
+ */
+function palmTop(r: () => number): HTMLCanvasElement {
+  const sp = PALM_SPREAD * RES;
+  const rise = PALM_RISE * RES;
+  const w = T + sp * 2;
+  const [cv, c] = canvas(w, T + rise);
+  const cx = w / 2;
+  const bottom = rise + T - 6;
+  const lean = r() < 0.5 ? -1 : 1;
+  for (let y = 18; y < bottom; y++) {
+    const x = cx - 3 + Math.round(lean * ((bottom - y) / (bottom - 18)) ** 2 * 5);
+    px(c, x, y, 6, 1, '#8a6a48');
+    px(c, x, y, 2, 1, '#a88a62');
+    if (y % 4 === 0) px(c, x, y, 6, 1, '#5a4430');
+  }
+  const top = { x: cx - 3 + lean * 5 + 3, y: 18 };
+  const fronds = 11;
+  for (let i = 0; i < fronds; i++) {
+    const a = Math.PI + (Math.PI * i) / (fronds - 1);
+    const len = 15 + ((r() * 5) | 0);
+    for (let k = 0; k < len; k++) {
+      const droop = (k / len) ** 2 * 6;
+      const x = top.x + Math.cos(a) * k;
+      const y = top.y + Math.sin(a) * k * 0.7 + droop;
+      px(c, x - 1, y - 1, 3, 3, '#1e5a2a');
+      px(c, x, y - 1, 1, 2, k % 3 ? '#46a048' : '#7cc860');
+    }
+  }
+  for (const a of [0.3, 1.2, 2.0, 2.8]) {
+    for (let k = 0; k < 10; k++) {
+      const x = top.x + Math.cos(a) * k;
+      const y = top.y + Math.sin(a) * k * 0.6 + (k / 10) ** 2 * 5;
+      px(c, x - 1, y - 1, 3, 2, '#2a6e30');
+      px(c, x, y - 1, 1, 1, '#5cae46');
+    }
+  }
+  return cv;
+}
+
+const YACHT_RISE = 22;
+
+/**
+ * A yacht moored in the marina: a white hull with a blue stripe and a teak deck, a tall mast
+ * and the mainsail furled along the boom. It stands up out of the water like a tree does.
+ */
+function yachtTop(): HTMLCanvasElement {
+  const rise = YACHT_RISE * RES;
+  const [cv, c] = canvas(T, T + rise);
+  const o = rise;
+  ellipse(c, 16, o + 26, 15, 4, 'rgb(20 40 80 / 0.35)');
+  // The hull, pointed at the bow on the left.
+  for (let y = 0; y < 10; y++) {
+    const inset = Math.round((y / 10) ** 2 * 4);
+    px(
+      c,
+      1 + inset + (y < 4 ? 4 - y : 0),
+      o + 15 + y,
+      30 - inset * 2 - (y < 4 ? 4 - y : 0),
+      1,
+      '#f8f8fa',
+    );
+  }
+  px(c, 3, o + 19, 27, 2, '#1f4fa8');
+  px(c, 5, o + 24, 22, 1, '#b8c0cc');
+  // The teak deck and the cabin.
+  px(c, 4, o + 12, 25, 4, '#c08850');
+  px(c, 4, o + 12, 25, 1, '#e0a870');
+  px(c, 12, o + 8, 12, 5, '#f4f4f6');
+  px(c, 13, o + 9, 10, 2, '#2a3440');
+  // The mast and the boom with its sail furled.
+  px(c, 15, o - rise + 4, 2, rise + 8, '#d8dce4');
+  px(c, 16, o - rise + 4, 1, rise + 8, '#9aa0a8');
+  px(c, 15, o + 6, 14, 2, '#c8ccd4');
+  px(c, 16, o + 3, 12, 3, '#f0f0f4');
+  px(c, 16, o + 5, 12, 1, '#c8ccd8');
+  // A pennant at the top, and the stays.
+  px(c, 17, o - rise + 4, 5, 2, '#d03838');
+  for (let k = 0; k < rise; k += 2) {
+    px(c, 16 - (k * 12) / rise, o - rise + 6 + k, 1, 1, '#9aa0a8');
+    px(c, 16 + (k * 12) / rise, o - rise + 6 + k, 1, 1, '#9aa0a8');
+  }
+  return cv;
+}
+
 /** Trinity's Campanile: a little stone tower with an arch. */
 function campanile(): HTMLCanvasElement {
   const [cv, c] = canvas(T, T * 2);
@@ -1031,6 +1173,18 @@ export function tileImage(
       case ':':
         limestone(c, r);
         break;
+      case 'd':
+        sand(c, r);
+        break;
+      case 'y':
+        water(c, frame, { n: '~', e: '~', s: '~', w: '~' });
+        break;
+      case 'c':
+        car(c, r, around, v);
+        break;
+      case 'p':
+        grass(c, r);
+        break;
       case '~':
         water(c, frame, around);
         break;
@@ -1135,6 +1289,13 @@ export function tallImage(
 ): { image: HTMLCanvasElement; rise: number; spread: number } {
   if (tile === 'K') return { image: kept('K:top', campanile), rise: TILE, spread: 0 };
   const v = variant % 4;
+  if (tile === 'y') return { image: kept('y:top', yachtTop), rise: YACHT_RISE, spread: 0 };
+  if (tile === 'p')
+    return {
+      image: kept(`p:top:${v}`, () => palmTop(rng(v * 53 + 11))),
+      rise: PALM_RISE,
+      spread: PALM_SPREAD,
+    };
   if (isPine(variant)) {
     return {
       image: kept(`T:pine:${v}`, () => pineTop(rng(v * 71 + 3))),

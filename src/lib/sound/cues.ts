@@ -117,13 +117,16 @@ export function areaSong(mapId: string, outsideId: string): SongId {
   return outsideId === 'dublin' || outsideId === 'trinity' ? 'city' : 'route';
 }
 
-/** The battle music: night scenes and Poseidon are bosses, a gym's leader has their own. */
+/**
+ * The battle music: night scenes, Poseidon and the Happy Pear Twins are bosses, a gym's leader
+ * has their own.
+ */
 export function battleSong(
   scene: 'field' | 'city' | 'gym' | 'night',
   wild: boolean,
   trainer: string | null,
 ): SongId {
-  if (scene === 'night' || trainer === 'poseidon') return 'boss';
+  if (scene === 'night' || trainer === 'poseidon' || trainer?.startsWith('pear-')) return 'boss';
   if (scene === 'gym') return 'leader';
   return wild ? 'wild' : 'trainer';
 }

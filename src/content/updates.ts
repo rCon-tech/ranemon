@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'The DART',
+    notes: [
+      'The DART now runs south from Dublin, to a seaside town with very big houses, very nice boats and some locals who have a lot to get off their chests.',
+      'Some things can now be given to a Ranemon to hold. Take them back any time from PARTY.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A mystery in Dublin',
     notes: [
       'There’s a new house by the river in Dublin, and the people inside are having a very bad day. Follow the clues around the city and decide who’s to blame.',

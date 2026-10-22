@@ -4,7 +4,8 @@ import { trainerById } from '@/content/story/trainers';
 import { Rng } from '@/lib/battle/rng';
 import { ROSTER } from '@/lib/battle/roster';
 import { simulateBattle } from '@/lib/battle/simulate';
-import { makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
+import { PEAR_TRAINERS } from '@/content/story/greystones';
+import { afterBattle, makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
 
 const RUNS = Number(process.env.SIM_RUNS ?? 400);
 
@@ -97,4 +98,41 @@ it.each(['rent-mc', 'rent-melchior'])(`%s is a fair side fight over ${RUNS} runs
   console.log(`${foe.name} win rate`, won / RUNS);
   expect(won / RUNS).toBeGreaterThanOrEqual(0.6);
   expect(won / RUNS).toBeLessThanOrEqual(0.97);
+});
+
+/**
+ * The Happy Pear Twins, in Greystones: Dave and then Steve, back to back, with whatever HP and
+ * PP the party has left after Dave. A party of 6 at Lv52 (a player reaching Greystones and
+ * training a little), from the Greystones long grass, should beat both some of the time but not
+ * most: between 25% and 65%. Beating Dave alone should be the usual outcome.
+ */
+it(`the Happy Pear Twins are a hard double over ${RUNS} runs`, () => {
+  const rng = new Rng(2012);
+  const [dave, steve] = PEAR_TRAINERS.map(trainerById);
+  const wild = mapById('greystones').wild!.table.map(([id]) => id);
+  let first = 0;
+  let both = 0;
+  for (let i = 0; i < RUNS; i++) {
+    let party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+      makeMember(wild[rng.int(0, wild.length - 1)], 52, j),
+    );
+    const one = simulateBattle(
+      [party.map(toEntrant), dave.team.map(([id, l], j) => toEntrant(makeMember(id, l, 100 + j)))],
+      i * 19,
+      ['hard', dave.ai],
+    ).state;
+    if (one.phase.kind !== 'over' || one.phase.winner !== 0) continue;
+    first++;
+    party = party.map((m, j) => afterBattle(m, one.teams[0].battlers[j]));
+    const two = simulateBattle(
+      [party.map(toEntrant), steve.team.map(([id, l], j) => toEntrant(makeMember(id, l, 200 + j)))],
+      i * 23,
+      ['hard', steve.ai],
+    ).state;
+    if (two.phase.kind === 'over' && two.phase.winner === 0) both++;
+  }
+  console.log('Happy Pear Twins: beat Dave', first / RUNS, 'beat both', both / RUNS);
+  expect(first / RUNS).toBeGreaterThanOrEqual(0.6);
+  expect(both / RUNS).toBeGreaterThanOrEqual(0.25);
+  expect(both / RUNS).toBeLessThanOrEqual(0.65);
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
@@ -56,11 +57,11 @@ describe('the developer save', () => {
     expect(flags.has('champion')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon and the B&S rematch to fight', () => {
-    for (const t of TRAINERS.filter((t) => !['poseidon', 'bns-rematch'].includes(t.id)))
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch and the twins to fight', () => {
+    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS];
+    for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);
-    expect(flags.has(beatFlag('poseidon'))).toBe(false);
-    expect(flags.has(beatFlag('bns-rematch'))).toBe(false);
+    for (const id of bosses) expect(flags.has(beatFlag(id)), id).toBe(false);
     expect(flags.has(NORM)).toBe(false);
   });
 

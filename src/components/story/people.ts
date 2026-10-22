@@ -59,6 +59,10 @@ export interface Style {
   stripes?: string;
   /** A child, or anyone short: drawn smaller. */
   small?: boolean;
+  /** Big DJ headphones over the head, in this colour. */
+  headphones?: string;
+  /** A St George's cross on the chest. */
+  cross?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -414,6 +418,81 @@ export const STYLES: Record<Look | 'player', Style> = {
     stick: '#c89830',
     stickTop: '#f0c040',
   },
+  // A DART driver: Iarnród Éireann green, with the DART's yellow-green trim and a peaked cap.
+  dart: {
+    skin: SKIN,
+    hair: '#3a2a1e',
+    hairStyle: 'short',
+    hat: { kind: 'garda', colour: '#1e6a3a', trim: '#e8c040' },
+    top: '#1e6a3a',
+    topKind: 'jacket',
+    trim: '#c8e830',
+    legs: '#1c2a24',
+    shoes: '#141418',
+  },
+  // Kill, in Greystones: blond, in a navy jumper over a white collar, with chinos and loafers.
+  kill: {
+    skin: '#f8d4b4',
+    hair: '#ecd078',
+    hairStyle: 'short',
+    top: '#262c44',
+    topKind: 'jumper',
+    trim: '#f4f4f0',
+    legs: '#c8b48a',
+    shoes: '#6a3a1e',
+  },
+  // Stead, also in Greystones: an England shirt, white with a red cross, and navy trousers.
+  stead: {
+    skin: SKIN,
+    hair: '#5a3a22',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#1c2448',
+    cross: '#c8102e',
+    legs: '#1c2448',
+    shoes: '#f4f4f4',
+  },
+  // Cramps, a DJ: slicked strawberry-blond hair, a big beard, all in black, headphones on.
+  cramps: {
+    skin: '#f8d0b0',
+    hair: '#d8a860',
+    hairStyle: 'slick',
+    beard: '#b07038',
+    top: '#18181c',
+    topKind: 'jumper',
+    trim: '#2a2a30',
+    legs: '#24242c',
+    shoes: '#f4f4f4',
+    headphones: '#c83a3a',
+  },
+  // The Happy Pear twins, who look exactly alike: shaggy hair and beards, big grins, the café's
+  // green t-shirt with a pear on it, and running shoes. In very good shape.
+  pear: {
+    skin: '#f0c49a',
+    hair: '#8a5a2a',
+    hairStyle: 'long',
+    beard: '#8a5a2a',
+    top: '#6ab03a',
+    topKind: 'shirt',
+    trim: '#f4f4e8',
+    badges: ['#c8e050'],
+    legs: '#2a3a30',
+    shoes: '#f06a30',
+  },
+  // A cyclist in Greystones: head to toe in lycra, shades, and a bike worth more than a car.
+  cyclist: {
+    skin: '#f0c8a0',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    hat: { kind: 'cap', colour: '#f4f4f4', trim: '#f0c020' },
+    glasses: 'shades',
+    top: '#f0c020',
+    topKind: 'shirt',
+    trim: '#1c1c1c',
+    legs: '#1c1c1c',
+    shoes: '#f4f4f4',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -742,6 +821,10 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   if (!long && s.topKind !== 'jumper' && s.topKind !== 'hivis')
     px(c, 18, y0 + h - 2, 28, 2, shade(s.legs, 0.6));
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
+  if (s.cross) {
+    px(c, 30, y0 + 3, 4, 16, s.cross);
+    px(c, 23, y0 + 9, 18, 4, s.cross);
+  }
   if (s.pearls)
     for (let i = 0; i < 9; i++)
       px(c, 25 + i * 1.6, y0 + 2 + Math.sin((i / 8) * Math.PI) * 3, 2, 2, '#f8f4ec');
@@ -1063,7 +1146,28 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
       px(c, ex + 1, 28 + y, 2, 3, side === 'left' ? s.skin : shade(s.skin, 0.84));
     }
   }
+  if (s.headphones) headphones(c, s.headphones, side, y);
   if (covered) hat(c, s, side, y);
+}
+
+/** DJ headphones: a band over the top of the head and a big cup over each ear. */
+function headphones(c: Ctx, colour: string, side: Side, y: number) {
+  const band = '#2a2a30';
+  const light = shade(colour, 1.3);
+  if (side === 'left') {
+    px(c, 30, 1 + y, 6, 3, band);
+    px(c, 34, 3 + y, 3, 14, band);
+    round(c, 31, 16 + y, 10, 12, 4, colour);
+    px(c, 33, 18 + y, 4, 2, light);
+    return;
+  }
+  px(c, 18, 1 + y, 28, 3, band);
+  px(c, 15, 3 + y, 3, 14, band);
+  px(c, 46, 3 + y, 3, 14, band);
+  for (const x of [11, 45]) {
+    round(c, x, 16 + y, 8, 12, 3, colour);
+    px(c, x + 2, 18 + y, 3, 2, light);
+  }
 }
 
 function hat(c: Ctx, s: Style, side: Side, y: number) {

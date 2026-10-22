@@ -17,8 +17,9 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
 
 /**
  * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
- * `B` bridge, `F` floor, `s` stone steps. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
- * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge. Doors are blocked too, and walking
+ * `B` bridge, `F` floor, `s` stone steps, `d` sand. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
+ * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge,
+ * `p` a palm tree, `y` a yacht on the water, `c` a parked car. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
  * Indoors (see content/story/interiors.ts): `g` gym floor and `r` rug are walkable, and `E` is
  * the way out, blocked like a door.
@@ -27,7 +28,7 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  */
 export type Tile = string;
 
-const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r', 's']);
+const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r', 's', 'd']);
 export const ENCOUNTER_TILES = new Set([',', 'b']);
 export const DOORS = new Set(['P', 'M', 'G', 'H', 'L']);
 export const EXIT = 'E';
@@ -58,7 +59,13 @@ export type Look =
   | 'ollie'
   | 'simo'
   | 'mc'
-  | 'melchior';
+  | 'melchior'
+  | 'dart'
+  | 'kill'
+  | 'stead'
+  | 'cramps'
+  | 'pear'
+  | 'cyclist';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -164,6 +171,8 @@ export interface GameMap {
   inside?: { map: string; x: number; y: number };
   /** Run every time you come in, such as Mam's welcome. */
   arrive?: Step[];
+  /** Slate roofs on every building, not only the gym: the look of a well-off town. */
+  slate?: boolean;
   /** What the things in a room say when you look at them, by tile. */
   things?: Record<string, string>;
 }

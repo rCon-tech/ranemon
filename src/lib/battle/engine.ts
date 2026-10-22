@@ -62,6 +62,11 @@ export interface Entrant {
   hp?: number;
   pp?: number[];
   status?: Status | null;
+  /**
+   * Stat multipliers from a held item, such as the Vegan Stone. Unlike a special move's, they
+   * last the whole battle, switching out included.
+   */
+  held?: Partial<Record<Stat, number>>;
 }
 
 export type BattleEvent =
@@ -108,6 +113,8 @@ function makeBattler(entry: Creature | Entrant): Battler {
   const e: Entrant = isEntrant(entry) ? entry : { creature: entry };
   const level = e.level ?? LEVEL;
   const stats = levelStats(e.creature.base, level);
+  for (const [stat, factor] of Object.entries(e.held ?? {}) as [Stat, number][])
+    stats[stat] = Math.floor(stats[stat] * factor);
   const status = e.status ?? null;
   return {
     creature: e.creature,

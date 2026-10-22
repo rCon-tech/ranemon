@@ -69,6 +69,8 @@ import {
   settleBattle,
   unsetFlag,
   take,
+  holdItem,
+  takeHeld,
   toGroupChat,
   type StoryState,
 } from '@/lib/story/state';
@@ -1095,6 +1097,11 @@ export function Story() {
               persist(g);
               setGame(g);
             }}
+            onTakeHeld={(i) => {
+              const g = takeHeld(game, i);
+              persist(g);
+              setGame(g);
+            }}
             onClose={closeOverlay}
           />
         )}
@@ -1120,6 +1127,13 @@ export function Story() {
                 const r = blueGhost(m, game.party);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = [`${name} drank the Blue Ghost!`, ...r.lines];
+              } else if (item.use.kind === 'hold') {
+                g = holdItem(game, i, id);
+                const back = m.held ? ` and gave back the ${itemById(m.held).name}` : '';
+                lines = [
+                  `${name} is now holding the ${item.name}${back}!`,
+                  `Its ${item.use.stat.toUpperCase()} goes up ${Math.round((item.use.factor - 1) * 100)}% in every battle.`,
+                ];
               } else if (item.use.kind === 'evolve') {
                 const r = itemEvolve(m, id);
                 const into = r.member.species;

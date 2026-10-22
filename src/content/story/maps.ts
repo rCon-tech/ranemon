@@ -5,6 +5,7 @@ import { interiorsOf } from './interiors';
 import { SIBEAL_LENDS } from './sibeal';
 import { NORM } from '@/lib/story/norm';
 import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
+import { GREYSTONES, PEARSE_ARRIVE, PEARSE_ROOM } from './greystones';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1023,7 +1024,8 @@ export const MAPS: GameMap[] = [
       'T..^^^^..^^^^.=....#L#.T',
       'T..#P##..#H##.=======>4.',
       'T..S........3...^^^....T',
-      'T...............#H#8...T',
+      'T...^^^^........#H#8...T',
+      'T...#L##S..............T',
       'T......................T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -1074,7 +1076,10 @@ export const MAPS: GameMap[] = [
       RENT_NEIGHBOUR,
       RENT_GARDA,
     ],
-    signs: ['DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.'],
+    signs: [
+      'DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.',
+      'PEARSE STATION. DART southbound for Greystones, Co. Wicklow.',
+    ],
     houses: [
       [
         {
@@ -1104,6 +1109,7 @@ export const MAPS: GameMap[] = [
         },
       ],
       HELLFIRE,
+      PEARSE_ARRIVE,
     ],
     landmarkLocks: {
       1: {
@@ -1114,7 +1120,7 @@ export const MAPS: GameMap[] = [
           'The three coral beads glow warm in your bag. The boards fall away from the door on their own…',
       },
     },
-    landmarkRooms: { 1: HELLFIRE_ROOM },
+    landmarkRooms: { 1: HELLFIRE_ROOM, 2: PEARSE_ROOM },
     west: 'kildare',
     east: 'trinity',
   },
@@ -1229,6 +1235,7 @@ export const MAPS: GameMap[] = [
       'TULLAN STRAND. Locals say POSEIDON himself lives out on the rocks. Nobody has ever seen him.',
     ],
   },
+  GREYSTONES,
 ];
 
 /** The rooms behind every door. */
