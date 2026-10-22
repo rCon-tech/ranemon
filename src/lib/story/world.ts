@@ -69,7 +69,12 @@ export type Look =
   | 'cyclist'
   | 'clerk'
   | 'mescal'
-  | 'boyde';
+  | 'boyde'
+  | 'carl'
+  | 'reveller'
+  | 'debs'
+  | 'dancer'
+  | 'tux';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -95,10 +100,18 @@ export type Step =
   | { do: 'heal' }
   | { do: 'starter' }
   | { do: 'pub' }
-  | { do: 'shop' }
+  /** Vapes, or someone's own stall with its own prices. */
+  | { do: 'shop'; stall?: Stall }
   /** The departures board at Connolly Station: pick a train, and the ride runs next. */
   | { do: 'departures' }
   | { do: 'ending' };
+
+/** Someone selling a few things at their own prices, outside any shop. */
+export interface Stall {
+  /** The panel's title. */
+  name: string;
+  stock: { item: ItemId; price: number }[];
+}
 
 export interface Trainer {
   id: string;
@@ -188,7 +201,31 @@ export interface GameMap {
   slate?: boolean;
   /** What the things in a room say when you look at them, by tile. */
   things?: Record<string, string>;
+  /**
+   * The map as it is once a flag is set, such as Trinity turning into the Trinity Ball after
+   * B&S are beaten. Its fields replace the plain map's; the id stays the same.
+   */
+  after?: { flag: string } & Partial<Omit<GameMap, 'id' | 'after'>>;
+  /** A party, with everything that goes with it. */
+  party?: Party;
 }
+
+export interface Party {
+  /** Strings of fairy lights hung over the map, each from one tile point to another. */
+  lights: [number, number, number, number][];
+  /**
+   * A crowd dancing, past the ten people a map can place: they're in the way and each has a
+   * line from `lines` to shout at you, but they're nobody in particular.
+   */
+  crowd?: { x: number; y: number; look: Look }[];
+  lines?: string[];
+  /** Bunches of balloons tied to tiles, best on ones you can't walk on. */
+  balloons?: [number, number][];
+}
+
+/** Who in a party's crowd is dancing on a tile, by index, or -1. */
+export const crowdAt = (map: GameMap, x: number, y: number) =>
+  map.party?.crowd?.findIndex((c) => c.x === x && c.y === y) ?? -1;
 
 export interface Placed<T> {
   x: number;
@@ -253,6 +290,7 @@ export const isWalkable = (t: Tile) => WALKABLE.has(t);
 /** Whether the player could stand at a tile: walkable and nobody standing there. */
 export function canEnter(map: GameMap, x: number, y: number, flags: ReadonlySet<string>): boolean {
   if (!isWalkable(tileAt(map, x, y))) return false;
+  if (crowdAt(map, x, y) >= 0) return false;
   return !npcsOf(map).some((n) => n.x === x && n.y === y && isPresent(n.item, flags));
 }
 

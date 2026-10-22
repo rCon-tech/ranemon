@@ -20,6 +20,14 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-22',
+    title: 'The Trinity Ball',
+    notes: [
+      'Beat B&S and Trinity turns into the Trinity Ball: fairy lights, balloons, confetti, fireworks, a dance floor in the Long Room and everyone having the time of their lives.',
+      'A very tall man called Carl Ryan is at the Ball, selling Blue Ghosts out of a sports bag for a tenth of the Vapes price.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A question at Connolly',
     notes: [
       'Someone in a rugby kit is hanging around the concourse at Connolly Station. He has a question for you. It doesn’t matter what you say.',

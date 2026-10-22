@@ -4,6 +4,7 @@ import { MAX_STAGE } from '../battle/engine';
 import type { Stat, Status } from '../battle/moves';
 import type { ItemEffect, Pint } from '../ui/session';
 import { statsOf, type Member } from './party';
+import type { Stall } from './world';
 
 export type ItemId =
   | 'pint'
@@ -206,6 +207,12 @@ export const itemById = (id: ItemId): Item => BY_ID.get(id)!;
 /** Items a county's corner shop stocks. */
 export const shopStock = (county: number) =>
   ITEMS.filter((i) => i.price !== null && i.from <= county);
+
+/** What an item costs: at someone's stall, their price; otherwise the shop's, if it sells it. */
+export function priceOf(id: ItemId, stall?: Stall | null): number {
+  if (stall) return stall.stock.find((s) => s.item === id)?.price ?? Infinity;
+  return itemById(id).price ?? Infinity;
+}
 
 /** What an item needs to know about a Ranemon, in or out of battle. */
 export interface Target {

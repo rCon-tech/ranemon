@@ -877,3 +877,76 @@ test('story mode: Paul Mescal is sad, loses, says look over there and runs off',
   await expect(world).toHaveAttribute('data-x', '15', { timeout: 5_000 });
   await expect(world).toHaveAttribute('data-y', '13');
 });
+
+for (const view of ['2d', '3d'] as const) {
+  test(`story mode in ${view.toUpperCase()}: Carl Ryan sells cheap Blue Ghosts at the Trinity Ball`, async ({
+    page,
+  }) => {
+    await unlock(page);
+    await page.addInitScript((v) => {
+      localStorage.setItem('ranemon.view', v);
+      if (localStorage.getItem('ranemon.story.v1:ball')) return;
+      // Champion, in Front Square, just west of Carl.
+      localStorage.setItem(
+        'ranemon.story.v1:ball',
+        JSON.stringify({
+          version: 1,
+          map: 'trinity',
+          x: 15,
+          y: 8,
+          face: 'right',
+          party: [
+            {
+              uid: 1,
+              species: 'enda',
+              level: 55,
+              exp: 200000,
+              hp: 180,
+              pp: [10],
+              status: null,
+              moves: ['fierce-friendship'],
+            },
+          ],
+          box: [],
+          bag: {},
+          money: 1000,
+          flags: ['starter', 'visited:trinity', 'jersey:all', 'beat:bns', 'champion'],
+          seen: [],
+          caught: [],
+          pub: { map: 'dublin', x: 4, y: 11 },
+          uid: 2,
+          steps: 0,
+        }),
+      );
+    }, view);
+    await page.goto('/story');
+    await page.getByTestId('trainer-name').fill('Ball');
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    const world = page.getByTestId('overworld');
+    const text = page.getByTestId('story-text');
+    await expect(world).toHaveAttribute('data-view', view);
+    await expect(page.getByTestId('place')).toContainText('Trinity Ball');
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: test.info().outputPath(`ball-${view}.png`) });
+
+    await page.keyboard.press('z');
+    await expect(text).toContainText('CARL RYAN: Howya', { timeout: 10_000 });
+    await text.click();
+    await page.waitForTimeout(300);
+    if (await text.count()) await text.click();
+    await expect(text).toContainText('€480 each', { timeout: 10_000 });
+    await text.click();
+    await page.waitForTimeout(300);
+    if (await text.count()) await text.click();
+    const buy = page.getByTestId('buy-blue-ghost');
+    await expect(buy).toContainText('€480');
+    await buy.click();
+    await buy.click();
+    await expect(page.getByText('Money: €40')).toBeVisible();
+    // Only €40 left: a third is out of reach.
+    await expect(buy).toBeDisabled();
+    await page.screenshot({ path: test.info().outputPath(`carl-${view}.png`) });
+    await page.keyboard.press('x');
+    await expect(text).toContainText('CARL RYAN: Enjoy the Ball', { timeout: 10_000 });
+  });
+}
