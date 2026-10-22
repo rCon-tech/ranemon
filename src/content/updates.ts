@@ -11,6 +11,14 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-22',
+    title: 'Ranedex pages',
+    notes: [
+      'Tap a Ranemon in the Ranedex, or pick it with the D-pad and press A, for a page of its own: a big picture with all its looks, its stats, how it evolves, every move it learns and what each one is good against, and where to find it.',
+      'In story mode a page only fills in once you’ve met or befriended that Ranemon, so nothing is given away early.',
+    ],
+  },
+  {
     date: '2026-10-21',
     title: 'New looks',
     notes: [
