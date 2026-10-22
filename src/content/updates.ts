@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'County colours',
+    notes: [
+      'Every jersey you win now shows up on your Trainer Card in that county’s own colours, stripes and hoops included. The ones still to win are grey until you do.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'Dublin gets bigger',
     notes: [
       'Dublin is a proper city now: more streets, more bridges over the Liffey, and pavements instead of fields. Everything that was there before is still there, a few streets further apart.',
