@@ -66,8 +66,9 @@ describe('the DART to Greystones', () => {
   const station = mapById(STATION_ID);
   const npc = (map: GameMap, look: Look) => npcsOf(map).find((n) => n.item.look === look)!;
 
-  it('leaves from Connolly Station, the door at the bottom of Dublin', () => {
-    expect(find(dublin, 'L')).toHaveLength(3);
+  it('leaves from Connolly Station, the third landmark door in Dublin', () => {
+    // St James's Gate, the Hellfire Club, Connolly Station and the Rave Cave.
+    expect(find(dublin, 'L')).toHaveLength(4);
     expect(station.id).toBe(STATION_ID);
     expect(station.name).toBe('Connolly Station, Dublin City');
     expect(npc(station, 'dart').item.talk).toEqual(aboard(departureTo('greystones')));

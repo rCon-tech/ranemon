@@ -17,18 +17,35 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
 
 /**
  * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
- * `B` bridge, `F` floor, `s` stone steps, `d` sand. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
+ * `B` bridge, `F` floor, `s` stone steps, `d` sand, and in a city `v` pavement and `a` tarmac. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
  * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge,
  * `p` a palm tree, `y` a yacht on the water, `c` a parked car. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
- * Indoors (see content/story/interiors.ts): `g` gym floor and `r` rug are walkable, and `E` is
+ * Indoors (see content/story/interiors.ts): `g` gym floor, `r` rug, `l` a dance floor and `k` a club's floor are walkable, and `E` is
  * the way out, blocked like a door.
  * Markers that are grass underneath: `@` arrival from the west (and the start), `>` arrival from
  * the east, `*` a hidden Blue Ghost, `1`-`9` the map's people in order, then `0` for a tenth.
  */
 export type Tile = string;
 
-const WALKABLE = new Set(['.', ',', 'b', '"', '=', ':', 'B', 'F', 'g', 'r', 's', 'd']);
+const WALKABLE = new Set([
+  '.',
+  ',',
+  'b',
+  '"',
+  '=',
+  'v',
+  'a',
+  ':',
+  'B',
+  'F',
+  'g',
+  'r',
+  'l',
+  'k',
+  's',
+  'd',
+]);
 export const ENCOUNTER_TILES = new Set([',', 'b']);
 export const DOORS = new Set(['P', 'M', 'G', 'H', 'L']);
 export const EXIT = 'E';
@@ -70,6 +87,11 @@ export type Look =
   | 'clerk'
   | 'mescal'
   | 'boyde'
+  | 'raver'
+  | 'clubber'
+  | 'shuffler'
+  | 'dj'
+  | 'bouncer'
   | 'carl'
   | 'reveller'
   | 'debs'
@@ -142,6 +164,8 @@ export interface Npc {
   readyIf?: string;
   /** Tiles a trainer can see along its facing; walking into view starts the battle. */
   sight?: number;
+  /** Dancing on the spot, turning this way and that, until someone talks to them. */
+  dances?: boolean;
   /** Only there while this flag is set / not set. */
   showIf?: string;
   hideIf?: string;

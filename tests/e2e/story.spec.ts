@@ -482,9 +482,10 @@ test('story mode: the missing rent starts with Ollie, in the house by the river'
       'ranemon.story.v1:rent',
       JSON.stringify({
         version: 1,
+        schema: 3,
         map: 'dublin',
-        x: 17,
-        y: 13,
+        x: 22,
+        y: 19,
         face: 'up',
         party: [
           {
@@ -504,7 +505,7 @@ test('story mode: the missing rent starts with Ollie, in the house by the river'
         flags: ['starter', 'visited:dublin', 'jersey:kildare'],
         seen: [],
         caught: [],
-        pub: { map: 'dublin', x: 4, y: 11 },
+        pub: { map: 'dublin', x: 4, y: 15 },
         uid: 2,
         steps: 0,
       }),
@@ -580,7 +581,7 @@ test('story mode: Alex Simonin in Trinity only ever says the one thing', async (
         flags: ['starter', 'visited:trinity', 'jersey:all'],
         seen: [],
         caught: [],
-        pub: { map: 'dublin', x: 4, y: 11 },
+        pub: { map: 'dublin', x: 4, y: 15 },
         uid: 2,
         steps: 0,
       }),
@@ -620,9 +621,10 @@ test('story mode: a ticket from Connolly Station to Greystones, where Kill has a
       'ranemon.story.v1:dart',
       JSON.stringify({
         version: 1,
+        schema: 3,
         map: 'dublin',
         x: 5,
-        y: 14,
+        y: 21,
         face: 'up',
         party: [
           {
@@ -642,7 +644,7 @@ test('story mode: a ticket from Connolly Station to Greystones, where Kill has a
         flags: ['starter', 'visited:dublin', 'jersey:kildare'],
         seen: [],
         caught: [],
-        pub: { map: 'dublin', x: 4, y: 11 },
+        pub: { map: 'dublin', x: 4, y: 15 },
         uid: 2,
         steps: 0,
       }),
@@ -736,7 +738,7 @@ test('story mode: Jamie Boyde on the concourse at Connolly has a question', asyn
         flags: ['starter', 'visited:dublin'],
         seen: [],
         caught: [],
-        pub: { map: 'dublin', x: 4, y: 11 },
+        pub: { map: 'dublin', x: 4, y: 15 },
         uid: 2,
         steps: 0,
       }),
@@ -779,14 +781,15 @@ test('story mode: Paul Mescal is sad, loses, says look over there and runs off',
   await unlock(page);
   await page.addInitScript(() => {
     if (localStorage.getItem('ranemon.story.v1:paul')) return;
-    // Down past Temple Bar, a few steps along the street from him.
+    // Down by the Rave Cave, a few steps along the street from him.
     localStorage.setItem(
       'ranemon.story.v1:paul',
       JSON.stringify({
         version: 1,
+        schema: 3,
         map: 'dublin',
-        x: 11,
-        y: 13,
+        x: 29,
+        y: 20,
         face: 'right',
         party: [
           {
@@ -806,7 +809,7 @@ test('story mode: Paul Mescal is sad, loses, says look over there and runs off',
         flags: ['starter', 'visited:dublin'],
         seen: [],
         caught: [],
-        pub: { map: 'dublin', x: 4, y: 11 },
+        pub: { map: 'dublin', x: 4, y: 15 },
         uid: 2,
         steps: 0,
       }),
@@ -874,8 +877,122 @@ test('story mode: Paul Mescal is sad, loses, says look over there and runs off',
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(400);
   }
-  await expect(world).toHaveAttribute('data-x', '15', { timeout: 5_000 });
-  await expect(world).toHaveAttribute('data-y', '13');
+  await expect(world).toHaveAttribute('data-x', '33', { timeout: 5_000 });
+  await expect(world).toHaveAttribute('data-y', '20');
+});
+
+test('story mode: the Rave Cave, where a beaten raver always goes again', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:rave')) return;
+    // In Dublin, just below the door of the Rave Cave.
+    localStorage.setItem(
+      'ranemon.story.v1:rave',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'dublin',
+        x: 28,
+        y: 24,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 100,
+            exp: 1000000,
+            hp: 400,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:dublin'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 15 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Rave');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  const dismiss = async () => {
+    for (let i = 0; i < 12 && (await text.count()); i++) {
+      await text.click();
+      await page.waitForTimeout(100);
+    }
+    await expect(text).toHaveCount(0);
+  };
+  const walk = async (key: string, n: number) => {
+    for (let i = 0; i < n; i++) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(250);
+    }
+  };
+  const fightToTheEnd = async () => {
+    const fight = page.getByRole('button', { name: 'FIGHT' });
+    const proceed = page.getByRole('button', { name: 'CONTINUE' });
+    await expect(page.getByTestId('text-box')).toContainText('Raver Aoife sent out', {
+      timeout: 15_000,
+    });
+    for (let i = 0; i < 400 && !(await proceed.isVisible()); i++) {
+      if (await fight.isVisible()) {
+        await fight.click();
+        await page
+          .getByRole('group', { name: 'Moves' })
+          .getByRole('button', { disabled: false })
+          .first()
+          .click();
+        await page.getByRole('button', { name: /^USE / }).click();
+      } else if (await page.getByTestId('text-box').isVisible()) {
+        await page.getByTestId('text-box').click();
+      }
+    }
+    await proceed.click();
+  };
+
+  await page.keyboard.down('ArrowUp');
+  await expect(world).toHaveAttribute('aria-label', /^The Rave Cave, Dublin City/, {
+    timeout: 10_000,
+  });
+  await page.keyboard.up('ArrowUp');
+  await expect(text).toContainText('THE RAVE CAVE');
+  await dismiss();
+
+  // Over to Raver Aoife, nearest the door, and battle her.
+  await walk('ArrowRight', 4);
+  await walk('ArrowUp', 1);
+  await walk('ArrowUp', 1);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('RAVER AOIFE');
+  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+  await fightToTheEnd();
+  await dismiss();
+  let save = await page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1:rave')!));
+  expect(save.flags).toContain('beat:rave-aoife');
+
+  // Ask her again and she says yes.
+  await page.keyboard.press('z');
+  await expect(page.getByText('Ask Raver Aoife for another battle?')).toBeVisible();
+  await page.getByRole('button', { name: 'YES', exact: true }).click();
+  await expect(text).toContainText('Go on so');
+  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+  await fightToTheEnd();
+  await dismiss();
+  save = await page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1:rave')!));
+  // Paid for both wins.
+  expect(save.money).toBe(3000 + 2 * 43 * 20);
+  expect(save.map).toBe('dublin-L3');
 });
 
 for (const view of ['2d', '3d'] as const) {

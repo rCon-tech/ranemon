@@ -5,9 +5,9 @@ import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/worl
  * The insides of buildings. Every door on the road leads into a room of its own, built here from
  * one layout per kind of building, so a new town gets its McGrattans, Vapes and gym for free.
  *
- * Indoor tiles: `F` floor, `g` gym floor, `r` rug (walkable). `W` wall, `O` window, `J` fire,
+ * Indoor tiles: `F` floor, `g` gym floor, `r` rug, `l` a dance floor that lights up, `k` a club's black floor (walkable). `W` wall, `O` window, `J` fire,
  * `Y` bookshelves, `V` a bar's bottles, `A` a shop's shelves, `C` counter (talk across it), `U` table, `N` plant, `Q` bed, `X` statue or display,
- * `Z` couch, `D` a departures board. `E` is the way out, in the bottom wall: walk into it to leave. `@` is where you
+ * `Z` couch, `D` a departures board, `I` a speaker stack, `o` a club's brick back wall with a neon light. `E` is the way out, in the bottom wall: walk into it to leave. `@` is where you
  * come in.
  */
 

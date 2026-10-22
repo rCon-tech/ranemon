@@ -74,6 +74,8 @@ export interface Style {
   moustache?: string;
   /** A frown, and a tear on the cheek. */
   sad?: boolean;
+  /** A glow stick in each hand, in this colour. */
+  glowsticks?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -635,6 +637,70 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#0c0c10',
     glasses: 'shades',
   },
+  // The Rave Cave's dancers: neon tops, a glow stick in each hand.
+  raver: {
+    skin: SKIN,
+    hair: '#e8c060',
+    hairStyle: 'spiky',
+    top: '#70f040',
+    topKind: 'shirt',
+    trim: '#f040a0',
+    legs: '#24242c',
+    shoes: '#f4f4f4',
+    glowsticks: '#f040a0',
+  },
+  clubber: {
+    skin: '#e8b890',
+    hair: '#1c1418',
+    hairStyle: 'bob',
+    hat: { kind: 'beanie', colour: '#30d0f0' },
+    glasses: 'shades',
+    top: '#18161c',
+    topKind: 'shirt',
+    trim: '#30d0f0',
+    legs: '#3a2a5a',
+    shoes: '#18161c',
+    glowsticks: '#70f040',
+  },
+  shuffler: {
+    skin: '#c88a5a',
+    hair: '#3a2416',
+    hairStyle: 'short',
+    hat: { kind: 'cap', colour: '#f8d030', trim: '#18161c' },
+    top: '#a040e0',
+    topKind: 'jumper',
+    trim: '#f8d030',
+    legs: '#24242c',
+    shoes: '#f4f4f4',
+    glowsticks: '#30d0f0',
+  },
+  // The Rave Cave's DJ: all in black, a cap and big headphones.
+  dj: {
+    skin: SKIN,
+    hair: '#5a3a22',
+    hairStyle: 'short',
+    hat: { kind: 'cap', colour: '#18161c', trim: '#f040a0' },
+    beard: '#5a3a22',
+    top: '#18161c',
+    topKind: 'shirt',
+    trim: '#f040a0',
+    legs: '#18161c',
+    shoes: '#f4f4f4',
+    headphones: '#f040a0',
+  },
+  // The bouncer on the door: a shaved head, a black suit and shades, even at night.
+  bouncer: {
+    skin: '#f0c49a',
+    hair: '#f0c49a',
+    hairStyle: 'none',
+    glasses: 'shades',
+    top: '#18181c',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    tie: '#18181c',
+    legs: '#18181c',
+    shoes: '#0c0c10',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -1053,6 +1119,7 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
       px(c, x + (x < 32 ? 0 : 5), ay + (wide ? 25 : 22), 2, 4, shade(s.skin, 0.85));
     }
+    if (s.glowsticks) glowstick(c, s.glowsticks, x + 2, ay + 13);
   }
   if (!back && s.handbag) handbag(c, s.handbag, 49, y0 + 22);
   if (s.tote) {
@@ -1146,6 +1213,14 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
   if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
   if (s.tote) shaded(c, 34, y0 + 16, 11, 14, 2, s.tote);
   if (s.stick) staff(c, s, ax - 3, y0 + 18);
+  if (s.glowsticks) glowstick(c, s.glowsticks, ax + 2, y0 + 13);
+}
+
+/** A glow stick held upright in a hand: a soft halo round a bright core. */
+function glowstick(c: Ctx, colour: string, x: number, y: number) {
+  px(c, x - 1, y - 1, 5, 18, `${colour}55`);
+  px(c, x, y, 3, 16, colour);
+  px(c, x + 1, y + 1, 1, 14, shade(colour, 1.6));
 }
 
 // ---------- the head ----------

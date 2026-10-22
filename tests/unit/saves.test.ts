@@ -15,6 +15,7 @@ import {
   SCHEMA,
 } from '@/lib/story/save';
 import { newGame, recruit, saveKey } from '@/lib/story/state';
+import { doorStep, find, isWalkable, marker, tileAt } from '@/lib/story/world';
 
 const fixture = (name: string) => readFileSync(`tests/fixtures/saves/${name}.json`, 'utf8');
 /** A save from the live game early in a run, and one from the build on main late in a run. */
@@ -133,6 +134,36 @@ describe('converting older saves', () => {
     expect(m.moves.slice(0, 2)).toEqual(['gym-bro-punch', 'try-hard']);
     expect(m.pp.slice(0, 2)).toEqual([15, 5]);
     expect(m.pp).toHaveLength(m.moves.length);
+  });
+
+  it('moves anyone out on the old, smaller Dublin to the same door on the new one', () => {
+    const dublin = mapById('dublin');
+    const inFront = (kind: string, i: number) => {
+      const door = find(dublin, kind)[i];
+      const { x, y } = doorStep(dublin, door.x, door.y);
+      return { map: 'dublin', x, y };
+    };
+    const at = (x: number, y: number, schema = 2) =>
+      migrate({ ...JSON.parse(LATE), schema, map: 'dublin', x, y, pub: { map: 'dublin', x, y } })!;
+    // Just below the McGrattans door, the house by the river and Connolly Station.
+    for (const [x, y, kind, i] of [
+      [4, 11, 'P', 0],
+      [17, 13, 'H', 1],
+      [5, 14, 'L', 2],
+      [15, 3, 'L', 0],
+    ] as const) {
+      const s = at(x, y);
+      expect({ map: s.map, x: s.x, y: s.y }, `${x},${y}`).toEqual(inFront(kind, i));
+      expect(s.pub).toEqual(inFront(kind, i));
+      expect(isWalkable(tileAt(dublin, s.x, s.y))).toBe(true);
+    }
+    // At the way in from Kildare, and on the road to Trinity.
+    expect(at(1, 4)).toMatchObject({ ...marker(dublin, '@') });
+    expect(at(21, 10)).toMatchObject({ ...marker(dublin, '>') });
+    // A save from this build is already on the new map, and stays where it is.
+    expect(at(30, 20, SCHEMA)).toMatchObject({ x: 30, y: 20 });
+    // And anywhere else is left alone.
+    expect(migrate({ ...JSON.parse(LATE), schema: 2 })).toMatchObject({ map: 'kilkenny' });
   });
 
   it('reads a save from a newer build without throwing away what it does not know', () => {

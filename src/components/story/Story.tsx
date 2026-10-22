@@ -184,6 +184,8 @@ const DUA_LINES = [
   'DUA LIPA: Physical, physical… they’re all in great shape now. Mind yourself out there.',
 ];
 
+const TOO_TIRED = 'Your Ranemon are too tired. Heal them in McGrattans first!';
+
 const ghostFlag = (map: string, x: number, y: number) => `ghost:${map}:${x}:${y}`;
 const challenge = (trainer: string): Run[] => [
   { do: 'say', text: trainerById(trainer).before },
@@ -430,6 +432,12 @@ export function Story() {
             return;
           }
           case 'battle': {
+            // A battle from a script, such as a rematch, still needs someone able to fight.
+            if (!canFight(g)) {
+              q.length = 0;
+              q.unshift({ do: 'say', text: TOO_TIRED });
+              break;
+            }
             const t = trainerById(s.trainer);
             const team = teamOf(t, g.starter).map(([id, level], i) =>
               toEntrant(makeMember(id, level, -1 - i)),
@@ -589,9 +597,7 @@ export function Story() {
       const ready = !npc.item.readyIf || hasFlag(game, npc.item.readyIf);
       if (t && ready && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
-          return run(game, [
-            { do: 'say', text: 'Your Ranemon are too tired. Heal them in McGrattans first!' },
-          ]);
+          return run(game, [{ do: 'say', text: TOO_TIRED }]);
         }
         return run(game, challenge(t));
       }

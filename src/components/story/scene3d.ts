@@ -52,12 +52,14 @@ const HEIGHT: Record<string, number> = {
   Q: 0.35,
   X: 1,
   Z: 0.4,
+  I: 1.3,
   Y: 1.25,
   V: 1.25,
   A: 1.1,
   W: 1.6,
   O: 1.6,
   D: 1.6,
+  o: 1.6,
   J: 1.6,
   '#': WALL_H,
 };
@@ -130,7 +132,7 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
     for (let x = 0; x < cols; x++) {
       const tile = at(x, y);
       g.drawImage(imageAt(x, y), x * PX, y * PX);
-      if ('~Bb,"Jy'.includes(tile)) animated.push({ x, y, tile, frame: 0 });
+      if ('~Bb,"Jyl'.includes(tile)) animated.push({ x, y, tile, frame: 0 });
     }
   }
   if (overlay) g.drawImage(overlay, 0, 0);

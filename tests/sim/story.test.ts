@@ -5,6 +5,7 @@ import { Rng } from '@/lib/battle/rng';
 import { ROSTER } from '@/lib/battle/roster';
 import { simulateBattle } from '@/lib/battle/simulate';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
+import { RAVE_TRAINERS } from '@/content/story/rave';
 import { afterBattle, makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
 
 const RUNS = Number(process.env.SIM_RUNS ?? 400);
@@ -185,4 +186,40 @@ it(`Paul Mescal is an easy Dublin fight over ${RUNS} runs`, () => {
   }
   console.log(`${foe.name} win rate`, won / RUNS);
   expect(won / RUNS).toBeGreaterThanOrEqual(0.85);
+});
+
+/**
+ * The Rave Cave in Dublin, for training: a party of 6 at Lv46 from the Dublin long grass, as you
+ * reach the city, should nearly always beat the ravers by the door, and one at Lv54 should have
+ * a real fight on its hands with Mossy at the back by the DJ.
+ */
+it(`the Rave Cave gets harder from the door to the DJ over ${RUNS} runs`, () => {
+  const rng = new Rng(1994);
+  const wild = mapById('dublin').wild!.table.map(([id]) => id);
+  const rate = (id: string, level: number) => {
+    const foe = trainerById(id);
+    let won = 0;
+    for (let i = 0; i < RUNS; i++) {
+      const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+        makeMember(wild[rng.int(0, wild.length - 1)], level, j),
+      );
+      const foes = foe.team.map(([s, l], j) => makeMember(s, l, 100 + j));
+      const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 13, [
+        'hard',
+        foe.ai,
+      ]);
+      if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+    }
+    return won / RUNS;
+  };
+  const rates = Object.fromEntries(
+    RAVE_TRAINERS.map((t) => [t.name, { Lv46: rate(t.id, 46), Lv54: rate(t.id, 54) }]),
+  );
+  console.table(rates);
+  const first = rates[RAVE_TRAINERS[0].name];
+  const last = rates[RAVE_TRAINERS.at(-1)!.name];
+  expect(first.Lv46).toBeGreaterThanOrEqual(0.85);
+  expect(last.Lv46).toBeLessThan(first.Lv46);
+  expect(last.Lv54).toBeGreaterThanOrEqual(0.2);
+  expect(last.Lv54).toBeLessThanOrEqual(0.9);
 });

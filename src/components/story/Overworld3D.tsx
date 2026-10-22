@@ -393,8 +393,11 @@ export default function Overworld3D(props: Props) {
           );
           continue;
         }
-        // At a party everyone dances, except a trainer on the lookout or whoever you're talking to.
-        const moves = map.party && !n.item.sight && !p.faces[n.index] ? dance(n.index, now) : null;
+        // At a party or on a dance floor everyone dances, except a trainer on the lookout or whoever you're talking to.
+        const moves =
+          (map.party || n.item.dances) && !n.item.sight && !p.faces[n.index]
+            ? dance(n.index, now)
+            : null;
         person(
           `npc:${n.index}:${look}`,
           () => new Figure(look, STYLES[look]),
