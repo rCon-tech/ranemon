@@ -549,20 +549,18 @@ test('story mode: the missing rent starts with Ollie, in the house by the river'
   expect(save.flags).toContain('rent:start');
 });
 
-test('story mode: Romeo Ruairí outside Sean’s Bar only ever says the one thing', async ({
-  page,
-}) => {
+test('story mode: Alex Simonin in Trinity only ever says the one thing', async ({ page }) => {
   await unlock(page);
   await page.addInitScript(() => {
-    if (localStorage.getItem('ranemon.story.v1:romeo')) return;
-    // On the road in Athlone, just below the path up to Sean's Bar.
+    if (localStorage.getItem('ranemon.story.v1:alex')) return;
+    // In Front Square, just below the path up to the Long Room.
     localStorage.setItem(
-      'ranemon.story.v1:romeo',
+      'ranemon.story.v1:alex',
       JSON.stringify({
         version: 1,
-        map: 'westmeath',
+        map: 'trinity',
         x: 5,
-        y: 4,
+        y: 7,
         face: 'up',
         party: [
           {
@@ -579,17 +577,17 @@ test('story mode: Romeo Ruairí outside Sean’s Bar only ever says the one thin
         box: [],
         bag: {},
         money: 3000,
-        flags: ['starter', 'visited:westmeath', 'jersey:offaly'],
+        flags: ['starter', 'visited:trinity', 'jersey:all'],
         seen: [],
         caught: [],
-        pub: { map: 'westmeath', x: 2, y: 9 },
+        pub: { map: 'dublin', x: 4, y: 11 },
         uid: 2,
         steps: 0,
       }),
     );
   });
   await page.goto('/story');
-  await page.getByTestId('trainer-name').fill('Romeo');
+  await page.getByTestId('trainer-name').fill('Alex');
   await page.getByRole('button', { name: 'CONTINUE' }).click();
   const world = page.getByTestId('overworld');
   const text = page.getByTestId('story-text');
@@ -598,15 +596,15 @@ test('story mode: Romeo Ruairí outside Sean’s Bar only ever says the one thin
 
   // One step up the path and he sees you.
   await page.keyboard.press('ArrowUp');
-  await expect(text).toHaveText(/ROMEO RUAIRÍ: How do we always end up here\?/, {
+  await expect(text).toHaveText(/ALEX SIMONIN: How do we always end up here\?/, {
     timeout: 10_000,
   });
   await text.click();
   await page.waitForTimeout(300);
   if (await text.count()) await text.click();
   const box = page.getByTestId('text-box');
-  await expect(box).toContainText('Romeo Ruairí sent out Simomon!', { timeout: 15_000 });
-  await expect(box).toContainText('ROMEO RUAIRÍ: How do we always end up here?', {
+  await expect(box).toContainText('Alex Simonin sent out Weezimo!', { timeout: 15_000 });
+  await expect(box).toContainText('ALEX SIMONIN: How do we always end up here?', {
     timeout: 15_000,
   });
 });

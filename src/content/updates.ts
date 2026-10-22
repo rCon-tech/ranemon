@@ -12,9 +12,9 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
-    title: 'A familiar face in Athlone',
+    title: 'A familiar face in Trinity',
     notes: [
-      'Someone very pink is hanging around outside the oldest pub in Ireland. He has one thing to say, and he’ll say it more than once.',
+      'Someone very pink is hanging around Front Square. He has one thing to say, and he’ll say it more than once.',
     ],
   },
   {

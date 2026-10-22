@@ -416,9 +416,9 @@ export const STYLES: Record<Look | 'player', Style> = {
     stick: '#c89830',
     stickTop: '#f0c040',
   },
-  // Romeo Ruairí, who only has eyes for Simomon: pink from his beanie to his shoes, with love
+  // Alex Simonin, who only has eyes for Simomon: pink from his beanie to his shoes, with love
   // hearts all over.
-  romeo: {
+  alex: {
     skin: SKIN,
     hair: '#6a3a1e',
     hairStyle: 'short',

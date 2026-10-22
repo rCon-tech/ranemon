@@ -59,7 +59,7 @@ export type Look =
   | 'simo'
   | 'mc'
   | 'melchior'
-  | 'romeo';
+  | 'alex';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
