@@ -6,7 +6,7 @@ import { DEX } from '@/lib/battle/evolutions';
 import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
-import { devSave, isDevName, storyFlags } from '@/lib/story/devsave';
+import { devSave, isDevName, recruits, storyFlags } from '@/lib/story/devsave';
 import { NORM } from '@/lib/story/norm';
 import { exportCode, importCode, parseSave } from '@/lib/story/save';
 import { beatFlag } from '@/lib/story/state';
@@ -30,7 +30,10 @@ describe('the developer save', () => {
   it('has every Ranemon and evolution, caught and in the party or Group Chat', () => {
     const all = [...g.party, ...g.box];
     const usual = all.filter((m) => !m.variant).map((m) => m.species);
-    expect(usual.sort()).toEqual(DEX.map((c) => c.id).sort());
+    expect(usual.sort()).toEqual([...DEX.map((c) => c.id), ...recruits()].sort());
+    // Petchemon is never caught, only given by B&S, so he comes in as theirs.
+    expect(recruits()).toContain('petchemon');
+    expect(usual).toContain('petchemon');
     expect(g.party).toHaveLength(6);
     expect(new Set(g.caught)).toEqual(new Set(DEX.map((c) => c.id)));
     expect(new Set(g.seen)).toEqual(new Set(DEX.map((c) => c.id)));
@@ -55,6 +58,8 @@ describe('the developer save', () => {
     expect(g.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all')).toHaveLength(9);
     expect(flags.has('jersey:all')).toBe(true);
     expect(flags.has('champion')).toBe(true);
+    // Paul Mescal runs off after his battle, so he's gone too.
+    expect(flags.has('mescal:gone')).toBe(true);
   });
 
   it('has beaten every trainer but leaves Poseidon, the B&S rematch and the twins to fight', () => {

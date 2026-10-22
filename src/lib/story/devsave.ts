@@ -47,24 +47,40 @@ const LEFT_TO_PLAY = new Set([
   NORM,
 ]);
 
-/** Every flag any script, trainer reward or map sets, found by walking the content. */
-export function storyFlags(): string[] {
-  const found = new Set<string>();
+/** Every script step in the maps and trainers, found by walking the content. */
+function steps(): Record<string, unknown>[] {
+  const found: Record<string, unknown>[] = [];
   const walk = (v: unknown): void => {
     if (Array.isArray(v)) v.forEach(walk);
     else if (v && typeof v === 'object') {
       const o = v as Record<string, unknown>;
-      if (o.do === 'flag' && typeof o.flag === 'string') found.add(o.flag);
+      if (typeof o.do === 'string') found.push(o);
       Object.values(o).forEach(walk);
     }
   };
   walk([MAPS, INTERIORS, TRAINERS]);
+  return found;
+}
+
+/** Every flag any script, trainer reward or map sets, including those set by someone running off. */
+export function storyFlags(): string[] {
+  const found = new Set<string>();
+  for (const s of steps())
+    if ((s.do === 'flag' || s.do === 'flee') && typeof s.flag === 'string') found.add(s.flag);
+  return [...found];
+}
+
+/** Every Ranemon a script gives you to keep (Petchemon, from B&S), whether or not he's in the Ranedex. */
+export function recruits(): string[] {
+  const found = new Set<string>();
+  for (const s of steps())
+    if (s.do === 'recruit' && typeof s.species === 'string') found.add(s.species);
   return [...found];
 }
 
 /**
  * The whole Ranedex as Ranemon of your own: evolved forms first, then base forms, then the
- * legend, then the other looks of those that have them.
+ * legend, then those a script gives you, then the other looks of those that have them.
  */
 function everyone(): Member[] {
   let uid = 1;
@@ -81,6 +97,8 @@ function everyone(): Member[] {
     members.push(makeMember(c.id, evo ? evo.level - 1 : DEV_LEVEL, uid++));
   }
   members.push(makeMember(LEGEND.id, LEGEND_LEVEL, uid++));
+  for (const id of recruits())
+    if (!members.some((m) => m.species === id)) members.push(makeMember(id, DEV_LEVEL, uid++));
   // And every other look, of every form that has one, at the same level as the usual look.
   for (const m of [...members])
     for (const v of variantsOf(m.species))
