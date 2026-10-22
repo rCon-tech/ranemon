@@ -548,3 +548,63 @@ test('story mode: the missing rent starts with Ollie, in the house by the river'
   );
   expect(save.flags).toContain('rent:start');
 });
+
+test('story mode: Alex Simonin in Trinity only ever says the one thing', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:alex')) return;
+    // In Front Square, just below the path up to the Long Room.
+    localStorage.setItem(
+      'ranemon.story.v1:alex',
+      JSON.stringify({
+        version: 1,
+        map: 'trinity',
+        x: 5,
+        y: 7,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 45,
+            exp: 100000,
+            hp: 150,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:trinity', 'jersey:all'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Alex');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+
+  // One step up the path and he sees you.
+  await page.keyboard.press('ArrowUp');
+  await expect(text).toHaveText(/ALEX SIMONIN: How do we always end up here\?/, {
+    timeout: 10_000,
+  });
+  await text.click();
+  await page.waitForTimeout(300);
+  if (await text.count()) await text.click();
+  const box = page.getByTestId('text-box');
+  await expect(box).toContainText('Alex Simonin sent out Weezimo!', { timeout: 15_000 });
+  await expect(box).toContainText('ALEX SIMONIN: How do we always end up here?', {
+    timeout: 15_000,
+  });
+});

@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A familiar face in Trinity',
+    notes: [
+      'Someone very pink is hanging around Front Square. He has one thing to say, and he’ll say it more than once.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A mystery in Dublin',
     notes: [
       'There’s a new house by the river in Dublin, and the people inside are having a very bad day. Follow the clues around the city and decide who’s to blame.',

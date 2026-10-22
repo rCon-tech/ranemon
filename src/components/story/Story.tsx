@@ -407,7 +407,7 @@ export function Story() {
             setLine(null);
             setFight({
               teams: [g.party.map(toEntrant), team],
-              foe: { kind: 'trainer', name: t.name },
+              foe: { kind: 'trainer', name: t.name, line: t.line },
               ai: t.ai,
               trainer: t.id,
               key: Date.now(),

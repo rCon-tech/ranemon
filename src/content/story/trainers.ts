@@ -16,6 +16,9 @@ const RENT_REWARD: Step[] = [
   { do: 'give', item: 'full-irish', count: 2 },
 ];
 
+/** All Alex Simonin ever says: before, during and after a battle. */
+export const ALEX = 'ALEX SIMONIN: How do we always end up here?';
+
 /** A gym win: the jersey, Michael D on the phone, and the leader's prize. */
 function jersey(county: string, next: string, extra: Step[] = []): Step[] {
   return [
@@ -363,6 +366,22 @@ const T: Trainer[] = [
     before: 'MELCHIOR: Vive le roi!',
     after: `MELCHIOR: ${NEVER_FIND_OUT}`,
     reward: RENT_REWARD,
+  },
+
+  // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
+  {
+    id: 'trinity-alex',
+    name: 'Alex Simonin',
+    team: [
+      ['simomon', 45],
+      ['simomon', 46],
+      ['simomon', 47],
+    ],
+    ai: 'hard',
+    prize: 1880,
+    before: ALEX,
+    after: ALEX,
+    line: ALEX,
   },
 
   // ---------- route trainers ----------
