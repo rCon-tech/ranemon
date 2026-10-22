@@ -144,7 +144,7 @@ export const ITEMS: Item[] = [
   {
     id: 'blue-ghost',
     name: 'Blue Ghost',
-    about: 'Raises a Ranemon by exactly 1 level.',
+    about: 'Take one, get yipped, and go up exactly 1 level.',
     price: 4800,
     from: 9,
     use: { kind: 'level' },
