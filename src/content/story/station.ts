@@ -1,3 +1,4 @@
+import { BOYDE } from './boyde';
 import { interiorId } from './interiors';
 import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
 
@@ -173,27 +174,33 @@ const CLERK: Step[] = [
 /** Where the platform staff stand along the top of the concourse, in platform order. */
 const STAFF_X = [2, 7, 3, 6];
 
+/** Where Jamie Boyde stands on the concourse, by the benches, out of everyone's way. */
+const BOYDE_AT = { x: 7, y: 5 };
+
 export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
-  // The clerk is person 1; each running line's staff stand at the top, in platform order.
+  // The clerk is person 1; each running line's staff stand at the top, in platform order, and
+  // Jamie Boyde comes after them.
   const staff = RUNNING.slice(0, STAFF_X.length);
-  const top = 'WNFFFFFFNW'.split('');
-  staff.forEach((_, i) => (top[STAFF_X[i]] = String(i + 2)));
+  const rows = [
+    'WWWWWWWWWW',
+    'WODDDDDDOW',
+    'WNFFFFFFNW',
+    'WFFFFFFFFW',
+    'WUUFFFFUUW',
+    'WF1FFFFFFW',
+    'WCCCFFFFNW',
+    'WFFF@FFFFW',
+    'WWWWEWWWWW',
+  ].map((r) => r.split(''));
+  staff.forEach((_, i) => (rows[2][STAFF_X[i]] = String(i + 2)));
+  rows[BOYDE_AT.y][BOYDE_AT.x] = String(staff.length + 2);
   return {
     name: 'Connolly Station',
-    rows: [
-      'WWWWWWWWWW',
-      'WODDDDDDOW',
-      top.join(''),
-      'WFFFFFFFFW',
-      'WUUFFFFUUW',
-      'WF1FFFFFFW',
-      'WCCCFFFFNW',
-      'WFFF@FFFFW',
-      'WWWWEWWWWW',
-    ],
+    rows: rows.map((r) => r.join('')),
     npcs: [
       { look: 'clerk', face: 'down', talk: CLERK },
       ...staff.map((d) => ({ look: d.staff, face: 'down' as Dir, talk: aboard(d) })),
+      BOYDE,
     ],
     things: {
       D: boardText(),

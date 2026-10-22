@@ -705,6 +705,69 @@ test('story mode: a ticket from Connolly Station to Greystones, where Kill has a
   expect(save.flags).toContain('greystones:heard');
 });
 
+test('story mode: Jamie Boyde on the concourse at Connolly has a question', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:jamie')) return;
+    // On the concourse at Connolly, just left of him.
+    localStorage.setItem(
+      'ranemon.story.v1:jamie',
+      JSON.stringify({
+        version: 1,
+        map: 'dublin-L2',
+        x: 6,
+        y: 5,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:dublin'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Jamie');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toHaveAttribute('aria-label', /^Connolly Station, Dublin City/);
+  await page.waitForTimeout(400);
+  for (let i = 0; i < 12 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+
+  // A yes or no question comes up in a box of its own.
+  const no = page.getByRole('button', { name: 'NO', exact: true });
+  await page.keyboard.press('z');
+  await expect(page.getByText('Should I put this pill in my ass?')).toBeVisible();
+  await no.click();
+  await expect(text).toContainText('The ear, so?');
+  for (let i = 0; i < 4 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+  await expect(world).toHaveAttribute('aria-label', /^Connolly Station, Dublin City/);
+});
+
 test('story mode: Paul Mescal is sad, loses, says look over there and runs off', async ({
   page,
 }) => {
