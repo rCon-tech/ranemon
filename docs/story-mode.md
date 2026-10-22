@@ -227,6 +227,8 @@ The overworld is a 16×16 pixel tile grid drawn at whole-number scale, showing 1
 - **B&S**: an overworld group sprite and a battle portrait made from the group photo on page 7 of the Ranemon sheet.
 - **Effects**: pint throw arc, 3 sip frames, befriend sparkle, Blue Ghost sparkle tile, grass rustle, exclamation bubble when a trainer spots you.
 
+**Ranedex pages.** Tap a Ranemon in the Ranedex, or move to it with the D-pad and press A, for its page; ◀ and ▶ (or left and right) flip to the next one you've seen, A flips through its looks, up and down scroll, and B goes back to the list. A page only shows what you've come across (`src/lib/story/dex.ts`): unseen Ranemon can't be opened and are ????? in evolution lines, a Ranemon seen but not befriended shows only its picture, types, matchups, evolution line and where it's found, places you haven't been are ?????, a second special move is ??? until one of its line has learnt it, and its shiny look shows only while you have one. Petchemon and Poseidon still have no page.
+
 **Text and UI.** Dialogue box in Press Start 2P, matching the battle screen. Start menu: Ranedex, Party, Bag, Jerseys, Save, Options.
 
 ## Technical architecture

@@ -115,6 +115,7 @@ import {
   PartyPanel,
   RanedexPanel,
   ShopPanel,
+  type DexNav,
   StarterPanel,
 } from './Panels';
 
@@ -616,8 +617,12 @@ export function Story() {
     run(g, steps);
   }
 
+  /** The Ranedex's own D-pad, A and B while it's open (see `RanedexPanel`). */
+  const dexNav = useRef<DexNav | null>(null);
+
   function pressA() {
     if (line) return advance();
+    if (overlay === 'dex' && dexNav.current) return dexNav.current.a();
     if (!game || busy) return;
     const [dx, dy] = DELTA[game.face];
     const map = mapById(game.map);
@@ -628,6 +633,7 @@ export function Story() {
 
   function pressB() {
     if (line) return advance();
+    if (overlay === 'dex' && dexNav.current?.b()) return playSfx('back');
     if (overlay && overlay !== 'starter' && overlay !== 'ending' && overlay !== 'offer-chat') {
       playSfx('back');
       closeOverlay();
@@ -666,10 +672,17 @@ export function Story() {
     if (game && queue.length) run(game, queue);
   }
 
+  /** A D-pad press a menu takes instead of walking. False when no menu wants it. */
+  function menuDir(dir: Dir): boolean {
+    if (overlay !== 'dex' || !dexNav.current || line) return false;
+    dexNav.current.dir(dir);
+    return true;
+  }
+
   // Keyboard: arrows or WASD walk, Z/Space is A, X/Escape is B, Enter is START, M is the map.
-  const keys = useRef({ pressA, pressB, pressStart, openMap });
+  const keys = useRef({ pressA, pressB, pressStart, openMap, menuDir });
   useEffect(() => {
-    keys.current = { pressA, pressB, pressStart, openMap };
+    keys.current = { pressA, pressB, pressStart, openMap, menuDir };
   });
   useEffect(() => {
     const dirs: Record<string, Dir> = {
@@ -685,7 +698,8 @@ export function Story() {
     const down = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
       const dir = dirs[e.key];
-      if (dir) {
+      if (dir && keys.current.menuDir(dir)) e.preventDefault();
+      else if (dir) {
         held.current.dir = dir;
         if (!e.repeat) held.current.tapped = dir;
         e.preventDefault();
@@ -1155,7 +1169,7 @@ export function Story() {
             }}
           />
         )}
-        {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} />}
+        {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={dexNav} />}
         {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
         {overlay === 'map' && <TownMapPanel game={game} onClose={closeOverlay} />}
         {overlay === 'limepass' && (
@@ -1222,6 +1236,7 @@ export function Story() {
       </div>
       <Controls
         onDir={(dir, on) => {
+          if (on && menuDir(dir)) return;
           if (on) held.current.dir = held.current.tapped = dir;
           else if (held.current.dir === dir) held.current.dir = null;
         }}

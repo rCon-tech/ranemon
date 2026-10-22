@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { DexEntry } from '@/components/DexEntry';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
@@ -19,7 +20,10 @@ import {
   statsOf,
   type Member,
 } from '@/lib/story/party';
+import { storyKnowledge } from '@/lib/story/dex';
 import { shinyForm } from '@/lib/story/shiny';
+import { playSfx } from '@/lib/sound/engine';
+import type { Dir } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 
@@ -384,13 +388,117 @@ export function GroupChatPanel({
   );
 }
 
-export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+/** The D-pad, A and B, handed to the Ranedex while it's open. */
+export interface DexNav {
+  dir: (dir: Dir) => void;
+  a: () => void;
+  /** B: back from a page to the list. False when the list is showing, so B closes it. */
+  b: () => boolean;
+}
+
+/** Ranedex tiles per row, for moving up and down with the D-pad. */
+const DEX_COLUMNS = 4;
+
+export function RanedexPanel({
+  game,
+  onClose,
+  navRef,
+}: {
+  game: StoryState;
+  onClose: () => void;
+  navRef?: React.RefObject<DexNav | null>;
+}) {
+  const [cursor, setCursor] = useState(0);
+  const [open, setOpen] = useState<number | null>(null);
+  const [look, setLook] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const know = storyKnowledge(game);
   // Species you have a shiny of right now, in the party or the Group Chat.
   const shinies = new Set(
     [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
   );
   // Petchemon is not in the Ranedex, so he is left out of the counts.
   const inDex = (id: string) => DEX.some((c) => c.id === id);
+  const seen = (i: number) => game.seen.includes(DEX[i].id);
+
+  const show = (i: number) => {
+    setCursor(i);
+    setOpen(i);
+    setLook(0);
+    box.current?.closest('.dialog')?.scrollTo({ top: 0 });
+  };
+  /** The next entry you've seen, one way or the other from `from`, wrapping round. */
+  const nextSeen = (from: number, step: 1 | -1) => {
+    for (let n = 1; n <= DEX.length; n++) {
+      const i = (from + step * n + DEX.length) % DEX.length;
+      if (seen(i)) return i;
+    }
+    return from;
+  };
+
+  useEffect(() => {
+    if (!navRef) return;
+    navRef.current = {
+      dir: (dir) => {
+        if (open !== null) {
+          if (dir === 'left' || dir === 'right') {
+            playSfx('blip');
+            show(nextSeen(open, dir === 'left' ? -1 : 1));
+          } else box.current?.closest('.dialog')?.scrollBy({ top: dir === 'up' ? -80 : 80 });
+          return;
+        }
+        const step = { left: -1, right: 1, up: -DEX_COLUMNS, down: DEX_COLUMNS }[dir];
+        const to = cursor + step;
+        if (to < 0 || to >= DEX.length) return;
+        playSfx('blip');
+        setCursor(to);
+      },
+      a: () => {
+        if (open !== null) {
+          setLook((l) => l + 1);
+          return;
+        }
+        if (seen(cursor)) {
+          playSfx('select');
+          show(cursor);
+        }
+      },
+      b: () => {
+        if (open === null) return false;
+        setOpen(null);
+        return true;
+      },
+    };
+    return () => {
+      navRef.current = null;
+    };
+  });
+
+  // Keep the cursor's tile in view as the D-pad moves it.
+  useEffect(() => {
+    if (open === null)
+      box.current?.querySelector(`[data-dex="${cursor}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [cursor, open]);
+
+  if (open !== null) {
+    const c = DEX[open];
+    return (
+      <Panel title="RANEDEX" onClose={() => setOpen(null)}>
+        <div ref={box}>
+          <DexEntry
+            creature={c}
+            number={open + 1}
+            know={know}
+            look={look}
+            onLook={setLook}
+            onOpen={(id) => show(DEX.findIndex((d) => d.id === id))}
+            onStep={(step) => show(nextSeen(open, step))}
+          />
+        </div>
+      </Panel>
+    );
+  }
+
   return (
     <Panel title="RANEDEX" onClose={onClose}>
       <p className="text-[11px]">
@@ -398,14 +506,19 @@ export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () 
         {DEX.length}
         {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
-      <div className="grid grid-cols-4 gap-1.5">
+      <div ref={box} className="grid grid-cols-4 gap-1.5">
         {DEX.map((c, i) => {
           const seen = game.seen.includes(c.id);
           const shiny = shinies.has(c.id);
           return (
-            <div
+            <button
               key={c.id}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 ${shiny ? 'border-gold' : 'border-frame'}`}
+              type="button"
+              data-dex={i}
+              disabled={!seen}
+              aria-label={`No.${String(i + 1).padStart(3, '0')} ${seen ? c.name : 'unknown'}`}
+              onClick={() => show(i)}
+              className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 ${shiny ? 'border-gold' : 'border-frame'} ${i === cursor ? 'outline outline-3 outline-accent2' : ''}`}
             >
               <span className="text-[8px]">{String(i + 1).padStart(3, '0')}</span>
               <span className="h-10 w-10">
@@ -416,7 +529,7 @@ export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () 
                 {seen ? c.name : '?????'}
                 {game.caught.includes(c.id) ? ' ●' : ''}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

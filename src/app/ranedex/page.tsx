@@ -1,25 +1,10 @@
 import Link from 'next/link';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
-import { levelStats, STAT_KEYS } from '@/lib/battle/creature';
-import { evolutionOf, ITEM_EVOLUTIONS } from '@/lib/battle/evolutions';
-import { moveById } from '@/lib/battle/moves';
-import { creatureById, ROSTER } from '@/lib/battle/roster';
-import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '@/lib/battle/second-specials';
+import { ROSTER } from '@/lib/battle/roster';
 import { variantForm, variantsOf } from '@/lib/battle/variants';
-import { itemById, type ItemId } from '@/lib/story/items';
 
 export const metadata = { title: 'Ranedex' };
-
-const itemName = (id: string) => itemById(id as ItemId).name;
-
-const STAT_LABEL = {
-  hp: 'HP',
-  attack: 'ATK',
-  defense: 'DEF',
-  spirit: 'SPI',
-  speed: 'SPD',
-} as const;
 
 export default function Ranedex() {
   return (
@@ -30,94 +15,37 @@ export default function Ranedex() {
           BACK
         </Link>
       </div>
-      <ol className="flex flex-col gap-3">
-        {ROSTER.map((c, i) => {
-          const stats = levelStats(c.base);
-          return (
-            <li key={c.id} className="dialog flex flex-col gap-3 p-3">
-              <div className="flex gap-3">
-                <div className="h-16 w-16 shrink-0 rounded-lg border-2 border-frame bg-mist p-1">
-                  <Sprite creature={c} />
-                </div>
-                {/* Its other looks: the same Ranemon in another photo. */}
-                {variantsOf(c.id).map((v) => (
-                  <div
-                    key={v.id}
-                    className="h-16 w-16 shrink-0 rounded-lg border-2 border-frame bg-mist p-1"
-                    title={`${c.name} (${v.label})`}
-                  >
-                    <Sprite creature={variantForm(c, v.id)} />
-                  </div>
-                ))}
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <span className="text-[11px] opacity-60">
-                    No.{String(i + 1).padStart(3, '0')}
-                  </span>
-                  <h2 className="text-[15px]">{c.name}</h2>
-                  <span className="flex gap-1">
-                    {c.types.map((t) => (
-                      <TypeBadge key={t} type={t} />
-                    ))}
-                  </span>
-                </div>
-              </div>
-              <p className="text-[11px] leading-relaxed">{c.entry}</p>
-              <dl className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1 text-[10px]">
-                {STAT_KEYS.map((k) => (
-                  <div key={k} className="contents">
-                    <dt>{STAT_LABEL[k]}</dt>
-                    <dd className="h-1.5 overflow-hidden rounded-full bg-shell">
-                      <div
-                        className="h-full rounded-full bg-accent2"
-                        style={{ width: `${(c.base[k] / 130) * 100}%` }}
-                      />
-                    </dd>
-                    <dd className="text-right">{stats[k]}</dd>
-                  </div>
-                ))}
-              </dl>
-              <ul className="grid grid-cols-2 gap-1 text-[10px]">
-                {c.moves.map((id) => (
-                  <li
-                    key={id}
-                    className={`truncate ${moveById(id).signature ? 'text-accent' : ''}`}
-                  >
-                    {moveById(id).signature ? '★' : '·'} {moveById(id).name}
-                  </li>
-                ))}
-              </ul>
-              {c.moves
-                .map(moveById)
-                .filter((m) => m.signature)
-                .map((m) => (
-                  <p key={m.id} className="text-[10px] leading-relaxed">
-                    ★ {m.name}: {m.flavour}
-                  </p>
-                ))}
-              {secondSpecialOf(c.id) && (
-                <p className="text-[10px] leading-relaxed">
-                  ★ {secondSpecialOf(c.id)!.name} (story mode, Lv{SECOND_SPECIAL_LEVEL}):{' '}
-                  {secondSpecialOf(c.id)!.flavour}
-                </p>
-              )}
-              {evolutionOf(c.id) && (
-                <p className="text-[10px] text-frame">
-                  In story mode, evolves into {evolutionOf(c.id)!.name} at Lv
-                  {evolutionOf(c.id)!.level}
-                  {evolutionOf(c.id)!.partner &&
-                    ` or later, with a ${creatureById(evolutionOf(c.id)!.partner!).name} in the party`}
-                  .
-                </p>
-              )}
-              {ITEM_EVOLUTIONS.filter((e) => e.from === c.id).map((e) => (
-                <p key={e.id} className="text-[10px] text-frame">
-                  Or, given a {itemName(e.item)}, evolves into {e.name}, who knows ★{' '}
-                  {moveById(e.signature).name}.
-                </p>
+      <p className="text-[11px]">Tap a Ranemon for its page.</p>
+      <ol className="flex flex-col gap-2">
+        {ROSTER.map((c, i) => (
+          <li key={c.id}>
+            <Link href={`/ranedex/${c.id}`} className="dialog flex items-center gap-3 p-2">
+              <span className="h-14 w-14 shrink-0 rounded-lg border-2 border-frame bg-mist p-1">
+                <Sprite creature={c} />
+              </span>
+              {/* Its other looks: the same Ranemon in another photo. */}
+              {variantsOf(c.id).map((v) => (
+                <span
+                  key={v.id}
+                  className="h-14 w-14 shrink-0 rounded-lg border-2 border-frame bg-mist p-1"
+                  title={`${c.name} (${v.label})`}
+                >
+                  <Sprite creature={variantForm(c, v.id)} />
+                </span>
               ))}
-            </li>
-          );
-        })}
+              <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span className="text-[11px] opacity-60">No.{String(i + 1).padStart(3, '0')}</span>
+                <span className="text-[15px]">{c.name}</span>
+                <span className="flex gap-1">
+                  {c.types.map((t) => (
+                    <TypeBadge key={t} type={t} />
+                  ))}
+                </span>
+              </span>
+              <span aria-hidden="true">▶</span>
+            </Link>
+          </li>
+        ))}
       </ol>
     </div>
   );

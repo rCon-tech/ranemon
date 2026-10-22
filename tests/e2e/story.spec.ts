@@ -379,3 +379,94 @@ test('story mode: the Limepass fast travels to a town you’ve been to', async (
   await expect(page.getByTestId('story-text')).toContainText('zip over to Limerick');
   await expect(page.getByTestId('place')).toContainText('Limerick');
 });
+
+/** A save with a few Ranemon seen and one befriended, standing at home in Clare. */
+const dexSave = () => ({
+  version: 1,
+  map: 'clare',
+  x: 2,
+  y: 3,
+  face: 'up',
+  party: [
+    {
+      uid: 1,
+      species: 'olliemon',
+      level: 20,
+      exp: 8000,
+      hp: 60,
+      pp: [10],
+      status: null,
+      moves: ['fend-off'],
+    },
+  ],
+  box: [],
+  bag: {},
+  money: 3000,
+  flags: ['starter', 'visited:clare'],
+  seen: ['enda', 'clefenda', 'olliemon'],
+  caught: ['olliemon'],
+  pub: { map: 'clare', x: 2, y: 3 },
+  uid: 2,
+  steps: 0,
+});
+
+for (const view of ['2d', '3d'] as const) {
+  test(`story mode in ${view.toUpperCase()}: a Ranedex page for each Ranemon you've seen`, async ({
+    page,
+  }) => {
+    await unlock(page);
+    await page.addInitScript(
+      ([v, raw]) => {
+        localStorage.setItem('ranemon.view', v);
+        if (!localStorage.getItem('ranemon.story.v1:dexter'))
+          localStorage.setItem('ranemon.story.v1:dexter', raw);
+      },
+      [view, JSON.stringify(dexSave())] as const,
+    );
+    await page.goto('/story');
+    await page.getByTestId('trainer-name').fill('Dexter');
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    await expect(page.getByTestId('overworld')).toHaveAttribute('data-view', view);
+
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'RANEDEX' }).click();
+    // Unseen Ranemon can't be opened.
+    await expect(page.getByRole('button', { name: 'No.001 unknown' })).toBeDisabled();
+
+    // The D-pad moves the cursor and A opens the page: two rows down is Olliemon.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('z');
+    const entry = page.getByTestId('dex-entry');
+    await expect(entry).toHaveAttribute('data-id', 'olliemon');
+    await expect(entry).toContainText('BASE STATS');
+    // His second special move is learnt later on, so it isn't given away.
+    await expect(entry).toContainText('??? · learnt later on');
+    await expect(entry).not.toContainText('Know Your Sport');
+    // A flips to his other look.
+    await page.keyboard.press('z');
+    await expect(page.getByRole('button', { name: 'Tricolour' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    if (view === '3d') await expect(entry.locator('canvas')).toHaveCount(1);
+
+    // ◀ goes to the last Ranemon seen before him: Clefenda, seen but not befriended.
+    await page.keyboard.press('ArrowLeft');
+    await expect(entry).toHaveAttribute('data-id', 'clefenda');
+    await expect(entry).toContainText('Befriend one to fill in the rest');
+    await expect(entry).not.toContainText('BASE STATS');
+    // Its evolution line opens Endamon's page with a tap.
+    await entry.getByRole('button', { name: /Endamon/ }).click();
+    await expect(entry).toHaveAttribute('data-id', 'enda');
+    await expect(entry).toContainText('Newmarket-on-Fergus, Co. Clare');
+    await expect(entry).toContainText('?????');
+
+    // B goes back to the list, and B again closes the Ranedex.
+    await page.keyboard.press('x');
+    await expect(entry).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'No.005 Endamon' })).toBeVisible();
+    await page.keyboard.press('x');
+    await expect(page.getByRole('button', { name: 'No.005 Endamon' })).toHaveCount(0);
+  });
+}

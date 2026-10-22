@@ -88,7 +88,16 @@ test('the Ranedex lists all 20 Ranemon with their photo sprites', async ({ page 
   await expect(sprite).toBeVisible();
   // The full-colour pixel versions: 96 pixels, cut down to 32 colours.
   expect(await sprite.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(96);
-  await expect(page.getByText('★ Ranelads.com:')).toBeVisible();
+
+  // Each one opens to a page of its own; the arrow keys flip through them, Escape goes back.
+  await page.getByRole('link', { name: /Steadmon/ }).click();
+  await expect(page.getByTestId('dex-entry')).toHaveAttribute('data-id', 'steadmon');
+  await expect(page.getByText('BATTLE MODE MOVES')).toBeVisible();
+  await expect(page.getByText('★ Ranelads.com').first()).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await expect(page).toHaveURL(/\/ranedex\/enda/);
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(/\/ranedex\/?$/);
 });
 
 test('how to play: the guide explains the game and shows the type chart', async ({ page }) => {
