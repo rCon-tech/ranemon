@@ -586,7 +586,8 @@ export function Story() {
     if (npc && !bumped) {
       setFaces({ [npc.index]: OPPOSITE[face] });
       const t = npc.item.trainer;
-      if (t && !hasFlag(game, beatFlag(t))) {
+      const ready = !npc.item.readyIf || hasFlag(game, npc.item.readyIf);
+      if (t && ready && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
           return run(game, [
             { do: 'say', text: 'Your Ranemon are too tired. Heal them in McGrattans first!' },

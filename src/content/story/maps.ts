@@ -1113,9 +1113,17 @@ export const MAPS: GameMap[] = [
       {
         look: 'bns',
         face: 'right',
-        showIf: 'beat:scholar-3',
         hideIf: 'champion',
         trainer: 'bns',
+        // There under the Campanile from the start, but they won't fight until the last scholar
+        // in the Long Room is beaten.
+        readyIf: 'beat:scholar-3',
+        talk: [
+          {
+            do: 'say',
+            text: 'B&S: Not so fast. Get past our three scholars in the Long Room first, then come back to us.',
+          },
+        ],
       },
       HIGGINS,
       { look: 'bns', face: 'down', showIf: 'rematch', trainer: 'bns-rematch' },
