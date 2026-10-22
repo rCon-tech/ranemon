@@ -471,7 +471,9 @@ for (const view of ['2d', '3d'] as const) {
   });
 }
 
-test('story mode: the missing rent starts with Ollie, in the house by the river', async ({ page }) => {
+test('story mode: the missing rent starts with Ollie, in the house by the river', async ({
+  page,
+}) => {
   await unlock(page);
   await page.addInitScript(() => {
     if (localStorage.getItem('ranemon.story.v1:rent')) return;
