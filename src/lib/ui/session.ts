@@ -29,7 +29,16 @@ export const SPECIAL_MS = 2200;
 export const messagePause = (text: string) => MESSAGE_MS + text.length * MS_PER_CHAR;
 
 export type Mode =
-  'playing' | 'menu' | 'fight' | 'switch' | 'bag' | 'forced-switch' | 'confirm-run' | 'over';
+  | 'playing'
+  | 'menu'
+  | 'fight'
+  | 'switch'
+  | 'bag'
+  | 'forced-switch'
+  | 'confirm-run'
+  /** Online: your choice is sent, and the friend hasn't chosen yet. */
+  | 'waiting'
+  | 'over';
 export type Result = 'win' | 'loss' | 'draw' | 'caught' | 'fled';
 type MenuMode = 'menu' | 'fight' | 'switch' | 'bag' | 'confirm-run';
 
@@ -53,6 +62,16 @@ export interface Pint {
 /** Lines the session itself adds between engine events, and the end of a caught or fled battle. */
 export type Line = { kind: 'say'; text: string } | { kind: 'end'; result: Result };
 export type QueueItem = BattleEvent | Line;
+
+/**
+ * Online, a choice goes to the save server instead of into the engine; the screen sends it and
+ * the turn comes back with the friend's. `n` is bumped with each, so each is sent once.
+ */
+export type Choice =
+  | { kind: 'act'; action: Action; turn: number }
+  | { kind: 'replace'; to: number }
+  | { kind: 'forfeit' };
+export type Outgoing = Choice & { n: number };
 
 /** Everything the battle screen shows, driven one step at a time by `reduce`. */
 export interface Session {
@@ -86,6 +105,10 @@ export interface Session {
   /** The queued item played last, and a count bumped with each, so its sound plays once. */
   last: QueueItem | null;
   played: number;
+  /** A live battle against a friend: the save server plays the turns. */
+  remote: boolean;
+  /** Online: the last choice to send to the save server. */
+  outbox: Outgoing | null;
 }
 
 export type SessionAction =
@@ -97,7 +120,9 @@ export type SessionAction =
   | { type: 'pint'; pint: Pint; rate: number; random: number }
   | { type: 'run'; random: number }
   | { type: 'forfeit' }
-  | { type: 'tick'; random: number };
+  | { type: 'tick'; random: number }
+  /** Online: what the save server says happened since, and the battle as it stands now. */
+  | { type: 'remote'; state: BattleState; items: QueueItem[] };
 
 /** CPU choices need randomness, but the reducer must stay pure, so actions carry a seed. */
 function randomFrom(seed: number): () => number {
@@ -111,10 +136,11 @@ const bump = (pair: [number, number], side: Side): [number, number] =>
 export interface SessionOptions {
   foe?: Foe;
   timer?: boolean;
+  remote?: boolean;
 }
 
 export function startSession(
-  start: { state: BattleState; events: BattleEvent[] },
+  start: { state: BattleState; events: QueueItem[] },
   difficulty: Difficulty,
   options: SessionOptions = {},
 ): Session {
@@ -142,7 +168,24 @@ export function startSession(
     runs: 0,
     last: null,
     played: 0,
+    remote: options.remote ?? false,
+    outbox: null,
   };
+}
+
+/** Online: waits for the save server to say what the friend did. */
+function wait(s: Session): Session {
+  return {
+    ...s,
+    mode: 'waiting',
+    message: `Waiting for ${s.foe.name ?? 'your friend'}…`,
+    line: s.line + 1,
+  };
+}
+
+/** Online: hands a choice to the screen to send, and waits for the friend's. */
+function send(s: Session, choice: Choice): Session {
+  return { ...wait(s), outbox: { ...choice, n: (s.outbox?.n ?? 0) + 1 } };
 }
 
 /**
@@ -242,6 +285,7 @@ function step(s: Session, random: number): Session {
     if (phase.sides.includes(0)) {
       return { ...s, mode: 'forced-switch', message: 'Choose your next Ranemon.' };
     }
+    if (s.remote) return wait(s);
     const to = chooseReplacement(s.state, 1, s.difficulty, randomFrom(random));
     const next = replaceFainted(s.state, 1, to);
     return playEvents(s, next.state, next.events);
@@ -255,6 +299,7 @@ function step(s: Session, random: number): Session {
 }
 
 function act(s: Session, action: Action, random: number, before: QueueItem[] = []): Session {
+  if (s.remote) return send(s, { kind: 'act', action, turn: s.state.turn });
   const foe = chooseAction(s.state, 1, s.difficulty, randomFrom(random));
   const next = playTurn(s.state, [action, foe]);
   return playEvents({ ...s, queue: [...s.queue, ...before] }, next.state, next.events);
@@ -356,6 +401,7 @@ export function reduce(s: Session, a: SessionAction): Session {
       return isChoosing(s.mode) ? act(s, a.action, a.random) : s;
     case 'replace': {
       if (s.mode !== 'forced-switch') return s;
+      if (s.remote) return send(s, { kind: 'replace', to: a.to });
       const next = replaceFainted(s.state, 0, a.to);
       return playEvents(s, next.state, next.events);
     }
@@ -383,7 +429,14 @@ export function reduce(s: Session, a: SessionAction): Session {
         result: 'loss',
         queue: [],
         message: 'You forfeited the battle.',
+        ...(s.remote && { outbox: { kind: 'forfeit' as const, n: (s.outbox?.n ?? 0) + 1 } }),
       };
+    case 'remote': {
+      // Once you've forfeited, what the server says next is only the friend being told.
+      if (s.mode === 'over') return s;
+      const next = playEvents(s, a.state, a.items);
+      return s.mode === 'playing' ? { ...next, pause: s.pause } : next;
+    }
     case 'tick': {
       if (!s.timer || !isChoosing(s.mode)) return s;
       if (s.timeLeft > 1) return { ...s, timeLeft: s.timeLeft - 1 };

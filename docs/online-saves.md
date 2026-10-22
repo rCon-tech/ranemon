@@ -31,6 +31,18 @@ The server only answers `https://rcon-tech.github.io`. To allow another site (su
 `http://localhost:3000` while developing), add an `ALLOWED_ORIGINS` environment variable in
 Vercel with the sites, comma-separated.
 
+## Friend battles
+
+Friend battles (`/friends`) run on the same server, through `api/battle.ts`, and keep each room in
+a `battles` table it makes on first use. The battle code is the game's own: `npm run build` (which
+Vercel runs on each deploy) bundles `src/lib/online/server.ts` into `gen/battle.js`. That needs
+**Settings → Build and Deployment → Include files outside the Root Directory in the Build Step**
+turned on in Vercel, which it is for new projects. Vercel redeploys the server on each push to
+`main`, so it stays on the same version as the game.
+
+To try it on your own machine, run `npm run local` in `save-api/` (everything in memory, at
+`http://localhost:8787/api`), then `NEXT_PUBLIC_SAVE_API=http://localhost:8787/api pnpm dev`.
+
 ## Restoring a save by hand
 
 In Vercel, **Storage → the Neon database → Open in Neon → SQL Editor**:

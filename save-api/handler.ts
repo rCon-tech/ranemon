@@ -9,6 +9,7 @@
  *   POST /api/save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the
  *                                    server already has a newer save (from another device),
  *                                    which it keeps.
+ *   POST /api/battle {op, ...}     → live friend battles, run by `src/lib/online/server.ts`
  *
  * The handler takes its storage as a `SaveStore`, so the tests run it against memory.
  */
@@ -31,10 +32,38 @@ export interface SaveStore {
   clearFails(id: string): Promise<void>;
 }
 
+/** A friend battle room as the battle logic stores it (`RoomStore` in `src/lib/online/server.ts`). */
+export interface RoomStore {
+  get(code: string): Promise<{ doc: string; version: number } | null>;
+  put(code: string, doc: string, version: number, now: number): Promise<boolean>;
+}
+
+/** What the battle logic needs from the save server (`BattleContext` there). */
+export interface BattleContext {
+  rooms: RoomStore;
+  auth(id: string, pin: string): Promise<'ok' | 'pin' | 'locked' | 'nosave'>;
+  save(id: string): Promise<string | null>;
+  now(): number;
+  seed(): number;
+  token(): string;
+  random(): number;
+}
+
+/**
+ * The battle logic, bundled from the game's own code at build time (`gen/battle.js`), so the
+ * server plays a turn exactly as the game would.
+ */
+export type BattleCall = (
+  body: unknown,
+  ctx: BattleContext,
+) => Promise<{ status: number; body: object }>;
+
 export interface Options {
   /** Sites allowed to call the server. */
   origins: string[];
   now?: () => number;
+  /** Friend battles, when this deployment has them. */
+  battles?: { rooms: RoomStore; call: BattleCall };
 }
 
 export const MAX_FAILS = 5;
@@ -66,6 +95,29 @@ async function hashPin(pin: string, salt: string): Promise<string> {
   );
   return b64(bits);
 }
+
+/** Checks a name's PIN, counting wrong ones towards the lock. */
+async function checkPin(
+  store: SaveStore,
+  id: string,
+  pin: string,
+  now: number,
+): Promise<'ok' | 'pin' | 'locked' | 'nosave'> {
+  if (!ID.test(id) || !PIN.test(pin)) return 'pin';
+  const fails = await store.fails(id);
+  if (fails && fails.count >= MAX_FAILS && fails.until > now) return 'locked';
+  const row = await store.get(id);
+  if (!row) return 'nosave';
+  if (!same(await hashPin(pin, row.salt), row.hash)) {
+    const count = fails && fails.until > now ? fails.count + 1 : 1;
+    await store.setFails(id, count, now + LOCK_MS);
+    return 'pin';
+  }
+  if (fails) await store.clearFails(id);
+  return 'ok';
+}
+
+const randomBytes = (n: number) => crypto.getRandomValues(new Uint8Array(n));
 
 /** Compares in the same time whatever the strings, so timing can't give a hash away. */
 function same(a: string, b: string): boolean {
@@ -106,6 +158,25 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
 
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   const path = new URL(req.url).pathname.replace(/^\/api/, '').replace(/\/$/, '');
+  if (req.method === 'POST' && path === '/battle' && opts.battles) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return reply(400, { error: 'bad request' });
+    }
+    const { rooms, call } = opts.battles;
+    const r = await call(body, {
+      rooms,
+      auth: (id, pin) => checkPin(store, id, pin, now()),
+      save: async (id) => (await store.get(id))?.raw ?? null,
+      now,
+      seed: () => new Int32Array(randomBytes(4).buffer)[0],
+      token: () => b64(randomBytes(18)).replace(/\+/g, '-').replace(/\//g, '_'),
+      random: () => new Uint32Array(randomBytes(4).buffer)[0] / 2 ** 32,
+    });
+    return reply(r.status, r.body);
+  }
   if (req.method !== 'POST' || (path !== '/load' && path !== '/save'))
     return reply(404, { error: 'not found' });
 

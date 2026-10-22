@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import type { SaveRow, SaveStore } from './handler.js';
+import type { RoomStore, SaveRow, SaveStore } from './handler.js';
 
 /** The tables, made on first use, so setting up needs no SQL. */
 const SCHEMA = [
@@ -17,16 +17,24 @@ const SCHEMA = [
     count INTEGER NOT NULL,
     until BIGINT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS battles (
+    code TEXT PRIMARY KEY,       -- a friend battle's room code, like BOKA-42
+    doc TEXT NOT NULL,           -- the room and its battle, as JSON
+    version INTEGER NOT NULL,    -- bumped on each write, so two calls at once can't overwrite each other
+    updated BIGINT NOT NULL
+  )`,
 ];
+
+/** A room code can be used again once its room has been quiet this long. */
+const ROOM_KEPT_MS = 24 * 60 * 60 * 1000;
 
 /** Postgres hands BIGINTs back as strings. */
 const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
-/** Saves in the Neon database that Vercel's Storage tab connects as DATABASE_URL. */
-export function neonStore(url: string): SaveStore {
+function query(url: string) {
   const sql = neon(url);
   let ready: Promise<unknown> | null = null;
-  const q = async (text: string, params: unknown[]) => {
+  return async (text: string, params: unknown[]) => {
     ready ??= Promise.all(SCHEMA.map((s) => sql.query(s))).catch((e) => {
       ready = null;
       throw e;
@@ -34,6 +42,39 @@ export function neonStore(url: string): SaveStore {
     await ready;
     return (await sql.query(text, params)) as Record<string, unknown>[];
   };
+}
+
+/** Friend battle rooms, in the same database. Old rooms are cleared out as new ones open. */
+export function neonRooms(url: string): RoomStore {
+  const q = query(url);
+  return {
+    get: async (code) => {
+      const [r] = await q('SELECT doc, version FROM battles WHERE code = $1', [code]);
+      return r ? { doc: String(r.doc), version: Number(r.version) } : null;
+    },
+    put: async (code, doc, version, now) => {
+      if (version > 0) {
+        const rows = await q(
+          `UPDATE battles SET doc = $2, version = version + 1, updated = $4
+           WHERE code = $1 AND version = $3 RETURNING code`,
+          [code, doc, version, now],
+        );
+        return rows.length > 0;
+      }
+      await q('DELETE FROM battles WHERE updated < $1', [now - ROOM_KEPT_MS]);
+      const rows = await q(
+        `INSERT INTO battles (code, doc, version, updated) VALUES ($1, $2, 1, $3)
+         ON CONFLICT (code) DO NOTHING RETURNING code`,
+        [code, doc, now],
+      );
+      return rows.length > 0;
+    },
+  };
+}
+
+/** Saves in the Neon database that Vercel's Storage tab connects as DATABASE_URL. */
+export function neonStore(url: string): SaveStore {
+  const q = query(url);
   return {
     get: async (id) => {
       const [r] = await q('SELECT * FROM saves WHERE id = $1', [id]);

@@ -21,6 +21,14 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-22',
+    title: 'Friend battles',
+    notes: [
+      'FRIEND BATTLE on the title screen: battle a friend live with your Story mode Ranemon. Sign in with your trainer name and PIN, send them the room code, and both press READY.',
+      'Pick the levels when you open the room: everyone at 50, a cap at 50, or as caught.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'The Trinity Ball',
     notes: [
       'Beat B&S and Trinity turns into the Trinity Ball: fairy lights, balloons, confetti, fireworks, a dance floor in the Long Room and everyone having the time of their lives.',

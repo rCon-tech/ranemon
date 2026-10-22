@@ -1,18 +1,26 @@
-import { databaseUrl, handle, type SaveStore } from './handler.js';
-import { neonStore } from './store.js';
+import { databaseUrl, handle, type BattleCall, type RoomStore, type SaveStore } from './handler.js';
+import { neonRooms, neonStore } from './store.js';
 
 let store: SaveStore | null = null;
+let rooms: RoomStore | null = null;
 
 const origins = () =>
   (process.env.ALLOWED_ORIGINS ?? 'https://rcon-tech.github.io').split(',').map((o) => o.trim());
 
-/** Runs a request through the save server with the database and allowed sites from Vercel's settings. */
-export async function serve(req: Request): Promise<Response> {
+/**
+ * Runs a request through the save server with the database and allowed sites from Vercel's
+ * settings. `battles` is the bundled battle logic, for `api/battle.ts`.
+ */
+export async function serve(req: Request, battles?: BattleCall): Promise<Response> {
   const url = databaseUrl(process.env);
   try {
     if (!url) throw new Error('no database connected');
     store ??= neonStore(url);
-    return await handle(req, store, { origins: origins() });
+    rooms ??= neonRooms(url);
+    return await handle(req, store, {
+      origins: origins(),
+      ...(battles && { battles: { rooms, call: battles } }),
+    });
   } catch (e) {
     console.error(e);
     // Answer with the site's CORS headers, so the game can tell the server is having trouble.
