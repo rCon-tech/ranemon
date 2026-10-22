@@ -480,3 +480,63 @@ describe('the battle screen online', () => {
     expect(reduce(quit, { type: 'remote', state: s.state, items: [] }).mode).toBe('over');
   });
 });
+
+describe('a friend battle played back on a phone', () => {
+  it('brings the foe’s next Ranemon in at full health', async () => {
+    const { w, code, players, ready } = await started();
+    const rich = players[0];
+    const first = await w.call({ op: 'poll', code, token: rich.token, after: 0 });
+    rich.after = first.body.n;
+    let s = startSession({ state: first.body.state!, events: first.body.items }, 'normal', {
+      remote: true,
+      foe: { kind: 'trainer', name: 'Con' },
+    });
+    expect(ready.body.stage).toBe('live');
+    let checked = 0;
+    const play = () => {
+      for (let i = 0; i < 500 && s.mode === 'playing'; i++) {
+        s = reduce(s, { type: 'step', random: i });
+        const last = s.last;
+        if (last && 'side' in last && last.kind === 'send-out' && last.side === 1) {
+          const b = s.state.teams[1].battlers[last.index];
+          expect(s.view[1].hp[last.index]).toBe(b.stats.hp);
+          checked++;
+        }
+      }
+    };
+    play();
+    for (let turn = 0; turn < 300 && s.mode !== 'over'; turn++) {
+      // Rich picks through the session; Con answers straight to the server.
+      if (s.mode === 'menu') {
+        s = reduce(s, { type: 'act', action: legalActions(s.state, 0)[0], random: 1 });
+      } else if (s.mode === 'forced-switch') {
+        s = reduce(s, { type: 'replace', to: switchTargets(s.state, 0)[0] });
+      }
+      const out = s.outbox;
+      if (out?.kind === 'act')
+        await w.call({ op: 'act', code, token: rich.token, turn: out.turn, action: out.action });
+      if (out?.kind === 'replace')
+        await w.call({ op: 'replace', code, token: rich.token, to: out.to });
+      const con = (await w.call({ op: 'poll', code, token: players[1].token, after: -1 })).body;
+      const cs = con.state!;
+      if (con.stage === 'live' && cs.phase.kind === 'choose')
+        await w.call({
+          op: 'act',
+          code,
+          token: players[1].token,
+          turn: cs.turn,
+          action: legalActions(cs, 0)[0],
+        });
+      if (con.stage === 'live' && cs.phase.kind === 'replace' && cs.phase.sides.includes(0))
+        await w.call({ op: 'replace', code, token: players[1].token, to: switchTargets(cs, 0)[0] });
+      const news = (await w.call({ op: 'poll', code, token: rich.token, after: rich.after })).body;
+      rich.after = news.n;
+      if (news.items.length > 0)
+        s = reduce(s, { type: 'remote', state: news.state!, items: news.items });
+      play();
+    }
+    expect(s.mode).toBe('over');
+    // Con's lead plus at least one replacement.
+    expect(checked).toBeGreaterThan(1);
+  });
+});

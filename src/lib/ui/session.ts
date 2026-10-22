@@ -173,6 +173,28 @@ export function startSession(
   };
 }
 
+/**
+ * Online, the foe's Ranemon come in hidden until they're sent out (`stateFor`), so the view holds
+ * a placeholder's HP for them. One that has just been revealed has never fought, so it comes in
+ * at full health.
+ */
+function revealed(view: View, before: BattleState, after: BattleState): View {
+  const foe = view[1];
+  const hidden = (i: number) => before.teams[1].battlers[i]?.creature.id === 'hidden';
+  if (!foe.hp.some((_, i) => hidden(i))) return view;
+  const shown = after.teams[1].battlers;
+  return [
+    view[0],
+    {
+      ...foe,
+      hp: foe.hp.map((hp, i) =>
+        hidden(i) && shown[i] && shown[i].creature.id !== 'hidden' ? shown[i].stats.hp : hp,
+      ),
+      status: foe.status.map((st, i) => (hidden(i) ? null : st)),
+    },
+  ];
+}
+
 /** Online: waits for the save server to say what the friend did. */
 function wait(s: Session): Session {
   return {
@@ -434,7 +456,7 @@ export function reduce(s: Session, a: SessionAction): Session {
     case 'remote': {
       // Once you've forfeited, what the server says next is only the friend being told.
       if (s.mode === 'over') return s;
-      const next = playEvents(s, a.state, a.items);
+      const next = playEvents({ ...s, view: revealed(s.view, s.state, a.state) }, a.state, a.items);
       return s.mode === 'playing' ? { ...next, pause: s.pause } : next;
     }
     case 'tick': {
