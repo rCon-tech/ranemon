@@ -70,7 +70,7 @@ interface Props {
 }
 
 /** Items only used from the bag outside battle: a Blue Ghost, or one that sets off an evolution. */
-const OUTSIDE_BATTLE: ItemUse['kind'][] = ['level', 'evolve'];
+const OUTSIDE_BATTLE: ItemUse['kind'][] = ['level', 'evolve', 'hold'];
 
 const CATEGORY_LABEL: Record<Move['category'], string> = {
   physical: 'Physical',

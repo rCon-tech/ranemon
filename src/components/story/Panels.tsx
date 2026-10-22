@@ -99,6 +99,11 @@ export function MemberRow({
               </span>
             )}
             {speciesById(m.species).name}
+            {m.held && (
+              <span className="ml-1 text-[9px]" aria-label={`Holding ${itemById(m.held).name}`}>
+                ◆
+              </span>
+            )}
           </span>
           <span>Lv{m.level}</span>
         </span>
@@ -119,12 +124,15 @@ export function PartyPanel({
   game,
   onLead,
   onSwap,
+  onTakeHeld,
   onClose,
 }: {
   game: StoryState;
   onLead: (index: number) => void;
   /** Puts a learnt move into one of a member's 4 slots. */
   onSwap: (index: number, slot: number, move: string) => void;
+  /** Takes the item a member is holding back into the bag. */
+  onTakeHeld: (index: number) => void;
   onClose: () => void;
 }) {
   const [open, setOpen] = useState<number | null>(null);
@@ -219,6 +227,18 @@ export function PartyPanel({
                     })}
                 </div>
               )}
+              {m.held && (
+                <div className="mt-1 flex items-center justify-between gap-2" data-testid="held">
+                  <span>HOLDING: {itemById(m.held).name}</span>
+                  <button
+                    type="button"
+                    className="pixel-btn px-2 py-0.5 text-[10px]"
+                    onClick={() => onTakeHeld(i)}
+                  >
+                    TAKE
+                  </button>
+                </div>
+              )}
               {i > 0 && (
                 <button
                   type="button"
@@ -259,7 +279,11 @@ export function BagPanel({
     const item = itemById(pick);
     return (
       <Panel title={item.name.toUpperCase()} onClose={() => setPick(null)}>
-        <p className="text-[10px] leading-relaxed">Use it on which Ranemon?</p>
+        <p className="text-[10px] leading-relaxed">
+          {item.use.kind === 'hold'
+            ? 'Give it to which Ranemon to hold?'
+            : 'Use it on which Ranemon?'}
+        </p>
         {game.party.map((m, i) => (
           <MemberRow
             key={m.uid}

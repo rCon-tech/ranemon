@@ -149,11 +149,15 @@ function doors(map: GameMap) {
 const SIGN_COLOUR: Record<string, string> = { P: '#2f8a4a', M: '#3a70c8', G: '#d03838' };
 
 const gymRoofCache = new Map<string, Set<string>>();
-/** The roof tiles over each gym, which get slate instead of red so gyms stand out. */
+/**
+ * The roof tiles over each gym, which get slate instead of red so gyms stand out. A town with
+ * slate roofs everywhere, such as Greystones, has every roof in it.
+ */
 export function gymRoofsOf(map: GameMap): Set<string> {
   let roofs = gymRoofCache.get(map.id);
   if (roofs) return roofs;
   roofs = new Set();
+  if (map.slate) for (const r of find(map, '^')) roofs.add(`${r.x},${r.y}`);
   const building = (c: string | undefined) => c !== undefined && '#PMGHL'.includes(c);
   for (const g of find(map, 'G')) {
     const row = map.rows[g.y];
@@ -266,8 +270,9 @@ export function Overworld(props: Props) {
           c.drawImage(image, sx(tx * TILE), sy(ty * TILE), TILE, TILE);
           if (TALL.has(tile)) {
             const { image: top, rise, spread } = tallImage(tile, variant);
-            // Trees lean a little in the wind, each in its own time; the Campanile doesn't.
-            const lean = tile === 'T' ? sway(now, tx, ty) : 0;
+            // Trees and palms lean a little in the wind, each in its own time; the Campanile
+            // and the boats don't.
+            const lean = tile === 'T' || tile === 'p' ? sway(now, tx, ty) : 0;
             drawn.push({
               y: ty * TILE,
               paint: () => {

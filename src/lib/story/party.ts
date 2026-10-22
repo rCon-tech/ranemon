@@ -15,6 +15,7 @@ import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
 import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '../battle/second-specials';
 import { variantForm } from '../battle/variants';
+import { heldBoost, type ItemId } from './items';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
 
@@ -44,6 +45,8 @@ export interface Member {
   shiny?: boolean;
   /** Its look, for a Ranemon with more than one (`variants.ts`). None is the usual look. */
   variant?: string;
+  /** The item it's holding, such as the Vegan Stone. None for most. */
+  held?: ItemId;
 }
 
 export const PARTY_SIZE = 6;
@@ -195,7 +198,15 @@ export function nameOf(m: Member): string {
 }
 
 export function toEntrant(m: Member): Entrant {
-  return { creature: creatureOf(m), level: m.level, hp: m.hp, pp: m.pp, status: m.status };
+  const held = heldBoost(m);
+  return {
+    creature: creatureOf(m),
+    level: m.level,
+    hp: m.hp,
+    pp: m.pp,
+    status: m.status,
+    ...(held && { held }),
+  };
 }
 
 /** Copies what a battle did to a member back onto it. */

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { COAST_PATH, MAP_HEIGHT, MAP_WIDTH, stopsOf } from '@/content/story/townmap';
+import { COAST_PATH, MAP_HEIGHT, MAP_WIDTH, SIDE_TRIPS, stopsOf } from '@/content/story/townmap';
 import type { StoryState } from '@/lib/story/state';
 import { Panel } from './Panels';
 
@@ -39,12 +39,12 @@ export function TownMapPanel({ game, onClose }: { game: StoryState; onClose: () 
   }, [stops.length]);
 
   const road = stops
-    .filter((s) => s.id !== 'donegal')
+    .filter((s) => !SIDE_TRIPS.includes(s.id))
     .map((s) => `${s.x},${s.y}`)
     .join(' ');
-  // The train to Donegal, once you've taken it: a railway line from Dublin.
+  // The trains to Donegal and Greystones, once you've taken them: railway lines from Dublin.
   const dublin = stops.find((s) => s.id === 'dublin')!;
-  const donegal = stops.find((s) => s.id === 'donegal');
+  const rails = stops.filter((s) => SIDE_TRIPS.includes(s.id));
   return (
     <Panel title="TOWN MAP" onClose={onClose}>
       <svg
@@ -78,27 +78,27 @@ export function TownMapPanel({ game, onClose }: { game: StoryState; onClose: () 
           strokeWidth="1.4"
           strokeLinejoin="round"
         />
-        {donegal && (
-          <g data-testid="railway">
+        {rails.map((rail) => (
+          <g key={rail.id} data-testid={`railway-${rail.id}`}>
             <line
               x1={dublin.x}
               y1={dublin.y}
-              x2={donegal.x}
-              y2={donegal.y}
+              x2={rail.x}
+              y2={rail.y}
               stroke={ROAD_EDGE}
               strokeWidth="1.6"
             />
             <line
               x1={dublin.x}
               y1={dublin.y}
-              x2={donegal.x}
-              y2={donegal.y}
+              x2={rail.x}
+              y2={rail.y}
               stroke={ROAD}
               strokeWidth="0.8"
               strokeDasharray="1.4 1"
             />
           </g>
-        )}
+        ))}
         {stops.map((s, i) => (
           <g
             key={s.id}

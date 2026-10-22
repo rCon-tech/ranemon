@@ -223,6 +223,14 @@ export default function Guide() {
             Lee down by the waves. He knows something about the sea that nobody else does.
           </li>
           <li>
+            <b>Greystones</b>: take the DART from Pearse Station in Dublin, south to Co. Wicklow.
+            The locals there have plenty to say about who really runs the town.
+          </li>
+          <li>
+            <b>Held items</b>: some items are given to a Ranemon to hold from the BAG, and help it
+            in every battle. Take them back from PARTY.
+          </li>
+          <li>
             <b>Norm</b>: Sibeal in Limerick will lend you her dog. Norm walks behind you instead of
             your Ranemon, never fights, and every so often finds you something. Give him back to
             Sibeal in any McGrattans.

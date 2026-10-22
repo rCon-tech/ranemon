@@ -71,7 +71,11 @@ const WHERE: Record<string, [number, number]> = {
   dublin: [-6.26, 53.35],
   // By train from Dublin, once you've been.
   donegal: [-8.28, 54.48],
+  greystones: [-6.07, 53.14],
 };
+
+/** Stops off the road, reached by train from Dublin: only on the map once you've been. */
+export const SIDE_TRIPS = ['donegal', 'greystones'];
 
 /** The view: the whole island. */
 const WEST = -10.7;
@@ -115,7 +119,8 @@ export function stopsOf(game: StoryState): Stop[] {
   const at = here === 'trinity' ? 'dublin' : here;
   return MAPS.filter(
     (m) =>
-      WHERE[m.id] && (m.id !== 'donegal' || here === 'donegal' || hasFlag(game, 'visited:donegal')),
+      WHERE[m.id] &&
+      (!SIDE_TRIPS.includes(m.id) || here === m.id || hasFlag(game, `visited:${m.id}`)),
   ).map((m) => {
     const [town, county = m.id === 'dublin' ? 'Co. Dublin' : ''] = m.name.split(', ');
     return {
