@@ -96,7 +96,14 @@ export type Look =
   | 'reveller'
   | 'debs'
   | 'dancer'
-  | 'tux';
+  | 'tux'
+  | 'enda'
+  | 'sailor'
+  | 'hen'
+  | 'fan'
+  | 'palace'
+  | 'gamer'
+  | 'king';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =

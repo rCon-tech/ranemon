@@ -65,7 +65,8 @@ describe('Connolly Station', () => {
   it('runs each line out to open ground and home again to the concourse', () => {
     expect(isWalkable(tileAt(station, PLATFORM.x, PLATFORM.y))).toBe(true);
     for (const d of RUNNING) {
-      const there = travelled(play(ticket(d), new Set()))!;
+      const open = new Set(d.lock ? [d.lock.flag] : []);
+      const there = travelled(play(ticket(d), open))!;
       expect(there.map, d.id).toBe(d.id);
       expect(isWalkable(tileAt(mapById(d.id), there.x, there.y)), d.id).toBe(true);
       const back = travelled(play(homeward(d.id), new Set()))!;

@@ -53,6 +53,8 @@ const HEIGHT: Record<string, number> = {
   X: 1,
   Z: 0.4,
   I: 1.3,
+  m: 1.4,
+  n: 0.35,
   Y: 1.25,
   V: 1.25,
   A: 1.1,

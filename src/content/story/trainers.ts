@@ -6,6 +6,7 @@ import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
 import { PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
+import { BRIGHTON_TRAINERS } from './brighton';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -586,6 +587,7 @@ const T: Trainer[] = [
     'This bike cost more than your house. Let’s see what your Ranemon are worth!',
   ),
   ...RAVE_TRAINERS,
+  ...BRIGHTON_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {

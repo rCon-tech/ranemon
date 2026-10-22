@@ -1,6 +1,8 @@
 import { INTERIORS, MAPS, mapById } from '@/content/story/maps';
 import { TRAINERS } from '@/content/story/trainers';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
+import { ARCADE_KING } from '@/content/story/brighton';
+import { BRIGHTON_DONE } from '@/content/story/enda';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
 import { variantsOf } from '../battle/variants';
@@ -36,14 +38,16 @@ export async function isDevName(name: string, hash = DEV_HASH): Promise<boolean>
 export const DEV_LEVEL = 60;
 
 /**
- * Left for you to play: the bosses you'd want to test (the Happy Pear Twins among them), and
- * Norm, who you borrow from Sibeal.
+ * Left for you to play: the bosses you'd want to test (the Happy Pear Twins and the Arcade King
+ * among them, with the end of the Brighton trip), and Norm, who you borrow from Sibeal.
  * Everything else a script can set is set.
  */
 const LEFT_TO_PLAY = new Set([
   beatFlag('poseidon'),
   beatFlag('bns-rematch'),
   ...PEAR_TRAINERS.map(beatFlag),
+  beatFlag(ARCADE_KING),
+  BRIGHTON_DONE,
   NORM,
 ]);
 

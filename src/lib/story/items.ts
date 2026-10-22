@@ -24,7 +24,8 @@ export type ItemId =
   | 'cherry-cola'
   | 'mango-tango'
   | 'flannel-shirt'
-  | 'vegan-stone';
+  | 'vegan-stone'
+  | 'friendship-bracelet';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
@@ -36,10 +37,10 @@ export type ItemUse =
   /** Sets off an item evolution (`ITEM_EVOLUTIONS`), outside battle only. */
   | { kind: 'evolve' }
   /**
-   * Given to a Ranemon of one line to hold, outside battle. While it holds it, a stat is
-   * multiplied in every battle. Taken back from PARTY.
+   * Given to a Ranemon to hold, outside battle: one of `line` only, or any Ranemon if there's no
+   * line. While it holds it, a stat is multiplied in every battle. Taken back from PARTY.
    */
-  | { kind: 'hold'; line: string; stat: Stat; factor: number };
+  | { kind: 'hold'; line?: string; stat: Stat; factor: number };
 
 export interface Item {
   id: ItemId;
@@ -199,6 +200,15 @@ export const ITEMS: Item[] = [
     from: 99,
     use: { kind: 'hold', line: 'conemon', stat: 'attack', factor: 1.2 },
   },
+  {
+    id: 'friendship-bracelet',
+    name: 'Friendship Bracelet',
+    about:
+      'A friendship bracelet Enda made on the ferry to Brighton, for his best friends. Give it to any Ranemon to hold: Defense up 20% in every battle.',
+    price: null,
+    from: 99,
+    use: { kind: 'hold', stat: 'defense', factor: 1.2 },
+  },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
@@ -231,7 +241,7 @@ export interface Target {
 export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
   if (use.kind === 'level') return t.level < MAX_LEVEL;
   if (use.kind === 'evolve') return !!item && !!t.species && !!itemEvolutionOf(t.species, item);
-  if (use.kind === 'hold') return !!t.species && lineOf(t.species) === use.line;
+  if (use.kind === 'hold') return !!t.species && (!use.line || lineOf(t.species) === use.line);
   if (use.kind === 'pint') return false;
   if (use.kind === 'vape')
     return !!t.active && !!t.stages && t.hp > 0 && t.stages[use.effect.stat] < MAX_STAGE;
@@ -255,10 +265,10 @@ export const canUseOn = (item: Item, m: Member) =>
     item.id,
   );
 
-/** What a member's held item does in battle: its stat multipliers, if it's of the right line. */
+/** What a member's held item does in battle: its stat multipliers, if it's of the right line (or any). */
 export function heldBoost(m: Member): Partial<Record<Stat, number>> | undefined {
   const use = m.held && BY_ID.get(m.held)?.use;
-  if (!use || use.kind !== 'hold' || lineOf(m.species) !== use.line) return undefined;
+  if (!use || use.kind !== 'hold' || (use.line && lineOf(m.species) !== use.line)) return undefined;
   return { [use.stat]: use.factor };
 }
 
