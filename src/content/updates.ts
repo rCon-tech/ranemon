@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A question at Connolly',
+    notes: [
+      'Someone in a rugby kit is hanging around the concourse at Connolly Station. He has a question for you. It doesn’t matter what you say.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A famous face in Dublin',
     notes: [
       'A very famous, very sad man is standing about past Temple Bar, in very short shorts. Cheer him up with a battle, if you can.',

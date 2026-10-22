@@ -68,7 +68,8 @@ export type Look =
   | 'pear'
   | 'cyclist'
   | 'clerk'
-  | 'mescal';
+  | 'mescal'
+  | 'boyde';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =

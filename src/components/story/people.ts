@@ -544,6 +544,20 @@ export const STYLES: Record<Look | 'player', Style> = {
     socks: '#f4f4f4',
     shoes: '#5a5a62',
   },
+  // Jamie Boyde, as Boydemon's second look: swept-back dirty blond hair, a red rugby jersey with
+  // a white collar, black shorts and his socks pulled up.
+  boyde: {
+    skin: SKIN,
+    hair: '#b8894e',
+    hairStyle: 'slick',
+    top: '#d8392c',
+    topKind: 'shirt',
+    trim: '#f4f4f0',
+    legs: SKIN,
+    shorts: '#1a1a22',
+    socks: '#f4f4f4',
+    shoes: '#141418',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
