@@ -112,6 +112,23 @@ export function take(s: StoryState, item: ItemId): StoryState {
   return { ...s, bag };
 }
 
+/** Gives a member an item to hold, handing back whatever it held before. */
+export function holdItem(s: StoryState, member: number, item: ItemId): StoryState {
+  const m = s.party[member];
+  let next = take(s, item);
+  if (m.held) next = give(next, m.held);
+  return { ...next, party: next.party.map((x, i) => (i === member ? { ...x, held: item } : x)) };
+}
+
+/** Takes a member's held item back into the bag. */
+export function takeHeld(s: StoryState, member: number): StoryState {
+  const m = s.party[member];
+  if (!m?.held) return s;
+  const { held, ...rest } = m;
+  const next = give(s, held);
+  return { ...next, party: next.party.map((x, i) => (i === member ? rest : x)) };
+}
+
 export function see(s: StoryState, species: string): StoryState {
   return s.seen.includes(species) ? s : { ...s, seen: [...s.seen, species] };
 }

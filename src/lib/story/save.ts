@@ -1,5 +1,6 @@
 import { mapById } from '@/content/story/maps';
 import { moveById } from '../battle/moves';
+import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
 import { newGame, playerId, SAVE_KEY, saveKey, START_MONEY, type StoryState } from './state';
 import { marker, type Dir } from './world';
@@ -103,6 +104,8 @@ function repairMembers(list: unknown): { ok: Member[]; bad: unknown[] } {
             : null,
         ...(m.learned !== undefined && { learned: strings(m.learned).filter(known) }),
       };
+      // An item it holds that this build doesn't know is dropped, not the Ranemon.
+      if (member.held !== undefined && !ITEMS.some((i) => i.id === member.held)) delete member.held;
       ok.push(catchUp(member));
     } catch {
       bad.push(m);

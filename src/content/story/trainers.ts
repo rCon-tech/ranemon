@@ -4,6 +4,7 @@ import { speciesById } from '@/lib/story/party';
 import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
+import { PEAR_REWARD } from './greystones';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
 const RENT_REWARD: Step[] = [
@@ -368,6 +369,35 @@ const T: Trainer[] = [
     reward: RENT_REWARD,
   },
 
+  // ---------- Greystones: the Happy Pear Twins, back to back with no healing between ----------
+  {
+    id: 'pear-dave',
+    name: 'Dave',
+    team: [
+      ['jammon', 52],
+      ['gibbsmon', 53],
+      ['olliemon', 55],
+    ],
+    ai: 'hard',
+    prize: 3000,
+    before: 'DAVE: Eat the rainbow!',
+    after: 'DAVE: Ah, nice one! Steve, you’re up!',
+  },
+  {
+    id: 'pear-steve',
+    name: 'Steve',
+    team: [
+      ['simomon', 53],
+      ['boydemon', 54],
+      ['oismon', 56],
+    ],
+    ai: 'hard',
+    prize: 3000,
+    before: 'STEVE: Bring it on! It’s leg day!',
+    after: 'STEVE: Wow. Fair play to you. We’ll have to start doing two sea swims a day.',
+    reward: PEAR_REWARD,
+  },
+
   // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
   {
     id: 'trinity-alex',
@@ -523,6 +553,15 @@ const T: Trainer[] = [
       ['owemon', 43],
     ],
     'Last night of the stag! Let’s make it count!',
+  ),
+  trainer(
+    'greystones-cyclist',
+    'Cyclist Hugo',
+    [
+      ['paulimon', 47],
+      ['vinnimon', 48],
+    ],
+    'This bike cost more than your house. Let’s see what your Ranemon are worth!',
   ),
 ];
 

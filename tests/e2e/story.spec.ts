@@ -608,3 +608,96 @@ test('story mode: Alex Simonin in Trinity only ever says the one thing', async (
     timeout: 15_000,
   });
 });
+
+test('story mode: the DART from Pearse Station to Greystones, where Kill has a complaint', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:dart')) return;
+    // In Dublin, just below the door of Pearse Station.
+    localStorage.setItem(
+      'ranemon.story.v1:dart',
+      JSON.stringify({
+        version: 1,
+        map: 'dublin',
+        x: 5,
+        y: 14,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:dublin', 'jersey:kildare'],
+        seen: [],
+        caught: [],
+        pub: { map: 'dublin', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Dart');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  const dismiss = async () => {
+    for (let i = 0; i < 12 && (await text.count()); i++) {
+      await text.click();
+      await page.waitForTimeout(100);
+    }
+    await expect(text).toHaveCount(0);
+  };
+  const walk = async (key: string, n: number) => {
+    for (let i = 0; i < n; i++) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(250);
+    }
+  };
+
+  await page.keyboard.down('ArrowUp');
+  await expect(world).toHaveAttribute('aria-label', /^Pearse Station, Dublin City/, {
+    timeout: 10_000,
+  });
+  await page.keyboard.up('ArrowUp');
+  await expect(text).toContainText('PEARSE STATION');
+  await dismiss();
+
+  // Up the platform to the DART driver.
+  await walk('ArrowLeft', 1);
+  await walk('ArrowUp', 4);
+  await page.keyboard.press('z');
+  await page.getByRole('button', { name: 'YES' }).click();
+  // The ride down the coast, then Greystones.
+  await dismiss();
+  await expect(world).toHaveAttribute('aria-label', /^Greystones, Co\. Wicklow/, {
+    timeout: 15_000,
+  });
+
+  // Along the road and up to Kill, who isn't happy about the twins.
+  await walk('ArrowRight', 5);
+  await walk('ArrowUp', 1);
+  await page.waitForTimeout(400);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('KILL');
+  await dismiss();
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:dart')!),
+  );
+  expect(save.map).toBe('greystones');
+  expect(save.flags).toContain('greystones:heard');
+});

@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { find, tileAt, type GameMap } from '@/lib/story/world';
 import { DOOR_LABEL, INK, LIGHT } from './pixels';
 import {
+  CAR_COLOURS,
+  carColour,
   frameOf,
   grassFront,
   groundOverlay,
@@ -117,7 +119,7 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
     for (let x = 0; x < cols; x++) {
       const tile = at(x, y);
       g.drawImage(imageAt(x, y), x * PX, y * PX);
-      if ('~Bb,"J'.includes(tile)) animated.push({ x, y, tile, frame: 0 });
+      if ('~Bb,"Jy'.includes(tile)) animated.push({ x, y, tile, frame: 0 });
     }
   }
   if (overlay) g.drawImage(overlay, 0, 0);
@@ -213,6 +215,9 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
       const tile = at(x, y);
       if (tile === 'K') group.add(campanile(x, y));
       else if (tile === 'R') group.add(rock(x, y));
+      else if (tile === 'p') group.add(palm(x, y, variantAt(x, y)));
+      else if (tile === 'y') group.add(yacht(x, y));
+      else if (tile === 'c') group.add(jeep(x, y, variantAt(x, y)));
       else if (tile === 'S') group.add(signpost(x, y, imageAt(x, y)));
       else if (tile === 'f') group.add(fence(x, y, at));
       else if (tile in HEIGHT && tile !== '#') {
@@ -566,6 +571,109 @@ function rock(x: number, y: number) {
   r.position.set(x + 0.5, 0.25, y + 0.5);
   r.castShadow = r.receiveShadow = true;
   return r;
+}
+
+/** A cabbage palm: a slim, bent, ringed trunk and a burst of spiky fronds. */
+function palm(x: number, y: number, v: number) {
+  const out = new THREE.Group();
+  const bark = new THREE.MeshLambertMaterial({ color: '#8a6a48', flatShading: true });
+  const leaf = new THREE.MeshLambertMaterial({
+    color: '#3f9640',
+    flatShading: true,
+    side: THREE.DoubleSide,
+  });
+  const lean = v % 2 ? 0.12 : -0.12;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 1.5, 6), bark);
+  trunk.position.set(0, 0.75, 0);
+  trunk.rotation.z = lean;
+  out.add(trunk);
+  const top = new THREE.Vector3(-Math.sin(lean) * 1.5, Math.cos(lean) * 1.5, 0);
+  for (let i = 0; i < 9; i++) {
+    const frond = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.75, 3), leaf);
+    frond.geometry.translate(0, 0.375, 0);
+    frond.position.copy(top);
+    frond.rotation.set(0, (i / 9) * Math.PI * 2 + v, 0);
+    frond.rotateX(1.1 + (i % 3) * 0.25);
+    frond.scale.set(1, 1, 0.35);
+    frond.castShadow = true;
+    out.add(frond);
+  }
+  trunk.castShadow = true;
+  out.position.set(x + 0.5, 0, y + 0.5);
+  return out;
+}
+
+/** A yacht in the marina: a white hull, a teak deck, a little cabin and a tall mast. */
+function yacht(x: number, y: number) {
+  const out = new THREE.Group();
+  const white = new THREE.MeshLambertMaterial({ color: '#f4f4f6' });
+  const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.3, 0.3, 4, 1), white);
+  hull.rotation.y = Math.PI / 4;
+  hull.scale.set(1.25, 1, 0.55);
+  hull.position.y = 0.12;
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(0.9, 0.05, 0.42),
+    new THREE.MeshLambertMaterial({ color: '#1f4fa8' }),
+  );
+  stripe.position.y = 0.16;
+  const deck = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8, 0.03, 0.36),
+    new THREE.MeshLambertMaterial({ color: '#c08850' }),
+  );
+  deck.position.y = 0.28;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 0.26), white);
+  cabin.position.set(0.05, 0.36, 0);
+  const metal = new THREE.MeshLambertMaterial({ color: '#c8ccd4' });
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.7, 5), metal);
+  mast.position.set(-0.05, 1.12, 0);
+  const boom = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.05, 0.05), white);
+  boom.position.set(0.17, 0.5, 0);
+  const pennant = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.06, 0.01),
+    new THREE.MeshLambertMaterial({ color: '#d03838' }),
+  );
+  pennant.position.set(0.02, 1.92, 0);
+  for (const m of [hull, stripe, deck, cabin, mast, boom, pennant]) {
+    m.castShadow = true;
+    out.add(m);
+  }
+  out.position.set(x + 0.5, 0, y + 0.5);
+  return out;
+}
+
+/** A big parked jeep, black or white, with tinted glass and silver wheels. */
+function jeep(x: number, y: number, v: number) {
+  const out = new THREE.Group();
+  const [body] = CAR_COLOURS[carColour(v)];
+  const paint = new THREE.MeshLambertMaterial({ color: body });
+  const glass = new THREE.MeshLambertMaterial({ color: '#2a3440' });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.3, 0.5), paint);
+  base.position.y = 0.27;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.22, 0.46), [
+    glass,
+    glass,
+    paint,
+    paint,
+    glass,
+    glass,
+  ]);
+  cabin.position.set(-0.04, 0.53, 0);
+  out.add(base, cabin);
+  const tyre = new THREE.MeshLambertMaterial({ color: '#141418' });
+  for (const [wx, wz] of [
+    [-0.28, 0.25],
+    [0.28, 0.25],
+    [-0.28, -0.25],
+    [0.28, -0.25],
+  ]) {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.08, 10), tyre);
+    wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(wx, 0.11, wz);
+    out.add(wheel);
+  }
+  for (const m of out.children) m.castShadow = true;
+  out.position.set(x + 0.5, 0, y + 0.5);
+  return out;
 }
 
 const WOOD = new THREE.MeshLambertMaterial({ color: '#9a6a3c' });
