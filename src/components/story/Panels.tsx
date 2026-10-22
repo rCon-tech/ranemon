@@ -7,7 +7,7 @@ import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
 import { DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
-import { canUseOn, ITEMS, itemById, shopStock, type ItemId } from '@/lib/story/items';
+import { canUseOn, ITEMS, itemById, priceOf, shopStock, type ItemId } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import {
   creatureOf,
@@ -23,7 +23,7 @@ import {
 import { storyKnowledge } from '@/lib/story/dex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
-import type { Dir } from '@/lib/story/world';
+import type { Dir, Stall } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
@@ -344,28 +344,34 @@ export function BagPanel({
 
 export function ShopPanel({
   game,
+  stall = null,
   onBuy,
   onClose,
 }: {
   game: StoryState;
+  /** Someone's own stall instead of Vapes. */
+  stall?: Stall | null;
   onBuy: (item: ItemId) => void;
   onClose: () => void;
 }) {
-  const county = mapById(game.map).county;
+  const stock = stall
+    ? stall.stock.map((s) => itemById(s.item))
+    : shopStock(mapById(game.map).county);
   return (
-    <Panel title="VAPES" onClose={onClose}>
+    <Panel title={stall?.name ?? 'VAPES'} onClose={onClose}>
       <p className="text-[11px]">Money: €{game.money}</p>
-      {shopStock(county).map((i) => (
+      {stock.map((i) => (
         <button
           key={i.id}
           type="button"
           className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
-          disabled={game.money < (i.price ?? Infinity)}
+          disabled={game.money < priceOf(i.id, stall)}
           onClick={() => onBuy(i.id)}
+          data-testid={`buy-${i.id}`}
         >
           <span className="flex justify-between text-[11px]">
             <span>{i.name}</span>
-            <span>€{i.price}</span>
+            <span>€{priceOf(i.id, stall)}</span>
           </span>
           <span className="text-[8px] leading-relaxed">
             {i.about} You have {game.bag[i.id] ?? 0}.

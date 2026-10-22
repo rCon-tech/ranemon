@@ -8,6 +8,7 @@ import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 import { GREYSTONES } from './greystones';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
+import { HIGGINS, TRINITY_BALL } from './ball';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1116,29 +1117,7 @@ export const MAPS: GameMap[] = [
         hideIf: 'champion',
         trainer: 'bns',
       },
-      {
-        look: 'higgins',
-        face: 'up',
-        showIf: 'champion',
-        talk: [
-          {
-            do: 'say',
-            text: 'MICHAEL D: Champion of Ireland! From Newmarket-on-Fergus to Front Square. I’m very proud of you.',
-          },
-          {
-            do: 'if',
-            flag: 'beat:bns-rematch',
-            then: [],
-            else: [
-              {
-                do: 'say',
-                text: 'MICHAEL D: B&S have asked for a rematch, at level 60. They’re in the Long Room whenever you’re ready.',
-              },
-              { do: 'flag', flag: 'rematch' },
-            ],
-          },
-        ],
-      },
+      HIGGINS,
       { look: 'bns', face: 'down', showIf: 'rematch', trainer: 'bns-rematch' },
       { look: 'alex', face: 'left', trainer: 'trinity-alex', sight: 3 },
     ],
@@ -1150,6 +1129,7 @@ export const MAPS: GameMap[] = [
         text: 'Three scholars guard the Long Room. B&S wait under the Campanile.',
       },
     ],
+    after: TRINITY_BALL,
   },
   {
     id: 'donegal',
@@ -1208,6 +1188,25 @@ export function mapById(id: string): GameMap {
   const m = BY_ID.get(id);
   if (!m) throw new Error(`Unknown map: ${id}`);
   return m;
+}
+
+const AFTER = new Map<string, GameMap>();
+/** A map in its `after` form, such as the Trinity Ball: one object per map, so it can be cached. */
+export function afterOf(map: GameMap): GameMap | null {
+  if (!map.after) return null;
+  if (!AFTER.has(map.id)) {
+    AFTER.set(map.id, { ...map, ...map.after, after: undefined });
+  }
+  return AFTER.get(map.id)!;
+}
+
+/** Every map's `after` form. */
+export const AFTER_MAPS = MAPS.flatMap((m) => afterOf(m) ?? []);
+
+/** The map with an id as it is now: in its `after` form once that flag is set. */
+export function mapFor(id: string, flags: readonly string[]): GameMap {
+  const map = mapById(id);
+  return map.after && flags.includes(map.after.flag) ? afterOf(map)! : map;
 }
 
 /** The map you're on, or the one outside if you're in a building. */
