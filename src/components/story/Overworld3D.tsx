@@ -6,14 +6,14 @@ import { asset } from '@/lib/asset';
 import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
-import { isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
+import { DELTA, isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
 import { Figure } from './figure3d';
 import { Bike, Norm } from './models3d';
 import { monStyle, STYLES, type BikeKind } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { isRiding, placeWalk, startWalk, stepT, tickWalk, type Trail } from './walk';
+import { isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -374,6 +374,21 @@ export default function Overworld3D(props: Props) {
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
         const look = n.item.look;
+        if (p.flight?.index === n.index) {
+          // Running off, a step at a time, out of sight.
+          const run = runOff(p.flight, now);
+          const [dx, dy] = DELTA[p.flight.dir];
+          person(
+            `npc:${n.index}:${look}`,
+            () => new Figure(look, STYLES[look]),
+            p.flight.dir,
+            n.x + 0.5 + dx * run.tiles,
+            n.y + 0.5 + dy * run.tiles,
+            Math.sin(run.t * Math.PI) * (run.step % 2 ? 1 : -1),
+            Math.sin(run.t * Math.PI) * 0.06,
+          );
+          continue;
+        }
         person(
           `npc:${n.index}:${look}`,
           () => new Figure(look, STYLES[look]),

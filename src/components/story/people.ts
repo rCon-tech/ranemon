@@ -65,6 +65,13 @@ export interface Style {
   headphones?: string;
   /** A St George's cross on the chest. */
   cross?: string;
+  /** Very short shorts, like the ones in a GAA kit, over bare legs: `legs` is then the skin. */
+  shorts?: string;
+  /** Socks pulled up above the shoes. */
+  socks?: string;
+  moustache?: string;
+  /** A frown, and a tear on the cheek. */
+  sad?: boolean;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -521,6 +528,22 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#fbc4dc',
     hearts: '#d81e5b',
   },
+  // Paul Mescal, Academy Award nominee and very sad about it: a moustache, a white T-shirt, tiny
+  // navy GAA shorts and his socks pulled up.
+  mescal: {
+    skin: SKIN,
+    hair: '#5a3a22',
+    hairStyle: 'short',
+    moustache: '#5a3a22',
+    sad: true,
+    top: '#f4f4f0',
+    topKind: 'shirt',
+    trim: '#d8d8d0',
+    legs: SKIN,
+    shorts: '#1e2a5a',
+    socks: '#f4f4f4',
+    shoes: '#5a5a62',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -662,13 +685,17 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     const up = p.stride === foot * 2 ? 3 : p.stride === foot ? 1 : 0;
     const h = 24 - up;
     shaded(c, x, top, 11, h, 2, s.legs, 0.25, 0.3);
-    if (!s.skirt) {
+    if (!s.skirt && !s.shorts) {
       // A crease down the front and a hem.
       px(c, x + 5, top + 6, 1, h - 8, dark);
       px(c, x, top + h - 2, 11, 1, dark);
     }
     if (s.hearts)
       for (const dy of foot < 0 ? [5, 14] : [9, 17]) heart(c, x + 3, top + dy, s.hearts);
+    if (s.socks) {
+      px(c, x, top + h - 7, 11, 6, s.socks);
+      px(c, x, top + h - 7, 11, 1, shade(s.socks, 0.8));
+    }
     // The shoe: an upper, a lighter toe cap and a dark sole.
     const sy = top + h - 1;
     shaded(c, x - 1, sy, 13, 7, 3, s.shoes, 0.3, 0.3);
@@ -681,6 +708,12 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   if (s.skirt) {
     shaded(c, 18, top - 2, 28, 15, 3, s.skirt);
     for (const x of [24, 32, 40]) px(c, x, top + 3, 1, 9, shade(s.skirt, 0.75));
+  }
+  if (s.shorts) {
+    // Barely past the hips: a split up the middle and a pale hem.
+    shaded(c, 20, top - 1, 25, 7, 2, s.shorts);
+    px(c, 32, top + 2, 1, 4, shade(s.shorts, 0.6));
+    px(c, 20, top + 5, 25, 1, shade(s.shorts, 1.6));
   }
 }
 
@@ -700,6 +733,7 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
       px(c, x + off, top + y, 10, 1, col);
       px(c, x + off + 7, top + y, 3, 1, shade(col, 0.8));
       px(c, x + off, top + y, 2, 1, shade(col, 1.15));
+      if (s.socks && y >= 17) px(c, x + off, top + y, 10, 1, far ? shade(s.socks, 0.8) : s.socks);
     }
     const fx = x + Math.round((lean * Math.abs(dx)) / 2) - 3;
     const shoe = far ? shade(s.shoes, 0.8) : s.shoes;
@@ -710,6 +744,10 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
   if (s.skirt) {
     shaded(c, 21, top - 2, 22, 15, 3, s.skirt);
     px(c, 30, top + 2, 1, 10, shade(s.skirt, 0.75));
+  }
+  if (s.shorts) {
+    shaded(c, 22, top - 1, 20, 7, 2, s.shorts);
+    px(c, 22, top + 5, 20, 1, shade(s.shorts, 1.6));
   }
 }
 
@@ -870,7 +908,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   }
   // A belt on the shorter tops.
   if (!long && s.topKind !== 'jumper' && s.topKind !== 'hivis')
-    px(c, 18, y0 + h - 2, 28, 2, shade(s.legs, 0.6));
+    px(c, 18, y0 + h - 2, 28, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.hearts) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
   if (s.cross) {
@@ -1004,7 +1042,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     round(c, 27, y0 + 14, 7, 7, 3, s.emblem);
     round(c, 28, y0 + 15, 5, 5, 2, shade(s.top, 1.15));
   }
-  if (!long && s.topKind !== 'jumper') px(c, 21, y0 + h - 2, 22, 2, shade(s.legs, 0.6));
+  if (!long && s.topKind !== 'jumper') px(c, 21, y0 + h - 2, 22, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.beads) for (let i = 0; i < 9; i++) px(c, 20 + i * 0.4, y0 + 2 + i * 3, 3, 3, s.beads);
   if (s.pearls) for (let i = 0; i < 5; i++) px(c, 20 + i, y0 + 2 + i * 0.6, 2, 2, '#f8f4ec');
   // The near arm, in front.
@@ -1095,8 +1133,22 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     px(c, 33, 26 + y, 1, 2, shade(s.skin, 0.72));
     px(c, 21, 27 + y, 4, 2, '#f4a8a0');
     px(c, 39, 27 + y, 4, 2, '#f4a8a0');
-    px(c, 28, 30 + y, 8, 1, '#a04a48');
-    px(c, 29, 31 + y, 6, 1, '#d87a78');
+    if (s.sad) {
+      // Turned down at the corners, and a tear running down one cheek.
+      px(c, 29, 30 + y, 6, 1, '#a04a48');
+      px(c, 28, 31 + y, 1, 1, '#a04a48');
+      px(c, 35, 31 + y, 1, 1, '#a04a48');
+      px(c, 24, 25 + y, 2, 4, '#7cc4f4');
+      px(c, 24, 25 + y, 1, 1, '#ffffff');
+    } else {
+      px(c, 28, 30 + y, 8, 1, '#a04a48');
+      px(c, 29, 31 + y, 6, 1, '#d87a78');
+    }
+    if (s.moustache) {
+      px(c, 27, 28 + y, 10, 2, s.moustache);
+      px(c, 26, 29 + y, 1, 2, s.moustache);
+      px(c, 37, 29 + y, 1, 2, s.moustache);
+    }
     if (s.nosering) px(c, 32, 28 + y, 2, 1, '#c8ccd4');
     if (s.glasses === 'shades') {
       round(c, 20, 19 + y, 11, 7, 2, '#141418');
@@ -1174,8 +1226,13 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     px(c, 21, 21 + y, 1, 2, '#0c1020');
     px(c, 22, 20 + y, 1, 1, '#ffffff');
     px(c, 21, 19 + y, 5, 1, '#3a2a2a');
-    px(c, 19, 30 + y, 5, 1, '#a04a48');
-    px(c, 24, 27 + y, 4, 2, '#f4a8a0');
+    if (s.sad) {
+      px(c, 19, 30 + y, 4, 1, '#a04a48');
+      px(c, 23, 31 + y, 1, 1, '#a04a48');
+      px(c, 23, 25 + y, 2, 4, '#7cc4f4');
+    } else px(c, 19, 30 + y, 5, 1, '#a04a48');
+    if (!s.sad) px(c, 24, 27 + y, 4, 2, '#f4a8a0');
+    if (s.moustache) px(c, 17, 28 + y, 7, 2, s.moustache);
     if (s.nosering) px(c, 16, 26 + y, 1, 2, '#c8ccd4');
     if (s.glasses === 'shades') round(c, 17, 19 + y, 12, 7, 2, '#141418');
     if (s.glasses === 'glasses') {

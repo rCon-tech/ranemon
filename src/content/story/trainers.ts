@@ -5,6 +5,7 @@ import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
 import { PEAR_REWARD } from './greystones';
+import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
 const RENT_REWARD: Step[] = [
@@ -412,6 +413,22 @@ const T: Trainer[] = [
     before: ALEX,
     after: ALEX,
     line: ALEX,
+  },
+
+  // ---------- Paul Mescal, past Temple Bar: sad, and sadder still once he's lost ----------
+  {
+    id: MESCAL_TRAINER,
+    name: 'Paul Mescal',
+    team: [
+      ['paulimon', 42],
+      ['skehemon', 43],
+      ['robinmon', 43],
+    ],
+    ai: 'easy',
+    prize: 860,
+    before: MESCAL_BEFORE,
+    after: MESCAL_AFTER,
+    reward: MESCAL_RUNS,
   },
 
   // ---------- route trainers ----------

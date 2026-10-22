@@ -7,6 +7,7 @@ import { NORM } from '@/lib/story/norm';
 import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 import { GREYSTONES } from './greystones';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
+import { MESCAL } from './mescal';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -985,7 +986,7 @@ export const MAPS: GameMap[] = [
       'T..#P##..#H##.=======>4.',
       'T..S........3...^^^....T',
       'T...^^^^........#H#7...T',
-      'T...#L##S..............T',
+      'T...#L##S......9.......T',
       'T......................T',
       'TTTTTTTTTTTTTTTTTTTTTTTT',
     ],
@@ -1034,6 +1035,7 @@ export const MAPS: GameMap[] = [
       { look: 'busker', face: 'down', talk: BUSKER },
       RENT_NEIGHBOUR,
       RENT_GARDA,
+      MESCAL,
     ],
     signs: [
       'DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.',

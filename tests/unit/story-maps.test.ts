@@ -12,6 +12,7 @@ import {
   isWalkable,
   marker,
   npcsOf,
+  slot,
   tileAt,
   type Dir,
   type GameMap,
@@ -62,7 +63,9 @@ describe.each(MAPS.map((m) => [m.id, m]))('map %s', (_, map) => {
 
   it('places every person, and nobody extra', () => {
     expect(npcsOf(map)).toHaveLength(map.npcs.length);
-    expect(find(map, String(map.npcs.length + 1))).toHaveLength(0);
+    // Ten at most: `1` to `9`, then `0`.
+    expect(map.npcs.length).toBeLessThanOrEqual(10);
+    if (map.npcs.length < 10) expect(find(map, slot(map.npcs.length))).toHaveLength(0);
   });
 
   it('has text for every sign, house and landmark', () => {

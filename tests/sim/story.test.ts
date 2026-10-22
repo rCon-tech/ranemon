@@ -162,3 +162,27 @@ it(`the Happy Pear Twins are a hard double over ${RUNS} runs`, () => {
   expect(both / RUNS).toBeGreaterThanOrEqual(0.25);
   expect(both / RUNS).toBeLessThanOrEqual(0.65);
 });
+
+/**
+ * Paul Mescal past Temple Bar: a party of 6 at Lv42 from the Dublin long grass, as you reach the
+ * city, should nearly always beat him, as with the other Dublin street trainers. He's too sad.
+ */
+it(`Paul Mescal is an easy Dublin fight over ${RUNS} runs`, () => {
+  const rng = new Rng(1916);
+  const foe = trainerById('dublin-mescal');
+  const wild = mapById('dublin').wild!.table.map(([id]) => id);
+  let won = 0;
+  for (let i = 0; i < RUNS; i++) {
+    const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+      makeMember(wild[rng.int(0, wild.length - 1)], 42, j),
+    );
+    const foes = foe.team.map(([id, level], j) => makeMember(id, level, 100 + j));
+    const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 17, [
+      'hard',
+      foe.ai,
+    ]);
+    if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+  }
+  console.log(`${foe.name} win rate`, won / RUNS);
+  expect(won / RUNS).toBeGreaterThanOrEqual(0.85);
+});
