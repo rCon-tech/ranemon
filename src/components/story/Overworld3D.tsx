@@ -13,7 +13,7 @@ import { Bike, Norm } from './models3d';
 import { monStyle, STYLES, type BikeKind } from './people';
 import { INK, LIGHT } from './pixels';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
+import { dance, isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -386,6 +386,20 @@ export default function Overworld3D(props: Props) {
             n.y + 0.5 + dy * run.tiles,
             Math.sin(run.t * Math.PI) * (run.step % 2 ? 1 : -1),
             Math.sin(run.t * Math.PI) * 0.06,
+          );
+          continue;
+        }
+        if (n.item.dances && p.faces[n.index] === undefined) {
+          // On the dance floor: turning about, arms going, hopping on the beat.
+          const d = dance(n.index, now);
+          person(
+            `npc:${n.index}:${look}`,
+            () => new Figure(look, STYLES[look]),
+            d.face,
+            n.x + 0.5,
+            n.y + 0.5,
+            Math.sin(d.t * Math.PI) * (d.step ? 1 : -1),
+            d.hop * 0.08,
           );
           continue;
         }

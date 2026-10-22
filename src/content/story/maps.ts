@@ -8,6 +8,7 @@ import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 import { GREYSTONES } from './greystones';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
+import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -972,23 +973,35 @@ export const MAPS: GameMap[] = [
     id: 'dublin',
     name: 'Dublin City',
     county: 9,
+    // A city: Georgian slate roofs, pavements and tarmac, with grass only in the parks.
+    slate: true,
     rows: [
-      'TTTTTTTTTTTTTTTTTTTTTTTT',
-      'T,,,,,,,,,..^^^^^^..^^^T',
-      'T,,,,,,,,,..###L##..#M#T',
-      'T,,,,1,,,,.....=..6....T',
-      '@==============.......*T',
-      'T...5.........=........T',
-      'T~~~~~~~~~~~~~B~~~~~~~~T',
-      'T~~~~~~~~~~~~~B~~~~~~~~T',
-      'T.......8.....=..2.^^^.T',
-      'T..^^^^..^^^^.=....#L#.T',
-      'T..#P##..#H##.=======>4.',
-      'T..S........3...^^^....T',
-      'T...^^^^........#H#7...T',
-      'T...#L##S......9.......T',
-      'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+      'T,,,,,,,,,T,,.v^^^^^^^v^^^^^v^^^^^v^^^vT',
+      'T,,T,,,,,,,,,.v###L###v#####a#####v#M#vT',
+      'T,,,,,1,,,,,T.SvvvavvvvvvvvSavvvvvvvavvT',
+      'T,,,,,,,,T,,,.vvvvavvv6vvvvvavvvvvvvav*T',
+      'T,T,,,,,,,,,,.vvvvavvvvvvvvvavvvvvvvavvT',
+      '@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaaavT',
+      'Tvvvv5vvvvavvvvvvvavvvvvvvvvavvvvvvvvvvT',
+      'TvvvvvvvvvavvvvvvvavvvvvvvvvavvvvvvvvvvT',
+      'T~~~~~~~~~B~~~~~~~B~~~~~~~~~B~~~~~~~~~~T',
+      'T~~~~~~~~~B~~~~~~~B~~~~~~~~~B~~~~~~~~~~T',
+      'TaaaaaaaaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaT',
+      'Tvvvvvvv8vavvvvvvvavvvvv2vvvavv^^^^^^vvT',
+      'Tvv^^^^vv^^^^vvvvva^^^vvvvvvavv######vvT',
+      'Tvv#P##vv#H##vvvvva#L#vvvvvvavv######vvT',
+      'TvvSvvvvvvvvvvvvvvavvvvvvvvvavSvvvvvvvvT',
+      'Taaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaa>4v',
+      'Tvvvvavvvvvvvavv3vvvv^^^vvvvavvvvvvvvvvT',
+      'Tvvvvavvvvvvvavvvvvvv#H#7vvvavvvvvvvvvvT',
+      'Tvvv^^^^vvv^^^^^^^vvvvvvvvvvavvvvvvvvvvT',
+      'Tvvv#L##Svv#H###H#vvvvvvvvvvavvvv9vvvvvT',
+      'T..........vvvvvvvvvvvvvv^^^^^^^vvvvvvvT',
+      'T,,,,,,,T,.vvvvvvvvvvvvvv#######vvvvvvvT',
+      'T,,,T,,,,,.vvvvvvvvvvvvvS###L###vvvvvvvT',
+      'T,,,,,,,,,.vvvvvvvvvvvvvvvvvvv0vvvvvvvvT',
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
     ],
     wild: {
       min: 40,
@@ -1036,10 +1049,15 @@ export const MAPS: GameMap[] = [
       RENT_NEIGHBOUR,
       RENT_GARDA,
       MESCAL,
+      BOUNCER,
     ],
     signs: [
       'DUBLIN. The Phoenix Park, the quays and Temple Bar. Trinity College to the east.',
+      'O’CONNELL STREET. The GPO, the Spire, and a man selling phone chargers outside Supermac’s.',
+      'TEMPLE BAR. A pint here costs more than a Ranemon. Mind the hen parties.',
+      'SILICON DOCKS. Everyone here works in tech, and nobody can tell you what they actually do.',
       'CONNOLLY STATION. Trains to Greystones, Bundoran and beyond. Tickets inside.',
+      'THE RAVE CAVE. Open all night, every night. Everyone inside is up for a battle.',
     ],
     houses: [
       [
@@ -1050,6 +1068,18 @@ export const MAPS: GameMap[] = [
         ...TEMPLE_BAR,
       ],
       RENT_ARRIVE,
+      [
+        {
+          do: 'say',
+          text: 'LOCAL: This is a Georgian house. The box room under the stairs is €2,400 a month, and there’s a queue of forty for the viewing.',
+        },
+      ],
+      [
+        {
+          do: 'say',
+          text: 'LOCAL: Eleven of us live here. That lad on the couch? Never seen him before in my life. He’s been here since March.',
+        },
+      ],
     ],
     houseRooms: { 1: RENT_ROOM },
     landmarks: [
@@ -1071,6 +1101,7 @@ export const MAPS: GameMap[] = [
       ],
       HELLFIRE,
       STATION_ARRIVE,
+      RAVE_ARRIVE,
     ],
     landmarkLocks: {
       1: {
@@ -1081,7 +1112,7 @@ export const MAPS: GameMap[] = [
           'The three coral beads glow warm in your bag. The boards fall away from the door on their own…',
       },
     },
-    landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom() },
+    landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom() },
     west: 'kildare',
     east: 'trinity',
   },

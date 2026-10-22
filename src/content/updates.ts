@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'Dublin gets bigger',
+    notes: [
+      'Dublin is a proper city now: more streets, more bridges over the Liffey, and pavements instead of fields. Everything that was there before is still there, a few streets further apart.',
+      'Follow the music to the Rave Cave on the south side. The party never stops, and everyone on the dance floor wants a battle.',
+      'Beat someone in the Rave Cave and they’ll happily go again whenever you ask. Good for training.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'A question at Connolly',
     notes: [
       'Someone in a rugby kit is hanging around the concourse at Connolly Station. He has a question for you. It doesn’t matter what you say.',

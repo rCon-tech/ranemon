@@ -3,7 +3,7 @@ import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
 import { newGame, playerId, SAVE_KEY, saveKey, START_MONEY, type StoryState } from './state';
-import { marker, type Dir } from './world';
+import { doorStep, find, marker, type Dir } from './world';
 
 /**
  * Saves that keep working across updates.
@@ -14,7 +14,7 @@ import { marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 2;
+export const SCHEMA = 3;
 
 type Raw = Record<string, unknown>;
 
@@ -25,7 +25,44 @@ type Raw = Record<string, unknown>;
 const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
   // Schema 1 is every save from before schemas. `repair` now does what it needs.
   1: (d) => ({ ...d, schema: 2 }),
+  // Dublin grew into a bigger city: anyone out on its streets moves to the same door on the new map.
+  2: (d) => ({
+    ...d,
+    ...toNewDublin(d),
+    pub: isObject(d.pub) ? { ...d.pub, ...toNewDublin(d.pub) } : d.pub,
+    schema: 3,
+  }),
 };
+
+/**
+ * Every door on the old 24 × 16 Dublin, and the west and east ways in, as [tile, which one of
+ * that tile, x, y]. The new map has the same doors in the same order.
+ */
+const OLD_DUBLIN: [string, number, number, number][] = [
+  ['L', 0, 15, 2],
+  ['M', 0, 22, 2],
+  ['@', 0, 0, 4],
+  ['L', 1, 20, 9],
+  ['P', 0, 4, 10],
+  ['H', 0, 10, 10],
+  ['>', 0, 21, 10],
+  ['H', 1, 17, 12],
+  ['L', 2, 5, 13],
+];
+
+/** A place on the old Dublin, moved to the step in front of the nearest door on the new one. */
+function toNewDublin(v: unknown): { x: number; y: number } | null {
+  if (!isObject(v) || v.map !== 'dublin') return null;
+  const x = num(v.x, 0);
+  const y = num(v.y, 0);
+  const dist = ([, , dx, dy]: (typeof OLD_DUBLIN)[number]) => Math.abs(dx - x) + Math.abs(dy - y);
+  const [tile, index] = OLD_DUBLIN.reduce((a, b) => (dist(b) < dist(a) ? b : a));
+  const dublin = mapById('dublin');
+  if (tile === '@' || tile === '>') return marker(dublin, tile);
+  const door = find(dublin, tile)[index];
+  const step = doorStep(dublin, door.x, door.y);
+  return { x: step.x, y: step.y };
+}
 
 /**
  * Every save on every load: fields older saves don't have are filled in, Ranemon catch up on

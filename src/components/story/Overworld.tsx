@@ -29,6 +29,7 @@ import {
   variantAt,
 } from './tiles';
 import {
+  dance,
   placeWalk,
   runOff,
   startWalk,
@@ -415,6 +416,20 @@ export function Overworld(props: Props) {
             (n.x + dx * run.tiles) * TILE,
             (n.y + dy * run.tiles) * TILE,
             Math.sin(run.t * Math.PI),
+          );
+          continue;
+        }
+        if (n.item.dances && p.faces[n.index] === undefined) {
+          // On the dance floor: turning about and hopping on the beat.
+          const d = dance(n.index, now);
+          person(
+            n.item.look,
+            STYLES[n.item.look],
+            d.face,
+            stepPose(d.t, d.step),
+            n.x * TILE,
+            n.y * TILE,
+            d.hop * 1.5,
           );
           continue;
         }

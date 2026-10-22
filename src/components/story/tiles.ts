@@ -40,6 +40,8 @@ export function frameOf(tile: string, now: number): number {
   if (tile === '~' || tile === 'B' || tile === 'b' || tile === 'y')
     return Math.floor(now / 220) % 4;
   if (tile === ',' || tile === '"') return Math.floor(now / 600) % 2;
+  // The dance floor changes colour on the beat, at about 120 a minute.
+  if (tile === 'l') return Math.floor(now / 500) % 4;
   return 0;
 }
 
@@ -154,6 +156,44 @@ function flowers(c: Ctx, r: () => number, frame: number) {
   }
 }
 
+/** The city's ground: pavement and the roads through it. */
+const CITY = new Set(['v', 'a']);
+/** What a road runs on into: more road, a bridge, or a car parked on it. */
+const ROADISH = new Set(['a', 'B', 'c']);
+
+/**
+ * A city pavement (`v`): pale granite slabs, staggered row to row, with a kerb where it meets
+ * the road.
+ */
+function pavement(c: Ctx, r: () => number, around: Around) {
+  px(c, 0, 0, T, T, '#c8c4bc');
+  for (let row = 0; row < 2; row++) {
+    const y = row * 16;
+    px(c, 0, y, T, 1, '#a8a49c');
+    px(c, row ? 0 : 16, y, 1, 16, '#a8a49c');
+    px(c, 0, y + 1, T, 1, '#d8d4cc');
+  }
+  for (let i = 0; i < 18; i++)
+    px(c, (r() * T) | 0, (r() * T) | 0, 1, 1, r() < 0.5 ? '#b8b4ac' : '#d4d0c8');
+  if (r() < 0.12) ellipse(c, 6 + ((r() * 20) | 0), 6 + ((r() * 20) | 0), 2, 1, '#9a968e');
+  // A kerb of darker granite along any side that meets the road.
+  if (ROADISH.has(around.n)) px(c, 0, 0, T, 3, '#8a867e');
+  if (ROADISH.has(around.s)) px(c, 0, T - 3, T, 3, '#8a867e');
+  if (ROADISH.has(around.w)) px(c, 0, 0, 3, T, '#8a867e');
+  if (ROADISH.has(around.e)) px(c, T - 3, 0, 3, T, '#8a867e');
+}
+
+/** A city road (`a`): tarmac, with a dashed white line down the middle of a straight. */
+function road(c: Ctx, r: () => number, around: Around) {
+  px(c, 0, 0, T, T, '#4c4e56');
+  for (let i = 0; i < 26; i++)
+    px(c, (r() * T) | 0, (r() * T) | 0, 1, 1, r() < 0.5 ? '#3e4048' : '#5c5e66');
+  const across = ROADISH.has(around.w) || ROADISH.has(around.e);
+  const along = ROADISH.has(around.n) || ROADISH.has(around.s);
+  if (across && !along) for (const x of [2, 18]) px(c, x, 15, 10, 2, '#e8e8e0');
+  else if (along && !across) for (const y of [2, 18]) px(c, 15, y, 2, 10, '#e8e8e0');
+}
+
 function path(c: Ctx, r: () => number, around: Around) {
   px(c, 0, 0, T, T, '#e2cc94');
   for (let i = 0; i < 30; i++)
@@ -262,7 +302,8 @@ export const carColour = (variant: number) => (variant % 4) % 2;
  * jeep with tinted glass and silver wheels. Greystones has a lot of them.
  */
 function car(c: Ctx, r: () => number, around: Around, variant: number) {
-  path(c, r, around);
+  if (Object.values(around).some((t) => CITY.has(t))) road(c, r, around);
+  else path(c, r, around);
   const [body, light, dark] = CAR_COLOURS[carColour(variant)];
   ellipse(c, 16, 29, 14, 3, 'rgb(0 0 0 / 0.25)');
   for (const x of [5, 23]) {
@@ -500,8 +541,9 @@ function roof(c: Ctx, around: Around, colour: [string, string, string, string]) 
 
 // ---------- things on the grass ----------
 
-function sign(c: Ctx, r: () => number) {
-  grass(c, r);
+function sign(c: Ctx, r: () => number, around: Around) {
+  if (CITY.has(around.s) || CITY.has(around.n)) pavement(c, r, around);
+  else grass(c, r);
   ellipse(c, 16, 29, 9, 2, 'rgb(0 0 0 / 0.2)');
   px(c, 14, 16, 4, 13, '#7a5028');
   px(c, 16, 16, 2, 13, '#5a3818');
@@ -826,14 +868,44 @@ function campanile(): HTMLCanvasElement {
 // ---------- indoors ----------
 
 /** Walls and the dark beyond them, for joining up wall tiles. */
-const WALLISH = new Set(['W', 'O', 'J', 'E', 'T', 'Y', 'V', 'A', 'D']);
+const WALLISH = new Set(['W', 'O', 'J', 'E', 'T', 'Y', 'V', 'A', 'D', 'o']);
 /** Walls only, without the shelves standing against them. */
-const BACK_WALL = new Set(['W', 'O', 'J', 'T', 'D']);
+const BACK_WALL = new Set(['W', 'O', 'J', 'T', 'D', 'o']);
 
 /** The floor under a piece of furniture: the gym's boards in a gym, floorboards elsewhere. */
 function ground(c: Ctx, r: () => number, around: Around) {
-  if (Object.values(around).includes('g')) gymFloor(c);
+  const near = Object.values(around);
+  if (near.includes('g')) gymFloor(c);
+  else if (near.includes('k') || near.includes('l')) darkFloor(c, r);
   else floor(c, r);
+}
+
+/** A club's floor (`k`): black concrete, scuffed, with the odd dropped glow stick. */
+function darkFloor(c: Ctx, r: () => number) {
+  px(c, 0, 0, T, T, '#1c1824');
+  for (let i = 0; i < 14; i++) px(c, (r() * T) | 0, (r() * T) | 0, 2, 1, '#2a2434');
+  if (r() < 0.3)
+    px(c, 6 + ((r() * 18) | 0), 8 + ((r() * 16) | 0), 5, 1, r() < 0.5 ? '#f040a0' : '#70f040');
+}
+
+/**
+ * A club's back wall (`o`): black-painted brick, and a neon tube along it in pink or blue that
+ * lights the bricks around it.
+ */
+function brickWall(c: Ctx, r: () => number, variant: number) {
+  px(c, 0, 0, T, T, '#2a2230');
+  for (let row = 0; row < 7; row++) {
+    const y = row * 4;
+    px(c, 0, y + 3, T, 1, '#18141e');
+    for (let x = (row % 2) * 4; x < T; x += 8) px(c, x, y, 1, 3, '#18141e');
+  }
+  const neon = variant % 2 ? '#f040a0' : '#30d0f0';
+  px(c, 0, 9, T, 5, `${neon}40`);
+  px(c, 0, 10, T, 3, neon);
+  px(c, 0, 11, T, 1, '#ffffff');
+  px(c, 0, 26, T, 3, '#3a3242');
+  px(c, 0, 29, T, 3, '#120e16');
+  for (let i = 0; i < 6; i++) px(c, (r() * T) | 0, 16 + ((r() * 8) | 0), 1, 1, '#3a3242');
 }
 
 /** The wallpaper face of a back wall: green stripes, a dado rail and a skirting board. */
@@ -975,7 +1047,7 @@ function shelves(c: Ctx, r: () => number, around: Around, kind: string) {
 
 /** A bar or shop counter, joined up along its length. */
 function counter(c: Ctx, r: () => number, around: Around) {
-  floor(c, r);
+  ground(c, r, around);
   const left = around.w !== 'C' ? 2 : 0;
   const right = around.e !== 'C' ? 2 : 0;
   px(c, left, 4, T - left - right, 26, '#5a3418');
@@ -988,7 +1060,7 @@ function counter(c: Ctx, r: () => number, around: Around) {
 
 /** A wooden table, any size, with its legs along the front. */
 function table(c: Ctx, r: () => number, around: Around) {
-  floor(c, r);
+  ground(c, r, around);
   const n = around.n === 'U';
   const s = around.s === 'U';
   const w = around.w === 'U';
@@ -1025,6 +1097,39 @@ function plant(c: Ctx, r: () => number, around: Around) {
     [16, 6, 4, 4, '#58b860'],
   ] as const)
     ellipse(c, x, y, rx, ry, colour);
+}
+
+/** The colours of a dance floor's squares: four lit, and two dark between them. */
+const DISCO = ['#f040a0', '#30d0f0', '#f8d030', '#60e060', '#201830', '#2a2040'];
+
+/**
+ * A dance floor (`l`): four by four glass squares lit from below, each changing colour on the
+ * beat, out of step with its neighbours.
+ */
+function danceFloor(c: Ctx, variant: number, frame: number) {
+  const q = T / 4;
+  px(c, 0, 0, T, T, '#100c18');
+  for (let y = 0; y < 4; y++) {
+    for (let x = 0; x < 4; x++) {
+      const colour = DISCO[(x + y * 3 + variant * 5 + frame * 7) % DISCO.length];
+      px(c, x * q + 1, y * q + 1, q - 2, q - 2, colour);
+      px(c, x * q + 1, y * q + 1, q - 2, 1, 'rgb(255 255 255 / 0.35)');
+    }
+  }
+}
+
+/** A speaker stack (`I`): a black cabinet with a big cone below and a small one above. */
+function speaker(c: Ctx, r: () => number, around: Around) {
+  ground(c, r, around);
+  ellipse(c, 16, 30, 12, 2, 'rgb(0 0 0 / 0.3)');
+  px(c, 4, 1, 24, 29, '#18161c');
+  px(c, 4, 1, 24, 1, '#3a3640');
+  px(c, 5, 2, 1, 27, '#2a2830');
+  ellipse(c, 16, 9, 5, 5, '#3a3640');
+  ellipse(c, 16, 9, 2, 2, '#6a6670');
+  ellipse(c, 16, 21, 8, 7, '#2e2b34');
+  ellipse(c, 16, 21, 5, 4, '#4a4652');
+  ellipse(c, 16, 21, 2, 2, '#8a8690');
 }
 
 /** A bed: a pillow at the head, a patchwork quilt below. */
@@ -1083,8 +1188,9 @@ function rug(c: Ctx, around: Around, gym: boolean) {
 }
 
 /** The way out: a doormat in a gap in the wall. */
-function exit(c: Ctx, r: () => number) {
-  floor(c, r);
+function exit(c: Ctx, r: () => number, around: Around) {
+  if (around.n === 'k') darkFloor(c, r);
+  else floor(c, r);
   px(c, 0, 0, T, T, 'rgb(0 0 0 / 0.15)');
   px(c, 3, 4, 26, 18, '#7a3020');
   px(c, 4, 5, 24, 16, '#a84a2c');
@@ -1197,6 +1303,12 @@ export function tileImage(
       case '=':
         path(c, r, around);
         break;
+      case 'v':
+        pavement(c, r, around);
+        break;
+      case 'a':
+        road(c, r, around);
+        break;
       case 'b':
         bog(c, r, frame);
         break;
@@ -1229,6 +1341,19 @@ export function tileImage(
         break;
       case 'r':
         rug(c, around, Object.values(around).includes('g'));
+        break;
+      case 'l':
+        danceFloor(c, v, frame);
+        break;
+      case 'k':
+        darkFloor(c, r);
+        break;
+      case 'o':
+        if (!WALLISH.has(around.s)) brickWall(c, r, v);
+        else wallTop(c, around);
+        break;
+      case 'I':
+        speaker(c, r, around);
         break;
       case 'W':
         room(c, r, around);
@@ -1263,7 +1388,7 @@ export function tileImage(
         statue(c, r, around);
         break;
       case 'E':
-        exit(c, r);
+        exit(c, r, around);
         break;
       case 'Z': {
         floor(c, r);
@@ -1285,7 +1410,7 @@ export function tileImage(
         door(c, r, around, tile);
         break;
       case 'S':
-        sign(c, r);
+        sign(c, r, around);
         break;
       case 'f':
         fence(c, r);
