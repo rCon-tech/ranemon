@@ -50,6 +50,7 @@ import {
 import {
   beatFlag,
   canFight,
+  caughtBefore,
   follower,
   fromGroupChat,
   give,
@@ -1041,6 +1042,7 @@ export function Story() {
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,
+          caught: wild && caughtBefore(game, fight.teams[1][0].creature.id),
           onUse: (id) => setGame((g) => (g ? take(g, id as ItemId) : g)),
           expOf: (i) => (game.party[i] ? expProgress(game.party[i]) : 0),
         }}

@@ -291,6 +291,10 @@ button {
   font-size: 13px;
   text-shadow: 1px 1px 0 rgb(0 0 0 / 0.5);
 }
+.caught-pint {
+  flex-shrink: 0;
+  filter: drop-shadow(1px 1px 0 rgb(0 0 0 / 0.5));
+}
 .info-foe {
   left: 0;
   top: 5%;

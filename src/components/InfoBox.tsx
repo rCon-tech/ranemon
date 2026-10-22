@@ -10,9 +10,32 @@ interface Props {
   mine: boolean;
   /** Story mode's EXP bar: how far through its level, 0 to 1. */
   exp?: number;
+  /** Story mode's wild Ranemon: a pint by its name when you've befriended one before. */
+  caught?: boolean;
 }
 
-export function InfoBox({ battler, hp, status, mine, exp }: Props) {
+/** A wee pint of stout, the way a Poké Ball marks a Pokémon you've caught before. */
+function CaughtPint() {
+  return (
+    <svg
+      className="caught-pint"
+      viewBox="0 0 8 11"
+      width={11}
+      height={15}
+      shapeRendering="crispEdges"
+      role="img"
+      aria-label="Befriended before"
+      data-testid="caught-pint"
+    >
+      <rect x={0} y={0} width={8} height={3} fill="#9fb0c2" />
+      <rect x={1} y={3} width={6} height={8} fill="#9fb0c2" />
+      <rect x={1} y={0} width={6} height={3} fill="#fff1cc" />
+      <rect x={2} y={3} width={4} height={7} fill="#1a1210" />
+    </svg>
+  );
+}
+
+export function InfoBox({ battler, hp, status, mine, exp, caught }: Props) {
   const max = battler.stats.hp;
   const pct = Math.max(0, Math.min(100, (hp / max) * 100));
   const colour =
@@ -24,13 +47,16 @@ export function InfoBox({ battler, hp, status, mine, exp }: Props) {
       data-testid={mine ? 'info-you' : 'info-foe'}
     >
       <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate">
-          {battler.creature.shiny && (
-            <span className="shiny-name" aria-label="Shiny" data-testid="shiny-star">
-              ★
-            </span>
-          )}
-          {battler.creature.name}
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="truncate">
+            {battler.creature.shiny && (
+              <span className="shiny-name" aria-label="Shiny" data-testid="shiny-star">
+                ★
+              </span>
+            )}
+            {battler.creature.name}
+          </span>
+          {caught && <CaughtPint />}
         </span>
         <span className="shrink-0 text-[10px]">Lv{battler.level}</span>
       </div>

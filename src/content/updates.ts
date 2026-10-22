@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'A pint for old friends',
+    notes: [
+      'A wild Ranemon you’ve befriended before now has a wee pint next to its name in battle, so you know you’ve already got one.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'County colours',
     notes: [
       'Every jersey you win now shows up on your Trainer Card in that county’s own colours, stripes and hoops included. The ones still to win are grey until you do.',
