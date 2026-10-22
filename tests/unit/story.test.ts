@@ -120,7 +120,9 @@ describe('party', () => {
     const { member, lines } = blueGhost(m);
     expect(member.level).toBe(20);
     expect(member.exp).toBe(expAt(20));
+    expect(lines[0]).toBe('Carlmon took a Blue Ghost and got yipped!');
     expect(lines.join(' ')).toMatch(/grew to Lv20.*learned/);
+    expect(lines.join(' ')).not.toMatch(/drank/);
   });
 
   it('takes about 20 wild battles to go from 5 to 12', () => {

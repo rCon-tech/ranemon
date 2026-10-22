@@ -324,8 +324,8 @@ export function itemEvolve(m: Member, item: string): { member: Member; lines: st
 
 /** A Blue Ghost: exactly one level, with EXP set to the start of it. */
 export function blueGhost(m: Member, party: Member[] = []): { member: Member; lines: string[] } {
-  if (m.level >= MAX_LEVEL) return { member: m, lines: ['It won’t have any effect.'] };
-  const lines: string[] = [];
+  const lines = [`${nameOf(m)} took a Blue Ghost and got yipped!`];
+  if (m.level >= MAX_LEVEL) return { member: m, lines: [...lines, 'It won’t have any effect.'] };
   const member = levelUp(m, lines, party);
   return { member: { ...member, exp: expAt(member.level) }, lines };
 }

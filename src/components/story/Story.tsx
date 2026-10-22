@@ -1172,7 +1172,7 @@ export function Story() {
               if (item.use.kind === 'level') {
                 const r = blueGhost(m, game.party);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
-                lines = [`${name} drank the Blue Ghost!`, ...r.lines];
+                lines = r.lines;
               } else if (item.use.kind === 'hold') {
                 g = holdItem(game, i, id);
                 const back = m.held ? ` and gave back the ${itemById(m.held).name}` : '';
