@@ -14,6 +14,7 @@ import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
 import { mapById, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
+import { ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
@@ -111,6 +112,7 @@ const Overworld3D = dynamic(() => import('./Overworld3D'), {
 import {
   BagPanel,
   Choice,
+  DeparturesPanel,
   EndingPanel,
   GroupChatPanel,
   JerseysPanel,
@@ -129,6 +131,7 @@ type Overlay =
   | 'party'
   | 'bag'
   | 'shop'
+  | 'departures'
   | 'chat'
   | 'dex'
   | 'card'
@@ -368,6 +371,7 @@ export function Story() {
             return;
           case 'offer-chat':
           case 'shop':
+          case 'departures':
           case 'starter':
           case 'ending':
             setGame(g);
@@ -1171,6 +1175,9 @@ export function Story() {
               if (game.money >= price) setGame(give({ ...game, money: game.money - price }, id));
             }}
           />
+        )}
+        {overlay === 'departures' && (
+          <DeparturesPanel game={game} onPick={(d) => answer(ticket(d))} onClose={closeOverlay} />
         )}
         {overlay === 'chat' && (
           <GroupChatPanel

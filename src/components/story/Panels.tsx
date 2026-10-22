@@ -26,6 +26,7 @@ import { playSfx } from '@/lib/sound/engine';
 import type { Dir } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
+import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 
 /** A full-screen GB menu: a bordered box with a title and a BACK button. */
 export function Panel({
@@ -686,6 +687,51 @@ export function Choice({
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The departures board at Connolly Station: every line, by platform. Lines that run are tickets
+ * to buy; lines still to come are on the board, greyed out.
+ */
+export function DeparturesPanel({
+  game,
+  onPick,
+  onClose,
+}: {
+  game: StoryState;
+  onPick: (d: Departure) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Panel title="DEPARTURES" onClose={onClose}>
+      <div className="flex flex-col gap-1.5 rounded bg-[#141418] p-2 font-mono text-[#f8b820]">
+        {DEPARTURES.map((d) => {
+          const locked = isRunning(d) && d.lock && !hasFlag(game, d.lock.flag);
+          const status = !isRunning(d) ? 'COMING SOON' : locked ? 'NOT YET' : 'ON TIME';
+          return (
+            <button
+              key={d.id}
+              type="button"
+              data-testid={`departure-${d.id}`}
+              className="pixel-btn flex items-center gap-2 px-2 py-1.5 text-left"
+              disabled={!isRunning(d)}
+              onClick={() => isRunning(d) && onPick(d)}
+            >
+              <span className="w-5 text-center text-[13px] font-bold">{d.platform}</span>
+              <span className="flex flex-1 flex-col">
+                <span className="text-[11px]">{d.to}</span>
+                <span className="text-[8px]">{d.line}</span>
+              </span>
+              <span className="text-[8px]">{status}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[9px] leading-relaxed">
+        Pick a train and the clerk sells you a ticket. More lines are coming to Connolly soon.
+      </p>
+    </Panel>
   );
 }
 

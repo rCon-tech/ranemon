@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MAPS, mapById } from '@/content/story/maps';
+import { STATION_ID } from '@/content/story/station';
 import { stopsOf } from '@/content/story/townmap';
 import { trainerById } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
@@ -22,16 +23,16 @@ function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
 }
 
 describe('the Donegal side story', () => {
-  const dublin = mapById('dublin');
+  const station = mapById(STATION_ID);
   const donegal = mapById('donegal');
-  const npc = (map: typeof dublin, look: string) => npcsOf(map).find((n) => n.item.look === look)!;
+  const npc = (map: typeof station, look: string) => npcsOf(map).find((n) => n.item.look === look)!;
 
-  it('runs a train from Dublin to Bundoran and back, onto open ground', () => {
-    const there = play(npc(dublin, 'conductor').item.talk!, new Set());
+  it('runs a train from Connolly Station to Bundoran and back, onto open ground', () => {
+    const there = play(npc(station, 'conductor').item.talk!, new Set());
     const back = play(npc(donegal, 'conductor').item.talk!, new Set());
     for (const [line, map] of [
       [there.find((l) => l.startsWith('TRAVEL'))!, donegal],
-      [back.find((l) => l.startsWith('TRAVEL'))!, dublin],
+      [back.find((l) => l.startsWith('TRAVEL'))!, station],
     ] as const) {
       const [, id, at] = line.split(' ');
       const [x, y] = at.split(',').map(Number);

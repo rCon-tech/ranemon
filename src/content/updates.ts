@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-22',
+    title: 'All aboard at Connolly',
+    notes: [
+      'Connolly Station has opened in Dublin. Every train out of the city leaves from there now: pick where you’re going at the ticket desk.',
+      'Keep an eye on the departures board. A few platforms are still waiting for their first train.',
+    ],
+  },
+  {
+    date: '2026-10-22',
     title: 'The DART',
     notes: [
       'The DART now runs south from Dublin, to a seaside town with very big houses, very nice boats and some locals who have a lot to get off their chests.',

@@ -301,6 +301,18 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#4a3424',
     guitar: '#b8742c',
   },
+  // The clerk at the ticket desk in Connolly: Iarnród Éireann green, a white shirt and glasses.
+  clerk: {
+    skin: SKIN,
+    hair: '#8a5a32',
+    hairStyle: 'bob',
+    glasses: 'glasses',
+    top: '#2e7a4a',
+    topKind: 'jumper',
+    trim: '#f4f4f0',
+    legs: '#1c2a24',
+    shoes: '#141418',
+  },
   // An Iarnród Éireann conductor: navy uniform, green tie, a peaked cap with a gold badge.
   conductor: {
     skin: SKIN,
