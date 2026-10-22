@@ -93,7 +93,7 @@ describe('levels', () => {
 describe('party', () => {
   it('starts with its weakest attack and its special move, then learns the rest up to 50', () => {
     const carl = creatureById('carlmon');
-    expect(learnset(carl).map((l) => l.level)).toEqual([1, 1, 8, 12, 16, 20, 25, 33, 42, 50]);
+    expect(learnset(carl).map((l) => l.level)).toEqual([1, 1, 8, 12, 16, 20, 25, 33, 36, 42, 50]);
     expect(movesAt(carl, 5)).toEqual([expect.any(String), 'nozzy-call']);
     expect(moveById(movesAt(carl, 5)[0]).signature).toBeUndefined();
     expect(movesAt(carl, 12)).toHaveLength(4);

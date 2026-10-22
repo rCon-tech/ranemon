@@ -276,7 +276,11 @@ const T: Trainer[] = [
     before:
       'B&S: So you’re the one in nine jerseys. We are B&S, Ranemon Champions of Ireland. Last orders!',
     after: 'B&S: …Fair play. The title is yours.',
-    reward: [{ do: 'ending' }],
+    reward: [
+      { do: 'say', text: 'B&S: And take Petchemon. He was only ever spying for us anyway.' },
+      { do: 'recruit', species: 'petchemon', level: 55 },
+      { do: 'ending' },
+    ],
   },
   {
     id: 'bns-rematch',
@@ -298,8 +302,8 @@ const T: Trainer[] = [
     id: 'poseidon',
     name: 'Poseidon',
     team: [
-      ['jammon', 55],
-      ['simomon', 55],
+      ['jammon', 54],
+      ['simomon', 54],
       ['olliemon', 56],
       ['owemon', 56],
       ['poseidon', 60],

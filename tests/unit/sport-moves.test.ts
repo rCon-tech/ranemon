@@ -65,11 +65,11 @@ describe('sport moves', () => {
 });
 
 describe('4 moves at a time', () => {
-  it('fights with its special move and the latest 3 it has learnt', () => {
+  it('fights with its special moves and the latest it has learnt', () => {
     const m = makeMember('carlmon', 50, 1);
-    expect(learnedOf(m)).toHaveLength(10);
+    expect(learnedOf(m)).toHaveLength(11);
     expect(m.moves).toHaveLength(MOVE_SLOTS);
-    expect(m.moves).toContain('nozzy-call');
+    expect(m.moves).toEqual(expect.arrayContaining(['nozzy-call', 'fossil-record']));
     expect(m.moves).toEqual(expect.arrayContaining(['rage-quit', 'lights-out']));
     expect(m.pp).toHaveLength(MOVE_SLOTS);
     expect(fightingMoves(movesAt(speciesById('carlmon'), 5))).toHaveLength(2);

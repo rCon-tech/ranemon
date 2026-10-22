@@ -166,7 +166,7 @@ export function settleBattle(
       const total = expYield(foe.level, trainer);
       const fighters = fought.filter((i) => i < party.length && party[i].hp > 0);
       const shareOut = (i: number, amount: number) => {
-        const { member, lines: more } = gainExp(party[i], amount);
+        const { member, lines: more } = gainExp(party[i], amount, party);
         party = party.map((m, j) => (j === i ? member : m));
         lines.push(...more);
       };

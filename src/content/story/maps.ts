@@ -787,10 +787,11 @@ export const MAPS: GameMap[] = [
       min: 19,
       max: 23,
       table: [
-        ['killemon', 35],
-        ['thilomon', 25],
-        ['oismon', 20],
-        ['olliemon', 20],
+        ['killemon', 30],
+        ['thilomon', 20],
+        ['crampemon', 20],
+        ['oismon', 15],
+        ['olliemon', 15],
       ],
     },
     npcs: [
@@ -1044,6 +1045,7 @@ export const MAPS: GameMap[] = [
         ['paulimon', 7],
         ['skehemon', 7],
         ['vinnimon', 7],
+        ['crampemon', 7],
         ['gibbsmon', 3],
         ['thilomon', 3],
       ],

@@ -12,6 +12,8 @@ export interface Evolution {
   name: string;
   level: number;
   entry: string;
+  /** In story mode it only evolves with a Ranemon of this line in the party too. */
+  partner?: string;
 }
 
 export const EVOLUTION_LEVEL = 30;
@@ -132,6 +134,14 @@ export const EVOLUTIONS: Evolution[] = [
     name: 'Vinnisaur',
     entry: 'A flower blooms on his back after the third stein. He toasts it too.',
   },
+  {
+    from: 'crampemon',
+    id: 'crampsb2bthilomon',
+    name: 'CrampsB2BThilomon',
+    entry:
+      'Crampemon and Thilomon, back to back on the decks as one. Nobody leaves till they say so.',
+    partner: 'thilomon',
+  },
 ].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
 
 /** Scales a base budget up to EVOLVED_BUDGET, keeping the shape; the largest stat takes the rounding. */
@@ -161,8 +171,56 @@ export const EVOLVED: Creature[] = EVOLUTIONS.map((e) => {
   };
 });
 
+/**
+ * Evolutions an item sets off instead of a level: a second branch for a Ranemon, alongside the
+ * one it reaches by levelling. The evolved form comes from its own photo and swaps the base
+ * form's special move for one of its own.
+ */
+export interface ItemEvolution {
+  from: string;
+  id: string;
+  name: string;
+  /** The item's id (`ItemId` in story mode's items). */
+  item: string;
+  entry: string;
+  /** Its own special move, in place of the base form's. */
+  signature: string;
+}
+
+export const ITEM_EVOLUTIONS: ItemEvolution[] = [
+  {
+    from: 'killemon',
+    id: 'cholokill',
+    name: 'Cholokill',
+    item: 'flannel-shirt',
+    entry: 'Put on the flannel shirt and never took it off. Points at you, then WHABAM.',
+    signature: 'whabam',
+  },
+];
+
+export const ITEM_EVOLVED: Creature[] = ITEM_EVOLUTIONS.map((e) => {
+  const from = BASE_FORMS.get(e.from)!;
+  return {
+    ...from,
+    id: e.id,
+    name: e.name,
+    base: evolvedStats(from.base),
+    moves: [e.signature, ...from.moves.slice(1)],
+    entry: e.entry,
+    // From a photo of its own, in HD, so it stands solid in the 3D look.
+    sprite: `/sprites/bw/${e.id}.png`,
+    solid: true,
+  };
+});
+
+/** The item evolution a species can take with an item, if any. */
+export const itemEvolutionOf = (species: string, item: string) =>
+  ITEM_EVOLUTIONS.find((e) => e.from === species && e.item === item);
+
 const BY_FROM = new Map(EVOLUTIONS.map((e) => [e.from, e]));
-const BY_ID = new Map(EVOLUTIONS.map((e) => [e.id, e]));
+const BY_ID = new Map<string, { from: string }>(
+  [...EVOLUTIONS, ...ITEM_EVOLUTIONS].map((e) => [e.id, e]),
+);
 
 /** What a species evolves into, or undefined once it's fully evolved. */
 export const evolutionOf = (species: string) => BY_FROM.get(species);
@@ -176,7 +234,7 @@ export function formAt(species: string, level: number): string {
   return evo && level >= evo.level ? evo.id : species;
 }
 
-const FORMS = new Map([...ROSTER, ...EVOLVED, LEGEND].map((c) => [c.id, c]));
+const FORMS = new Map([...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, LEGEND].map((c) => [c.id, c]));
 
 /** Any Ranemon, base or evolved. */
 export function formById(id: string): Creature {
@@ -190,11 +248,12 @@ export function sameStage(species: string, like: string): string {
   return lineOf(like) === like ? species : (evolutionOf(species)?.id ?? species);
 }
 
-/** The Ranedex order: each Ranemon followed by its evolution, and the legend last. */
+/** The Ranedex order: each Ranemon followed by its evolutions, and the legend last. */
 export const DEX: Creature[] = [
   ...ROSTER.flatMap((c) => {
     const evo = evolutionOf(c.id);
-    return evo ? [c, formById(evo.id)] : [c];
+    const items = ITEM_EVOLUTIONS.filter((e) => e.from === c.id).map((e) => formById(e.id));
+    return [c, ...(evo ? [formById(evo.id)] : []), ...items];
   }),
   LEGEND,
 ];

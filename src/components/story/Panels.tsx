@@ -389,10 +389,13 @@ export function RanedexPanel({ game, onClose }: { game: StoryState; onClose: () 
   const shinies = new Set(
     [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
   );
+  // Petchemon is not in the Ranedex, so he is left out of the counts.
+  const inDex = (id: string) => DEX.some((c) => c.id === id);
   return (
     <Panel title="RANEDEX" onClose={onClose}>
       <p className="text-[11px]">
-        Seen {game.seen.length} · Befriended {game.caught.length} / {DEX.length}
+        Seen {game.seen.filter(inDex).length} · Befriended {game.caught.filter(inDex).length} /{' '}
+        {DEX.length}
         {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
       <div className="grid grid-cols-4 gap-1.5">

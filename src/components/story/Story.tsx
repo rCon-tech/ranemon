@@ -36,6 +36,7 @@ import { devSave, isDevName } from '@/lib/story/devsave';
 import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
+  itemEvolve,
   catchRate,
   evolutionIn,
   expProgress,
@@ -323,6 +324,16 @@ export function Story() {
             g = give(g, s.item, count);
             const name = itemById(s.item).name;
             q.unshift({ do: 'say', text: `You got ${count > 1 ? `${count} × ` : 'a '}${name}!` });
+            break;
+          }
+          case 'recruit': {
+            const name = speciesById(s.species).name;
+            const joined = recruit(g, s.species, s.level);
+            g = joined.state;
+            q.unshift(
+              { do: 'say', text: `You got ${name}!` },
+              ...(joined.line ? [{ do: 'say' as const, text: joined.line }] : []),
+            );
             break;
           }
           case 'flag':
@@ -1092,9 +1103,20 @@ export function Story() {
               let g = take(game, id);
               let lines: string[];
               if (item.use.kind === 'level') {
-                const r = blueGhost(m);
+                const r = blueGhost(m, game.party);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = [`${name} drank the Blue Ghost!`, ...r.lines];
+              } else if (item.use.kind === 'evolve') {
+                const r = itemEvolve(m, id);
+                const into = r.member.species;
+                g = {
+                  ...g,
+                  party: g.party.map((x, j) => (j === i ? r.member : x)),
+                  // Its new form goes in the Ranedex as befriended.
+                  seen: g.seen.includes(into) ? g.seen : [...g.seen, into],
+                  caught: g.caught.includes(into) ? g.caught : [...g.caught, into],
+                };
+                lines = [`${name} put on the ${item.name}!`, ...r.lines];
               } else {
                 const healed = applyItem(item, m);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? healed : x)) };

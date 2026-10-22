@@ -175,7 +175,9 @@ export function chooseAction(
     const foe = activeBattler(state, other(side));
     const threat = threatFrom(foe, me);
     const canFinish = move.kind === 'move' && expectedDamage(me, foe, move.index) >= foe.hp;
-    if (threat >= me.hp * 0.5 && !canFinish) {
+    // One that has just come in stays for a turn, or two Hard CPUs could swap back and forth for ever.
+    const justIn = me.cameIn === state.turn - 1;
+    if (threat >= me.hp * 0.5 && !canFinish && !justIn) {
       const safer = switchTargets(state, side)
         .map((i) => ({ i, threat: threatFrom(foe, team.battlers[i]) / team.battlers[i].hp }))
         .sort((a, b) => a.threat - b.threat)[0];
