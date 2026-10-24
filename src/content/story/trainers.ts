@@ -8,6 +8,7 @@ import { PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
+import { GALWAY_TRAINERS } from './galway';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -645,6 +646,7 @@ const T: Trainer[] = [
   ...RAVE_TRAINERS,
   ...BRIGHTON_TRAINERS,
   ...TECHNO_TRAINERS,
+  ...GALWAY_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {

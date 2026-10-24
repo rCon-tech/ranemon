@@ -78,7 +78,7 @@ export const LEVEL_RULES: { id: LevelRule; label: string; about: string }[] = [
     label: 'CAP 50',
     about: 'Above Lv50 comes down to 50; the rest stay as they are.',
   },
-  { id: 'caught', label: 'AS CAUGHT', about: 'Real levels, 5 to 60.' },
+  { id: 'caught', label: 'AS CAUGHT', about: `Real levels, 5 to ${MAX_LEVEL}.` },
 ];
 
 export const isLevelRule = (x: unknown): x is LevelRule => LEVEL_RULES.some((r) => r.id === x);
