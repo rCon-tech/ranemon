@@ -29,6 +29,7 @@ import {
   type Style,
 } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
+import { paintFacade, paintRoom } from './brands';
 import {
   balloonsAt,
   bulbsOf,
@@ -364,6 +365,33 @@ export function Overworld(props: Props) {
           }
         }
       }
+
+      // A company's own look: its building in Silicon Docks, or the room inside it.
+      if (map.brand) {
+        const start = find(map, '@')[0];
+        paintRoom(
+          c,
+          map.brand,
+          sx(0),
+          sy(0),
+          map.rows[0].length,
+          map.rows.length,
+          start.x + 1,
+          4.5,
+        );
+      }
+      find(map, 'L').forEach((d, i) => {
+        const brand = map.landmarkLabels?.[i]?.brand;
+        if (!brand) return;
+        const glass = (x: number, y: number) => 'zL'.includes(map.rows[y]?.[x] ?? '.');
+        let x0 = d.x;
+        let x1 = d.x;
+        let y0 = d.y;
+        while (glass(x0 - 1, d.y)) x0--;
+        while (glass(x1 + 1, d.y)) x1++;
+        while (glass(d.x, y0 - 1)) y0--;
+        paintFacade(c, brand, sx(0), sy(0), x0, y0, x1, d.y);
+      });
 
       // Shop signs over the doors, in the door's own colour.
       c.font = '700 7px "Pixelify Sans", sans-serif';

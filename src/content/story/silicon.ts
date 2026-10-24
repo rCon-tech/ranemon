@@ -1,4 +1,4 @@
-import type { GameMap, Look, Npc, Step, Trainer } from '@/lib/story/world';
+import type { Brand, GameMap, Look, Npc, Step, Trainer } from '@/lib/story/world';
 import type { ItemId } from '@/lib/story/items';
 
 /**
@@ -26,8 +26,8 @@ interface Hq {
   company: string;
   /** The room's name. */
   name: string;
-  /** The sign's colour. */
-  colour: string;
+  /** Its own look: the colours of its building and rooms, and its logo. */
+  brand: Brand;
   /** Said every time you walk in. */
   intro: string;
   ceo: {
@@ -85,8 +85,15 @@ function roomRows(decor: Hq['decor']): string[] {
 const HQS: Hq[] = [
   {
     company: 'GOOGLE',
+    brand: {
+      logo: 'google',
+      colour: '#4285f4',
+      facade: '#f4f6fa',
+      tint: 0.35,
+      panel: '#ffffff',
+      band: ['#4285f4', '#ea4335', '#fbbc05', '#34a853'],
+    },
     name: 'Google HQ',
-    colour: '#3a78e8',
     intro:
       'GOOGLE, BARROW STREET. Slides between floors, a free canteen and a sign that says DON’T BE EVIL in very small letters.',
     ceo: {
@@ -139,8 +146,8 @@ const HQS: Hq[] = [
   },
   {
     company: 'META',
+    brand: { logo: 'meta', colour: '#0866ff', facade: '#0866ff', tint: 0.4, panel: '#0866ff' },
     name: 'Meta HQ',
-    colour: '#1877f2',
     intro: 'META. Everyone here is wearing a headset, waving at things that aren’t there.',
     ceo: {
       id: 'silicon-zuckerberg',
@@ -190,8 +197,15 @@ const HQS: Hq[] = [
   },
   {
     company: 'MICROSOFT',
+    brand: {
+      logo: 'microsoft',
+      colour: '#737373',
+      facade: '#c8ccd0',
+      tint: 0.4,
+      panel: '#f4f4f4',
+      band: ['#f25022', '#7fba00', '#00a4ef', '#ffb900'],
+    },
     name: 'Microsoft HQ',
-    colour: '#20a050',
     intro:
       'MICROSOFT. A paperclip with eyes looks up at you from the reception desk. It seems to want to help.',
     ceo: {
@@ -245,8 +259,8 @@ const HQS: Hq[] = [
   },
   {
     company: 'APPLE',
+    brand: { logo: 'apple', colour: '#a2aaad', facade: '#fbfbfd', tint: 0.6, panel: '#ffffff' },
     name: 'Apple HQ',
-    colour: '#a0a8b4',
     intro:
       'APPLE. White walls, white floors, white tables, and a phone on each one. You feel like you shouldn’t touch anything.',
     ceo: {
@@ -298,8 +312,15 @@ const HQS: Hq[] = [
   },
   {
     company: 'AMAZON',
+    brand: {
+      logo: 'amazon',
+      colour: '#ff9900',
+      facade: '#232f3e',
+      tint: 0.55,
+      panel: '#232f3e',
+      band: ['#ff9900'],
+    },
     name: 'Amazon HQ',
-    colour: '#f09820',
     intro:
       'AMAZON. Boxes up to the ceiling, and a drone in the lobby with a package that says FRAGILE.',
     ceo: {
@@ -350,8 +371,15 @@ const HQS: Hq[] = [
   },
   {
     company: 'TIKTOK',
+    brand: {
+      logo: 'tiktok',
+      colour: '#fe2c55',
+      facade: '#101014',
+      tint: 0.65,
+      panel: '#101014',
+      band: ['#25f4ee', '#fe2c55'],
+    },
     name: 'TikTok HQ',
-    colour: '#e83060',
     intro:
       'TIKTOK. The floor lights up, the music never stops and everyone is filming a dance in a corner.',
     ceo: {
@@ -404,8 +432,8 @@ const HQS: Hq[] = [
   },
   {
     company: 'X',
+    brand: { logo: 'x', colour: '#14171a', facade: '#000000', tint: 0.7, panel: '#000000' },
     name: 'X HQ',
-    colour: '#202024',
     intro:
       'X. It used to say TWITTER over the door. You can still see where the bird was, if you squint.',
     ceo: {
@@ -460,8 +488,15 @@ const HQS: Hq[] = [
   },
   {
     company: 'STRIPE',
+    brand: {
+      logo: 'stripe',
+      colour: '#635bff',
+      facade: '#635bff',
+      tint: 0.45,
+      panel: '#ffffff',
+      band: ['#635bff', '#80e9ff', '#7a73ff'],
+    },
     name: 'Stripe HQ',
-    colour: '#6a5af0',
     intro:
       'STRIPE, GRAND CANAL DOCK. Bookshelves floor to ceiling, and a good smell of coffee. It feels more like a library than a tech company.',
     ceo: {
@@ -562,7 +597,7 @@ export const SILICON_TRAINERS: Trainer[] = HQS.flatMap((h, i): Trainer[] => [
   },
 ]);
 
-function room(h: Hq): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
+function room(h: Hq): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things' | 'brand'> {
   const npcs: Npc[] = [
     {
       look: h.ceo.look,
@@ -589,6 +624,7 @@ function room(h: Hq): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
     rows: roomRows(h.decor),
     npcs,
     things: h.things,
+    brand: h.brand,
   };
 }
 
@@ -605,8 +641,8 @@ export const SILICON_ROOMS = Object.fromEntries(
 
 /** The company signs over the HQ doors, by Dublin landmark index. */
 export const SILICON_LABELS = Object.fromEntries(
-  HQS.map((h, i) => [FIRST_HQ + i, { text: h.company, colour: h.colour }]),
-) as Record<number, { text: string; colour: string }>;
+  HQS.map((h, i) => [FIRST_HQ + i, { text: h.company, colour: h.brand.colour, brand: h.brand }]),
+) as Record<number, { text: string; colour: string; brand: Brand }>;
 
 /** Stripe stays shut until the seven are beaten. */
 export const SILICON_LOCKS = {
