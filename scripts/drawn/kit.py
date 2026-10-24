@@ -196,12 +196,17 @@ class Look:
     trim: tuple | None = None  # a gown's hood trim
     trousers: tuple = (44, 44, 56)
     shoes: tuple = (64, 54, 48)
-    # point, hips, down, crossed, moustache, chin, hold, raise, both
+    # point, hips, down, crossed, moustache, chin, hold, raise, both, guard
     pose: str = "down"
     # none, fish, stein, can, wine, fakemoustache, shades_collar, tricolour, chefbuttons,
     # beads, tattoo, logo
     props: tuple = ()
     build: float = 1.0
+    # Boxing gloves in this colour in place of hands.
+    gloves: tuple | None = None
+    # Extra parts, such as an evolution's costume: called as extras(figure, look, stage, view)
+    # at each stage of the drawing (behind, body, head, front; then paint with the image).
+    extras: Callable | None = None
     long_robe: bool = False
 
 
@@ -331,6 +336,8 @@ def arms_front(look: Look, hw: int) -> list[Arm]:
         return [down_l, Arm(rs, (rs[0] + 5, 72), (rs[0] - 4, 70))]
     if p == "raise":
         return [Arm(ls, (ls[0] - 9, 50), (ls[0] - 11, 38)), down_r]
+    if p == "guard":  # fists up, like a boxer
+        return [Arm(ls, (ls[0] - 6, 72), (CX - 9, 62)), Arm(rs, (rs[0] + 6, 72), (CX + 9, 60))]
     if p == "both":  # holding something across the body with both hands
         return [Arm(ls, (ls[0] - 6, 70), (CX - 20, 68), late=True),
                 Arm(rs, (rs[0] + 6, 70), (CX + 20, 68), late=True)]
@@ -357,6 +364,9 @@ def draw_arm(f: Figure, look: Look, a: Arm, behind=False):
     hand = ellipse(hx - 4, hy - 4, hx + 4, hy + 4)
     if a.finger:
         hand |= capsule((hx - 2, hy - 1), a.finger, 3)
+    if look.gloves:
+        f.part(ellipse(hx - 6, hy - 6, hx + 6, hy + 6), ramp(look.gloves))
+        return
     f.part(hand, look.skin)
 
 
@@ -589,6 +599,8 @@ def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
 def front(look: Look, outlined: bool = True) -> Image.Image:
     hw = round(18 * look.build)
     f = Figure()
+    x = look.extras or (lambda *a: None)
+    x(f, look, "behind", "front")
     legs_front(f, look)
     arms = arms_front(look, hw)
     behind = [a for a in arms if look.pose in ("down", "hips") or a.hand[1] > 74 and not a.late]
@@ -598,22 +610,28 @@ def front(look: Look, outlined: bool = True) -> Image.Image:
     for a in arms:
         if a not in behind and not a.late:
             draw_arm(f, look, a)
+    x(f, look, "body", "front")
     head_front(f, look)
+    x(f, look, "head", "front")
     props_front(f, look, arms)
     for a in arms:
         if a.late:
             draw_arm(f, look, a)
     if "fakemoustache" in look.props:
         props_front(f, Look(props=("fakemoustache",)), arms)
+    x(f, look, "front", "front")
     im = f.render()
     face(im, look)
     overlays_front(im, look, arms)
+    x(im, look, "paint", "front")
     return sprites.outline(im) if outlined else im
 
 
 def back(look: Look, outlined: bool = True) -> Image.Image:
     """From behind and a bit to the left, bigger and cut off at the bottom."""
     f = Figure()
+    x = look.extras or (lambda *a: None)
+    x(f, look, "behind", "back")
     w = round(6 * (look.build - 1) * 4)
     body = look.outer_paint if look.outer != "none" and look.outer_paint else look.inner
     big = lambda paint: (lambda x, y: paint(x * 8 // 10, y * 8 // 10))  # noqa: E731
@@ -642,6 +660,7 @@ def back(look: Look, outlined: bool = True) -> Image.Image:
                ramp(look.neck_colour) if look.neck_colour else big(body))
     if look.scarf:
         f.part(poly((28, 52), (68, 52), (64, 60), (32, 60)), stripes(look.scarf[0], look.scarf[1], 4, 2))
+    x(f, look, "body", "back")
     if look.face_hair in ("beard", "bigbeard"):
         f.part(ellipse(28, 36, 70, 62 if look.face_hair == "bigbeard" else 58), _face_hair_ramp(look))
     if look.hair != "long":
@@ -666,11 +685,14 @@ def back(look: Look, outlined: bool = True) -> Image.Image:
     elif h == "headphones":
         f.part(capsule((24, 28), (49, 6), 4) | capsule((74, 28), (49, 6), 4), c)
         f.part(ellipse(19, 24, 30, 40) | ellipse(68, 24, 79, 40), c)
+    x(f, look, "head", "back")
+    x(f, look, "front", "back")
     im = f.render()
     d = ImageDraw.Draw(im)
     if look.hair == "bald":
         d.ellipse([35, 13, 46, 19], fill=tuple(min(255, v + 18) for v in look.skin[0]))
         d.arc([40, 44, 58, 54], 20, 160, fill=look.skin[2])
+    x(im, look, "paint", "back")
     return sprites.outline(im) if outlined else im
 
 

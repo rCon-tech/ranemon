@@ -1,5 +1,5 @@
-"""The evolved forms, drawn: each drawn Ranemon wearing its evolution's costume and type glow, the
-same pieces `scripts/sprites.py` lays over the photos. Not in the game yet: they go to art/drawn/
+"""The evolved forms, drawn: each drawn Ranemon with its evolution's costume drawn into the body
+(`costumes.py`) and its type glow. Not in the game yet: they go to art/drawn/
 beside the base forms.
 
     python3 scripts/drawn/evolved.py           # every evolved form
@@ -14,25 +14,28 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from dataclasses import replace
+
 import kit
 import roster
+from costumes import COSTUMES
 from kit import SIZE, sprites
 
 OUT = roster.OUT
-# Where the costume goes: the head's (x centre, y top, half width) in the drawn front and back.
-HEAD_FRONT, HEAD_BACK = (48, 4, 22), (49, 8, 23)
-# Costumes that sit higher, so the head doesn't hide them.
-HIGHER = {"vinnisaur": -6}
 
 
-def dress(evo: str, figure: Image.Image, head, kind: str) -> Image.Image:
+def glow(figure: Image.Image, kind: str) -> Image.Image:
+    out = sprites.aura(figure, sprites.TYPE_COLOUR[kind])
+    out.alpha_composite(figure)
+    return out
+
+
+def decks(evo: str, figure: Image.Image, head, kind: str) -> Image.Image:
+    """CrampsB2BThilomon's decks and notes, as the photo version has them."""
     behind = Image.new("RGBA", (SIZE, SIZE))
     front = Image.new("RGBA", (SIZE, SIZE))
     sprites.costume(evo, ImageDraw.Draw(front), ImageDraw.Draw(behind), head, 82)
-    out = sprites.outline(Image.alpha_composite(Image.alpha_composite(behind, figure), front))
-    glow = sprites.aura(out, sprites.TYPE_COLOUR[kind])
-    glow.alpha_composite(out)
-    return glow
+    return glow(sprites.outline(Image.alpha_composite(Image.alpha_composite(behind, figure), front)), kind)
 
 
 def duo(left: Image.Image, right: Image.Image) -> Image.Image:
@@ -49,16 +52,15 @@ def duo(left: Image.Image, right: Image.Image) -> Image.Image:
 def draw(evo: str) -> tuple[Image.Image, Image.Image]:
     base, kind = sprites.EVOLUTIONS[evo]
     look = roster.LOOKS[base]
-    f, b = kit.front(look, outlined=False), kit.back(look, outlined=False)
     partner = sprites.DUOS.get(evo)
     if partner:
         other = roster.LOOKS[partner]
         f = duo(kit.front(look), kit.front(other))
         b = duo(kit.back(other), kit.back(look))
-        return dress(evo, f, (48, 34, 14), kind), dress(evo, b, (48, 38, 14), kind)
-    up = HIGHER.get(evo, 0)
-    fh, bh = (HEAD_FRONT[0], HEAD_FRONT[1] + up, HEAD_FRONT[2]), (HEAD_BACK[0], HEAD_BACK[1] + up, HEAD_BACK[2])
-    return dress(evo, f, fh, kind), dress(evo, b, bh, kind)
+        return decks(evo, f, (48, 34, 14), kind), decks(evo, b, (48, 38, 14), kind)
+    changes, extras = COSTUMES[evo]
+    dressed = replace(look, extras=extras, **changes)
+    return glow(kit.front(dressed), kind), glow(kit.back(dressed), kind)
 
 
 def sheet(evos):

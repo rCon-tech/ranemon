@@ -11,7 +11,7 @@ For each of the 20 lads, Petchemon, Tobymon and Cholokill (Poseidon is already p
 - `shiny/<id>.png` and `shiny/<id>-back.png`, in the usual gold (`gild` in `scripts/sprites.py`);
 - `mini/<id>.png`, the follower for story mode.
 
-The evolved forms are there too, under their own names (`carlizard.png`, `carlizard-back.png` and so on): the drawn base form wearing the same costume pieces and type glow `scripts/sprites.py` gives the photo ones, and CrampsB2BThilomon as the two drawn lads back to back behind the decks.
+The evolved forms are there too, under their own names (`carlizard.png`, `carlizard-back.png` and so on): the drawn base form with its evolution's pieces drawn into the body (`scripts/drawn/costumes.py`: Carlizard's wings grow from his back, Lorchu's tail from behind, Hitmonollie wears his gloves) and its type glow, and CrampsB2BThilomon as the two drawn lads back to back behind the decks.
 
 `overview.png` has every base form's front and back in a grid, `evolved.png` puts each base form beside its evolution, and `sheet.png` puts each photo beside its drawings.
 
