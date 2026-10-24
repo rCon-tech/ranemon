@@ -18,6 +18,17 @@ export function Sprite({
 }) {
   if (solid && creature.solid && creature.sprite)
     return <SolidSprite sprite={creature.sprite} name={creature.name} back={back} />;
+  if (back && creature.backSprite) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={asset(creature.backSprite)}
+        alt={creature.name}
+        draggable={false}
+        className="h-full w-full object-contain [image-rendering:pixelated]"
+      />
+    );
+  }
   if (creature.sprite) {
     return (
       // Sprites are tiny pixel art, so next/image's resizing would only blur them.
