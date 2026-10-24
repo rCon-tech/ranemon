@@ -6,9 +6,9 @@ import { TYPES } from '@/lib/battle/types';
 import { STARTERS } from '../fixtures/placeholders';
 
 describe('move list', () => {
-  it('has 36 moves with unique ids', () => {
-    expect(MOVES).toHaveLength(36);
-    expect(new Set(MOVES.map((m) => m.id)).size).toBe(36);
+  it('has 54 moves with unique ids', () => {
+    expect(MOVES).toHaveLength(54);
+    expect(new Set(MOVES.map((m) => m.id)).size).toBe(54);
   });
 
   it.each(TYPES)('%s has 3 damaging, 1 priority or utility, 2 status or stat moves', (type) => {

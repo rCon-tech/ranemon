@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { EVOLUTIONS } from '@/lib/battle/evolutions';
+import { EVOLUTIONS, formById } from '@/lib/battle/evolutions';
+import { LONDON_EVOLUTIONS, LONDON_LINES } from '@/lib/battle/london';
 import { moveById, MOVES } from '@/lib/battle/moves';
 import { ROSTER } from '@/lib/battle/roster';
 import { SPORT_MOVES } from '@/lib/battle/sports';
@@ -19,8 +20,8 @@ import {
 } from '@/lib/story/party';
 
 describe('sport moves', () => {
-  it('adds 36 new moves, 6 per sport, every type covered, no clashes', () => {
-    expect(SPORT_MOVES).toHaveLength(36);
+  it('adds 54 new moves, 6 per sport, every type covered, no clashes', () => {
+    expect(SPORT_MOVES).toHaveLength(54);
     const ids = new Set([...MOVES, ...SPORT_MOVES].map((m) => m.id));
     expect(ids.size).toBe(MOVES.length + SPORT_MOVES.length);
     for (const t of TYPES) {
@@ -39,9 +40,10 @@ describe('sport moves', () => {
   });
 
   it('gives every line 6 of them, each its own type’s strong attack, and uses every one', () => {
-    expect(Object.keys(LEARNSETS).sort()).toEqual(ROSTER.map((c) => c.id).sort());
+    const lines = [...ROSTER, ...LONDON_LINES.map(formById)];
+    expect(Object.keys(LEARNSETS).sort()).toEqual(lines.map((c) => c.id).sort());
     const used = new Set<string>();
-    for (const c of ROSTER) {
+    for (const c of lines) {
       const set = LEARNSETS[c.id];
       expect(set).toHaveLength(SPORT_LEVELS.length);
       expect(new Set(set).size).toBe(set.length);
@@ -58,7 +60,7 @@ describe('sport moves', () => {
   });
 
   it('teaches evolved forms their line’s moves', () => {
-    for (const e of EVOLUTIONS) {
+    for (const e of [...EVOLUTIONS, ...LONDON_EVOLUTIONS]) {
       expect(movesAt(speciesById(e.id), 50)).toEqual(movesAt(speciesById(e.from), 50));
     }
   });

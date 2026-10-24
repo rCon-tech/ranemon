@@ -10,6 +10,7 @@ import { PALACE_TRAINERS } from '@/content/story/palace';
 import { PREMIER_TRAINERS } from '@/content/story/premier';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
+import { LONDON } from '@/lib/battle/london';
 import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
@@ -37,13 +38,14 @@ describe('the developer save', () => {
   it('has every Ranemon and evolution, caught and in the party or Group Chat', () => {
     const all = [...g.party, ...g.box];
     const usual = all.filter((m) => !m.variant).map((m) => m.species);
-    expect(usual.sort()).toEqual([...DEX.map((c) => c.id), ...recruits()].sort());
+    const dex = [...DEX, ...LONDON].map((c) => c.id);
+    expect(usual.sort()).toEqual([...dex, ...recruits()].sort());
     // Petchemon is never caught, only given by B&S, so he comes in as theirs.
     expect(recruits()).toContain('petchemon');
     expect(usual).toContain('petchemon');
     expect(g.party).toHaveLength(6);
-    expect(new Set(g.caught)).toEqual(new Set(DEX.map((c) => c.id)));
-    expect(new Set(g.seen)).toEqual(new Set(DEX.map((c) => c.id)));
+    expect(new Set(g.caught)).toEqual(new Set(dex));
+    expect(new Set(g.seen)).toEqual(new Set(dex));
     expect(new Set(all.map((m) => m.uid)).size).toBe(all.length);
   });
 

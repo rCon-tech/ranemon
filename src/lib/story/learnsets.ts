@@ -59,6 +59,20 @@ export const LEARNSETS: Record<string, string[]> = {
     'one-more-game',
     'hole-in-one',
   ],
+  // London's lines (docs/london-ranedex.md), with polo, Sunday League and synchronised swimming.
+  oystermon: ['on-for-five', 'two-footed', 'mud-bath', 'deep-end', 'hoof-it', 'slipstream'],
+  speedmon: ['fore', 'ride-off', 'nose-clip', 'drs', 'top-bins', 'scrum-down'],
+  pedalmon: ['fend-off', 'drs', 'pit-stop', 'slipstream', 'lights-out', 'bicycle-kick'],
+  skatemon: ['nutmeg', 'eggbeater', 'speedrun', 'garryowen', 'top-bins', 'rage-quit'],
+  fleamon: ['near-side', 'orange-slices', 'sequins', 'two-footed', 'hoof-it', 'boost-lift'],
+  oatmon: ['deep-end', 'royal-box', 'treading-in', 'perfect-ten', 'chukka', 'slipstream'],
+  seedmon: ['undercut', 'lag-switch', 'team-orders', 'putt-for-dough', 'drop-goal', 'por-tres'],
+  decksmon: ['fore', 'bandeja', 'globo', 'perfect-ten', 'lights-out', 'slipstream'],
+  jabmon: ['fend-off', 'combo-breaker', 'mud-bath', 'scrum-down', 'hoof-it', 'drive-for-show'],
+  bagelmon: ['pimms', 'the-dive', 'bandeja', 'perfect-ten', 'one-more-game', 'hole-in-one'],
+  bunchmon: ['near-side', 'orange-slices', 'pimms', 'the-dive', 'hoof-it', 'one-more-game'],
+  wickmon: ['nutmeg', 'ref-you-blind', 'speedrun', 'garryowen', 'vibora', 'rage-quit'],
+  aerodactivist: ['undercut', 'off-the-glass', 'golf-clap', 'vibora', 'drop-goal', 'rage-quit'],
 };
 
 export const SPORT_LEVELS = [8, 16, 25, 33, 42, 50];

@@ -17,6 +17,12 @@ const LOOK: Record<RaneType | 'none', { shape: string; colours: string[]; patter
   charm: { shape: 'heart', colours: ['#f59ac2', '#ff5d8f'], pattern: 'rise' },
   // Stars and confetti flying out.
   hype: { shape: 'star5', colours: ['#f5cf3a', '#ff8c42'], pattern: 'burst' },
+  // Pound coins raining down.
+  posh: { shape: 'coin', colours: ['#e8c44a', '#2b4a9b'], pattern: 'fall' },
+  // Bricks thrown in hard.
+  graft: { shape: 'brick', colours: ['#c8642a', '#ffb347'], pattern: 'impact' },
+  // Paint splats flung everywhere.
+  arty: { shape: 'splat', colours: ['#2fa37a', '#f07aae', '#7fa6e6'], pattern: 'burst' },
   none: { shape: 'star5', colours: ['#ffffff', '#c8d0e0'], pattern: 'burst' },
 };
 
@@ -28,6 +34,10 @@ const SHAPES: Record<string, string> = {
     'M9 0h2v4l2-2 1 1-3 3v3h3l3-3 1 1-2 2h4v2h-4l2 2-1 1-3-3h-3v3l3 3-1 1-2-2v4H9v-4l-2 2-1-1 3-3v-3H6l-3 3-1-1 2-2H0V9h4L2 7l1-1 3 3h3V6L6 3l1-1 2 2z',
   heart: 'M3 2h5v2h4V2h5v2h2v6h-2v2h-2v2h-2v2h-2v2H9v-2H7v-2H5v-2H3v-2H1V4h2z',
   star5: 'M10 0l3 7h7l-6 4 2 8-6-5-6 5 2-8-6-4h7z',
+  coin: 'M7 1h6v2h3v3h2v8h-2v3h-3v2H7v-2H4v-3H2V6h2V3h3z M9 5v1H7v2h2v2H7v2h2v3h2v-3h2v-2h-2V8h2V6h-2V5z',
+  brick: 'M1 5h18v10H1z M2 9h7V6H2z M11 9h7V6h-7z M5 14h9v-4H5z',
+  splat:
+    'M8 0h4v4l3-3 2 2-3 3h6v4h-4l3 3-2 2-3-3v4h-2v4H8v-4H6l-3 3-2-2 3-3H0V8h4L1 5l2-2 3 3V2h2z',
 };
 
 /** Where each of the 8 pieces starts, as offsets from the middle of the sprite (in %). */

@@ -15,6 +15,15 @@ const TYPE_NOTE: Record<RaneType, string> = {
   chill: 'The laid-back ones. Shrug off Charm and Brains.',
   charm: 'The smooth talkers. Win over Hype and Brawn.',
   hype: 'The loud ones. Drown out Brains and Chaos.',
+  posh: 'The moneyed ones, from London. Look down on Charm and Brawn.',
+  graft: 'The workers, from London. Out-shift Chill and Brains.',
+  arty: 'The tasteful ones, from London. Sneer at Hype and Chaos.',
+};
+
+/** Type names as a list in words: "Brains, Chill and Arty". */
+const listed = (types: RaneType[]) => {
+  const names = types.map((t) => TYPE_LABEL[t]);
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
 };
 
 const strongAgainst = (t: RaneType) => TYPES.filter((d) => typeMultiplier(t, d) === 2);
@@ -62,8 +71,9 @@ export default function Guide() {
 
       <Section title="Types">
         <p>
-          There are six types, and they’re personalities rather than elements. Every type hits two
-          types hard, and two types shrug it off. Nothing is the obvious pick.
+          There are nine types, and they’re personalities rather than elements. Every type hits
+          three types hard, and three types shrug it off. Nothing is the obvious pick. Posh, Graft
+          and Arty are London’s.
         </p>
         <ul className="flex flex-col gap-2">
           {TYPES.map((t) => (
@@ -72,19 +82,8 @@ export default function Guide() {
                 <TypeBadge type={t} /> {TYPE_NOTE[t]}
               </span>
               <span className="opacity-80">
-                Strong against{' '}
-                {strongAgainst(t)
-                  .map((d) => TYPE_LABEL[d])
-                  .join(' and ')}
-                . Weak against{' '}
-                {weakAgainst(t)
-                  .map((d) => TYPE_LABEL[d])
-                  .join(' and ')}
-                . Watch out for{' '}
-                {fearOf(t)
-                  .map((d) => TYPE_LABEL[d])
-                  .join(' and ')}
-                .
+                Strong against {listed(strongAgainst(t))}. Weak against {listed(weakAgainst(t))}.
+                Watch out for {listed(fearOf(t))}.
               </span>
             </li>
           ))}

@@ -8,7 +8,8 @@ import type {
   Phase,
   Side,
 } from '../battle/engine';
-import { EVOLVED, evolutionOf, ITEM_EVOLVED, lineOf } from '../battle/evolutions';
+import { EVOLVED, ITEM_EVOLVED, reachedAt } from '../battle/evolutions';
+import { LONDON } from '../battle/london';
 import { LEGEND } from '../battle/legend';
 import { allMoves } from '../battle/moves';
 import { PETCHEMON } from '../battle/petchemon';
@@ -48,6 +49,7 @@ const ALL_SPECIES: Creature[] = [
   PETCHEMON,
   LEGEND,
   POSEIDON,
+  ...LONDON,
 ];
 
 /**
@@ -119,8 +121,7 @@ export function validateTeam(party: unknown): { team: Member[] } | { error: stri
       return { error: `${name} has no level.` };
     if (level < MIN_LEVEL || level > MAX_LEVEL)
       return { error: `${name} is Lv${level}, outside ${MIN_LEVEL} to ${MAX_LEVEL}.` };
-    const evo = evolutionOf(lineOf(species.id));
-    if (evo?.id === species.id && level < evo.level)
+    if (level < reachedAt(species.id))
       return { error: `${name} can’t have evolved by Lv${level}.` };
     const uid = m.uid;
     if (typeof uid !== 'number' || uids.has(uid)) return { error: `${name} is on the team twice.` };

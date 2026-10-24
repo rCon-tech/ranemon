@@ -18,6 +18,7 @@ import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
 import { palaceRooms } from './palace';
 import { PL_MAPS } from './premier';
+import { SHOREDITCH } from './shoreditch';
 import { GALWAY, HALL_ROOMS } from './galway';
 import * as LEGENDS from './legends';
 
@@ -1479,6 +1480,7 @@ export const MAPS: GameMap[] = [
   STANSTED,
   LONDON,
   ...PL_MAPS,
+  SHOREDITCH,
   GALWAY,
 ];
 

@@ -1,5 +1,19 @@
-/** Ranemon types are personalities, not elements, so they fit real people. */
-export const TYPES = ['brains', 'brawn', 'chaos', 'chill', 'charm', 'hype'] as const;
+/**
+ * Ranemon types are personalities, not elements, so they fit real people. The first six are the
+ * lads'; Posh, Graft and Arty came with the London Ranedex (docs/london-ranedex.md): money, work
+ * and taste, which London has plenty of and the six didn't cover.
+ */
+export const TYPES = [
+  'brains',
+  'brawn',
+  'chaos',
+  'chill',
+  'charm',
+  'hype',
+  'posh',
+  'graft',
+  'arty',
+] as const;
 export type RaneType = (typeof TYPES)[number];
 
 export const TYPE_LABEL: Record<RaneType, string> = {
@@ -9,6 +23,9 @@ export const TYPE_LABEL: Record<RaneType, string> = {
   chill: 'Chill',
   charm: 'Charm',
   hype: 'Hype',
+  posh: 'Posh',
+  graft: 'Graft',
+  arty: 'Arty',
 };
 
 /** One colour per type, used on badges, move buttons and the type chart. */
@@ -19,29 +36,43 @@ export const TYPE_COLOR: Record<RaneType, string> = {
   chill: '#4fb3e8',
   charm: '#f07aae',
   hype: '#f2c418',
+  posh: '#2b4a9b',
+  graft: '#b4702a',
+  arty: '#2fa37a',
 };
 
 /**
- * Attacker type -> defender types it hits for 2x. Every type is strong against exactly 2
- * and resisted by exactly 2 (the 0.5x entries in RESISTED_BY), so no type is the obvious pick.
+ * Attacker type -> defender types it hits for 2x. Every type is strong against exactly 3 and
+ * resisted by exactly 3 (the 0.5x entries in WEAK), and is weak to 3 and resists 3, so no
+ * type is the obvious pick. The six old types still treat each other as they always have: each
+ * picked up one strength, one weakness and one resistance each way against the new three.
  */
 const STRONG: Record<RaneType, RaneType[]> = {
-  brains: ['brawn', 'chill'],
-  brawn: ['chaos', 'charm'],
-  chaos: ['chill', 'hype'],
-  chill: ['charm', 'brains'],
-  charm: ['hype', 'brawn'],
-  hype: ['brains', 'chaos'],
+  brains: ['brawn', 'chill', 'arty'],
+  brawn: ['chaos', 'charm', 'graft'],
+  chaos: ['chill', 'hype', 'posh'],
+  chill: ['charm', 'brains', 'arty'],
+  charm: ['hype', 'brawn', 'graft'],
+  hype: ['brains', 'chaos', 'posh'],
+  // Seen every charmer before, hires security, owns the business.
+  posh: ['charm', 'brawn', 'graft'],
+  // Out-works the chill, fixes what the theorist can't, and the artist needs a day job.
+  graft: ['chill', 'brains', 'arty'],
+  // Sneers at the mainstream, makes chaos an installation, and satire is how you beat money.
+  arty: ['hype', 'chaos', 'posh'],
 };
 
 /** Attacker type -> defender types that take 0.5x from it. */
 const WEAK: Record<RaneType, RaneType[]> = {
-  brains: ['brains', 'hype'],
-  brawn: ['brains', 'brawn'],
-  chaos: ['brawn', 'chaos'],
-  chill: ['chaos', 'chill'],
-  charm: ['chill', 'charm'],
-  hype: ['charm', 'hype'],
+  brains: ['brains', 'hype', 'posh'],
+  brawn: ['brains', 'brawn', 'arty'],
+  chaos: ['brawn', 'chaos', 'graft'],
+  chill: ['chaos', 'chill', 'posh'],
+  charm: ['chill', 'charm', 'arty'],
+  hype: ['charm', 'hype', 'graft'],
+  posh: ['posh', 'brains', 'chill'],
+  graft: ['graft', 'hype', 'chaos'],
+  arty: ['arty', 'brawn', 'charm'],
 };
 
 /** Multiplier for one attacking type into one defending type: 2, 1 or 0.5. */

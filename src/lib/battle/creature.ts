@@ -55,13 +55,27 @@ export function levelStats(base: BaseStats, level: number = LEVEL): BaseStats {
 }
 
 export const STAT_KEYS: (keyof BaseStats)[] = ['hp', 'attack', 'defense', 'spirit', 'speed'];
+
+/** Stats in the same shape, adding up to `budget`; the largest stat takes the rounding. */
+export function scaleStats(base: BaseStats, budget: number): BaseStats {
+  const total = STAT_KEYS.reduce((sum, k) => sum + base[k], 0);
+  const out = { ...base };
+  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * budget) / total);
+  const top = STAT_KEYS.reduce((a, b) => (base[b] > base[a] ? b : a));
+  out[top] += budget - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
+  return out;
+}
 export const BATTLE_STATS: Stat[] = ['attack', 'defense', 'spirit', 'speed'];
 
-/** Every rule a creature card must meet. Returns the broken ones; empty means valid. */
-export function validateCreature(c: Creature): string[] {
+/**
+ * Every rule a creature card must meet. Returns the broken ones; empty means valid. The lads'
+ * base forms all have STAT_BUDGET; a London Ranemon passes its own stage's budget
+ * (docs/london-ranedex.md: 320 for the first of three, 440 for a single stage, and so on).
+ */
+export function validateCreature(c: Creature, budget = STAT_BUDGET): string[] {
   const problems: string[] = [];
   const total = STAT_KEYS.reduce((sum, k) => sum + c.base[k], 0);
-  if (total !== STAT_BUDGET) problems.push(`Base stats add up to ${total}, not ${STAT_BUDGET}`);
+  if (total !== budget) problems.push(`Base stats add up to ${total}, not ${budget}`);
   for (const k of STAT_KEYS) {
     if (c.base[k] < BASE_MIN || c.base[k] > BASE_MAX) {
       problems.push(`${k} must be ${BASE_MIN} to ${BASE_MAX}`);

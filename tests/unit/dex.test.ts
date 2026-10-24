@@ -73,7 +73,10 @@ describe('Ranedex pages', () => {
   });
 
   it('says what a move and a Ranemon are strong and weak against', () => {
-    expect(strongAgainst(moveById(formById('carlmon').moves[0])).length).toBeLessThanOrEqual(2);
-    expect(matchups(['brains'])).toEqual({ weak: ['chill', 'hype'], resists: ['brains', 'brawn'] });
+    expect(strongAgainst(moveById(formById('carlmon').moves[0])).length).toBeLessThanOrEqual(3);
+    expect(matchups(['brains'])).toEqual({
+      weak: ['chill', 'hype', 'graft'],
+      resists: ['brains', 'brawn', 'posh'],
+    });
   });
 });

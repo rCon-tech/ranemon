@@ -25,7 +25,12 @@ export type ItemId =
   | 'mango-tango'
   | 'flannel-shirt'
   | 'vegan-stone'
-  | 'friendship-bracelet';
+  | 'friendship-bracelet'
+  | 'disposable-vape'
+  | 'espresso-tamper'
+  | 'afterparty-wristband'
+  | 'spareroom-listing'
+  | 'hardware-wallet';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
@@ -208,6 +213,51 @@ export const ITEMS: Item[] = [
     price: null,
     from: 99,
     use: { kind: 'hold', stat: 'defense', factor: 1.2 },
+  },
+  // Wickmon's branches (docs/london-ranedex.md): each is found once, in Shoreditch & Hackney.
+  {
+    id: 'disposable-vape',
+    name: 'Disposable Vape',
+    about:
+      'A mango ice, found in a bin by the canal in Hackney Wick. Give it to a Wickmon and see what happens.',
+    price: null,
+    from: 99,
+    use: { kind: 'evolve' },
+  },
+  {
+    id: 'espresso-tamper',
+    name: 'Espresso Tamper',
+    about: 'A barista’s tamper, heavy and very clean. Give it to a Wickmon and see what happens.',
+    price: null,
+    from: 99,
+    use: { kind: 'evolve' },
+  },
+  {
+    id: 'afterparty-wristband',
+    name: 'Afterparty Wristband',
+    about:
+      'A fabric wristband for an afterparty in Dalston. Nobody remembers it ending. Give it to a Wickmon and see what happens.',
+    price: null,
+    from: 99,
+    use: { kind: 'evolve' },
+  },
+  {
+    id: 'spareroom-listing',
+    name: 'SpareRoom Listing',
+    about:
+      'A box room in Hackney Wick, £1,100 a month, bills not included. Give it to a Wickmon and see what happens.',
+    price: null,
+    from: 99,
+    use: { kind: 'evolve' },
+  },
+  {
+    id: 'hardware-wallet',
+    name: 'Hardware Wallet',
+    about:
+      'A crypto wallet on a lanyard, from a tech founder’s desk. Give it to a Wickmon and see what happens.',
+    price: null,
+    from: 99,
+    use: { kind: 'evolve' },
   },
 ];
 
