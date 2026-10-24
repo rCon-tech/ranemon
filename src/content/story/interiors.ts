@@ -40,6 +40,22 @@ const HOUSE = [
   'WWWWEWWWWW',
 ];
 
+/**
+ * W.B Yates: the pub, but with its fourth place by Próvaí's table, where a visitor stands in
+ * view of the scene (Thatcher, in London) rather than down by the door under the text box.
+ */
+const YATES = [
+  'WWWWWWWWWW',
+  'WOWVVVVJVW',
+  'WFF1FFNFFW',
+  'WCCCCCCFFW',
+  'WFFFFF4F3W',
+  'WFUUF2FUUW',
+  'WFUUFFFUUW',
+  'WFFF@FFFNW',
+  'WWWWEWWWWW',
+];
+
 const LAYOUTS: Record<Kind, string[]> = {
   P: [
     'WWWWWWWWWW',
@@ -133,12 +149,18 @@ function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'insi
   const yates = outside.yates;
   const npcs: Npc[] = [
     { look: 'neeson', face: 'down', talk: [{ do: 'pub' }] },
-    ...(yates ? [yates.owner, ...(yates.regular ? [yates.regular] : [])] : []),
+    ...(yates
+      ? [
+          yates.owner,
+          ...(yates.regular ? [yates.regular] : []),
+          ...(yates.visitor ? [yates.visitor] : []),
+        ]
+      : []),
   ];
   return {
     ...base,
     name: `W.B Yates, ${town}`,
-    rows: placesFor(LAYOUTS.P, npcs.length),
+    rows: placesFor(YATES, npcs.length),
     npcs,
     things: {
       V: 'Every whiskey in Ireland, a few from Scotland, and none at all from England.',
