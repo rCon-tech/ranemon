@@ -68,6 +68,7 @@ import {
   PLAYER_KEY,
   playerId,
   recruit,
+  reunite,
   save,
   see,
   setFlag,
@@ -439,6 +440,9 @@ export function Story() {
             break;
           case 'border':
             g = crossBorder(g, s.pub);
+            break;
+          case 'reunite':
+            g = reunite(g);
             break;
           case 'pub': {
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };

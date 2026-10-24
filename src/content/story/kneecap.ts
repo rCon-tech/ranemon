@@ -22,6 +22,13 @@ export const FIXTURES = 'london:fixtures';
 export const RAILCARD = 'london:railcard';
 /** Agüero is beaten: you're Premier League Champion, and the police line on the Mall steps aside. */
 export const CHAMPION = 'london:champion';
+/** King Charles is beaten and the lads are free. */
+export const KING_BEATEN = 'london:king';
+/**
+ * Charles has signed the Good Saturday Agreement: Ranemon are in the Common Travel Area, your
+ * Irish party is with you again, and Buckingham Palace is an Irish party for good.
+ */
+export const AGREEMENT = 'london:agreement';
 
 const ASK: Step[] = [
   {

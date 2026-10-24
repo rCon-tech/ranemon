@@ -6,13 +6,16 @@ import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
 import {
+  AGREEMENT,
   CHAMPION,
   FIXTURES,
+  KING_BEATEN,
   LANDED,
   PROVAI_ASKED,
   PROVAI_MET,
   UK_STARTER,
 } from '@/content/story/kneecap';
+import { PALACE_TRAINERS } from '@/content/story/palace';
 import { PL_FLAGS, PL_MAPS, PREMIER_TRAINERS } from '@/content/story/premier';
 import {
   CHAMPION_OF_IRELAND,
@@ -75,7 +78,10 @@ export const LONDON_TO_PLAY = [
   UK_STARTER,
   FIXTURES,
   CHAMPION,
+  KING_BEATEN,
+  AGREEMENT,
   ...PL_FLAGS,
+  ...PALACE_TRAINERS.map((t) => beatFlag(t.id)),
   ...PREMIER_TRAINERS.map((t) => beatFlag(t.id)),
   ...['london', 'airport', ...PL_MAPS.map((m) => m.id)].map((m) => `seen:${m}`),
 ];

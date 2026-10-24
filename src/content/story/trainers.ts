@@ -9,6 +9,7 @@ import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
 import { UK_TRAINERS } from './london';
+import { PALACE_TRAINERS } from './palace';
 import { PREMIER_TRAINERS } from './premier';
 import { GALWAY_TRAINERS } from './galway';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
@@ -596,6 +597,7 @@ const T: Trainer[] = [
   ...TECHNO_TRAINERS,
   ...UK_TRAINERS,
   ...PREMIER_TRAINERS,
+  ...PALACE_TRAINERS,
   ...GALWAY_TRAINERS,
 ];
 
@@ -639,6 +641,8 @@ const RIVAL_STAGES: Record<string, { levels: number[] }> = {
   'rival-5': { levels: [46, 44, 44, 45, 45, 44] },
   // In London, with the UK Ranemon she picked after yours.
   'rival-uk-1': { levels: [5] },
+  // On the palace steps, the last time.
+  'rival-uk-2': { levels: [48, 46, 46, 47, 47] },
 };
 const RIVAL_BENCH = [
   'killemon',

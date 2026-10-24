@@ -5,7 +5,15 @@ import { BEAT_PEARS, PEAR_HEARD } from './greystones';
 import { LEGEND_FLAG } from './maps';
 import { RENT_ACCUSED, RENT_CLUES, RENT_DONE, RENT_READY, RENT_START } from './rent';
 import { HEAD_OF_SECURITY } from './techno';
-import { CHAMPION, FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from './kneecap';
+import {
+  AGREEMENT,
+  CHAMPION,
+  FIXTURES,
+  LANDED,
+  PROVAI_ASKED,
+  PROVAI_MET,
+  UK_STARTER,
+} from './kneecap';
 import { FIXTURE_LIST, PL_FLAGS } from './premier';
 import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
@@ -234,8 +242,7 @@ export const MISSIONS: Mission[] = [
     about:
       'Mo Chara and Móglaí Bap of Kneecap went to London on a mission and never came back. DJ Próvaí needs you.',
     start: PROVAI_MET,
-    // For now the story runs as far as the Premier League trophy; the palace is next.
-    done: CHAMPION,
+    done: AGREEMENT,
     steps: [
       {
         until: PROVAI_ASKED,
@@ -265,6 +272,11 @@ export const MISSIONS: Mission[] = [
         where: f.ground,
         count: PL_FLAGS,
       })),
+      {
+        until: AGREEMENT,
+        todo: 'Get through the Royal Family, room by room, and beat King Charles. Bridie in the East Wing will make you a cup of tea.',
+        where: 'Buckingham Palace, London',
+      },
     ],
   },
   {

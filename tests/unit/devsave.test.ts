@@ -6,6 +6,7 @@ import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
+import { PALACE_TRAINERS } from '@/content/story/palace';
 import { PREMIER_TRAINERS } from '@/content/story/premier';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
@@ -92,6 +93,7 @@ describe('the developer save', () => {
       ...ELITE,
       COLLINS,
       ...PREMIER_TRAINERS.map((t) => t.id),
+      ...PALACE_TRAINERS.map((t) => t.id),
     ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);

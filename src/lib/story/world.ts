@@ -134,6 +134,18 @@ export type Look =
   | 'mick'
   | 'grainne'
   | 'fionnuala'
+  | 'thatcher'
+  | 'royalguard'
+  | 'edward'
+  | 'anne'
+  | 'william'
+  | 'andrew'
+  | 'queen'
+  | 'charles'
+  | 'camilla'
+  | 'mochara'
+  | 'moglai'
+  | 'bridie'
   | 'lipsett'
   | 'blindboy'
   | 'johnnyb'
@@ -180,6 +192,8 @@ export type Step =
    */
   | { do: 'border'; pub: { map: string; x: number; y: number } }
   | { do: 'pub' }
+  /** Your Ranemon from the other side of the sea join you again, for good (the Good Saturday Agreement). */
+  | { do: 'reunite' }
   /** Vapes, or someone's own stall with its own prices. */
   | { do: 'shop'; stall?: Stall }
   /** The departures board at Connolly Station: pick a train, and the ride runs next. */

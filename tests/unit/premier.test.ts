@@ -90,7 +90,7 @@ describe('the Premier League', () => {
     expect(said.join(' ')).toContain('PREMIER LEAGUE CHAMPION');
     expect(LONDON.landmarkLocks?.[2]?.flag).toBe(CHAMPION);
     const mission = MISSIONS.find((m) => m.id === 'kneecap')!;
-    expect(mission.done).toBe(CHAMPION);
+    expect(mission.steps.map((st) => st.until)).toContain(CHAMPION);
   });
 });
 

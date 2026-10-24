@@ -16,6 +16,7 @@ import { CRAMPS_ARRIVE } from './cramps';
 import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
+import { palaceRooms } from './palace';
 import { PL_MAPS } from './premier';
 import { GALWAY, HALL_ROOMS } from './galway';
 
@@ -1241,7 +1242,7 @@ export const MAPS: GameMap[] = [
 ];
 
 /** The rooms behind every door. */
-export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS];
+export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS, ...palaceRooms(LONDON)];
 
 const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {

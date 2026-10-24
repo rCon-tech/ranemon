@@ -1,5 +1,6 @@
 import { interiorId } from './interiors';
-import { CHAMPION, FIXTURES, LANDED, UK_STARTER } from './kneecap';
+import { AGREEMENT, CHAMPION, FIXTURES, LANDED, UK_STARTER } from './kneecap';
+import { FORECOURT } from './palace';
 import { KINGS_CROSS_ROOM } from './premier';
 import { homeward } from './station';
 import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
@@ -82,6 +83,14 @@ const LANDING_AGAIN: Step[] = [
   { do: 'say', text: 'Your Ranemon from this side of the sea are waiting for you at arrivals.' },
 ];
 
+/** Once the Good Saturday Agreement is signed, your Ranemon go where you go. */
+const AGREED: Step[] = [
+  {
+    do: 'say',
+    text: 'BORDER FORCE: Ranemon? Good Saturday Agreement. Common Travel Area. In you all come. (He doesn’t look happy about it.)',
+  },
+];
+
 /** The Ryanair flight from Dublin to Stansted. */
 export const FLIGHT: Step[] = [
   {
@@ -93,24 +102,48 @@ export const FLIGHT: Step[] = [
     text: '♪ Da-da-da-DAAA! “Another on-time arrival with Ryanair!” It was forty minutes late.',
   },
   { do: 'travel', map: ARRIVALS_ID, x: 2, y: 4, face: 'up' },
-  { do: 'if', flag: LANDED, then: LANDING_AGAIN, else: FIRST_LANDING },
+  {
+    do: 'if',
+    flag: LANDED,
+    then: [{ do: 'if', flag: AGREEMENT, then: AGREED, else: LANDING_AGAIN }],
+    else: FIRST_LANDING,
+  },
 ];
 
 /** The flight home: your Ranemon in Ireland are yours again, and the UK lot wait in London. */
 const FLIGHT_HOME: Step[] = [
   {
-    do: 'say',
-    text: 'Your UK Ranemon can’t come either. They’ll wait for you on this side, minded by Próvaí’s cousin.',
+    do: 'if',
+    flag: AGREEMENT,
+    then: [
+      {
+        do: 'say',
+        text: 'Your whole party boards with you. The Good Saturday Agreement covers the lot of them.',
+      },
+    ],
+    else: [
+      {
+        do: 'say',
+        text: 'Your UK Ranemon can’t come either. They’ll wait for you on this side, minded by Próvaí’s cousin.',
+      },
+      { do: 'border', pub: AIRPORT_PUB },
+    ],
   },
-  { do: 'border', pub: AIRPORT_PUB },
   {
     do: 'say',
     text: 'An hour and a bit later, the Ryanair fanfare plays over Dublin Bay. You’re home.',
   },
   { do: 'travel', map: TERMINAL_ID, x: 6, y: 10, face: 'down' },
   {
-    do: 'say',
-    text: 'Your Ranemon are waiting at arrivals, back from Michael D’s farm in Clare. They look very well. They smell of cows.',
+    do: 'if',
+    flag: AGREEMENT,
+    then: [],
+    else: [
+      {
+        do: 'say',
+        text: 'Your Ranemon are waiting at arrivals, back from Michael D’s farm in Clare. They look very well. They smell of cows.',
+      },
+    ],
   },
 ];
 
@@ -673,7 +706,7 @@ export const LONDON: GameMap = {
       },
     ],
   ],
-  landmarkRooms: { 0: KINGS_CROSS_ROOM },
+  landmarkRooms: { 0: KINGS_CROSS_ROOM, 2: FORECOURT },
   landmarkLocks: {
     0: {
       flag: FIXTURES,

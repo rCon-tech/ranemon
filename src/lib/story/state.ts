@@ -270,6 +270,22 @@ export function crossBorder(s: StoryState, pub: StoryState['pub']): StoryState {
   return { ...s, party: back.party, box: back.box, away: { party: s.party, box: s.box }, pub };
 }
 
+/**
+ * The Good Saturday Agreement: the Ranemon waiting over the sea join you for good. They lead,
+ * so your old follower runs straight back to you; whoever doesn't fit in the party goes to the
+ * Group Chat.
+ */
+export function reunite(s: StoryState): StoryState {
+  if (!s.away) return s;
+  const all = [...s.away.party, ...s.party];
+  return {
+    ...s,
+    party: all.slice(0, PARTY_SIZE),
+    box: [...all.slice(PARTY_SIZE), ...s.away.box, ...s.box],
+    away: undefined,
+  };
+}
+
 export const toggleExpShare = (s: StoryState): StoryState => ({ ...s, expShare: !s.expShare });
 
 /** Swaps a member to the front of the party, so it leads in battle and walks behind you. */
