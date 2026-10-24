@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
+import { interiorId } from '@/content/story/interiors';
 import { mapById } from '@/content/story/maps';
 import {
   BACKUP_EVERY_MS,
@@ -148,7 +149,7 @@ describe('converting older saves', () => {
     // Just below the McGrattans door, the house by the river and Connolly Station.
     for (const [x, y, kind, i] of [
       [4, 11, 'P', 0],
-      [17, 13, 'H', 1],
+      [17, 13, 'H', 4],
       [5, 14, 'L', 2],
       [15, 3, 'L', 0],
     ] as const) {
@@ -164,6 +165,19 @@ describe('converting older saves', () => {
     expect(at(30, 20, SCHEMA)).toMatchObject({ x: 30, y: 20 });
     // And anywhere else is left alone.
     expect(migrate({ ...JSON.parse(LATE), schema: 2 })).toMatchObject({ map: 'kilkenny' });
+  });
+
+  it('keeps a save inside a room whose door moved along when new doors came before it', () => {
+    const at = (map: string) =>
+      migrate({ ...JSON.parse(LATE), schema: 4, map, x: 4, y: 6, pub: { map, x: 4, y: 6 } })!;
+    // The house by the river, where the rent goes missing, and Fore Abbey.
+    expect(at('dublin-H1')).toMatchObject({ map: 'dublin-H4', x: 4, y: 6 });
+    expect(at('dublin-H1').pub).toMatchObject({ map: 'dublin-H4' });
+    expect(at('dublin-H1').map).toBe(interiorId('dublin', 'H', 4));
+    expect(mapById(at('dublin-H1').map).npcs[0].look).toBe('ollie');
+    expect(mapById(at('westmeath-L2').map).name).toMatch(/^Fore Abbey/);
+    // Rooms before the new doors stay where they are.
+    expect(at('dublin-L2')).toMatchObject({ map: 'dublin-L2' });
   });
 
   it('reads a save from a newer build without throwing away what it does not know', () => {

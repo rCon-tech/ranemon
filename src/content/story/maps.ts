@@ -6,6 +6,14 @@ import { SIBEAL_LENDS } from './sibeal';
 import { NORM } from '@/lib/story/norm';
 import { RENT_ARRIVE, RENT_GARDA, RENT_NEIGHBOUR, RENT_ROOM } from './rent';
 import { GREYSTONES } from './greystones';
+import {
+  GPO_DOOR,
+  GPO_ROOM,
+  SUPERMACS_DOOR,
+  SUPERMACS_ROOM,
+  TEMPLE_BAR_PUB_DOOR,
+  TEMPLE_BAR_PUB_ROOM,
+} from './buildings';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
 import { HIGGINS, TRINITY_BALL } from './ball';
@@ -282,7 +290,7 @@ const HELLFIRE_ROOM = {
     'WWWWWWWWWW',
     'WwwwwwwwwW',
     'Ww::1:::wW',
-    'W::::::::W',
+    'W::::::2:W',
     'W:X:rr:X:W',
     'W:::rr:::W',
     'Ww::rr:::W',
@@ -327,6 +335,21 @@ const HELLFIRE_ROOM = {
               text: 'The figure fades into the mist. The beads are still warm. He will be waiting here.',
             },
           ],
+        },
+      ],
+    },
+    // A hillwalker sheltering from the weather, so the ruin is never empty.
+    {
+      look: 'local' as const,
+      face: 'left' as const,
+      talk: [
+        {
+          do: 'say' as const,
+          text: 'HILLWALKER: The Hellfire Club. Rich lads built it in 1725 with stones from a cairn, and the roof blew off the first winter. Served them right.',
+        },
+        {
+          do: 'say' as const,
+          text: 'HILLWALKER: They say the Devil sat in on a card game here once. I only come up for the view of the bay. And the sandwiches.',
         },
       ],
     },
@@ -983,7 +1006,7 @@ export const MAPS: GameMap[] = [
       'T....=.......,,,,1,,,..................T',
       '@=========.........=...T...............T',
       'T~~~~~~~B~~~~~~~~~~=~~~T....qqqq..^^^^^T',
-      'T~~~~~~~B~~~~~~~~~~=~~~T....qqqq..##H##T',
+      'T~~~~~~~B~~~~~~~~~~=~~~T....qLqq..##H##T',
       'T.......=..........=...................T',
       'T^^^^...=..^^^..^^^^^^.T..^^^^^.,,,,,,.T',
       'T#P##...=..#M#..###G##.T..##H##.,,,,4,.T',
@@ -1041,7 +1064,14 @@ export const MAPS: GameMap[] = [
           ],
         },
       ],
-      ...LEGENDS.WESTMEATH_LANDMARKS,
+      LEGENDS.WESTMEATH_LANDMARKS[0],
+      [
+        {
+          do: 'say',
+          text: 'ATHLONE CASTLE. Guarding the bridge over the Shannon since 1210, where Leinster meets Connacht. In the siege of 1691 its walls took a battering for ten days.',
+        },
+      ],
+      LEGENDS.WESTMEATH_LANDMARKS[1],
     ],
     gym: { trainer: 'gym-westmeath', place: 'Mullingar' },
     west: 'offaly',
@@ -1192,7 +1222,7 @@ export const MAPS: GameMap[] = [
     rows: [
       'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
       'T,,,,,,,,,T,,.v^^^^^^^v^^^^^v^^^^^v^^^vTvnnnnnnnnnnv,,,T',
-      'T,,T,,,,,,,,,.v###L###v#####a#####v#M#vTvnxxxxxxxxnv,,,T',
+      'T,,T,,,,,,,,,.v###L###v##H##a##H##v#M#vTvnxxxxxxxxnv,,,T',
       'T,,,,,1,,,,,T.SvvvavvvvvvvvSavvvvvvvavvTvnxxxxxxxxnvS,,T',
       'T,,,,,,,,T,,,.vvvvavvv6vvvvvavvvvvvvav*Tvnnnnnnnnnnv,,,T',
       'T,T,,,,,,,,,,.vvvvavvvvvvvvvavvvvvvvavvTvvvvvvvvvvvvvv,T',
@@ -1204,7 +1234,7 @@ export const MAPS: GameMap[] = [
       'Taaaaaaaaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd~~T',
       'Tvvvvvvv8vavvvvvvvavvvvv2vvvavv^^^^^^vvvvvvvvvvvvvSdd~~T',
       'Tvv^^^^vv^^^^vvvvva^^^vvvvvvavv######vvvvvvvvvvvvvvdd~~T',
-      'Tvv#P##vv#H##vvvvva#L#vvvvvvavv######vvvvvvvvvvvvvvdd~~T',
+      'Tvv#P##vv#H##vvvvva#L#vvvvvvavv##H###vvvvvvvvvvvvvvdd~~T',
       'TvvSvvvvvvvvvvvvvvavvvvvvvvvavSvvvvvvvvvvvvvvvvvvvvdd~~T',
       'Taaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa>4v',
       'Tvvvvavvvvvvvavv3vvvv^^^vvvvavvvvvvvvvvvvvvvvvvvvvvdd~~T',
@@ -1292,7 +1322,12 @@ export const MAPS: GameMap[] = [
       LEGENDS.DUBLIN_SIGNS.brazen,
       LEGENDS.DUBLIN_SIGNS.molly,
     ],
+    // The GPO and Supermac's on O'Connell Street come first in reading order, then the Temple
+    // Bar house, then The Temple Bar pub: saves inside the houses after them are moved along
+    // (schema 5 in lib/story/save.ts).
     houses: [
+      GPO_DOOR,
+      SUPERMACS_DOOR,
       [
         {
           do: 'say',
@@ -1300,6 +1335,7 @@ export const MAPS: GameMap[] = [
         },
         ...TEMPLE_BAR,
       ],
+      TEMPLE_BAR_PUB_DOOR,
       RENT_ARRIVE,
       [
         {
@@ -1315,7 +1351,7 @@ export const MAPS: GameMap[] = [
       ],
       ...LEGENDS.DUBLIN_HOUSES,
     ],
-    houseRooms: { 1: RENT_ROOM },
+    houseRooms: { 0: GPO_ROOM, 1: SUPERMACS_ROOM, 3: TEMPLE_BAR_PUB_ROOM, 4: RENT_ROOM },
     landmarks: [
       [
         { do: 'say', text: 'ST JAMES’S GATE. The smell of roasting barley.' },
@@ -1515,6 +1551,9 @@ export function mapFor(id: string, flags: readonly string[]): GameMap {
 
 /** The map you're on, or the one outside if you're in a building. */
 export const outsideOf = (map: GameMap) => (map.inside ? mapById(map.inside.map) : map);
+
+/** Only drawn in 2D: the map, or the room, or the map outside the room, is `flat`. */
+export const isFlat = (map: GameMap) => !!(map.flat || outsideOf(map).flat);
 
 export const COUNTIES = MAPS.slice(0, 9).map((m) => m.id);
 

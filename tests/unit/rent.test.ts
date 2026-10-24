@@ -37,7 +37,7 @@ function play(steps: Step[], flags: Set<string>, answer = true, out: string[] = 
 
 describe('the missing rent', () => {
   const dublin = mapById('dublin');
-  const house = mapById(interiorId('dublin', 'H', 1));
+  const house = mapById(interiorId('dublin', 'H', 4));
   const who = (map: typeof dublin, look: Look) =>
     npcsOf(map).find((n) => n.item.look === look)!.item.talk!;
   const talk = (map: typeof dublin, look: Look, flags: Set<string>, answer = true) =>
@@ -63,7 +63,7 @@ describe('the missing rent', () => {
     expect(house.name).toBe('A house, Dublin City');
     expect(house.npcs.map((n) => n.look)).toEqual(['ollie', 'alex', 'mc', 'melchior']);
     // The first house is still Temple Bar.
-    expect(mapById(interiorId('dublin', 'H', 0)).npcs[0].look).toBe('local');
+    expect(mapById(interiorId('dublin', 'H', 2)).npcs[0].look).toBe('local');
     for (const look of ['ollie', 'alex', 'mc', 'melchior'] as const)
       expect(STYLES[look]).toBeTruthy();
     expect(STYLES.mc.small).toBe(true);

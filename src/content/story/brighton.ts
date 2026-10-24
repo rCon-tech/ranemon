@@ -410,6 +410,56 @@ function arcadeRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
  * Brighton's pub is a W.B Yates, like every pub in England: run by Fionnuala from Galway, who
  * came over for a hen party in 1994 and never went home.
  */
+/**
+ * Brighton Station's concourse, behind the door by the sign: a Southern guard with the day's
+ * delays, and a commuter who has given up. 2D only, like everything new.
+ */
+const STATION_HALL: Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap> = {
+  name: 'Brighton Station',
+  flat: true,
+  rows: [
+    'WWWWWWWWWW',
+    'WOWDDDDWOW',
+    'WFFF1FFFFW',
+    'WCCCCFFFFW',
+    'WFFFFFFFFW',
+    'WUUFFF2UUW',
+    'WFFFFFFFFW',
+    'WNFF@FFFNW',
+    'WWWWEWWWWW',
+  ],
+  npcs: [
+    {
+      look: 'conductor',
+      face: 'down',
+      talk: [
+        {
+          do: 'say',
+          text: 'GUARD: The 10:14 to London Victoria is delayed. So is the 10:44. The 11:14 is cancelled, but it would have been delayed.',
+        },
+        {
+          do: 'say',
+          text: 'GUARD: The Sail & Rail to Dublin? That’s the sailor out front. The sea doesn’t go on strike.',
+        },
+      ],
+    },
+    {
+      look: 'local',
+      face: 'left',
+      talk: [
+        {
+          do: 'say',
+          text: 'COMMUTER: I’ve done Brighton to London every day for twenty years. I’ve spent four of them on this bench.',
+        },
+      ],
+    },
+  ],
+  things: {
+    D: 'DEPARTURES. London Victoria: DELAYED. Gatwick Airport: DELAYED. Hove: ON TIME (it’s a ten-minute walk).',
+    U: 'A bench, warm from someone who has been waiting a very long time.',
+  },
+};
+
 const BRIGHTON_YATES: Yates = {
   owner: {
     look: 'fionnuala',
@@ -442,7 +492,7 @@ export const BRIGHTON: GameMap = {
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTT',
     'T^^^^^^vv^^^^vv^^^^^^^vT',
-    'T######vv#P##vv^^^^^^^vT',
+    'T##H###vv#P##vv^^^^^^^vT',
     'T4vv123Svvvvvvv###L###vT',
     'T@vvvvvvvvvvvvvvvvvvvvvT',
     'TaaaaaaacaaaaaaaaaacaaaT',
@@ -482,6 +532,15 @@ export const BRIGHTON: GameMap = {
     'THE LEVEL. A park full of long grass, frisbees and wild Ranemon.',
     'BRIGHTON PALACE PIER. Doughnuts, deckchairs and the sea. Mind your chips: the gulls are bold.',
   ],
+  houses: [
+    [
+      {
+        do: 'say',
+        text: 'BRIGHTON STATION. A glass roof the size of a cathedral, and pigeons living under it.',
+      },
+    ],
+  ],
+  houseRooms: { 0: STATION_HALL },
   landmarks: [
     [
       {

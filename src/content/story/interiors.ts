@@ -1,5 +1,6 @@
 import { CARL_PUB } from './ball';
 import { ELVIS_PUB } from './elvis';
+import { keeperOf } from './keepers';
 import { sibealInPub } from './sibeal';
 import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/world';
 
@@ -100,7 +101,7 @@ const LAYOUTS: Record<Kind, string[]> = {
     'WOWWYYWWOW',
     'WNFFFFFFNW',
     'WFFFFFFFFW',
-    'WFFFXXFFFW',
+    'WFF1XXFFFW',
     'WFFFrrFFFW',
     'WFFFrrFFFW',
     'WNFF@FFFNW',
@@ -304,11 +305,14 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
       const steps = outside.landmarks?.[index] ?? [];
       const own = outside.landmarkRooms?.[index];
       if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
+      const name = landmarkName(steps) ?? 'Michael D’s farmhouse';
+      // Whoever looks after the place, standing by its display.
+      const npcs = [keeperOf(outside.id, name)];
       return {
         ...base,
-        name: `${landmarkName(steps) ?? 'Michael D’s farmhouse'}, ${town}`,
-        rows: LAYOUTS.L,
-        npcs: [],
+        name: `${name}, ${town}`,
+        rows: placesFor(LAYOUTS.L, npcs.length),
+        npcs,
         arrive: steps,
         things: {
           X: firstLine(steps),

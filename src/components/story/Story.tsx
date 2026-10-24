@@ -12,7 +12,7 @@ import { areaSong, battleSong, lineCues, partySong } from '@/lib/sound/cues';
 import { playSfx } from '@/lib/sound/engine';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
-import { mapById, mapFor, outsideOf } from '@/content/story/maps';
+import { isFlat, mapById, mapFor, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { lookOf, unlockSkins, wearSkin } from '@/content/story/skins';
 import { ticket } from '@/content/story/station';
@@ -328,7 +328,7 @@ export function Story() {
   // Music: the title, then the place you're in. Battles play their own.
   const here = game ? mapFor(game.map, game.flags) : null;
   // A map that's only drawn in 2D for now shows in 2D whichever look is picked.
-  const World = view === '3d' && !(here && outsideOf(here).flat) ? Overworld3D : Overworld;
+  const World = view === '3d' && !(here && isFlat(here)) ? Overworld3D : Overworld;
   useMusic(
     !game || !here
       ? 'title'
@@ -1117,7 +1117,7 @@ export function Story() {
         foe={fight.foe}
         scene={scene}
         music={battleSong(scene, wild, fight.trainer)}
-        flat={!!outsideOf(mapFor(game.map, game.flags)).flat}
+        flat={isFlat(mapFor(game.map, game.flags))}
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,
