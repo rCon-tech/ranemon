@@ -253,6 +253,22 @@ The overworld is a 16×16 pixel tile grid drawn at whole-number scale, showing 1
 
 **Text and UI.** Dialogue box in Press Start 2P, matching the battle screen. Start menu: Ranedex, Party, Bag, Jerseys, Save, Options.
 
+## Skins
+
+SKINS on the START menu lets you walk around as someone you've met. Beat a boss or named trainer, or finish a character's side quest, and their look is yours (`src/content/story/skins.ts`). Locked skins show as silhouettes with a hint. The skin you wear draws you on the 2D map (walking and on the bike) and on the Trainer Card; the 3D look always draws the usual cap and jacket, since new things are 2D only.
+
+**Adding a skin for a new character** is one entry in `SKINS`:
+
+```ts
+{ id: 'enda', name: 'Enda', unlock: [BRIGHTON_DONE], hint: 'Go on Enda’s trip to Brighton.' },
+```
+
+- `id` is the character's `Look` (the overworld person in `people.ts`), so a new character's skin needs no new art.
+- `unlock` is every flag that has to be set. Use `beat('trainer-id')` for beating a trainer, the quest's own "done" flag for a side quest, or `beat(...wearing('look'))` for every trainer dressed that way in the maps.
+- `hint` is shown while it's locked. Keep it a nudge, not a spoiler.
+
+When a script finishes, any skin the save has newly earned is announced ("You unlocked the Enda skin!") and kept in the save's `skins`; the one you wear is `skin`. Saves from before skins (schema 3) are given every skin they'd already earned when they load, and a skin added later for someone you'd already beaten is announced the next time a script runs. The developer save has every skin. `tests/unit/skins.test.ts` checks every skin is a real look with flags the game can set.
+
 ## Technical architecture
 
 Story mode lives in the same Next.js app at `/story`, still a static site on GitHub Pages. The rules stay in pure TypeScript with no I/O, as the battle engine does today; React draws the menus and battle screen, and one `<canvas>` draws the overworld.

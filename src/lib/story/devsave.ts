@@ -5,6 +5,7 @@ import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
+import { DEFAULT_SKIN, SKINS } from '@/content/story/skins';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
 import { variantsOf } from '../battle/variants';
@@ -18,7 +19,7 @@ import { marker } from './world';
 
 /**
  * A developer save with everything unlocked, for testing: every Ranemon and evolution, every
- * town, jersey, key item and story flag, and a full bag, starting in Dublin. It opens for one
+ * town, jersey, key item, story flag and skin, and a full bag, starting in Dublin. It opens for one
  * trainer name, which only its owner knows; only the name's SHA-256 is kept here.
  *
  * It's worked out from the game's own content each time, so anything added later (a new town,
@@ -150,6 +151,8 @@ export function devSave(): StoryState {
     starter: members[0].species,
     steps: 0,
     expShare: true,
+    // Every skin, even those of the bosses left to play.
+    skins: SKINS.filter((k) => k.id !== DEFAULT_SKIN).map((k) => k.id),
     schema: SCHEMA,
   };
 }

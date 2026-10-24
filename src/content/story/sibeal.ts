@@ -7,6 +7,9 @@ import type { Npc, Step } from '@/lib/story/world';
  * She waits in every McGrattans after, to take him back.
  */
 
+/** Set the first time you give Norm back: Sibeal's skin. */
+export const NORM_RETURNED = 'norm:returned';
+
 /** Sibeal in Limerick, with Norm at her feet. */
 export const SIBEAL_LENDS: Step[] = [
   {
@@ -40,6 +43,7 @@ export const SIBEAL_PUB: Step[] = [
     text: 'Give Norm back to Sibeal?',
     yes: [
       { do: 'unflag', flag: NORM },
+      { do: 'flag', flag: NORM_RETURNED },
       { do: 'say', text: 'Norm trots over to Sibeal and flops down at her feet.' },
       {
         do: 'say',

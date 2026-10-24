@@ -5,7 +5,16 @@ import { asset } from '@/lib/asset';
 import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
-import { DELTA, find, isPresent, npcsOf, tileAt, type Dir, type GameMap } from '@/lib/story/world';
+import {
+  DELTA,
+  find,
+  isPresent,
+  npcsOf,
+  tileAt,
+  type Dir,
+  type GameMap,
+  type Look,
+} from '@/lib/story/world';
 import {
   monStyle,
   paintDog,
@@ -78,6 +87,8 @@ export interface Props {
   frozen: boolean;
   /** Which bike you have, if any: hold B to ride it. */
   bike: BikeKind | null;
+  /** Who you're dressed as: your skin (`content/story/skins.ts`). The 3D look always uses the usual one. */
+  look?: Look | 'player';
   /** A trainer who has just spotted you, for the ! bubble. */
   exclaim: number | null;
   /** People turned to face you while you talk to them. */
@@ -573,6 +584,7 @@ export function Overworld(props: Props) {
       // Each step passes, plants a foot, passes back and stands, alternating feet.
       const stepFrame = w.from ? stepPose(t, w.frame) : 0;
       const bike = isRiding(w, live.current) ? p.bike : null;
+      const look = p.look ?? 'player';
       if (bike) {
         const turn = w.from ? stepFrame % 4 : 0;
         drawn.push({
@@ -583,8 +595,8 @@ export function Overworld(props: Props) {
             c.ellipse(sx(px + 8), sy(py + 13.5), 7, 2, 0, 0, Math.PI * 2);
             c.fill();
             c.drawImage(
-              sprite(`ride:${bike}:${w.face}:${turn}`, () =>
-                paintRider(STYLES.player, w.face, turn, bike),
+              sprite(`ride:${look}:${bike}:${w.face}:${turn}`, () =>
+                paintRider(STYLES[look], w.face, turn, bike),
               ),
               sx(px),
               sy(py - 9.5),
@@ -595,8 +607,8 @@ export function Overworld(props: Props) {
         });
       } else {
         person(
-          'player',
-          STYLES.player,
+          `player:${look}`,
+          STYLES[look],
           w.face,
           stepFrame,
           px,
