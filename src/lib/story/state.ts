@@ -45,6 +45,9 @@ export interface StoryState {
   schema?: number;
   /** Ranemon an update could no longer read, kept so a later fix can bring them back. */
   stray?: unknown[];
+  /** Skins unlocked (`content/story/skins.ts`), and the one you're wearing, if not the usual. */
+  skins?: string[];
+  skin?: string;
 }
 
 export const SAVE_KEY = 'ranemon.story.v1';
@@ -85,6 +88,7 @@ export function newGame(): StoryState {
     pub: { map: 'clare', ...start },
     uid: 1,
     steps: 0,
+    skins: [],
     schema: SCHEMA,
   };
 }

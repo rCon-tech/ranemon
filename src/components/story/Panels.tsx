@@ -29,6 +29,9 @@ import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
+import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
+import type { Look } from '@/lib/story/world';
+import { paintPerson, PERSON_H, PERSON_W, STYLES } from './people';
 
 /** The level cap, as the PARTY and BAG panels say it. Nothing once there's no cap. */
 function CapNote({ cap }: { cap: LevelCap }) {
@@ -586,13 +589,19 @@ export function RanedexPanel({
 export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
-      <p className="text-[11px] leading-relaxed">
-        Money €{game.money}
-        <br />
-        Ranedex {game.caught.length}
-        <br />
-        {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
-      </p>
+      <div className="flex items-center gap-3">
+        <Portrait
+          look={lookOf(game)}
+          className="h-[72px] w-12 rounded-lg border-2 border-frame bg-mist"
+        />
+        <p className="text-[11px] leading-relaxed">
+          Money €{game.money}
+          <br />
+          Ranedex {game.caught.length}
+          <br />
+          {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
+        </p>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {COUNTIES.map((id) => {
           const name = mapById(id).name.split(', ').at(-1)!.replace('Co. ', '');
@@ -611,6 +620,99 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
           );
         })}
       </div>
+    </Panel>
+  );
+}
+
+/** Someone as they walk the overworld, facing you: a dark silhouette while `locked`. */
+function Portrait({
+  look,
+  locked = false,
+  className,
+}: {
+  look: Look | 'player';
+  locked?: boolean;
+  className?: string;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current?.getContext('2d');
+    if (!c) return;
+    c.clearRect(0, 0, PERSON_W, PERSON_H);
+    c.globalCompositeOperation = 'source-over';
+    c.drawImage(paintPerson(STYLES[look], 'down', 0), 0, 0);
+    if (locked) {
+      c.globalCompositeOperation = 'source-in';
+      c.fillStyle = '#1c2026';
+      c.fillRect(0, 0, PERSON_W, PERSON_H);
+      c.globalCompositeOperation = 'source-over';
+    }
+  }, [look, locked]);
+  return (
+    <canvas
+      ref={ref}
+      width={PERSON_W}
+      height={PERSON_H}
+      className={className}
+      style={{ imageRendering: 'pixelated' }}
+      data-look={locked ? undefined : look}
+      aria-hidden="true"
+    />
+  );
+}
+
+/**
+ * Skins: everyone you've beaten or done a side quest for, to walk around as. Locked ones are
+ * silhouettes with a hint. The look shows on the map and the Trainer Card, in 2D.
+ */
+export function SkinsPanel({
+  game,
+  onWear,
+  onClose,
+}: {
+  game: StoryState;
+  onWear: (id: string) => void;
+  onClose: () => void;
+}) {
+  const wearing = lookOf(game);
+  const have = SKINS.filter((k) => hasSkin(game, k)).length;
+  return (
+    <Panel title="SKINS" onClose={onClose}>
+      <p className="text-[10px] leading-relaxed">
+        Beat someone, or finish their side quest, to walk around as them. {have}/{SKINS.length}{' '}
+        unlocked.
+      </p>
+      <div className="grid grid-cols-3 gap-1.5">
+        {SKINS.map((k) => {
+          const open = hasSkin(game, k);
+          return (
+            <button
+              key={k.id}
+              type="button"
+              data-testid={`skin-${k.id}`}
+              className="pixel-btn flex flex-col items-center gap-1 px-1 py-1.5"
+              disabled={!open}
+              aria-pressed={open ? wearing === k.id : undefined}
+              aria-label={open ? k.name : `Locked. ${k.hint}`}
+              onClick={() => {
+                if (!open || wearing === k.id) return;
+                playSfx('select');
+                onWear(k.id);
+              }}
+            >
+              <Portrait look={k.id} locked={!open} className="h-12 w-8" />
+              <span className="text-center text-[8px] leading-tight">
+                {open ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
+              </span>
+              {!open && <span className="text-center text-[7px] leading-tight">{k.hint}</span>}
+              {open && wearing === k.id && <span className="text-[7px]">WEARING</span>}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[9px] leading-relaxed">
+        Skins show on the map in 2D, and on your Trainer Card.
+      </p>
     </Panel>
   );
 }

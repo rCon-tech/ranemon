@@ -1,4 +1,5 @@
 import { mapById, mapFor } from '@/content/story/maps';
+import { earned, SKINS } from '@/content/story/skins';
 import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
@@ -14,7 +15,7 @@ import { doorStep, find, marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 3;
+export const SCHEMA = 4;
 
 type Raw = Record<string, unknown>;
 
@@ -31,6 +32,19 @@ const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     ...toNewDublin(d),
     pub: isObject(d.pub) ? { ...d.pub, ...toNewDublin(d.pub) } : d.pub,
     schema: 3,
+  }),
+  // Skins arrived: everyone you'd already beaten, or whose side quest you'd done, is yours to wear.
+  3: (d) => ({
+    ...d,
+    skins: [
+      ...new Set([
+        ...strings(d.skins),
+        ...SKINS.filter((k) => k.unlock.length && earned({ flags: strings(d.flags) }, k)).map(
+          (k) => k.id,
+        ),
+      ]),
+    ],
+    schema: 4,
   }),
 };
 
@@ -93,6 +107,8 @@ function repair(d: Raw): Raw {
     pub: validPlace(d.pub) ?? start.pub,
     uid: Math.max(num(d.uid, 1), ...members.map((m) => m.uid + 1)),
     steps: num(d.steps, 0),
+    // A skin this build doesn't know is kept, and drawn as the usual look (`lookOf`).
+    skins: strings(d.skins),
   };
 }
 

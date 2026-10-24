@@ -14,6 +14,7 @@ import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
 import { mapById, mapFor, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
+import { lookOf, unlockSkins, wearSkin } from '@/content/story/skins';
 import { ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import { levelCap, scaleTeam } from '@/lib/story/levels';
@@ -124,6 +125,7 @@ import {
   PartyPanel,
   RanedexPanel,
   ShopPanel,
+  SkinsPanel,
   type DexNav,
   StarterPanel,
 } from './Panels';
@@ -143,6 +145,7 @@ type Overlay =
   | 'chat'
   | 'dex'
   | 'card'
+  | 'skins'
   | 'map'
   | 'limepass'
   | 'starter'
@@ -337,7 +340,14 @@ export function Story() {
       let g = start;
       const q = [...steps];
       let n = 0;
-      while (q.length) {
+      for (;;) {
+        // Once a script is done, any skin it earned is announced before you walk on.
+        if (!q.length) {
+          const unlocked = unlockSkins(g);
+          if (!unlocked.lines.length) break;
+          g = unlocked.state;
+          q.push(...unlocked.lines.map((text) => ({ do: 'say' as const, text })));
+        }
         const s = q.shift()!;
         switch (s.do) {
           case 'say':
@@ -1087,6 +1097,7 @@ export function Story() {
           dog={norm}
           frozen={busy}
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
+          look={lookOf(game)}
           exclaim={exclaim}
           faces={faces}
           flight={flight}
@@ -1251,6 +1262,17 @@ export function Story() {
         )}
         {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={dexNav} />}
         {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
+        {overlay === 'skins' && (
+          <SkinsPanel
+            game={game}
+            onWear={(id) => {
+              const g = wearSkin(game, id);
+              persist(g);
+              setGame(g);
+            }}
+            onClose={closeOverlay}
+          />
+        )}
         {overlay === 'map' && <TownMapPanel game={game} onClose={closeOverlay} />}
         {overlay === 'limepass' && (
           <LimepassPanel
@@ -1338,7 +1360,9 @@ function StartMenu({
   expShare: boolean;
   /** Whether you have the Limepass, which adds LIMEPASS to the menu. */
   limepass: boolean;
-  onPick: (o: 'party' | 'bag' | 'dex' | 'map' | 'limepass' | 'card' | 'share' | 'save') => void;
+  onPick: (
+    o: 'party' | 'bag' | 'dex' | 'map' | 'limepass' | 'card' | 'skins' | 'share' | 'save',
+  ) => void;
   onClose: () => void;
 }) {
   const items = [
@@ -1348,6 +1372,7 @@ function StartMenu({
     ['map', 'MAP'],
     ...(limepass ? ([['limepass', 'LIMEPASS']] as const) : []),
     ['card', 'JERSEYS'],
+    ['skins', 'SKINS'],
     ['share', `EXP SHARE: ${expShare ? 'ON' : 'OFF'}`],
     ['save', 'SAVE'],
   ] as const;
