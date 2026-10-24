@@ -10,6 +10,7 @@ import { DEX, evolutionOf, formAt, formById, lineOf, reachedAt } from '@/lib/bat
 import { LONDON, LONDON_BUDGETS, LONDON_ITEM_EVOLUTIONS, LONDON_LINES } from '@/lib/battle/london';
 import { moveById } from '@/lib/battle/moves';
 import { ROSTER } from '@/lib/battle/roster';
+import { hasUkForm } from '@/lib/battle/uk';
 import { validateTeam } from '@/lib/online/rules';
 import { evolutionLine, habitats } from '@/lib/story/dex';
 import { canUseOn, itemById } from '@/lib/story/items';
@@ -165,15 +166,17 @@ describe('Shoreditch & Hackney', () => {
     expect(SHOREDITCH.uk).toBe(true);
   });
 
-  it('is full of London Ranemon at Lv5 to 12, Aerodactivist one time in a hundred', () => {
+  it('is mostly the lads at Lv5 to 12, with London’s own and Aerodactivist one time in a hundred', () => {
     expect(SHOREDITCH.wild).toMatchObject({ min: 5, max: 12 });
     const table = SHOREDITCH.wild!.table;
-    for (const [s] of table) expect(LONDON_LINES).toContain(s);
+    for (const [s] of table) expect(LONDON_LINES.includes(s) || hasUkForm(s), s).toBe(true);
     const total = table.reduce((sum, [, w]) => sum + w, 0);
     expect(table.find(([s]) => s === 'aerodactivist')![1] / total).toBe(0.01);
+    for (const id of ['wickmon', 'oystermon', 'fleamon', 'oatmon', 'seedmon', 'decksmon'])
+      expect(table.map(([s]) => s)).toContain(id);
   });
 
-  it('has London’s own early Ranemon in the hub too, and a few of the lads', () => {
+  it('has mostly the lads in the hub, and London’s own early Ranemon too', () => {
     const table = mapById('london').wild!.table.map(([s]) => s);
     expect(table).toEqual(
       expect.arrayContaining(['oystermon', 'speedmon', 'pedalmon', 'skatemon']),

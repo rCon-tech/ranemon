@@ -14,6 +14,7 @@ import {
   legendId,
 } from '@/content/story/premier';
 import { teamOf, trainerById } from '@/content/story/trainers';
+import { LONDON_LINES } from '@/lib/battle/london';
 import { hasUkForm } from '@/lib/battle/uk';
 import type { Step } from '@/lib/story/world';
 
@@ -58,10 +59,11 @@ describe('the Premier League', () => {
     expect(aces[0]).toBeGreaterThan(UK_LEVEL);
   });
 
-  it('fields UK Ranemon only, on every team on the way', () => {
+  it('fields UK Ranemon and London’s own only, on every team on the way', () => {
     for (const t of PREMIER_TRAINERS) {
       expect(t.uk, t.id).toBe(true);
-      for (const [id] of t.team) expect(hasUkForm(id), `${t.id} ${id}`).toBe(true);
+      for (const [id] of t.team)
+        expect(hasUkForm(id) || LONDON_LINES.includes(id), `${t.id} ${id}`).toBe(true);
     }
     for (const m of PL_MAPS)
       for (const [id] of m.wild?.table ?? []) expect(hasUkForm(id), `${m.id} ${id}`).toBe(true);

@@ -618,21 +618,22 @@ export const LONDON: GameMap = {
   wild: {
     min: 3,
     max: 6,
-    // London's own commuters, runners, cyclists and skaters, and a few of the lads still about
-    // (docs/london-ranedex.md), so their UK forms can still be caught.
+    // Mostly the lads, as players want a party of them, with London's own commuters, runners,
+    // cyclists and skaters as a fifth of it. London Ranemon are mostly met in trainers' teams
+    // (docs/london-ranedex.md).
     table: [
-      ['oystermon', 26],
-      ['speedmon', 15],
-      ['pedalmon', 15],
-      ['skatemon', 12],
-      ['simomon', 5],
-      ['robinmon', 5],
-      ['enda', 5],
-      ['steadmon', 5],
-      ['hugomon', 3],
-      ['skehemon', 3],
-      ['killemon', 3],
-      ['vinnimon', 3],
+      ['simomon', 12],
+      ['robinmon', 12],
+      ['enda', 12],
+      ['steadmon', 12],
+      ['hugomon', 8],
+      ['skehemon', 8],
+      ['killemon', 8],
+      ['vinnimon', 8],
+      ['oystermon', 8],
+      ['speedmon', 4],
+      ['pedalmon', 4],
+      ['skatemon', 4],
     ],
   },
   npcs: [
@@ -752,7 +753,7 @@ const LONDON_TRAINERS: Trainer[] = [
     name: 'City Banker Rupert',
     uk: true,
     team: [
-      ['vinnimon', 6],
+      ['oystermon', 8],
       ['hugomon', 7],
     ],
     ai: 'easy',
@@ -765,7 +766,7 @@ const LONDON_TRAINERS: Trainer[] = [
     name: 'Islander Kai',
     uk: true,
     team: [
-      ['robinmon', 7],
+      ['speedmon', 7],
       ['conemon', 8],
     ],
     ai: 'easy',
