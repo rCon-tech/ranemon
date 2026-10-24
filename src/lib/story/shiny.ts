@@ -19,12 +19,7 @@ export const shinySprite = (sprite: string) => sprite.replace(/^\/sprites\//, '/
 
 /** A creature in its shiny palette. */
 export function shinyForm(c: Creature): Creature {
-  return {
-    ...c,
-    shiny: true,
-    sprite: c.sprite && shinySprite(c.sprite),
-    backSprite: c.backSprite && shinySprite(c.backSprite),
-  };
+  return { ...c, shiny: true, sprite: c.sprite && shinySprite(c.sprite) };
 }
 
 /** The star shown next to a shiny's name everywhere it appears. */

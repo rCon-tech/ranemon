@@ -10,8 +10,6 @@ export interface Variant {
   /** What the team select and the Ranedex call it. */
   label: string;
   sprite: string;
-  /** Its own back view (see `Creature.backSprite`). */
-  backSprite?: string;
   /** Stands as a solid figure in the 3D look's battles (see `Creature.solid`). */
   solid?: boolean;
 }
@@ -34,7 +32,6 @@ const COAT = 'coat';
 const LINEN = 'linen';
 const TUX = 'tux';
 const FISH = 'fish';
-const DRAWN = 'drawn';
 
 export const VARIANTS: Record<string, Variant[]> = {
   // Olliemon in a green shirt with a tricolour pin, at twice the detail of the other sprites.
@@ -105,16 +102,6 @@ export const VARIANTS: Record<string, Variant[]> = {
     { id: FISH, label: 'Big Catch', sprite: '/sprites/bw/thilomon-fish.png', solid: true },
   ],
   thilotrode: [{ id: FISH, label: 'Big Catch', sprite: '/sprites/evo/thilotrode-fish.png' }],
-  // An experiment: Cholokill drawn as pixel art from his photo, with a back view of his own,
-  // instead of cut out of it (`scripts/drawn_cholokill.py`). Flat in the 3D look.
-  cholokill: [
-    {
-      id: DRAWN,
-      label: 'Drawn',
-      sprite: '/sprites/bw/cholokill-drawn.png',
-      backSprite: '/sprites/bw/cholokill-drawn-back.png',
-    },
-  ],
 };
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];
@@ -130,13 +117,7 @@ export const variantOf = (species: string, id: string | undefined) =>
 export function variantForm(c: Creature, id: string | undefined): Creature {
   const v = variantOf(c.id, id);
   if (!v) return c;
-  return {
-    ...c,
-    variant: v.id,
-    sprite: v.sprite,
-    backSprite: v.backSprite,
-    solid: v.solid ?? false,
-  };
+  return { ...c, variant: v.id, sprite: v.sprite, solid: v.solid ?? false };
 }
 
 /**

@@ -1,32 +1,37 @@
-# Drawn Ranemon: an experiment
+# Drawn Ranemon
 
-Today every Ranemon's sprite is its friend's photo, cut out and shrunk to a palette (`scripts/sprites.py`). This experiment draws one as pixel art instead, the way the handhelds' sprites look, using the photo only as reference. The worked example is **Cholokill** (Killemon given the Flannel Shirt), whose photo is the bald, bearded lad in the green flannel in the pub.
+Today every Ranemon's sprite is its friend's photo, cut out and shrunk to a palette (`scripts/sprites.py`). These are the same Ranemon drawn as pixel art, the way the handhelds' sprites look, using the photos only as reference. They're for a later update and **not in the game yet**: they live in `art/drawn/`, outside `public/`, and nothing in `src/` uses them.
 
-## What's in it
+## What's there
 
-- `scripts/drawn_cholokill.py` draws him at 96 pixels: a big bald head with a shine, the ginger beard, heavy-lidded eyes and a smirk, the flannel's check, the white tee under the open shirt, one hand on his hip and the other pointing at the foe (Whabam).
-- A **back view of his own** for your side of the battle. The game has only ever mirrored the front; `Creature.backSprite` (and `Variant.backSprite`) now lets a sprite bring one, and anything without one is mirrored as before.
-- His shiny front and back (the usual gold from `gild` in `sprites.py`) and a 40-pixel follower.
-- It goes in as a third look, **Drawn**, beside Classic in `variants.ts`, so it's the same Ranemon with the same Hype type, stats, Whabam and moves.
-- It stays flat in the 3D look (no `solid`).
+For each of the 20 lads, Petchemon, Tobymon and Cholokill (Poseidon is already pixel art), `art/drawn/` has:
 
-## How it's drawn
+- `<id>.png`, the front (the foe's view), 96 pixels like the other sprites;
+- `<id>-back.png`, a back view of its own for your side of the battle, bigger and cut off at the bottom like the handhelds' back sprites (the game mirrors the front today);
+- `shiny/<id>.png` and `shiny/<id>-back.png`, in the usual gold (`gild` in `scripts/sprites.py`);
+- `mini/<id>.png`, the follower for story mode.
 
-Each part (legs, shoes, arms, shirt, tee, head, beard) is a simple shape with a three-tone colour ramp. The script then:
+`overview.png` has every front and back in a grid, and `sheet.png` puts each photo beside its drawings.
 
-1. shades every part from the top left: a shadow band along its bottom-right edge, a dithered half-shadow inside that, and a highlight on the top-left edge;
-2. darkens the pixels where a part sits in front of another, which gives the inner lines;
-3. paints the face on top unshaded (eyes, lids, brows, nose, mouth, the head's shine);
-4. puts the game's usual 1-pixel outline round the whole figure.
+Rebuild them all with `python3 scripts/drawn/roster.py`, or one with `python3 scripts/drawn/roster.py carlmon`.
 
-Patterns like the flannel come from a function of x and y, so a check, stripes or a logo print are a few lines.
+## How they're drawn
 
-## Making more
+`scripts/drawn/kit.py` is a body kit: the same chibi body (a big head on a small body) for everyone, dressed from a `Look`:
 
-- **A body kit.** Most of the script is a chibi body: head, ears, torso, arms, legs and shoes at fixed spots. Pulling that into a module with options (build, head shape, hair or bald, beard, glasses, pose: hand on hip, pointing, thumbs up, holding something) makes a new Ranemon a short description: skin, hair and beard colours, outfit pattern, pose and one prop.
-- **The photo gives the colours.** Skin, hair and clothing colours can be sampled from the cut-outs `sprites.py` already makes, then checked by eye.
-- **A sheet to approve.** Each one gets a contact sheet (photo, front, back, shiny, follower) to approve before it goes in, like the friend's approval in the Creature Studio plan.
-- **Effort.** With the kit, a new one is a description plus a round or two of touch-ups. Without it, like this one, it's mostly placing shapes by hand.
-- **Where they go.** Either as a Drawn look beside the photo (as here, nothing else changes), or replacing the photo as the Classic look, line by line. Evolutions would then want drawn costume pieces, instead of the ones `evolve()` lays over a photo.
+- skin; hair (bald, short, slick, swept, quiff, messy, curly, long) and its colour;
+- facial hair (stubble, beard, big beard, goatee, moustache, big moustache);
+- eyes (open, heavy lids, happy, shades with a lens colour, glasses, round glasses, looking down) and mouth (smile, grin, laugh, smirk, flat);
+- a hat (cap, trilby with a band, fila, headphones);
+- the top: what's underneath and what's over it (an open shirt, a zipped jacket, a blazer, a gown), the neck (crew, collar, roll-neck, V, hood), short or long sleeves, a tie, bow tie, scarf or hood trim, and patterns (a check, stripes, flecks);
+- a pose (arms down, hands on hips, arms folded, pointing, hand at the chin, holding something, a hand raised, both hands holding something, both hands at the mouth) and props (a fish, a stein, a can, a glass of red, a fake moustache, shades on the collar, a tricolour pin, chef's buttons, beads, a tattoo, a logo).
 
-Not done yet: evolved costumes for drawn sprites, the type glow evolved forms have, and a solid 3D figure.
+Each part is a shape with a three-tone colour ramp. The kit shades every part from the top left (a shadow band, a dithered half-shadow and a highlight), darkens the pixels where a part sits in front of another for the inner lines, paints the face on top and puts the game's 1-pixel outline round it.
+
+`scripts/drawn/roster.py` describes each Ranemon in a few lines. A new one is a new entry there.
+
+## Putting them in the game later
+
+- **As a look**: add a variant (`variants.ts`) whose sprite is the drawn front, so it sits beside the photo. A back view needs `backSprite` on the creature and in `Sprite.tsx` (an earlier version of this branch did that for Cholokill).
+- **Instead of the photos**: copy the files into `public/sprites/bw/` (and `shiny/`, `mini/`) under the Ranemon's own names.
+- **Not done yet**: the evolved forms (they'd want drawn costume pieces in place of the ones `evolve()` lays over a photo), the second looks, the type glow on evolved forms, B&S, and solid 3D figures.

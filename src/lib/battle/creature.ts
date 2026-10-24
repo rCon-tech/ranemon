@@ -23,8 +23,6 @@ export interface Creature {
   sprite?: string;
   /** Accent colour: the blob's body, and the backdrop behind a sprite in the Ranedex. */
   colour: string;
-  /** Drawn from behind, for your own Ranemon in battle. Without one, the sprite is mirrored. */
-  backSprite?: string;
   /** Stands in the 3D look's battles as a solid figure blown up from its sprite (`Solid`). */
   solid?: boolean;
   /** A second look from another photo (`variants.ts`); the usual look has none. */
