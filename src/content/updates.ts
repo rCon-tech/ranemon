@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Back to 2D',
+    notes: [
+      'The 3D look is switched off for now, so everything draws in the classic 2D look and the 2D / 3D button is gone.',
+      'Nothing else changes: your save, your party and where you are all stay the same.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'The Championship of Ireland',
     notes: [
       'Ranemon can now grow all the way to Lv100.',

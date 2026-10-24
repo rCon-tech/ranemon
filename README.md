@@ -51,6 +51,8 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 
 ## 3D look
 
+**Switched off for now.** `THREE_D` in `src/lib/view.ts` is `false`, so the 2D / 3D button is hidden and every map, battle and Ranedex page draws in 2D, even in a browser that had 3D picked before. The code below is all kept: set `THREE_D` to `true` to bring it back, with each browser's old choice.
+
 The **2D / 3D** button beside the speed button (on the map and in battles) switches to a 2.5D look, kept per browser. 2D stays the default. Only the drawing changes: maps, walking, scripts, battles and saves are the same code, and you can switch mid-game.
 
 - **Overworld** (`src/components/story/Overworld3D.tsx`, `scene3d.ts`): the map's own 2D ground art on a plane under a tilted camera, with buildings lifted into walls and pitched roofs (slate on gyms), low-poly trees that sway, tall grass standing up in blades, walls, hedges, fences and furniture as blocks wearing their tile art, the Campanile in stone, sunlight with real shadows, and the clock's dawn, evening and night. People are solid figures (`figure3d.ts`) built from their own 2D art: a head, body, arms and legs as blocks wearing the matching piece of the sprite from the front, back and sides, so they turn round, swing their arms and legs as they walk, and cast real shadows. Your follower gets a solid body in its colour under its photo head, which faces the camera as in 2D. Walking lives in `walk.ts`, shared by both looks.
