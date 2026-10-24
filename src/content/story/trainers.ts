@@ -312,7 +312,8 @@ const T: Trainer[] = [
     team: [
       ['oismon', 58],
       ['olliemon', 58],
-      ['gibbsmon', 59],
+      // Hugengar in Gyaragibbs's place: B&S have heard about the legend, and brought an answer.
+      ['hugomon', 59],
       ['thilomon', 59],
       ['petchemon', 59],
       ['bns', 60],
