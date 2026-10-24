@@ -438,6 +438,7 @@ export const BRIGHTON: GameMap = {
   county: 9,
   // Regency terraces: slate roofs on every building, as in Greystones.
   slate: true,
+  terraces: 'english',
   yates: BRIGHTON_YATES,
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTT',

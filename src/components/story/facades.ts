@@ -15,6 +15,8 @@ const T = TILE * RES;
 
 /** Where a tile sits in its house's front, and what the house looks like. */
 export interface Facade {
+  /** Irish Georgian (Dublin, Galway) or English (London stock brick and white stucco). */
+  style: Terraces;
   /**
    * A house, the pub's painted front, the shop's window on the ground floor, or a granite civic
    * building under its own slate roof (`j`), such as a church or a hall.
@@ -51,9 +53,45 @@ const WALLS: { brick: boolean; colours: [string, string, string, string] }[] = [
   { brick: false, colours: ['#e8a8b0', '#f4c4c8', '#bc7c86', '#ffffff'] },
   { brick: false, colours: ['#f0d070', '#f8e494', '#c4a444', '#ffffff'] },
   { brick: false, colours: ['#a8d4b4', '#c4e4cc', '#78a888', '#ffffff'] },
+  // English: London stock brick, a darker yellow stock, white and cream stucco.
+  { brick: true, colours: ['#c4b088', '#d8c8a0', '#9a8660', '#e4dccc'] },
+  { brick: true, colours: ['#a89470', '#bea884', '#7e6c4e', '#d8d0c0'] },
+  { brick: false, colours: ['#f2f0ea', '#ffffff', '#c8c4b8', '#ffffff'] },
+  { brick: false, colours: ['#efe6d0', '#faf4e4', '#c8bca0', '#ffffff'] },
 ];
-/** Dublin's doors: the famous colours. */
-const DOORS = ['#c8282c', '#2a58a8', '#e8b828', '#2a7a48', '#25282c', '#6a3a8a', '#e07828'];
+/** Dublin's doors, in the famous colours, then England's: black, navy, racing green, oxblood. */
+const DOORS = [
+  '#c8282c',
+  '#2a58a8',
+  '#e8b828',
+  '#2a7a48',
+  '#25282c',
+  '#6a3a8a',
+  '#e07828',
+  '#1a1c20',
+  '#1e2a4a',
+  '#1e4030',
+  '#6a1e22',
+];
+
+export type Terraces = 'georgian' | 'english';
+
+/** Which walls and doors each look picks from, for houses and for the pub's upper floors. */
+const LOOKS: Record<Terraces, { walls: number[]; pubs: number[]; doors: number[]; lamp: string }> =
+  {
+    georgian: {
+      walls: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      pubs: [5, 6, 7, 8, 9],
+      doors: [0, 1, 2, 3, 4, 5, 6],
+      lamp: '#1e2e26',
+    },
+    english: {
+      walls: [10, 10, 11, 0, 12, 12, 13, 6, 9],
+      pubs: [12, 13, 5],
+      doors: [7, 7, 8, 9, 10, 0],
+      lamp: '#1a1c20',
+    },
+  };
 /** The pub's painted fronts: bottle green, black, oxblood, navy. */
 const PUBS = ['#1e4a32', '#1e2226', '#6a1e22', '#1e2e4a'];
 
@@ -111,33 +149,45 @@ export function facadesOf(map: GameMap): Map<string, Facade> {
       );
       if (touches) continue;
       const civic = cells.some((c) => at(c.x, c.y - 1) === 'j');
-      const kind: Facade['kind'] = civic
-        ? 'civic'
-        : tiles.includes('P')
-          ? 'pub'
-          : tiles.includes('M')
-            ? 'shop'
-            : 'house';
       const x0 = Math.min(...cells.map((c) => c.x));
       const x1 = Math.max(...cells.map((c) => c.x));
       const y0 = Math.min(...cells.map((c) => c.y));
+      // The pub's and the shop's fronts run two tiles either side of their doors, each column
+      // going to the nearer door (Galway has both in one building); the rest is a terrace.
+      const fronts = cells.filter((c) => 'PM'.includes(at(c.x, c.y)));
+      const kindAt = (cx: number): Facade['kind'] => {
+        if (civic) return 'civic';
+        if (!fronts.length) return 'house';
+        const near = fronts.reduce((a, b) => (Math.abs(b.x - cx) < Math.abs(a.x - cx) ? b : a));
+        if (Math.abs(near.x - cx) > 2) return 'house';
+        return at(near.x, near.y) === 'P' ? 'pub' : 'shop';
+      };
       // Split a terrace into houses two or three tiles wide; a pub or shop is one front.
       const starts = new Set([x0]);
-      if (kind === 'house') {
-        let sx = x0;
-        while (sx <= x1) {
+      for (let cx = x0 + 1; cx <= x1; cx++) if (kindAt(cx) !== kindAt(cx - 1)) starts.add(cx);
+      for (let rx = x0; rx <= x1; rx++) {
+        if (kindAt(rx) !== 'house' || (rx > x0 && kindAt(rx - 1) === 'house')) continue;
+        let end = rx;
+        while (end < x1 && kindAt(end + 1) === 'house') end++;
+        let sx = rx;
+        while (sx <= end) {
           const w = 2 + (hash(sx, y0, 1) % 2);
-          sx += x1 - (sx + w) + 1 < 2 ? x1 - sx + 1 : w;
-          if (sx <= x1) starts.add(sx);
+          sx += end - (sx + w) + 1 < 2 ? end - sx + 1 : w;
+          if (sx <= end) starts.add(sx);
         }
       }
+      const look = LOOKS[map.terraces];
       let house = { wall: 0, door: 0, pipe: false };
+      let kind = kindAt(x0);
       for (let cx = x0; cx <= x1; cx++) {
         if (starts.has(cx)) {
+          kind = kindAt(cx);
           const h = hash(cx, y0, 2);
           house = {
-            wall: kind === 'pub' ? 5 + (h % 5) : h % WALLS.length,
-            door: kind === 'pub' ? (h >> 4) % PUBS.length : (h >> 4) % DOORS.length,
+            wall:
+              kind === 'pub' ? look.pubs[h % look.pubs.length] : look.walls[h % look.walls.length],
+            door:
+              kind === 'pub' ? (h >> 4) % PUBS.length : look.doors[(h >> 4) % look.doors.length],
             pipe: cx !== x0 && ((h >> 8) & 1) === 1,
           };
         }
@@ -146,6 +196,7 @@ export function facadesOf(map: GameMap): Map<string, Facade> {
           const below = BUILDING.includes(at(c.x, c.y + 1));
           const above = BUILDING.includes(at(c.x, c.y - 1)) || at(c.x, c.y - 1) === 'j';
           facades.set(`${c.x},${c.y}`, {
+            style: map.terraces,
             kind,
             wall: house.wall,
             door: house.door,
@@ -167,6 +218,7 @@ export function facadesOf(map: GameMap): Map<string, Facade> {
 /** A short key for the tile cache. */
 export function facadeKey(f: Facade) {
   return [
+    f.style,
     f.kind,
     f.wall,
     f.door,
@@ -351,7 +403,7 @@ function pubFront(c: Ctx, f: Facade, door: boolean) {
     px(c, 3, 25, 26, 1, '#d8b048');
   }
   // Pilasters at the ends.
-  if (f.endW) px(c, 0, 0, 2, T, '#d8b048');
+  if (f.endW || f.party) px(c, 0, 0, 2, T, '#d8b048');
   if (f.endE) px(c, T - 2, 0, 2, T, '#d8b048');
   px(c, 0, T - 1, T, 1, '#1e2226');
 }
@@ -524,27 +576,27 @@ export function lampsOf(map: GameMap) {
 }
 
 /**
- * A Dublin lamp post, in world pixels: a dark green fluted column with a lantern on top. `x`
- * and `y` are where it stands; `night` (0 to 1) lights the lantern.
+ * A lamp post, in world pixels: a fluted column with a lantern on top, Dublin green or English
+ * black. `x` and `y` are where it stands; `night` (0 to 1) lights the lantern.
  */
-export function drawLamp(c: Ctx, x: number, y: number, night: number) {
+export function drawLamp(c: Ctx, x: number, y: number, night: number, style: Terraces) {
+  const iron = LOOKS[style].lamp;
   c.fillStyle = 'rgb(0 0 0 / 0.25)';
   c.fillRect(x - 2, y - 0.5, 5, 1.5);
-  c.fillStyle = '#1e2e26';
+  c.fillStyle = iron;
   c.fillRect(x - 1.5, y - 2.5, 3, 2.5);
   c.fillRect(x - 0.5, y - 20, 1.5, 18);
-  c.fillStyle = '#3e5a4a';
+  c.fillStyle = style === 'english' ? '#4a4e56' : '#3e5a4a';
   c.fillRect(x - 0.5, y - 20, 0.5, 18);
-  c.fillStyle = '#1e2e26';
+  c.fillStyle = iron;
   c.fillRect(x - 1.5, y - 21, 3.5, 1);
   // The lantern.
-  c.fillStyle = '#1e2e26';
   c.fillRect(x - 2, y - 26.5, 5, 6);
   c.fillRect(x - 1.5, y - 28, 4, 1.5);
   c.fillStyle = night > 0 ? '#ffe9a0' : '#cfe0e6';
   c.fillRect(x - 1.5, y - 26, 4, 4.5);
   c.fillStyle = night > 0 ? '#fff6d0' : '#eef6f8';
   c.fillRect(x - 1.5, y - 26, 1, 4.5);
-  c.fillStyle = '#1e2e26';
+  c.fillStyle = iron;
   c.fillRect(x, y - 26, 0.5, 4.5);
 }

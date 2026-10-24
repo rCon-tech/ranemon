@@ -664,7 +664,7 @@ export function Overworld(props: Props) {
         const foot = l.y * TILE + TILE - 1;
         drawn.push({
           y: foot - TILE + 0.5,
-          paint: () => drawLamp(c, sx(l.x * TILE + 8), sy(foot), light.night),
+          paint: () => drawLamp(c, sx(l.x * TILE + 8), sy(foot), light.night, map.terraces!),
         });
       }
 

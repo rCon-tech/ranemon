@@ -313,9 +313,10 @@ export interface GameMap {
   slate?: boolean;
   /**
    * A city of terraced houses: each building is drawn as a row of houses in their own brick or
-   * paint and front doors, with the roof row as an upper storey (`facades.ts`). Drawing only.
+   * paint and front doors, with the roof row as an upper storey (`facades.ts`). Irish Georgian,
+   * or English stock brick and stucco. Drawing only.
    */
-  terraces?: boolean;
+  terraces?: 'georgian' | 'english';
   /** What the things in a room say when you look at them, by tile. */
   things?: Record<string, string>;
   /**
