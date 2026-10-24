@@ -1,6 +1,6 @@
 import type { BattleState } from '../battle/engine';
 import { moveById } from '../battle/moves';
-import type { QueueItem } from '../ui/session';
+import { missed, type QueueItem } from '../ui/session';
 import type { View } from '../ui/playback';
 import { moveSfx, type SfxId } from './sfx';
 import type { JingleId, SongId } from './songs';
@@ -14,8 +14,16 @@ export type Cue =
   | { cry: string; low?: boolean; delay?: number }
   | { jingle: JingleId };
 
-/** The sounds for one step of a battle's playback. `view` is the view after it. */
-export function battleCues(item: QueueItem, state: BattleState, view: View): Cue[] {
+/**
+ * The sounds for one step of a battle's playback. `view` is the view after it, and `rest` what's
+ * still to play: a move that misses keeps quiet and leaves the sound to the miss.
+ */
+export function battleCues(
+  item: QueueItem,
+  state: BattleState,
+  view: View,
+  rest: QueueItem[] = [],
+): Cue[] {
   switch (item.kind) {
     case 'say':
       return lineCues(item.text);
@@ -35,6 +43,7 @@ export function battleCues(item: QueueItem, state: BattleState, view: View): Cue
     case 'withdraw':
       return [{ sfx: 'withdraw' }];
     case 'move': {
+      if (missed(item, rest)) return [];
       const m = moveById(item.moveId);
       return [{ sfx: moveSfx(m.type, m.category === 'status', !!m.signature) }];
     }

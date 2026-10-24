@@ -672,6 +672,94 @@ button {
   }
 }
 
+/* A missed attack: the target sidesteps, streaks whoosh through where it stood, and MISS pops up. */
+@keyframes dodge-foe {
+  35%,
+  65% {
+    transform: translateX(24%);
+  }
+}
+@keyframes dodge-you {
+  35%,
+  65% {
+    transform: translateX(-24%);
+  }
+}
+.anim-dodge-foe {
+  animation: dodge-foe 0.6s steps(6) both;
+}
+.anim-dodge-you {
+  animation: dodge-you 0.6s steps(6) both;
+}
+.miss-foe {
+  --dir: 1;
+}
+.miss-you {
+  --dir: -1;
+}
+.miss-streak {
+  position: absolute;
+  left: calc(50% + var(--dx) * var(--dir) * 1%);
+  top: calc(50% + var(--dy) * var(--dir) * 1%);
+  width: 46%;
+  height: 5%;
+  background: #f4f6fb;
+  border: 2px solid #1d2433;
+  border-radius: 2px;
+  opacity: 0;
+  animation: miss-streak 0.45s steps(6) var(--delay) both;
+}
+@keyframes miss-streak {
+  0% {
+    opacity: 0;
+    transform: rotate(-25deg) translateX(calc(-130% * var(--dir)));
+  }
+  20%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-25deg) translateX(calc(150% * var(--dir)));
+  }
+}
+.miss-word {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  translate: -50% 0;
+  color: #f4f6fb;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow:
+    2px 0 #1d2433,
+    -2px 0 #1d2433,
+    0 2px #1d2433,
+    0 -2px #1d2433,
+    2px 2px #1d2433;
+  opacity: 0;
+  animation: miss-word 0.7s steps(7) 0.15s both;
+}
+@keyframes miss-word {
+  0% {
+    opacity: 1;
+    transform: translateY(40%) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-10%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30%) scale(1);
+  }
+}
+
 @keyframes blink {
   50% {
     opacity: 0;
@@ -902,7 +990,11 @@ button {
   .anim-faint,
   .anim-lunge-you,
   .anim-lunge-foe,
+  .anim-dodge-you,
+  .anim-dodge-foe,
   .fx-piece,
+  .miss-streak,
+  .miss-word,
   .sfx,
   .blink {
     animation-duration: 0.01s;

@@ -99,6 +99,20 @@ describe('level cap', () => {
     expect(settleBattle(s, won, 'win', [0], false).state.party[0].level).toBeGreaterThan(11);
   });
 
+  it('says the whole party is at the cap in one line', () => {
+    let s = recruit(newGame(), 'carlmon', 11).state;
+    s = recruit(s, 'olliemon', 10).state;
+    s = { ...s, expShare: true };
+    const foe = creatureById('enda');
+    const { state } = startBattle([s.party.map(toEntrant), [{ creature: foe, level: 30 }]], 1);
+    const won = structuredClone(state);
+    won.teams[1].battlers[0].hp = 0;
+    const { lines } = settleBattle(s, won, 'win', [0], false);
+    expect(lines[0]).toMatch(/^Olliemon gained \d+ EXP!$/);
+    expect(lines.at(-1)).toBe('Carlmon and Olliemon can’t grow past Lv11 until you beat Nóra.');
+    expect(lines.filter((l) => l.includes('can’t grow past'))).toHaveLength(1);
+  });
+
   it('never takes levels off a Ranemon already past it', () => {
     const s = recruit(newGame(), 'carlmon', 30).state;
     const foe = creatureById('enda');

@@ -11,6 +11,7 @@ import {
   type Action,
   type BattleState,
   type Entrant,
+  type Side,
 } from '@/lib/battle/engine';
 import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { matchup, TYPE_COLOR, TYPE_LABEL, type RaneType } from '@/lib/battle/types';
@@ -30,7 +31,7 @@ import { playJingle, playSfx } from '@/lib/sound/engine';
 import type { SongId } from '@/lib/sound/songs';
 import { play, SoundButton, useMusic } from './Sound';
 import { InfoBox } from './InfoBox';
-import { MoveEffect } from './MoveEffect';
+import { MissEffect, MoveEffect } from './MoveEffect';
 import { hasSpecialEffect, SpecialEffect } from './SpecialEffect';
 import { Backdrop } from './Backdrop';
 import { SpeedButton, useAnimationSpeed } from './SpeedButton';
@@ -199,7 +200,7 @@ export function BattleScreen({
 
   // Sound: each step of playback's effects, the last seconds of the timer, and the ending.
   useEffect(() => {
-    if (session.last) play(battleCues(session.last, session.state, session.view));
+    if (session.last) play(battleCues(session.last, session.state, session.view, session.queue));
     // Only once per step played.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.played]);
@@ -270,6 +271,9 @@ export function BattleScreen({
   };
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
+  // The side an attack has just missed, which dodges it while the miss plays.
+  const missing = session.last?.kind === 'miss' ? session.last : null;
+  const dodging: Side | null = missing ? (missing.side === 0 ? 1 : 0) : null;
   useAnimationSpeed();
   const chosen = useView();
   const look = flat ? '2d' : chosen;
@@ -285,6 +289,7 @@ export function BattleScreen({
         {look === '3d' ? <Backdrop3D scene={scene} /> : <Backdrop scene={scene} />}
         <div className="sprite-slot slot-foe">
           {effect?.side === 1 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
+          {dodging === 1 && <MissEffect key={session.played} side={1} />}
           {view[1].shown ? (
             <div key={`in-${entries[1]}`} className="anim-in-foe h-full w-full">
               <div
@@ -295,7 +300,9 @@ export function BattleScreen({
                   key={`hit-${hits[1]}`}
                   className={hits[1] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
-                  <Sprite creature={foe.creature} solid={look === '3d'} />
+                  <div className={dodging === 1 ? 'anim-dodge-foe h-full w-full' : 'h-full w-full'}>
+                    <Sprite creature={foe.creature} solid={look === '3d'} />
+                  </div>
                 </div>
               </div>
               {foe.creature.shiny && <ShinySparkle />}
@@ -311,6 +318,7 @@ export function BattleScreen({
         </div>
         <div className="sprite-slot slot-you">
           {effect?.side === 0 && !special && <MoveEffect key={effect.n} moveId={effect.moveId} />}
+          {dodging === 0 && <MissEffect key={session.played} side={0} />}
           {view[0].shown ? (
             <div key={`in-${entries[0]}`} className="anim-in-you h-full w-full">
               <div
@@ -321,7 +329,9 @@ export function BattleScreen({
                   key={`hit-${hits[0]}`}
                   className={hits[0] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
-                  <Sprite creature={me.creature} back solid={look === '3d'} />
+                  <div className={dodging === 0 ? 'anim-dodge-you h-full w-full' : 'h-full w-full'}>
+                    <Sprite creature={me.creature} back solid={look === '3d'} />
+                  </div>
                 </div>
               </div>
               {me.creature.shiny && <ShinySparkle />}
