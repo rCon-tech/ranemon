@@ -1,5 +1,13 @@
 import { interiorId } from './interiors';
-import { AGREEMENT, CHAMPION, FIXTURES, LANDED, UK_STARTER } from './kneecap';
+import {
+  AGREEMENT,
+  CHAMPION,
+  FIXTURES,
+  LANDED,
+  THATCHER_IN,
+  THATCHER_OUT,
+  UK_STARTER,
+} from './kneecap';
 import { FORECOURT } from './palace';
 import { KINGS_CROSS_ROOM } from './premier';
 import { OVERGROUND, SHOREDITCH_TRAINERS } from './shoreditch';
@@ -457,11 +465,84 @@ export const STANSTED: GameMap = {
 
 // ---------- London ----------
 
+/** Thatcher's first line in London, before the battle and on her trainer card. */
+const THATCHER_HELLO =
+  'THATCHER: YOU! Here! In MY London! And I suppose that DJ gave you one of our Ranemon. Then I shall have one too. I AM from here, you know.';
+
+/**
+ * Thatcher barges into W.B Yates once you've picked: she stands in the pub for the scene, says
+ * why she's come home, battles you, then storms back out.
+ */
+const THATCHER_SCENE: Step[] = [
+  {
+    do: 'say',
+    text: '(The door bangs open. In comes a royal blue suit, pearls and hair that has not moved since 1979.)',
+  },
+  { do: 'flag', flag: THATCHER_IN },
+  { do: 'say', text: THATCHER_HELLO },
+  {
+    do: 'say',
+    text: 'THATCHER: After you beat me on the quays, I came home for a proper cup of tea. Ireland was lovely, dear, but nobody queues and the tea comes in a mug.',
+  },
+  {
+    do: 'say',
+    text: 'THATCHER: Border Force took my Ranemon off me at Stansted. Livestock, they said. To ME. So I am starting again, on home soil, where I belong.',
+  },
+  {
+    do: 'say',
+    text: 'THATCHER: And I have business with the King. I have been queueing for an audience since 1979, and I will not have an Irish trainer pushing in. Pearls on. Handbag ready.',
+  },
+  { do: 'battle', trainer: 'rival-uk-1' },
+  { do: 'flee', flag: THATCHER_OUT, dir: 'down' },
+];
+
+/** The story of the lads and the King, after Thatcher has gone. */
+const LADS_STORY: Step[] = [
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Who was THAT? Never mind. Sit down there. I’ll tell you what happened the lads.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: In 1907, the Irish Crown Jewels were robbed out of Dublin Castle. Never found. True story, look it up.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: The lads heard they ended up in a cupboard in Buckingham Palace. So they went in the back gate to bring them home. They got as far as the Throne Room.',
+  },
+  {
+    do: 'say',
+    text: '(Mo Chara and Móglaí Bap tiptoe through a gold room and open a cupboard. Green light floods out. Somebody clears their throat.)',
+  },
+  {
+    do: 'say',
+    text: 'KING CHARLES: I say. One does rather think those are MINE. (He’s holding a watering can.) Guards!',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Charles won’t see anyone. One rule: the only person in the country who gets an audience with the King is the Premier League Champion.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: He made the rule in 1976 so he’d never have to meet anyone. The Premier League didn’t even exist then.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: So. You’re going to win the Premier League. Twelve clubs, twelve legends, twelve jerseys. Trains go from King’s Cross.',
+  },
+  { do: 'flag', flag: FIXTURES },
+  {
+    do: 'say',
+    text: 'DONAL: And take these, on the house. Poured properly, mind. Not like the ones on that table.',
+  },
+  { do: 'give', item: 'pint', count: 5 },
+];
+
 /** Próvaí in the back of W.B Yates: your UK Ranemon, Thatcher, and the story of the lads. */
 const PROVAI_STARTER: Step[] = [
   {
     do: 'if',
-    flag: UK_STARTER,
+    flag: FIXTURES,
     then: [
       {
         do: 'say',
@@ -474,69 +555,49 @@ const PROVAI_STARTER: Step[] = [
     ],
     else: [
       {
-        do: 'say',
-        text: 'PRÓVAÍ: They took the Ranemon off you? Ah, they did the same to me. Even took my decks. Said they were livestock.',
+        do: 'if',
+        flag: UK_STARTER,
+        // Picked, but the scene never finished (the page was closed mid-battle, say): pick it up
+        // from Thatcher, so you still get the fixtures and King's Cross opens.
+        then: [
+          {
+            do: 'if',
+            // `beatFlag('rival-uk-1')`, spelled out: lib/story/state imports this file.
+            flag: 'beat:rival-uk-1',
+            then: [
+              { do: 'flag', flag: THATCHER_OUT },
+              { do: 'say', text: 'PRÓVAÍ: Right, where was I. Oh yeah. The lads.' },
+            ],
+            else: THATCHER_SCENE,
+          },
+          ...LADS_STORY,
+        ],
+        else: [
+          {
+            do: 'say',
+            text: 'PRÓVAÍ: They took the Ranemon off you? Ah, they did the same to me. Even took my decks. Said they were livestock.',
+          },
+          {
+            do: 'say',
+            text: 'PRÓVAÍ: Don’t worry. Donal owes me a favour. Now. UK Ranemon are a bit different.',
+          },
+          {
+            do: 'say',
+            text: 'PRÓVAÍ: Fair warning, these Brit Ranemon are weird looking. Same lads, same moves, just a bit… off. You get used to them.',
+          },
+          {
+            do: 'say',
+            text: 'PRÓVAÍ: Classic Brits. Twenty pints on that table. Pick one. Any one.',
+          },
+          {
+            do: 'say',
+            text: 'PRÓVAÍ: The old lad in the cream robes? Not a hope. Nobody’s seen him in years. And Petchemon? Never heard of him.',
+          },
+          { do: 'starter', uk: true },
+          ...THATCHER_SCENE,
+          ...LADS_STORY,
+        ],
       },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: Don’t worry. Donal owes me a favour. Now. UK Ranemon are a bit different.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: Over here, nobody’s got a photo of them. They’re all DRAWN. Like a cartoon on the BBC. Something about Ofcom.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: Same lads, same moves, they just look like they came out of a Game Boy. Twenty pints on that table. Pick one. Any one.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: The old lad in the cream robes? Not a hope. Nobody’s seen him in years. And Petchemon? Never heard of him.',
-      },
-      { do: 'starter', uk: true },
-      {
-        do: 'say',
-        text: '(The door bangs open. In comes a royal blue suit, pearls and hair that has not moved since 1979.)',
-      },
-      { do: 'battle', trainer: 'rival-uk-1' },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: Who was THAT? Never mind. Sit down there. I’ll tell you what happened the lads.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: In 1907, the Irish Crown Jewels were robbed out of Dublin Castle. Never found. True story, look it up.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: The lads heard they ended up in a cupboard in Buckingham Palace. So they went in the back gate to bring them home. They got as far as the Throne Room.',
-      },
-      {
-        do: 'say',
-        text: '(Mo Chara and Móglaí Bap tiptoe through a gold room and open a cupboard. Green light floods out. Somebody clears their throat.)',
-      },
-      {
-        do: 'say',
-        text: 'KING CHARLES: I say. One does rather think those are MINE. (He’s holding a watering can.) Guards!',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: Charles won’t see anyone. One rule: the only person in the country who gets an audience with the King is the Premier League Champion.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: He made the rule in 1976 so he’d never have to meet anyone. The Premier League didn’t even exist then.',
-      },
-      {
-        do: 'say',
-        text: 'PRÓVAÍ: So. You’re going to win the Premier League. Twelve clubs, twelve legends, twelve jerseys. Trains go from King’s Cross.',
-      },
-      { do: 'flag', flag: FIXTURES },
-      {
-        do: 'say',
-        text: 'DONAL: And take these, on the house. Poured properly, mind. Not like the ones on that table.',
-      },
-      { do: 'give', item: 'pint', count: 5 },
     ],
   },
 ];
@@ -580,6 +641,13 @@ const LONDON_YATES: Yates = {
     ],
   },
   regular: { look: 'provai', face: 'down', showIf: LANDED, talk: PROVAI_STARTER },
+  visitor: {
+    look: 'thatcher',
+    face: 'right',
+    showIf: THATCHER_IN,
+    hideIf: THATCHER_OUT,
+    talk: [{ do: 'say', text: 'THATCHER: Do you mind? I am waiting to be served.' }],
+  },
   things: {
     V: 'Every whiskey in Ireland, and a framed photo of Donal with the Cork hurlers in 1990.',
     U: 'A long table. Twenty pints of Guinness on it, all poured badly.',
@@ -743,8 +811,7 @@ const LONDON_TRAINERS: Trainer[] = [
     team: [],
     ai: 'normal',
     prize: 1520,
-    before:
-      'THATCHER: YOU! Here! In MY London! And I suppose that DJ gave you one of our Ranemon. Then I shall have one too. I AM from here, you know.',
+    before: THATCHER_HELLO,
     after:
       'THATCHER: Hmph. Beginner’s luck, on British soil. I shall be at Number Ten if anybody needs me. Nobody ever does.',
   },

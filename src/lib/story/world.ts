@@ -335,6 +335,8 @@ export interface Yates {
   owner: Npc;
   /** Someone else in, if there is. */
   regular?: Npc;
+  /** Someone who only comes in for a scene, shown and hidden by flags (Thatcher, in London). */
+  visitor?: Npc;
   /** What the things in the room say, over the usual ones. */
   things?: Record<string, string>;
 }

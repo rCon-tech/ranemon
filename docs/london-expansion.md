@@ -45,7 +45,7 @@ The other two members of Kneecap. Off-screen hostages for most of the story, see
 - **You**, the Champion of Ireland, back from Ghent with a party you're about to lose at the border.
 - **Ollie** (very French) and **Ollie's parents**, Monsieur and Madame, who pay for your Ranemon to be minded while you're away and send updates after every jersey.
 - **Michael D Higgins**, whose farm in Clare minds the Ranemon. He phones once, near the end.
-- **Margaret Thatcher**, the rival, delighted to finally be home. She picks after you, with a type edge, as before.
+- **Margaret Thatcher**, the rival, delighted to finally be home. After you beat her on the quays in Dublin she went home for a proper cup of tea, lost her Ranemon to Border Force at Stansted like everyone else, and now wants an audience with the King, which she has been queueing for since 1979. She picks after you, with a type edge, as before.
 - **Carl Ryan and Elvis**, Stead, Kill, Enda, Cramps, Paul Mescal and Alex Simonin, in cameos (see Side quests and the ending).
 
 ### New in London
@@ -116,13 +116,20 @@ Behind the bar, Liam Neeson is polishing a glass. He doesn't look up.
 The back room of W.B Yates London. 20 pints of Guinness on a long table, one per Ranemon, like Michael D's kitchen. They are poured badly.
 
 > **PRÓVAÍ:** Now. UK Ranemon are a bit different.
-> **PRÓVAÍ:** Over here, nobody's got a photo of them. They're all _drawn_. Like a cartoon on the BBC. Something about Ofcom.
-> **PRÓVAÍ:** Same lads, same moves, they just look like they came out of a Game Boy. Pick one. Any one.
+> **PRÓVAÍ:** Fair warning, these Brit Ranemon are weird looking. Same lads, same moves, just a bit... off. You get used to them.
+> **PRÓVAÍ:** Classic Brits. Twenty pints on that table. Pick one. Any one.
 > **PRÓVAÍ:** No, there's no Tobymon. Nobody's seen Tobymon in years. And Petchemon? Never heard of him.
 
 You pick from **all 20 lads**, each in its **UK form**: the drawn pixel-art sprite from PR #59 (`art/drawn/`), with its own back view and drawn follower. Their stats and moves are the same as at home; only the look, and a UK Ranedex line, differ. Wild Ranemon in Britain are UK forms too, so every catch over here is drawn. The UK lines are under **UK Ranedex** below.
 
-Thatcher bursts in as you pick, takes the pint with a type edge over yours ("I'll have that one, thank you, I _am_ from here"), and battles you at the door. Then Próvaí hands you an Oyster card (the Tube) and 5 pints, poured properly by the barman this time.
+Thatcher bursts in as you pick, takes the pint with a type edge over yours, and stands at the table to tell you why she's back:
+
+> **THATCHER:** YOU! Here! In MY London! And I suppose that DJ gave you one of our Ranemon. Then I shall have one too. I _am_ from here, you know.
+> **THATCHER:** After you beat me on the quays, I came home for a proper cup of tea. Ireland was lovely, dear, but nobody queues and the tea comes in a mug.
+> **THATCHER:** Border Force took my Ranemon off me at Stansted. Livestock, they said. To ME. So I am starting again, on home soil, where I belong.
+> **THATCHER:** And I have business with the King. I have been queueing for an audience since 1979, and I will not have an Irish trainer pushing in. Pearls on. Handbag ready.
+
+She battles you, then storms back out ("I shall be at Number Ten if anybody needs me. Nobody ever does."). Her audience with the King is why she's on the palace steps at the end: "I have queued for this since 1979." Then Próvaí hands you an Oyster card (the Tube) and 5 pints, poured properly by the barman this time.
 
 ### Chapter 5: Why the lads were taken
 
