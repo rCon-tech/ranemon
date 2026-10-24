@@ -135,7 +135,6 @@ export const SKINS: Skin[] = [
     unlock: [RENT_DONE],
     hint: 'Find out who took the rent.',
   },
-  { id: 'simo', name: 'Simo', unlock: [RENT_DONE], hint: 'Find out who took the rent.' },
   { id: 'mc', name: 'MC', unlock: [RENT_DONE], hint: 'Find out who took the rent.' },
   {
     id: 'melchior',

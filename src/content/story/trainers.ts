@@ -14,10 +14,10 @@ import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mesc
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
 const RENT_REWARD: Step[] = [
   { do: 'flag', flag: RENT_DONE },
-  { do: 'say', text: 'Ollie and Simo look at each other. The biscuit tin is still empty.' },
+  { do: 'say', text: 'Ollie and Alex look at each other. The biscuit tin is still empty.' },
   {
     do: 'say',
-    text: 'SIMO: Well, we’re no closer to the rent. But fair play for trying. Have these, for the road.',
+    text: 'ALEX SIMONIN: Well, we’re no closer to the rent. But fair play for trying. Have these, for the road.',
   },
   { do: 'give', item: 'full-irish', count: 2 },
 ];

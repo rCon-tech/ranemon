@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { STYLES } from '@/components/story/people';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
+import { RENT_DONE } from '@/content/story/rent';
 import { NORM_RETURNED, SIBEAL_PUB } from '@/content/story/sibeal';
 import {
   DEFAULT_SKIN,
@@ -82,6 +83,12 @@ describe('earning a skin', () => {
     const yes = SIBEAL_PUB.find((s) => s.do === 'ask');
     expect(yes && 'yes' in yes && yes.yes).toContainEqual({ do: 'flag', flag: NORM_RETURNED });
     expect(unlockSkins(withFlags(NORM_RETURNED)).state.skins).toEqual(['sibeal']);
+  });
+
+  it('gives the rent house’s people for the rent, and Alex Simonin still for Trinity', () => {
+    expect(unlockSkins(withFlags(RENT_DONE)).state.skins).toEqual(['ollie', 'mc', 'melchior']);
+    expect(skinById('simo')).toBeUndefined();
+    expect(skinById('alex')!.unlock).toEqual([beatFlag('trinity-alex')]);
   });
 
   it('needs every trainer in a look beaten when a skin is for all of them', () => {

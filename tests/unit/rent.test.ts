@@ -53,26 +53,50 @@ describe('the missing rent', () => {
   function solve(): Set<string> {
     const flags = new Set<string>();
     talk(house, 'ollie', flags);
-    talk(house, 'simo', flags);
+    talk(house, 'alex', flags);
     play(neighbour(), flags);
     play(garda(), flags);
     return flags;
   }
 
-  it('is in the second house in Dublin, with Ollie, Simo, MC and Melchior', () => {
+  it('is in the second house in Dublin, with Ollie, Alex Simonin, MC and Melchior', () => {
     expect(house.name).toBe('A house, Dublin City');
-    expect(house.npcs.map((n) => n.look)).toEqual(['ollie', 'simo', 'mc', 'melchior']);
+    expect(house.npcs.map((n) => n.look)).toEqual(['ollie', 'alex', 'mc', 'melchior']);
     // The first house is still Temple Bar.
     expect(mapById(interiorId('dublin', 'H', 0)).npcs[0].look).toBe('local');
-    for (const look of ['ollie', 'simo', 'mc', 'melchior'] as const)
+    for (const look of ['ollie', 'alex', 'mc', 'melchior'] as const)
       expect(STYLES[look]).toBeTruthy();
     expect(STYLES.mc.small).toBe(true);
     expect(STYLES.melchior.hat?.kind).toBe('crown');
   });
 
+  it('has Alex Simonin as Ollie’s housemate, not Simo, all the way through', () => {
+    const flags = new Set<string>();
+    const said = [
+      ...talk(house, 'alex', flags),
+      ...talk(house, 'ollie', flags),
+      ...talk(house, 'alex', flags),
+      ...talk(house, 'alex', flags),
+    ];
+    play(neighbour(), flags);
+    play(garda(), flags);
+    said.push(
+      ...talk(house, 'mc', flags),
+      ...talk(house, 'alex', flags),
+      ...talk(house, 'ollie', flags),
+    );
+    expect(flags.has(RENT_DONE)).toBe(true);
+    expect(said.some((l) => l.startsWith('ALEX SIMONIN:'))).toBe(true);
+    expect(said.some((l) => /\bSIMO\b|\bSimo\b/.test(l))).toBe(false);
+    // He still finds the first clue, by the biscuit tin.
+    expect(said.join(' ')).toContain('croissant');
+    expect(house.npcs.some((n) => n.look === 'simo')).toBe(false);
+    expect(STYLES.alex.hearts).toBeDefined();
+  });
+
   it('starts when Ollie tells you, and nobody gives a clue before', () => {
     const flags = new Set<string>();
-    talk(house, 'simo', flags);
+    talk(house, 'alex', flags);
     play(neighbour(), flags);
     play(garda(), flags);
     expect(RENT_CLUES.some((c) => flags.has(c))).toBe(false);
@@ -87,7 +111,7 @@ describe('the missing rent', () => {
     expect(flags.has(RENT_READY)).toBe(false);
     expect(talk(house, 'mc', flags).join(' ')).not.toContain('BATTLE');
     expect(flags.has(RENT_ACCUSED)).toBe(false);
-    talk(house, 'simo', flags);
+    talk(house, 'alex', flags);
     expect(RENT_CLUES.every((c) => flags.has(c))).toBe(true);
     expect(flags.has(RENT_READY)).toBe(true);
   });
