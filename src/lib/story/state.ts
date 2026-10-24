@@ -249,12 +249,13 @@ export function settleBattle(
     state = { ...healParty(state), money: state.money - tab, ...s.pub, face: 'down' };
     const outside = outsideOf(mapById(s.pub.map));
     const town = outside.name.split(',')[0];
-    // In Britain the pubs are W.B Yates, and the tab is in pounds.
+    // In England the pubs are W.B Yates, and in the expansion the tab is in pounds.
+    const money = outside.uk ? `£${tab}` : `€${tab}`;
     lines.push(
       'You’re out of Ranemon that can fight!',
-      outside.uk
-        ? `You come round in W.B Yates, ${town}, with a bar tab of £${tab}. Liam Neeson is standing over you. He says nothing.`
-        : `You come round in McGrattans, ${town}, with a bar tab of €${tab}.`,
+      outside.uk || outside.yates
+        ? `You come round in W.B Yates, ${town}, with a bar tab of ${money}. Liam Neeson is standing over you. He says nothing.`
+        : `You come round in McGrattans, ${town}, with a bar tab of ${money}.`,
     );
   }
   return { state, lines };

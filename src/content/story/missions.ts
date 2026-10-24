@@ -5,7 +5,8 @@ import { BEAT_PEARS, PEAR_HEARD } from './greystones';
 import { LEGEND_FLAG } from './maps';
 import { RENT_ACCUSED, RENT_CLUES, RENT_DONE, RENT_READY, RENT_START } from './rent';
 import { HEAD_OF_SECURITY } from './techno';
-import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from './kneecap';
+import { CHAMPION, FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from './kneecap';
+import { FIXTURE_LIST, PL_FLAGS } from './premier';
 import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
@@ -233,8 +234,8 @@ export const MISSIONS: Mission[] = [
     about:
       'Mo Chara and Móglaí Bap of Kneecap went to London on a mission and never came back. DJ Próvaí needs you.',
     start: PROVAI_MET,
-    // For now the story runs as far as Próvaí telling you what happened; the Premier League is next.
-    done: FIXTURES,
+    // For now the story runs as far as the Premier League trophy; the palace is next.
+    done: CHAMPION,
     steps: [
       {
         until: PROVAI_ASKED,
@@ -256,6 +257,14 @@ export const MISSIONS: Mission[] = [
         todo: 'Hear Próvaí out. What happened the lads?',
         where: 'W.B Yates, London',
       },
+      // The twelve legends, in order: the trains go from King's Cross.
+      ...FIXTURE_LIST.map((f, i) => ({
+        // The last one makes you Champion.
+        until: i === FIXTURE_LIST.length - 1 ? CHAMPION : f.flag,
+        todo: `Beat ${f.legend} for the ${f.club} jersey.`,
+        where: f.ground,
+        count: PL_FLAGS,
+      })),
     ],
   },
   {

@@ -187,7 +187,17 @@ describe('Britain', () => {
   const uk = MAPS.filter((m) => m.uk);
 
   it('is 2D only, every map of it', () => {
-    expect(uk.map((m) => m.id)).toEqual(['stansted', 'london']);
+    expect(uk.map((m) => m.id)).toEqual([
+      'stansted',
+      'london',
+      'manchester',
+      'leeds',
+      'liverpool',
+      'falmer',
+      'birmingham',
+      'newcastle',
+      'tube',
+    ]);
     for (const m of [...uk, mapById('airport')]) expect(m.flat, m.id).toBe(true);
   });
 

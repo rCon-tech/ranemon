@@ -1,5 +1,6 @@
 import { interiorId } from './interiors';
-import { FIXTURES, LANDED, UK_STARTER } from './kneecap';
+import { CHAMPION, FIXTURES, LANDED, UK_STARTER } from './kneecap';
+import { KINGS_CROSS_ROOM } from './premier';
 import { homeward } from './station';
 import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
@@ -22,12 +23,7 @@ const STANSTED_PUB = { map: ARRIVALS_ID, x: 2, y: 4 };
 const AIRPORT_PUB = { map: 'airport', x: 3, y: 6 };
 
 /** The level of Próvaí's UK Ranemon. */
-export const UK_LEVEL = 38;
-
-/** King's Cross: trains to the twelve grounds. Engineering works until the Premier League opens. */
-export const TRAINS = 'london:trains';
-/** The police line on the Mall steps aside for the Premier League Champion. */
-export const CHAMPION = 'london:champion';
+export const UK_LEVEL = 5;
 
 // ---------- the flight, and the border ----------
 
@@ -586,8 +582,8 @@ export const LONDON: GameMap = {
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
   ],
   wild: {
-    min: 36,
-    max: 40,
+    min: 3,
+    max: 6,
     table: [
       ['simomon', 15],
       ['robinmon', 15],
@@ -677,11 +673,12 @@ export const LONDON: GameMap = {
       },
     ],
   ],
+  landmarkRooms: { 0: KINGS_CROSS_ROOM },
   landmarkLocks: {
     0: {
-      flag: TRAINS,
+      flag: FIXTURES,
       locked:
-        'KING’S CROSS: (A sign.) NO TRAINS NORTH THIS WEEKEND DUE TO ENGINEERING WORKS. A REPLACEMENT BUS SERVICE IS NOT IN OPERATION. Coming soon.',
+        'KING’S CROSS: (A sign.) NO TRAINS NORTH THIS WEEKEND DUE TO ENGINEERING WORKS. A REPLACEMENT BUS SERVICE IS NOT IN OPERATION.',
       opened: 'The engineering works are finished. Apparently.',
     },
     2: {
@@ -714,8 +711,8 @@ const LONDON_TRAINERS: Trainer[] = [
     name: 'City Banker Rupert',
     uk: true,
     team: [
-      ['vinnimon', 37],
-      ['hugomon', 38],
+      ['vinnimon', 6],
+      ['hugomon', 7],
     ],
     ai: 'easy',
     prize: 760,
@@ -727,8 +724,8 @@ const LONDON_TRAINERS: Trainer[] = [
     name: 'Islander Kai',
     uk: true,
     team: [
-      ['robinmon', 38],
-      ['conemon', 39],
+      ['robinmon', 7],
+      ['conemon', 8],
     ],
     ai: 'easy',
     prize: 780,

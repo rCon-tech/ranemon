@@ -158,7 +158,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
 
   switch (kind) {
     case 'P':
-      if (outside.uk) return yatesRoom(outside, base);
+      if (outside.uk || outside.yates) return yatesRoom(outside, base);
       return {
         ...base,
         name: `McGrattans, ${town}`,

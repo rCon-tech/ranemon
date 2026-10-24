@@ -5,7 +5,15 @@ import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
-import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from '@/content/story/kneecap';
+import {
+  CHAMPION,
+  FIXTURES,
+  LANDED,
+  PROVAI_ASKED,
+  PROVAI_MET,
+  UK_STARTER,
+} from '@/content/story/kneecap';
+import { PL_FLAGS, PL_MAPS, PREMIER_TRAINERS } from '@/content/story/premier';
 import {
   CHAMPION_OF_IRELAND,
   COLLINS,
@@ -56,6 +64,22 @@ export const DEV_LEVEL = 60;
  * and the dogs: Norm, who you borrow from Sibeal, and Elvis, who you walk for Carl.
  * Everything else a script can set is set.
  */
+/**
+ * The London expansion, from Próvaí at Connolly to the Premier League trophy: all left to play.
+ * The key items you'd win on the way are in the bag anyway, like every other key item.
+ */
+export const LONDON_TO_PLAY = [
+  PROVAI_MET,
+  PROVAI_ASKED,
+  LANDED,
+  UK_STARTER,
+  FIXTURES,
+  CHAMPION,
+  ...PL_FLAGS,
+  ...PREMIER_TRAINERS.map((t) => beatFlag(t.id)),
+  ...['london', 'airport', ...PL_MAPS.map((m) => m.id)].map((m) => `seen:${m}`),
+];
+
 const LEFT_TO_PLAY = new Set([
   beatFlag('poseidon'),
   beatFlag('bns-rematch'),
@@ -70,14 +94,7 @@ const LEFT_TO_PLAY = new Set([
   CHAMPION_OF_IRELAND,
   NORM,
   ELVIS,
-  // The London expansion, from Próvaí at Connolly on.
-  PROVAI_MET,
-  PROVAI_ASKED,
-  LANDED,
-  UK_STARTER,
-  FIXTURES,
-  'seen:london',
-  'seen:airport',
+  ...LONDON_TO_PLAY,
 ]);
 
 /** Every script step in the maps and trainers, found by walking the content. */

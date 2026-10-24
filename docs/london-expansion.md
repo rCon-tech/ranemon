@@ -468,7 +468,7 @@ In England the pubs aren't McGrattans: they're **W.B Yates**, every one run by I
 | Newcastle         | Gráinne, a fisherman's daughter from Donegal         | No heating, ever. Everyone's in a T-shirt. Gráinne swaps fish stories with you for Chicken Fillet Rolls.                               |
 | Buckingham Palace | Bridie from Ballina, after the takeover              | The State Dining Room, with a chandelier over the bar. Charles works there in an apron and is not good at it.                          |
 
-Brighton's existing McGrattans keeps its name.
+Brighton's pub is a W.B Yates too, run by Fionnuala from Galway, who came over for a hen party in 1994 and never went home.
 
 ## Open questions for Rich
 
@@ -476,6 +476,17 @@ The story uses the first option in each until Rich says otherwise.
 
 1. **Club order.** The table orders the clubs for difficulty and comedy (United first, City on the final day). Keep it, or use the order in the brief?
 2. **Legends.** Roy Keane, Bielsa, Big Dunc, Robbie Keane, Ian Wright, Glenn Murray, Paul McGrath, Shearer, John Terry, Gerrard, Henry and Agüero. Swap any for someone you'd rather see?
-3. **Starting level.** The UK starter joins at Lv 38 so the expansion fits under the Lv 60 cap. Or start again from Lv 5, with a much longer climb?
+3. **Starting level.** Decided: the UK starter starts at Lv 5, as a new story line. London's long grass is Lv 3 to 6, and the legends' aces climb from 10 (Keane) to 46 (Agüero).
 4. **The Irish Crown Jewels.** Added as the reason the lads were taken. Keep it, or keep the reason a mystery?
 5. **Real people.** Like Michael D and Paul Mescal, this uses real people's names and likenesses, which is fine while the game stays private among friends.
+
+## Build notes
+
+What the build does differently from the story above, so far:
+
+- **Levels.** Everything in Britain starts again from Lv 5 (see open question 3). The legends' teams keep the shape in the table but at lower levels: aces 10, 14, 17, 20, 23, 26, 29, 32, 35, 38, 42 and 46. Trainers in Britain don't scale up to your party once you're Champion of Ireland.
+- **UK Ranemon don't evolve,** so they keep their drawn sprites.
+- **The Amex** is reached by train to Falmer, a small new map with Enda on it, rather than through the Brighton map from the Irish story.
+- **The Tube** is one small map off King's Cross with the four London grounds on it.
+- **Key items.** Fergie's Hairdryer, Bielsa's Bucket and the replica Europa League trophy are keepsakes for now, with no effect. Ian Wright's Railcard opens the trains to Falmer, Birmingham and Newcastle. The Rest Day, Proper Studs, Captain's Armband and Va-Va-Voom are swapped for existing items (full Irish, Monster, cups of tea).
+- **The grounds** are played strictly in the table's order: each turnstile is shut until the legend before is beaten.

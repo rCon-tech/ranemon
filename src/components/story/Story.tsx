@@ -258,6 +258,13 @@ function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
       'airport',
       'stansted',
       'london',
+      'manchester',
+      'leeds',
+      'liverpool',
+      'falmer',
+      'birmingham',
+      'newcastle',
+      'tube',
     ].includes(outside)
   )
     return 'city';
@@ -436,7 +443,8 @@ export function Story() {
           case 'pub': {
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };
             // In Britain it's Liam Neeson behind the bar of W.B Yates.
-            const lines = outsideOf(mapById(g.map)).uk ? NEESON_LINES : DUA_LINES;
+            const pubOutside = outsideOf(mapById(g.map));
+            const lines = pubOutside.uk || pubOutside.yates ? NEESON_LINES : DUA_LINES;
             q.unshift(
               { do: 'say', text: lines[g.steps % lines.length] },
               { do: 'say', text: 'Your Ranemon are fighting fit again!' },
@@ -497,9 +505,11 @@ export function Story() {
             }
             const t = trainerById(s.trainer);
             // Once you're Champion, every trainer scales up to your party; the Championship
-            // in Galway always does, Champion or not.
-            const team = scaleTeam(teamOf(t, t.uk ? g.ukStarter : g.starter), g, t.above).map(
-              ([id, level], i) => toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined)),
+            // in Galway always does, Champion or not. Britain is a new story line that starts
+            // again from Lv5, so its trainers keep their own levels.
+            const own = teamOf(t, t.uk ? g.ukStarter : g.starter);
+            const team = (t.uk ? own : scaleTeam(own, g, t.above)).map(([id, level], i) =>
+              toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined)),
             );
             for (const e of team) g = see(g, e.creature.id);
             setGame(g);

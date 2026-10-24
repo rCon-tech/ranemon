@@ -115,6 +115,13 @@ const CITIES = [
   'airport',
   'stansted',
   'london',
+  'manchester',
+  'leeds',
+  'liverpool',
+  'falmer',
+  'birmingham',
+  'newcastle',
+  'tube',
 ];
 
 /** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */

@@ -18,6 +18,10 @@ export const LANDED = 'london:landed';
 export const UK_STARTER = 'london:starter';
 /** Próvaí has told you why the lads were taken, and what it'll take to get to the King. */
 export const FIXTURES = 'london:fixtures';
+/** Ian Wright's Railcard: the trains to Brighton, Birmingham and Newcastle run for you. */
+export const RAILCARD = 'london:railcard';
+/** Agüero is beaten: you're Premier League Champion, and the police line on the Mall steps aside. */
+export const CHAMPION = 'london:champion';
 
 const ASK: Step[] = [
   {

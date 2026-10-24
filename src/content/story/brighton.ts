@@ -1,7 +1,7 @@
 import { BRIGHTON_DONE, MATCH_DONE } from './enda';
 import { interiorId } from './interiors';
 import { homeward } from './station';
-import type { GameMap, Npc, Step, Trainer } from '@/lib/story/world';
+import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
 /**
  * Brighton, England, by the Sail & Rail from Connolly Station once you've said yes to Enda in
@@ -406,12 +406,39 @@ function arcadeRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
 
 // ---------- the seafront ----------
 
+/**
+ * Brighton's pub is a W.B Yates, like every pub in England: run by Fionnuala from Galway, who
+ * came over for a hen party in 1994 and never went home.
+ */
+const BRIGHTON_YATES: Yates = {
+  owner: {
+    look: 'fionnuala',
+    face: 'down',
+    talk: [
+      {
+        do: 'say',
+        text: 'FIONNUALA: Fionnuala, from Galway. I came over for a hen party in 1994. The hen went home. I didn’t.',
+      },
+      {
+        do: 'say',
+        text: 'FIONNUALA: Liam does the bar. I do the sea views. Mind the seagulls on the terrace, they’ll have the chips out of your hand.',
+      },
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a stick of Brighton rock with GALWAY written all the way through it.',
+    U: 'A table by the window, looking out at the pier. A seagull is looking back in.',
+    J: 'A fire, and over it a photo of a 1994 hen party on the pier. Everyone in it is wearing a sash.',
+  },
+};
+
 export const BRIGHTON: GameMap = {
   id: 'brighton',
   name: 'Brighton, England',
   county: 9,
   // Regency terraces: slate roofs on every building, as in Greystones.
   slate: true,
+  yates: BRIGHTON_YATES,
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTT',
     'T^^^^^^vv^^^^vv^^^^^^^vT',

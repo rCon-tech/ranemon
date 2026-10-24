@@ -16,6 +16,7 @@ import { CRAMPS_ARRIVE } from './cramps';
 import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
+import { PL_MAPS } from './premier';
 import { GALWAY, HALL_ROOMS } from './galway';
 
 /**
@@ -1235,6 +1236,7 @@ export const MAPS: GameMap[] = [
   AIRPORT,
   STANSTED,
   LONDON,
+  ...PL_MAPS,
   GALWAY,
 ];
 
