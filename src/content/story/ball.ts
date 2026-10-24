@@ -34,6 +34,51 @@ export const CARL: Npc = {
   ],
 };
 
+/** Set the first time you talk to Carl in a McGrattans. */
+export const MET_CARL = 'met:carl';
+
+/**
+ * Carl in the corner of every McGrattans, from the very start: the same Blue Ghosts at the same
+ * price, for anyone who'd rather not grind. Where he gets them is never said.
+ */
+export const CARL_PUB: Npc = {
+  look: 'carl',
+  face: 'down',
+  talk: [
+    {
+      do: 'if',
+      flag: MET_CARL,
+      then: [
+        { do: 'say', text: 'CARL RYAN: Ah, it’s yourself. Keep your voice down.' },
+        {
+          do: 'say',
+          text: 'CARL RYAN: Where am I getting them? A lad knows a lad who knows a van. That’s all you need to know.',
+        },
+      ],
+      else: [
+        { do: 'flag', flag: MET_CARL },
+        {
+          do: 'say',
+          text: 'CARL RYAN: Psst. Over here. Don’t look at me, look at your pint.',
+        },
+        {
+          do: 'say',
+          text: 'CARL RYAN: Your Ranemon look like they could do with a lift. Blue Ghosts. One each and up they go a level, no battling, no grinding.',
+        },
+        {
+          do: 'say',
+          text: `CARL RYAN: €${CARL_PRICE} a can, a tenth of what Vapes charge. Where they came from? They fell off the back of something. Don’t ask.`,
+        },
+      ],
+    },
+    { do: 'shop', stall: CARL_STALL },
+    {
+      do: 'say',
+      text: 'CARL RYAN: You never saw me. And they won’t take your lot past the next gym leader, so don’t come crying to me.',
+    },
+  ],
+};
+
 /** Michael D, in Trinity once you're Champion, ball or no ball. */
 export const HIGGINS: Npc = {
   look: 'higgins',

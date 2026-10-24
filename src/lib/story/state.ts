@@ -12,6 +12,7 @@ import {
   nameOf,
   type Member,
 } from './party';
+import { levelCap } from './levels';
 import { SCHEMA } from './save';
 import { marker, type Dir } from './world';
 
@@ -174,7 +175,8 @@ export const follower = (s: StoryState) => s.party.find((m) => m.hp > 0) ?? null
  * What a finished battle leaves behind: HP, PP and status copied back, EXP for every foe that
  * fainted, and the catch or the blackout. The Ranemon that fought a foe share its EXP. The rest
  * of the party still standing get nothing, half with The Round, or the same as a fighter with
- * Exp Share on.
+ * Exp Share on. Nobody grows past the level cap; beating the gym leader who sets it lifts it for
+ * that battle's EXP too.
  */
 export function settleBattle(
   s: StoryState,
@@ -182,8 +184,10 @@ export function settleBattle(
   result: Result,
   fought: number[],
   trainer: boolean,
+  trainerId?: string,
 ): { state: StoryState; lines: string[] } {
   const lines: string[] = [];
+  const cap = levelCap(result === 'win' && trainerId ? setFlag(s, beatFlag(trainerId)) : s);
   let party = s.party.map((m, i) => afterBattle(m, battle.teams[0].battlers[i]));
 
   if (result === 'win' || result === 'caught') {
@@ -192,9 +196,10 @@ export function settleBattle(
       const total = expYield(foe.level, trainer);
       const fighters = fought.filter((i) => i < party.length && party[i].hp > 0);
       const shareOut = (i: number, amount: number) => {
-        const { member, lines: more } = gainExp(party[i], amount, party);
+        const { member, lines: more } = gainExp(party[i], amount, party, cap);
         party = party.map((m, j) => (j === i ? member : m));
-        lines.push(...more);
+        // Each line about the cap once, however many foes fainted.
+        lines.push(...more.filter((l) => !lines.includes(l) || !l.includes('can’t grow past')));
       };
       const each = Math.max(1, Math.floor(total / Math.max(1, fighters.length)));
       for (const i of fighters) shareOut(i, each);

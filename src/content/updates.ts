@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'No grinding needed',
+    notes: [
+      'Someone is sitting in the corner of every McGrattans with a sports bag of Blue Ghosts, going cheap. Don’t ask where they came from.',
+      'A level cap: your Ranemon can’t grow past the level of the next gym leader’s strongest Ranemon. Beat the leader to raise it. PARTY shows the cap.',
+      'Ranemon already past the cap keep their levels. They just won’t grow until it catches up.',
+      'Once you’re Champion the cap is gone, and trainers you battle after that bring teams as strong as yours.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Missions',
     notes: [
       'A new MISSIONS option on the START menu shows every mission you have on the go, what to do next and where to go.',

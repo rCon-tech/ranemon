@@ -1,3 +1,4 @@
+import { CARL_PUB } from './ball';
 import { sibealInPub } from './sibeal';
 import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/world';
 
@@ -46,7 +47,7 @@ const LAYOUTS: Record<Kind, string[]> = {
     'WCCCCCCFFW',
     'WFFFFFFF3W',
     'WFUUF2FUUW',
-    'WFUUFFFUUW',
+    'W4UUFFFUUW',
     'WNFF@FFFNW',
     'WWWWEWWWWW',
   ],
@@ -144,6 +145,8 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
             ],
           },
           sibealInPub,
+          // Carl Ryan, in the back corner by the plant, with his sports bag of Blue Ghosts.
+          CARL_PUB,
         ],
         things: {
           V: 'Every whiskey in Ireland, and a bottle of something from Scotland nobody orders.',
