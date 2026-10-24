@@ -16,6 +16,7 @@ import {
 } from './kneecap';
 import { FIXTURE_LIST, PL_FLAGS } from './premier';
 import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
+import { COLLISONS, SEVEN, SILICON_SEVEN, SILICON_START } from './silicon';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 
@@ -296,6 +297,27 @@ export const MISSIONS: Mission[] = [
         until: CHAMPION_OF_IRELAND,
         todo: 'Beat the four in a row again, then the secret Champion behind Bono’s door.',
         where: 'The Hall of Champions, Galway',
+      },
+    ],
+  },
+  {
+    id: 'silicon',
+    name: 'Silicon Docks',
+    about:
+      'Every big tech company has an HQ in Silicon Docks, and every one of their CEOs is up for a battle.',
+    start: SILICON_START,
+    done: beatFlag(COLLISONS),
+    steps: [
+      {
+        until: SILICON_SEVEN,
+        todo: 'Beat the CEOs of Google, Meta, Microsoft, Apple, Amazon, TikTok and X, at the top of each HQ.',
+        where: 'Silicon Docks, Dublin',
+        count: SEVEN.map(beatFlag),
+      },
+      {
+        until: beatFlag(COLLISONS),
+        todo: 'Stripe’s door is open. Two lads from Tipperary are waiting inside.',
+        where: 'Stripe, Silicon Docks, Dublin',
       },
     ],
   },

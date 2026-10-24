@@ -152,7 +152,18 @@ export type Look =
   | 'johnnyb'
   | 'johnnysmacks'
   | 'bono'
-  | 'collins';
+  | 'collins'
+  | 'receptionist'
+  | 'techie'
+  | 'pichai'
+  | 'zuckerberg'
+  | 'nadella'
+  | 'cook'
+  | 'bezos'
+  | 'chew'
+  | 'musk'
+  | 'pcollison'
+  | 'jcollison';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -291,6 +302,8 @@ export interface GameMap {
   landmarkLocks?: Record<number, Lock>;
   /** A landmark's own room instead of the plain one, by landmark index. */
   landmarkRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
+  /** A sign over a landmark door, such as a company's name, by landmark index. */
+  landmarkLabels?: Record<number, { text: string; colour: string }>;
   /** A house's own room instead of the plain one, by house index. */
   houseRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
   /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */

@@ -1403,6 +1403,141 @@ export const STYLES: Record<Look | 'player', Style> = {
     strap: '#6a3a1e',
     tall: true,
   },
+  // ---------- Silicon Docks ----------
+  // A tech HQ's receptionist: hair in a bun, a white shirt and a lanyard-blue collar.
+  receptionist: {
+    skin: '#f0c49a',
+    hair: '#3a2416',
+    hairStyle: 'bun',
+    earrings: '#e0c060',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#3a70c8',
+    legs: '#2a2a38',
+    shoes: '#18181c',
+  },
+  // Someone on staff in tech: glasses, a fleece gilet over a shirt, chinos, white runners and a
+  // laptop bag.
+  techie: {
+    skin: '#f8d0a8',
+    hair: '#5a3a1e',
+    hairStyle: 'short',
+    glasses: 'glasses',
+    top: '#3a4a5a',
+    topKind: 'waistcoat',
+    trim: '#e8e8ec',
+    legs: '#c8b090',
+    shoes: '#f4f4f4',
+    bag: '#2a2a30',
+  },
+  // Sundar Pichai of Google: glasses and a soft jumper with a Google-blue collar.
+  pichai: {
+    skin: '#c8905e',
+    hair: '#1a1414',
+    hairStyle: 'short',
+    glasses: 'glasses',
+    top: '#d8d8dc',
+    topKind: 'jumper',
+    trim: '#3a78e8',
+    legs: '#2c3c64',
+    shoes: '#2a1a12',
+  },
+  // Mark Zuckerberg of Meta: a short crop, a plain grey T-shirt, jeans and a gold chain.
+  zuckerberg: {
+    skin: '#f4d0b0',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    beads: '#e0c060',
+    top: '#8a8a90',
+    topKind: 'shirt',
+    trim: '#7a7a80',
+    legs: '#2c3c64',
+    shoes: '#f4f4f4',
+  },
+  // Satya Nadella of Microsoft: glasses, a short beard and a dark jacket with a blue collar.
+  nadella: {
+    skin: '#b07a50',
+    hair: '#2a2a2a',
+    hairStyle: 'balding',
+    glasses: 'glasses',
+    beard: '#3a3a3a',
+    top: '#2a3a5a',
+    topKind: 'jacket',
+    trim: '#20a4ef',
+    legs: '#2a2a38',
+    shoes: '#18181c',
+  },
+  // Tim Cook of Apple: short grey hair, glasses and all in black.
+  cook: {
+    skin: '#f4d0b0',
+    hair: '#c8c8cc',
+    hairStyle: 'short',
+    glasses: 'glasses',
+    top: '#18181c',
+    topKind: 'shirt',
+    trim: '#2a2a30',
+    legs: '#2c3c64',
+    shoes: '#18181c',
+  },
+  // Jeff Bezos of Amazon: bald, aviator shades and a navy gilet with an orange zip.
+  bezos: {
+    skin: '#f4d0b0',
+    hair: '#f4d0b0',
+    hairStyle: 'none',
+    glasses: 'shades',
+    top: '#1a2a4a',
+    topKind: 'waistcoat',
+    trim: '#f09820',
+    legs: '#2a2a38',
+    shoes: '#18181c',
+  },
+  // Shou Chew of TikTok: a dark suit and a tie in TikTok pink, with a cyan collar.
+  chew: {
+    skin: '#e8c098',
+    hair: '#18181c',
+    hairStyle: 'short',
+    top: '#2a2a30',
+    topKind: 'suit',
+    trim: '#30e0e8',
+    tie: '#e83060',
+    legs: '#2a2a30',
+    shoes: '#18181c',
+  },
+  // Elon Musk of X: tall, all in black, a black jacket and black jeans.
+  musk: {
+    skin: '#f4d0b0',
+    hair: '#3a2a1a',
+    hairStyle: 'short',
+    top: '#18181c',
+    topKind: 'jacket',
+    trim: '#3a3a40',
+    legs: '#18181c',
+    shoes: '#18181c',
+    tall: true,
+  },
+  // Patrick Collison of Stripe: sandy hair and a Stripe-purple jumper.
+  pcollison: {
+    skin: '#f8d8b8',
+    hair: '#b8803a',
+    hairStyle: 'short',
+    top: '#6a5af0',
+    topKind: 'jumper',
+    trim: '#f4f4f4',
+    legs: '#2c3c64',
+    shoes: '#2a1a12',
+  },
+  // John Collison, his brother: glasses, a navy jumper and a purple collar.
+  jcollison: {
+    skin: '#f8d8b8',
+    hair: '#a87038',
+    hairStyle: 'short',
+    glasses: 'glasses',
+    top: '#1a2a4a',
+    topKind: 'jumper',
+    trim: '#6a5af0',
+    legs: '#3a3a44',
+    shoes: '#2a1a12',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
