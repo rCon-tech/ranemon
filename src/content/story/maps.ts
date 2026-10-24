@@ -1187,6 +1187,8 @@ export const MAPS: GameMap[] = [
     county: 9,
     // A city: Georgian slate roofs, pavements and tarmac, with grass only in the parks.
     slate: true,
+    // Georgian terraces of brick and painted houses, each with its own coloured door.
+    terraces: true,
     // Grown east and south with the county's landmarks: 2D only, like everything new.
     flat: true,
     rows: [

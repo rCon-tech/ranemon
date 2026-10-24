@@ -311,6 +311,11 @@ export interface GameMap {
   flat?: boolean;
   /** Slate roofs on every building, not only the gym: the look of a well-off town. */
   slate?: boolean;
+  /**
+   * A city of terraced houses: each building is drawn as a row of houses in their own brick or
+   * paint and front doors, with the roof row as an upper storey (`facades.ts`). Drawing only.
+   */
+  terraces?: boolean;
   /** What the things in a room say when you look at them, by tile. */
   things?: Record<string, string>;
   /**
