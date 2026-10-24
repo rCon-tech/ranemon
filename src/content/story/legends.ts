@@ -726,3 +726,201 @@ export const KILDARE_LANDMARKS: Step[][] = [
     'ST BRIGID’S CATHEDRAL. Beside it, a round tower you can climb, the second tallest in Ireland, and the old fire temple where nuns kept Brigid’s flame burning for centuries.',
   ),
 ];
+
+// ---------- Dublin: Croke Park, the Bay, Kilmainham, St Michan's, St Patrick's, the Joyce Tower, the Brazen Head and Howth ----------
+// Dublin already has its ten people, so its legends are told behind its new doors and on its signs.
+
+export const DUBLIN_SIGNS = {
+  croke:
+    'CROKE PARK. 82,300 seats, the third-biggest stadium in Europe. Hill 16, the terrace at the end, was built from the rubble of 1916.',
+  poolbeg:
+    'DUBLIN BAY. The Poolbeg chimneys, red and white, have been telling sailors they’re home since 1971.',
+  bull: 'BULL ISLAND. An island that wasn’t there 200 years ago, made by the sand piling up against the Bull Wall. Howth Head across the water.',
+  fortyfoot:
+    'THE FORTY FOOT, SANDYCOVE. People have swum here every morning of the year for 250 years. It is never warm.',
+  liberties:
+    'THE LIBERTIES. St Patrick’s Cathedral, Marsh’s Library and the oldest streets in Dublin. Mind the horse and cart.',
+  brazen:
+    'THE BRAZEN HEAD. Dublin’s oldest pub, on the quays since 1198. Or so it says on the wall.',
+  molly:
+    'MOLLY MALONE. “Cockles and mussels, alive, alive-o!” The statue on Suffolk Street. Locals have names for her you won’t find in the song.',
+};
+
+export const DUBLIN_HOUSES: Step[][] = [
+  say(
+    'ST MICHAN’S CHURCH. Down in the vaults, the dry air has kept the dead for 800 years. One of them is called the Crusader.',
+    'GUIDE: Shake his hand for luck. Go on. Bram Stoker came down here as a boy, and look what he went off and wrote.',
+  ),
+  [
+    {
+      do: 'say',
+      text: 'THE BRAZEN HEAD. Low ceilings, a fire, and a session in the back. Robert Emmet planned his rising in that corner, 1803. It didn’t go well.',
+    },
+    once(
+      'gift:brazen',
+      'BARMAN: A pint for the trainer, on the house. Don’t tell anyone. We’ve been here 800 years by not telling anyone.',
+      'settled-pint',
+      2,
+      'BARMAN: Same again? Ah, you’re grand. We’ll be here.',
+    ),
+  ],
+  say(
+    'HOWTH CASTLE. In 1576 Grace O’Malley, the pirate queen, called in and found the gates shut, because the lord was at his dinner.',
+    'So she took his son and heir home to Mayo. She gave him back on one condition: the gates open to all, and a place set for an unexpected guest at every dinner.',
+    'LOCAL: They still set the extra place, to this day. You could sit in it, if you liked. Mind you, it’s a long wait for the soup.',
+  ),
+];
+
+export const DUBLIN_LANDMARKS: Step[][] = [
+  say(
+    'KILMAINHAM GAOL. In the Stonebreakers’ Yard the leaders of 1916 were shot. In the chapel, hours before, Grace Gifford married Joseph Plunkett by candlelight.',
+  ),
+  say(
+    'ST PATRICK’S CATHEDRAL. Jonathan Swift was Dean here. In 1492 two feuding earls made peace through a hole cut in that door, one putting his arm through first.',
+    'That’s where “chancing your arm” comes from. The door with the hole in it is still here.',
+  ),
+  say(
+    'THE JAMES JOYCE TOWER. A Martello tower built to watch for Napoleon. Joyce stayed here a week in 1904, and opened Ulysses on the roof.',
+  ),
+];
+
+// ---------- Wicklow, south of Greystones: Wicklow Gaol, the Sugarloaf, Powerscourt, Lough Tay and Glendalough ----------
+
+export const WICKLOW_NPCS: Npc[] = [
+  { look: 'trainer', face: 'left', trainer: 'wicklow-hillwalker', sight: 3 },
+  {
+    look: 'local',
+    face: 'down',
+    talk: say(
+      'LOCAL: That’s Lough Tay. The Guinness Lake, they call it: black water and a white beach, like a pint. The Guinness family own the land round it.',
+      'LOCAL: They say the sand was brought in specially to make it look like the head on a pint. I couldn’t tell you if that’s true. I’d like it to be.',
+    ),
+  },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: [
+      ...say(
+        'MONK: St Kevin came to Glendalough to be alone. He prayed so long with his arms out that a blackbird built her nest in his hand.',
+        'MONK: He held still, and kept his hand open, until the eggs hatched and the chicks flew. Weeks, it took. That’s patience.',
+      ),
+      once(
+        'gift:kevin',
+        'MONK: Here, for your journey. The blackbirds won’t miss it.',
+        'cup-of-tea',
+        3,
+        'MONK: Be patient with your Ranemon. Kevin would be.',
+      ),
+    ],
+  },
+];
+
+export const WICKLOW_SIGNS = {
+  gaol: 'WICKLOW GAOL. Built in 1702. Prisoners were held here before transportation to Australia. Ghost tours on Fridays.',
+  sugarloaf:
+    'THE GREAT SUGAR LOAF. Not a volcano, whatever your uncle says. Quartzite. A great view of the sea.',
+  tay: 'LOUGH TAY. Private land. Admire the lake from the road.',
+  glendalough:
+    'GLENDALOUGH. The valley of the two lakes: St Kevin’s monastery, a round tower and the Wicklow Way.',
+};
+
+export const WICKLOW_HOUSES: Step[][] = [
+  say(
+    'POWERSCOURT HOUSE. Gardens down to a lake, and the Powerscourt Waterfall up the road, the highest in Ireland at 121 metres.',
+    'LOCAL: The Pepper Pot tower in the garden was built for a lady’s birthday. Out of the pepper pot from her dinner table. Allegedly.',
+  ),
+];
+
+export const WICKLOW_LANDMARKS: Step[][] = [
+  say(
+    'WICKLOW GAOL. The cells are cold even in July. On the wall, someone has scratched a ship and a date: 1798.',
+  ),
+  say(
+    'GLENDALOUGH, ST KEVIN’S CHURCH. A stone church with a little round belfry, nicknamed St Kevin’s Kitchen because it looks like a chimney.',
+  ),
+];
+
+// ---------- Donegal, round Bundoran: Glenveagh, Errigal, the Grianán, Donegal Castle, the Fairy Bridges and Slieve League ----------
+
+export const DONEGAL_NPCS: Npc[] = [
+  { look: 'trainer', face: 'left', trainer: 'donegal-climber', sight: 3 },
+  {
+    look: 'local',
+    face: 'down',
+    talk: [
+      {
+        do: 'ask',
+        text: 'LOCAL: That’s the Wishing Chair at the Fairy Bridges. Sit in it, make a wish, and the fairies might grant it. Go on?',
+        yes: say(
+          'You sit in the stone chair and make a wish. The sea rolls under the bridges. Somewhere, very faintly, something laughs.',
+          'LOCAL: That’s a yes from them. Probably.',
+        ),
+        no: say('LOCAL: Ah, you’ve everything you want? Good for you.'),
+      },
+    ],
+  },
+  { look: 'busker', face: 'up', trainer: 'donegal-fiddler', sight: 3 },
+  {
+    look: 'oldman',
+    face: 'up',
+    talk: say(
+      'OLD MAN: Out past Tory Island lived Balor of the Evil Eye, king of the Fomorians. One look from that eye and a whole army fell.',
+      'OLD MAN: It was foretold his grandson would kill him, so he locked his daughter in a tower. Didn’t work. Lugh grew up and put a stone through the eye with a sling.',
+      'OLD MAN: Moral of the story: be nice to your grandchildren.',
+    ),
+  },
+  {
+    look: 'farmer',
+    face: 'down',
+    talk: [
+      ...say(
+        'FARMER: Up at the Grianán of Aileach, they say an army of warriors sleeps under the hill, horses and all, with their swords in their hands.',
+        'FARMER: A man found the way in once. He touched a sword, and they all began to stir, so he ran. Never found the door again.',
+      ),
+      once(
+        'gift:grianan',
+        'FARMER: If you go looking, take these. A sleeping army wakes up hungry.',
+        'full-irish',
+        1,
+        'FARMER: Did you find the door? No. Nobody does.',
+      ),
+    ],
+  },
+];
+
+export const DONEGAL_SIGNS = {
+  glenveagh:
+    'GLENVEAGH CASTLE AND NATIONAL PARK. Golden eagles were brought back here in 2000. Look up.',
+  errigal:
+    'ERRIGAL. Donegal’s highest mountain, pink in the sunset. The path is scree all the way.',
+  grianan:
+    'THE GRIANÁN OF AILEACH. A stone ring fort on a hill, older than anyone knows. You can see three counties from the wall.',
+  castle: 'DONEGAL CASTLE. The O’Donnells’ tower house, by the River Eske.',
+  fairy:
+    'THE FAIRY BRIDGES AND THE WISHING CHAIR. Sea arches under the cliffs. Further up the coast, Slieve League: some of the highest sea cliffs in Europe.',
+};
+
+export const DONEGAL_HOUSES: Step[][] = [
+  [
+    {
+      do: 'say',
+      text: 'LOCAL: Come in, come in, the kettle’s on. You’ll have a cup? You will. And a slice of brack. And a sandwich, you look half starved.',
+    },
+    once(
+      'gift:donegal-tea',
+      'LOCAL: Take these with you too. Nobody leaves a Donegal kitchen hungry.',
+      'cup-of-tea',
+      3,
+      'LOCAL: Back again? Sit down there. The kettle’s never off in this house.',
+    ),
+  ],
+];
+
+export const DONEGAL_LANDMARKS: Step[][] = [
+  say(
+    'GLENVEAGH CASTLE. A castle by a lake in the hills, with gardens of rhododendrons. An eagle circles over the battlements.',
+  ),
+  say(
+    'DONEGAL CASTLE. Red Hugh O’Donnell burned his own castle in 1595 rather than let it be taken. It was rebuilt, and he’s still talked about here like he left last week.',
+  ),
+];

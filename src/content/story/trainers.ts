@@ -723,6 +723,36 @@ const T: Trainer[] = [
     'I’ve a tenner on myself at 7 to 1. Don’t you dare let me down.',
   ),
   trainer(
+    'wicklow-hillwalker',
+    'Hillwalker Saoirse',
+    [
+      ['steadmon', 48],
+      ['robinmon', 49],
+      ['vinnimon', 50],
+    ],
+    'I walked the whole Wicklow Way to get here. You’re not getting past without a battle.',
+  ),
+  trainer(
+    'donegal-climber',
+    'Climber Eunan',
+    [
+      ['owemon', 48],
+      ['jammon', 49],
+      ['steadmon', 50],
+    ],
+    'I’ve been up Errigal three times today. Once more, after I beat you.',
+  ),
+  trainer(
+    'donegal-fiddler',
+    'Fiddler Gráinne',
+    [
+      ['enda', 48],
+      ['simomon', 49],
+      ['olliemon', 50],
+    ],
+    'The fiddle’s strung, the bow’s rosined. Let’s have a reel!',
+  ),
+  trainer(
     'dublin-jogger',
     'Jogger Ruth',
     [
