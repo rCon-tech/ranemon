@@ -1025,14 +1025,14 @@ export const TUBE: GameMap = {
 
 export const PL_MAPS = [MANCHESTER, LEEDS, LIVERPOOL, FALMER, BIRMINGHAM, NEWCASTLE, TUBE];
 
-/** Everyone on the way to the grounds. */
+/** Everyone on the way to the grounds: each with one of the lads and one of London’s own. */
 const ROUTE_TRAINERS: Trainer[] = [
   ukTrainer(
     'mcr-oasis',
     'Oasis Fan Liam',
     [
       ['oismon', 9],
-      ['owemon', 10],
+      ['decksmon', 12],
     ],
     'OASIS FAN LIAM: You’re not a patch on the Gallaghers. Nobody is. Come on then.',
     'OASIS FAN LIAM: Don’t look back in anger. I am, though.',
@@ -1041,7 +1041,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'mcr-ultra',
     'City Ultra Dean',
     [
-      ['gibbsmon', 10],
+      ['jabmon', 12],
       ['thilomon', 11],
     ],
     'CITY ULTRA DEAN: 115 what? Never heard of it. Battle!',
@@ -1051,7 +1051,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'leeds-analyst-1',
     'Analyst Tomás',
     [
-      ['steadmon', 12],
+      ['seedmon', 15],
       ['hugomon', 13],
     ],
     'ANALYST TOMÁS: I’ve already watched you. Through the hedge. With a clipboard.',
@@ -1062,7 +1062,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'Analyst Pablo',
     [
       ['paulimon', 13],
-      ['vinnimon', 14],
+      ['oatmon', 15],
     ],
     'ANALYST PABLO: Forty-two hours of footage on you. Let’s see if it was worth it.',
     'ANALYST PABLO: Forty-three hours, then.',
@@ -1071,7 +1071,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'lpool-ferry',
     'Ferryman Joe',
     [
-      ['boydemon', 15],
+      ['oystermon', 17],
       ['conemon', 16],
     ],
     'FERRYMAN JOE: Ferry ’cross the Mersey, la. First, a battle ’cross the Mersey.',
@@ -1082,7 +1082,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'Docker Mo',
     [
       ['killemon', 16],
-      ['thilomon', 17],
+      ['fleamon', 17],
     ],
     'DOCKER MO: My nan’s from Wexford. Doesn’t mean I’ll go easy on you.',
     'DOCKER MO: Ah, sound. Tell your nan I said hiya.',
@@ -1092,7 +1092,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'Canal Boater Pete',
     [
       ['jammon', 26],
-      ['skehemon', 27],
+      ['oatmon', 26],
     ],
     'CANAL BOATER PETE: More canals than Venice, Birmingham. Fewer gondolas. Battle!',
     'CANAL BOATER PETE: Sunk.',
@@ -1101,7 +1101,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'brum-bull',
     'Shopper Sharon',
     [
-      ['vinnimon', 27],
+      ['fleamon', 29],
       ['robinmon', 28],
     ],
     'SHOPPER SHARON: I’ve been in the Bullring since nine. I need a sit down. After this.',
@@ -1112,7 +1112,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'Topless Fan Gaz',
     [
       ['olliemon', 29],
-      ['gibbsmon', 30],
+      ['speedmon', 29],
     ],
     'TOPLESS FAN GAZ: Cold? It’s FRESH, man! Battle!',
     'TOPLESS FAN GAZ: Now I’m cold.',
@@ -1122,7 +1122,7 @@ const ROUTE_TRAINERS: Trainer[] = [
     'Bridge Walker Jen',
     [
       ['carlmon', 30],
-      ['owemon', 31],
+      ['pedalmon', 31],
     ],
     'BRIDGE WALKER JEN: Seven bridges on the Tyne. I’ve walked them all today. One more battle.',
     'BRIDGE WALKER JEN: Eight, if you count that.',

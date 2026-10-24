@@ -9,6 +9,9 @@ import {
   PROVAI_ASKED,
   PROVAI_AT_STATION,
   PROVAI_MET,
+  THATCHER_IN,
+  THATCHER_OUT,
+  UK_STARTER,
 } from '@/content/story/kneecap';
 import {
   ARRIVALS_ID,
@@ -26,11 +29,17 @@ import { hasUkForm, UK, UK_ENTRIES } from '@/lib/battle/uk';
 import { rollVariant, variantForm, variantOf, variantsOf } from '@/lib/battle/variants';
 import { gainExp, makeMember, speciesById } from '@/lib/story/party';
 import { parseSave, replace } from '@/lib/story/save';
-import { crossBorder, newGame, recruit } from '@/lib/story/state';
-import { npcsOf, type Step } from '@/lib/story/world';
+import { beatFlag, crossBorder, newGame, recruit } from '@/lib/story/state';
+import { isPresent, npcsOf, type Step } from '@/lib/story/world';
 
 /** Plays a script against `flags`, answering every question yes (or no), noting what happens. */
-function play(steps: Step[], flags: Set<string>, answer = true, out: string[] = []): string[] {
+function play(
+  steps: Step[],
+  flags: Set<string>,
+  answer = true,
+  out: string[] = [],
+  onBattle?: (trainer: string) => void,
+): string[] {
   for (const s of steps) {
     if (s.do === 'say') out.push(s.text);
     else if (s.do === 'flag') flags.add(s.flag);
@@ -38,9 +47,16 @@ function play(steps: Step[], flags: Set<string>, answer = true, out: string[] = 
     else if (s.do === 'travel') out.push(`TRAVEL ${s.map} ${s.x},${s.y}`);
     else if (s.do === 'border') out.push(`BORDER ${s.pub.map}`);
     else if (s.do === 'starter') out.push(`STARTER${s.uk ? ' UK' : ''}`);
-    else if (s.do === 'battle') out.push(`BATTLE ${s.trainer}`);
-    else if (s.do === 'if') play(flags.has(s.flag) ? s.then : (s.else ?? []), flags, answer, out);
-    else if (s.do === 'ask') play((answer ? s.yes : s.no) ?? [], flags, answer, out);
+    else if (s.do === 'battle') {
+      onBattle?.(s.trainer);
+      out.push(`BATTLE ${s.trainer}`);
+      flags.add(beatFlag(s.trainer));
+    } else if (s.do === 'flee') {
+      out.push(`FLEE ${s.flag}`);
+      flags.add(s.flag);
+    } else if (s.do === 'if')
+      play(flags.has(s.flag) ? s.then : (s.else ?? []), flags, answer, out, onBattle);
+    else if (s.do === 'ask') play((answer ? s.yes : s.no) ?? [], flags, answer, out, onBattle);
   }
   return out;
 }
@@ -205,12 +221,13 @@ describe('Britain', () => {
   it('has W.B Yates for a pub, with Liam Neeson on the bar, and a Tesco Express', () => {
     const pub = mapById(interiorId('london', 'P', 0));
     expect(pub.name).toBe('W.B Yates, London');
-    const [neeson, owner, provai] = pub.npcs;
+    const [neeson, owner, provai, thatcher] = pub.npcs;
     expect(neeson.look).toBe('neeson');
     expect(neeson.talk).toEqual([{ do: 'pub' }]);
     expect(owner.look).toBe('donal');
     expect(provai.look).toBe('provai');
-    expect(npcsOf(pub)).toHaveLength(3);
+    expect(thatcher.look).toBe('thatcher');
+    expect(npcsOf(pub)).toHaveLength(4);
     expect(NEESON_LINES.length).toBeGreaterThan(3);
     expect(mapById(interiorId('london', 'M', 0)).name).toBe('Tesco Express, London');
   });
@@ -226,6 +243,50 @@ describe('Britain', () => {
     expect(said.join(' ')).toContain('Irish Crown Jewels');
     expect(said).toContain('GIVE pint 5');
     expect(flags.has(FIXTURES)).toBe(true);
+  });
+
+  it('brings Thatcher into W.B Yates for her first battle, with her lines, then sees her out', () => {
+    const pub = mapById(interiorId('london', 'P', 0));
+    const provai = pub.npcs[2];
+    const thatcher = pub.npcs[3];
+    const flags = new Set<string>([LANDED]);
+    expect(isPresent(thatcher, flags)).toBe(false);
+    let there = false;
+    const said = play(provai.talk!, flags, true, [], (t) => {
+      if (t === 'rival-uk-1') there = isPresent(thatcher, flags);
+    });
+    // She's standing in the pub when the battle starts, and says her piece first.
+    expect(there).toBe(true);
+    const fight = said.indexOf('BATTLE rival-uk-1');
+    const before = said.slice(0, fight).join(' ');
+    expect(before).toContain(trainerById('rival-uk-1').before);
+    expect(before).toContain('Stansted');
+    expect(before).toContain('the King');
+    // Then she's gone again.
+    expect(said.indexOf(`FLEE ${THATCHER_OUT}`)).toBeGreaterThan(fight);
+    expect(isPresent(thatcher, flags)).toBe(false);
+  });
+
+  it('finishes the scene if it was cut off after the pick', () => {
+    // Picked, but the page closed before the battle: Thatcher comes in and the story is told.
+    let flags = new Set<string>([LANDED, UK_STARTER]);
+    let said = play(mapById(interiorId('london', 'P', 0)).npcs[2].talk!, flags);
+    expect(said).not.toContain('STARTER UK');
+    expect(said).toContain('BATTLE rival-uk-1');
+    expect(flags.has(FIXTURES)).toBe(true);
+    // Beat her, but closed before the story: just the story, and she's not left standing there.
+    flags = new Set([LANDED, UK_STARTER, beatFlag('rival-uk-1'), THATCHER_IN]);
+    said = play(mapById(interiorId('london', 'P', 0)).npcs[2].talk!, flags);
+    expect(said).not.toContain('BATTLE rival-uk-1');
+    expect(flags.has(FIXTURES)).toBe(true);
+    expect(isPresent(mapById(interiorId('london', 'P', 0)).npcs[3], flags)).toBe(false);
+  });
+
+  it('keeps Próvaí in the story about how UK Ranemon look', () => {
+    const said = play(mapById(interiorId('london', 'P', 0)).npcs[2].talk!, new Set([LANDED]));
+    const all = said.join(' ');
+    expect(all).not.toMatch(/photo|drawn|Ofcom|Game Boy/i);
+    expect(all).toContain('Classic Brits');
   });
 
   it('fights with UK Ranemon, and Thatcher picks one that beats yours', () => {

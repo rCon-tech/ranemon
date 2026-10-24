@@ -131,6 +131,17 @@ function head(species: string, shiny: boolean, variant?: string): HTMLImageEleme
   return img;
 }
 
+/**
+ * A Ranemon drawn in pixel art (a UK form, or one of London's own) rather than cut from a photo.
+ * Its mini sprite is the whole of it, head to feet, so it walks on its own, shorter than people.
+ */
+function isDrawn(species: string, variant?: string): boolean {
+  return /\/(drawn|london)\//.test(variantForm(speciesById(species), variant).sprite ?? '');
+}
+
+/** How tall a drawn Ranemon stands, in world pixels: under a person's 24, like a pet beside its trainer. */
+const DRAWN_HEIGHT = 16;
+
 /** The sign colour over each kind of door. */
 /** How far a tree's crown leans in the wind just now: a slow sway with the odd gust. */
 function sway(now: number, x: number, y: number): number {
@@ -564,7 +575,7 @@ export function Overworld(props: Props) {
       );
 
       // The follower takes the tile you just left: its photo head on a body in its colour,
-      // as tall as you, walking the way it's going and hopping a little. Or a dog, trotting.
+      // as tall as you (a drawn one is shorter, on its own legs), walking the way it's going and hopping a little. Or a dog, trotting.
       const tr = trail.current;
       const fname = p.dog ? null : p.follower;
       if (p.dog && (tr.at.x !== w.x || tr.at.y !== w.y)) {
@@ -591,6 +602,7 @@ export function Overworld(props: Props) {
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
         const hop = moving ? Math.sin(t * Math.PI) * 1.5 : idle(0.5);
         const frame = moving ? stepPose(t, w.frame) : 0;
+        const drawnFollower = isDrawn(fname, p.followerVariant);
         drawn.push({
           y: fy,
           paint: () => {
@@ -598,6 +610,20 @@ export function Overworld(props: Props) {
             c.beginPath();
             c.ellipse(sx(fx + 8), sy(fy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
+            const img = head(fname, !!p.followerShiny, p.followerVariant);
+            if (drawnFollower) {
+              // A drawn one is all there in its sprite, standing on the tile, a head shorter than you.
+              if (img.complete && img.naturalWidth) {
+                c.drawImage(
+                  img,
+                  sx(fx + 8 - DRAWN_HEIGHT / 2),
+                  sy(fy + 14.5 - DRAWN_HEIGHT - hop),
+                  DRAWN_HEIGHT,
+                  DRAWN_HEIGHT,
+                );
+              }
+              return;
+            }
             // A shiny's body is gold to match its head.
             const colour = p.followerShiny ? '#f8b830' : speciesById(fname).colour;
             c.drawImage(
@@ -610,7 +636,6 @@ export function Overworld(props: Props) {
               24,
             );
             // The photo always faces you, as there's no back view of it.
-            const img = head(fname, !!p.followerShiny, p.followerVariant);
             if (img.complete && img.naturalWidth) {
               c.drawImage(img, sx(fx - 2), sy(fy - 12 - hop), 20, 20);
             } else {

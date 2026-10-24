@@ -1,5 +1,6 @@
 import { CARL_PUB } from './ball';
 import { ELVIS_PUB } from './elvis';
+import { keeperOf } from './keepers';
 import { sibealInPub } from './sibeal';
 import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/world';
 
@@ -37,6 +38,22 @@ const HOUSE = [
   'WFFUUFFFFW',
   'WFFrrrFFFW',
   'WNFF@FFFNW',
+  'WWWWEWWWWW',
+];
+
+/**
+ * W.B Yates: the pub, but with its fourth place by Próvaí's table, where a visitor stands in
+ * view of the scene (Thatcher, in London) rather than down by the door under the text box.
+ */
+const YATES = [
+  'WWWWWWWWWW',
+  'WOWVVVVJVW',
+  'WFF1FFNFFW',
+  'WCCCCCCFFW',
+  'WFFFFF4F3W',
+  'WFUUF2FUUW',
+  'WFUUFFFUUW',
+  'WFFF@FFFNW',
   'WWWWEWWWWW',
 ];
 
@@ -84,7 +101,7 @@ const LAYOUTS: Record<Kind, string[]> = {
     'WOWWYYWWOW',
     'WNFFFFFFNW',
     'WFFFFFFFFW',
-    'WFFFXXFFFW',
+    'WFF1XXFFFW',
     'WFFFrrFFFW',
     'WFFFrrFFFW',
     'WNFF@FFFNW',
@@ -133,12 +150,18 @@ function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'insi
   const yates = outside.yates;
   const npcs: Npc[] = [
     { look: 'neeson', face: 'down', talk: [{ do: 'pub' }] },
-    ...(yates ? [yates.owner, ...(yates.regular ? [yates.regular] : [])] : []),
+    ...(yates
+      ? [
+          yates.owner,
+          ...(yates.regular ? [yates.regular] : []),
+          ...(yates.visitor ? [yates.visitor] : []),
+        ]
+      : []),
   ];
   return {
     ...base,
     name: `W.B Yates, ${town}`,
-    rows: placesFor(LAYOUTS.P, npcs.length),
+    rows: placesFor(YATES, npcs.length),
     npcs,
     things: {
       V: 'Every whiskey in Ireland, a few from Scotland, and none at all from England.',
@@ -282,11 +305,14 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
       const steps = outside.landmarks?.[index] ?? [];
       const own = outside.landmarkRooms?.[index];
       if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
+      const name = landmarkName(steps) ?? 'Michael D’s farmhouse';
+      // Whoever looks after the place, standing by its display.
+      const npcs = [keeperOf(outside.id, name)];
       return {
         ...base,
-        name: `${landmarkName(steps) ?? 'Michael D’s farmhouse'}, ${town}`,
-        rows: LAYOUTS.L,
-        npcs: [],
+        name: `${name}, ${town}`,
+        rows: placesFor(LAYOUTS.L, npcs.length),
+        npcs,
         arrive: steps,
         things: {
           X: firstLine(steps),

@@ -323,12 +323,12 @@ The wild levels below follow the levels already in the game (the legends' aces r
 
 A few details:
 
-- **The lads don't vanish.** The hub keeps a few of them at low odds so their UK forms are still catchable, and the towns up north (Manchester, Leeds, Liverpool, Birmingham, Newcastle) keep their lad tables as they are.
+- **The grass is mostly the lads.** Players want a party of the lads, so every wild table, London's included, is at least three quarters lads by weight (`tests/unit/originals.test.ts` checks it). London's own are the rest, area flavour and rarities, and the towns up north (Manchester, Leeds, Liverpool, Birmingham, Newcastle) keep their lad tables as they are.
 - **Evolved forms turn up later.** A line's evolved forms appear in later areas at their own levels (Golpeak and Crowdbat are in nearly every tunnel, like Zubat), and the Riverside is mostly evolved forms and rarities.
 - **Fiddlemon is a gift.** The W.B Yates London fiddler, who already battles you, hands you one when you beat him. His evolved forms are wild in Kilburn.
 - **Rare ones.** Aerodactivist (1 in 100 in Spitalfields), Hedgonair's line (rare in the Docks), Supercarmory (only at night in Knightsbridge), Misgravus (only at dusk in Highgate).
 - **The legends.** Strikedos appears once, on a Tube strike day after the Arsenal jersey (Lv45). Drizzticuno and Heatwavtres are post-game (Lv60), in the rain and in the Central line in August. Mewtube is below the deepest platform after the credits (Lv70). Mewseum, #151, is in the British Museum basement once you've caught the other 150 (Lv65), guarding everything that was never theirs to keep; a nod to the Irish Crown Jewels story.
-- **Trainers.** Each new area gets four to six trainers with London Ranemon from that area. Each of the twelve club legends adds one London Ranemon to their team of lads, from the area that opens around their ground's turn, in the jersey battle itself. There's no extra mission to earn it: every one is catchable in the wild anyway.
+- **Trainers.** London Ranemon are mostly met in trainers' teams. Each new area gets four to six trainers with London Ranemon from that area, and the trainers on the way to the grounds up north each have one of the lads and one Londoner. Everyone who matters (club legends, royals, gym leaders, bosses, the Championship) keeps at least one of the lads. Each of the twelve club legends adds one London Ranemon to their team of lads, from the area that opens around their ground's turn, in the jersey battle itself. There's no extra mission to earn it: every one is catchable in the wild anyway.
 
 ## Moves
 
@@ -386,7 +386,7 @@ Batches 1 to 5 each make a playable stretch of the story on their own, so the ga
 - **Code.** `src/lib/battle/london.ts` holds the species (one stat shape per line, scaled to each stage's budget), `london-moves.ts` their special moves, `content/story/shoreditch.ts` the map and its trainers. Sprites come from `scripts/drawn/london.py`, which writes them straight into `public/sprites/london/` and `public/sprites/shiny/london/`, each with its mini.
 - **Special moves from Lv1, on every stage.** As with the lads, each line's special is known from the first form and kept as it evolves; each of Wickmon's branches swaps it for its own. Wickmon has one too, **Bin Rota**. **Rush Hour** hits once for every Ranemon on the team still standing.
 - **Sport moves.** Three new sports, six moves each like the old ones: polo (mostly Posh), Sunday League (mostly Graft) and synchronised swimming (mostly Arty).
-- **The hub's wild table** is now Oystermon, Speedmon, Pedalmon and Skatemon, with eight of the lads at low odds.
+- **The hub's wild table** is eight of the lads, with Oystermon, Speedmon, Pedalmon and Skatemon as a fifth of it. Shoreditch & Hackney is three quarters lads, with its nine London lines and Aerodactivist in the rest.
 - **Shoreditch & Hackney** is reached by the Overground conductor on Liverpool Street's concourse once you have a UK Ranemon. Five trainers; the barista, the flatmate at the Tesco noticeboard and the canal boater give the tamper, the listing and the vape; Raver Ffion gives the wristband and Founder Jasper the wallet when beaten.
 - **The London Ranedex** is a second tab on the Ranedex, shown once you've seen a London Ranemon, numbered from 001.
 - **Not yet:** London special moves use their type's move effect rather than a scene of their own.
@@ -399,3 +399,4 @@ Rich approved the plan as written:
 2. **Three new types: Posh, Graft and Arty.**
 3. **The five cuts and the merges** above.
 4. **Each club legend gets one London Ranemon**, used in the jersey battle, with no extra mission.
+5. **Wild Ranemon are mostly the lads; London's own are mostly in trainers' teams**, and everyone important fields at least one of the lads. Each later batch's wild tables keep to three quarters lads or more.

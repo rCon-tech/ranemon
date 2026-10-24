@@ -16,6 +16,10 @@ export const PROVAI_ASKED = 'provai:asked';
 export const LANDED = 'london:landed';
 /** Próvaí has given you a UK Ranemon in W.B Yates. */
 export const UK_STARTER = 'london:starter';
+/** Thatcher has barged into W.B Yates, after your UK Ranemon. */
+export const THATCHER_IN = 'london:thatcher-in';
+/** She's battled you and stormed back out of W.B Yates. */
+export const THATCHER_OUT = 'london:thatcher-out';
 /** Próvaí has told you why the lads were taken, and what it'll take to get to the King. */
 export const FIXTURES = 'london:fixtures';
 /** Ian Wright's Railcard: the trains to Brighton, Birmingham and Newcastle run for you. */

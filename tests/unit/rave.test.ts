@@ -112,7 +112,7 @@ describe('Dublin, as a city', () => {
     // Saves and the rooms behind the doors go by which door of each kind it is.
     expect(mapById(interiorId('dublin', 'L', 0)).name).toMatch(/^St James’s Gate/);
     expect(mapById(interiorId('dublin', 'L', 1)).name).toMatch(/Hellfire Club/);
-    expect(mapById(interiorId('dublin', 'H', 0)).arrive![0]).toMatchObject({
+    expect(mapById(interiorId('dublin', 'H', 2)).arrive![0]).toMatchObject({
       text: expect.stringMatching(/^TEMPLE BAR/),
     });
     expect(mapById(interiorId('dublin', 'P', 0)).name).toBe('McGrattans, Dublin City');

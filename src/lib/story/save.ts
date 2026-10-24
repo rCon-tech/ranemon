@@ -15,7 +15,7 @@ import { doorStep, find, marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 4;
+export const SCHEMA = 5;
 
 type Raw = Record<string, unknown>;
 
@@ -46,11 +46,39 @@ const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     ],
     schema: 4,
   }),
+  // Every building got a door: the rooms after the new doors, in reading order, moved along.
+  4: (d) => ({
+    ...d,
+    ...renamedRoom(d),
+    pub: isObject(d.pub) ? { ...d.pub, ...renamedRoom(d.pub) } : d.pub,
+    schema: 5,
+  }),
 };
 
 /**
+ * The rooms whose ids moved when new doors came before them: the GPO, Supermac's and The Temple
+ * Bar in Dublin, and Athlone Castle in Westmeath.
+ */
+export const RENAMED_ROOMS: Record<string, string> = {
+  'dublin-H0': 'dublin-H2',
+  'dublin-H1': 'dublin-H4',
+  'dublin-H2': 'dublin-H5',
+  'dublin-H3': 'dublin-H6',
+  'dublin-H4': 'dublin-H7',
+  'dublin-H5': 'dublin-H8',
+  'dublin-H6': 'dublin-H9',
+  'westmeath-L2': 'westmeath-L3',
+};
+
+/** A place in a room that moved, now in the same room under its new id. */
+function renamedRoom(v: unknown): { map: string } | null {
+  if (!isObject(v) || typeof v.map !== 'string' || !(v.map in RENAMED_ROOMS)) return null;
+  return { map: RENAMED_ROOMS[v.map] };
+}
+
+/**
  * Every door on the old 24 × 16 Dublin, and the west and east ways in, as [tile, which one of
- * that tile, x, y]. The new map has the same doors in the same order.
+ * that tile on the map now, x, y]. The houses are 2 and 4 now the GPO and Supermac's come first.
  */
 const OLD_DUBLIN: [string, number, number, number][] = [
   ['L', 0, 15, 2],
@@ -58,9 +86,9 @@ const OLD_DUBLIN: [string, number, number, number][] = [
   ['@', 0, 0, 4],
   ['L', 1, 20, 9],
   ['P', 0, 4, 10],
-  ['H', 0, 10, 10],
+  ['H', 2, 10, 10],
   ['>', 0, 21, 10],
-  ['H', 1, 17, 12],
+  ['H', 4, 17, 12],
   ['L', 2, 5, 13],
 ];
 

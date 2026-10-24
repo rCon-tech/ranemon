@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { interiorId } from '@/content/story/interiors';
 import { mapById } from '@/content/story/maps';
+import { RENAMED_ROOMS } from '@/lib/story/save';
 import { find, marker, npcsOf, type GameMap } from '@/lib/story/world';
 
 /** The doors of the old, smaller county maps: they stay put, so saves and rooms still line up. */
@@ -91,10 +92,12 @@ describe.each(Object.entries(OLD_DOORS))('the bigger %s', (id, doors) => {
   it('keeps every old door where it was, first of its kind', () => {
     for (const [kind, x, y] of doors) {
       expect(map.rows[y][x], `${kind} at ${x},${y}`).toBe(kind);
-      // The old door is still the first of its kind, so its room keeps its id.
+      // The old door is still the first of its kind, so its room keeps its id, unless a door
+      // added since came first and saves inside it are moved along (RENAMED_ROOMS).
       if (kind !== 'P' && kind !== 'M' && kind !== 'G') {
         const index = find(map, kind).findIndex((p) => p.x === x && p.y === y);
-        expect(interiorId(id, kind, index)).toBe(interiorId(id, kind, 0));
+        const was = interiorId(id, kind, 0);
+        expect(interiorId(id, kind, index)).toBe(RENAMED_ROOMS[was] ?? was);
       }
     }
     expect(first(map, 'P')).toBeTruthy();

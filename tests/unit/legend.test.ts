@@ -24,7 +24,7 @@ describe('the legend of Dublin', () => {
   const talkTo = (look: string, flags: Set<string>) =>
     play(npcsOf(dublin).find((n) => n.item.look === look)!.item.talk!, flags);
   const barman = (flags: Set<string>) => {
-    const room = mapById(interiorId('dublin', 'H', 0));
+    const room = mapById(interiorId('dublin', 'H', 2));
     return play(room.arrive ?? [], flags);
   };
 
