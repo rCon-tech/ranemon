@@ -19,6 +19,9 @@ export type SfxId =
   | 'move-chill'
   | 'move-charm'
   | 'move-hype'
+  | 'move-posh'
+  | 'move-graft'
+  | 'move-arty'
   | 'special'
   | 'hit'
   | 'hit-super'
@@ -115,6 +118,20 @@ export const SFX: Record<SfxId, Recipe> = {
     tone(c, t, { wave: 'sq25', f: 200, to: 1600, dur: 0.3, vol: 0.2 });
     noise(c, t, { at: 0.1, dur: 0.25, vol: 0.18, filter: 'highpass', f: 2000, to: 8000 });
   },
+  // A little fanfare, as if someone important has arrived.
+  'move-posh': (c, t) => {
+    run(c, t, 'sq25', [523, 659, 784], 0.08, 0.16);
+    tone(c, t, { wave: 'sq25', f: 1047, at: 0.24, dur: 0.35, vol: 0.18, sustain: 0.3 });
+  },
+  // Three hammer blows.
+  'move-graft': (c, t) => {
+    for (const at of [0, 0.09, 0.18]) {
+      noise(c, t, { at, dur: 0.06, vol: 0.45, filter: 'bandpass', f: 2500, to: 1200 });
+      tone(c, t, { wave: 'tri', f: 220, to: 110, at, dur: 0.06, vol: 0.35 });
+    }
+  },
+  // A brush stroke up the scale and back.
+  'move-arty': (c, t) => run(c, t, 'sine', [392, 523, 659, 880, 1175, 880, 659], 0.04, 0.2),
   special: (c, t) => {
     run(c, t, 'sq25', [262, 330, 392, 523, 659, 784, 1047, 1319], 0.05, 0.18);
     noise(c, t, { at: 0.35, dur: 0.6, vol: 0.25, filter: 'bandpass', f: 600, to: 5000 });

@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { STAT_KEYS } from '@/lib/battle/creature';
+import { STAT_KEYS, validateCreature } from '@/lib/battle/creature';
 import { playTurn, startBattle } from '@/lib/battle/engine';
 import {
   DEX,
   EVOLUTIONS,
   EVOLVED,
   EVOLVED_BUDGET,
+  evolvedStats,
   formAt,
   formById,
   ITEM_EVOLUTIONS,
@@ -69,5 +70,23 @@ describe('evolutions', () => {
     const team = next.state.teams[0];
     expect(team.battlers[team.active].creature.id).toBe('hitmonollie');
     expect(team.battlers).toHaveLength(2);
+  });
+});
+
+describe('budgets for the London stages', () => {
+  it('scales a base form to any budget, keeping its shape', () => {
+    const carl = ROSTER.find((c) => c.id === 'carlmon')!;
+    for (const budget of [320, 440, 470, 490]) {
+      const stats = evolvedStats(carl.base, budget);
+      expect(STAT_KEYS.reduce((sum, k) => sum + stats[k], 0)).toBe(budget);
+      expect(stats.speed).toBe(Math.max(...STAT_KEYS.map((k) => stats[k])));
+    }
+  });
+
+  it('checks a card against its own stage’s budget', () => {
+    const carl = ROSTER.find((c) => c.id === 'carlmon')!;
+    const small = { ...carl, base: evolvedStats(carl.base, 320) };
+    expect(validateCreature(small, 320)).toEqual([]);
+    expect(validateCreature(small).join()).toMatch(/add up to 320, not 400/);
   });
 });

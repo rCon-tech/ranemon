@@ -44,9 +44,15 @@ it(`no type wins over 60% of ${BATTLES} simulated battles`, () => {
   }
 
   const pct = (t: { won: number; played: number }) => Math.round((100 * t.won) / t.played);
-  console.table(Object.fromEntries([...typeTally].map(([t, v]) => [t, `${pct(v)}%`])));
+  console.table(
+    Object.fromEntries(
+      [...typeTally].filter(([, v]) => v.played > 0).map(([t, v]) => [t, `${pct(v)}%`]),
+    ),
+  );
   console.table(Object.fromEntries([...creatureTally].map(([c, v]) => [c, `${pct(v)}%`])));
   for (const [t, tally] of typeTally) {
+    // Battle mode is the lads only, so the London types never play here.
+    if (tally.played === 0) continue;
     expect(tally.won / tally.played, `${t} win rate`).toBeLessThanOrEqual(0.6);
   }
 });

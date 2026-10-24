@@ -23,7 +23,8 @@ describe('sport moves', () => {
     expect(SPORT_MOVES).toHaveLength(36);
     const ids = new Set([...MOVES, ...SPORT_MOVES].map((m) => m.id));
     expect(ids.size).toBe(MOVES.length + SPORT_MOVES.length);
-    for (const t of TYPES) {
+    // The London types get their sport moves with the first London lines to learn them.
+    for (const t of TYPES.filter((t) => ROSTER.some((c) => c.types.includes(t)))) {
       const own = SPORT_MOVES.filter((m) => m.type === t);
       expect(own.length, t).toBeGreaterThanOrEqual(4);
       expect(

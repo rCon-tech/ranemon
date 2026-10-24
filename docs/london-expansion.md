@@ -183,18 +183,18 @@ Levels are a suggestion, assuming the UK starter joins at Lv 38 and London's lon
 
 | #   | Club           | Ground                                     | Town          | Legend          | Type             | Team, ace level | Jersey and reward                                                 |
 | --- | -------------- | ------------------------------------------ | ------------- | --------------- | ---------------- | --------------- | ----------------------------------------------------------------- |
-| 1   | Man United     | Old Trafford                               | Manchester    | Roy Keane       | Brawn            | 3, ace 42       | United jersey; Fergie's Hairdryer (moves the Trafalgar pigeons)   |
-| 2   | Leeds          | Elland Road                                | Leeds         | Marcelo Bielsa  | Brains           | 3, ace 44       | Leeds jersey; The Bucket (see trainers' teams before battling)    |
-| 3   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Liverpool     | Duncan Ferguson | Brawn and Chaos  | 3, ace 45       | Everton jersey; Blue Ghost x2                                     |
-| 4   | Tottenham      | Tottenham Hotspur Stadium                  | London (Tube) | Robbie Keane    | Charm            | 4, ace 47       | Spurs jersey; a cheap replica Europa League trophy (sells for £1) |
-| 5   | Crystal Palace | Selhurst Park                              | London (Tube) | Ian Wright      | Hype             | 4, ace 48       | Palace jersey; Railcard (half-price trains, unlocks run 2)        |
-| 6   | Brighton       | The Amex                                   | Brighton      | Glenn Murray    | Chill            | 4, ace 49       | Brighton jersey; Enda's second Friendship Bracelet                |
-| 7   | Aston Villa    | Villa Park                                 | Birmingham    | Paul McGrath    | Chill and Brains | 4, ace 51       | Villa jersey; The Rest Day (heal the party once a day, anywhere)  |
-| 8   | Newcastle      | St James' Park                             | Newcastle     | Alan Shearer    | Brawn and Hype   | 5, ace 52       | Newcastle jersey; Mammy's Dinner x2                               |
-| 9   | Chelsea        | Stamford Bridge                            | London (Tube) | John Terry      | Charm and Brawn  | 5, ace 53       | Chelsea jersey; Captain's Armband (held: +20% Defense)            |
-| 10  | Liverpool      | Anfield                                    | Liverpool     | Steven Gerrard  | Hype             | 5, ace 55       | Liverpool jersey; Proper Studs (no slipping on wet tiles)         |
-| 11  | Arsenal        | The Emirates                               | London (Tube) | Thierry Henry   | Charm and Brains | 6, ace 56       | Arsenal jersey; Va-Va-Voom (held: +20% Speed)                     |
-| 12  | Man City       | The Etihad                                 | Manchester    | Sergio Agüero   | Chaos and Hype   | 6, ace 58       | City jersey; the **Premier League trophy**                        |
+| 1   | Man United     | Old Trafford                               | Manchester    | Roy Keane       | Brawn            | 3, ace 10       | United jersey; Fergie's Hairdryer (moves the Trafalgar pigeons)   |
+| 2   | Leeds          | Elland Road                                | Leeds         | Marcelo Bielsa  | Brains           | 3, ace 14       | Leeds jersey; The Bucket (see trainers' teams before battling)    |
+| 3   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Liverpool     | Duncan Ferguson | Brawn and Chaos  | 3, ace 17       | Everton jersey; Blue Ghost x2                                     |
+| 4   | Tottenham      | Tottenham Hotspur Stadium                  | London (Tube) | Robbie Keane    | Charm            | 4, ace 20       | Spurs jersey; a cheap replica Europa League trophy (sells for £1) |
+| 5   | Crystal Palace | Selhurst Park                              | London (Tube) | Ian Wright      | Hype             | 4, ace 23       | Palace jersey; Railcard (half-price trains, unlocks run 2)        |
+| 6   | Brighton       | The Amex                                   | Brighton      | Glenn Murray    | Chill            | 4, ace 26       | Brighton jersey; Enda's second Friendship Bracelet                |
+| 7   | Aston Villa    | Villa Park                                 | Birmingham    | Paul McGrath    | Chill and Brains | 4, ace 29       | Villa jersey; The Rest Day (heal the party once a day, anywhere)  |
+| 8   | Newcastle      | St James' Park                             | Newcastle     | Alan Shearer    | Brawn and Hype   | 5, ace 32       | Newcastle jersey; Mammy's Dinner x2                               |
+| 9   | Chelsea        | Stamford Bridge                            | London (Tube) | John Terry      | Charm and Brawn  | 5, ace 35       | Chelsea jersey; Captain's Armband (held: +20% Defense)            |
+| 10  | Liverpool      | Anfield                                    | Liverpool     | Steven Gerrard  | Hype             | 5, ace 38       | Liverpool jersey; Proper Studs (no slipping on wet tiles)         |
+| 11  | Arsenal        | The Emirates                               | London (Tube) | Thierry Henry   | Charm and Brains | 6, ace 42       | Arsenal jersey; Va-Va-Voom (held: +20% Speed)                     |
+| 12  | Man City       | The Etihad                                 | Manchester    | Sergio Agüero   | Chaos and Hype   | 6, ace 46       | City jersey; the **Premier League trophy**                        |
 
 Every legend's team is made of UK-form lads. AI: legends 1 to 4 Normal, 5 to 12 Hard. Each pays the leader rate (ace level × £40).
 

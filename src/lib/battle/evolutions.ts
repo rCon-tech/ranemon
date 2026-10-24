@@ -144,13 +144,16 @@ export const EVOLUTIONS: Evolution[] = [
   },
 ].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
 
-/** Scales a base budget up to EVOLVED_BUDGET, keeping the shape; the largest stat takes the rounding. */
-export function evolvedStats(base: BaseStats): BaseStats {
+/**
+ * Scales a base budget up to `budget` (EVOLVED_BUDGET unless a London stage says otherwise),
+ * keeping the shape; the largest stat takes the rounding.
+ */
+export function evolvedStats(base: BaseStats, budget = EVOLVED_BUDGET): BaseStats {
   const total = STAT_KEYS.reduce((sum, k) => sum + base[k], 0);
   const out = { ...base };
-  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * EVOLVED_BUDGET) / total);
+  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * budget) / total);
   const top = STAT_KEYS.reduce((a, b) => (base[b] > base[a] ? b : a));
-  out[top] += EVOLVED_BUDGET - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
+  out[top] += budget - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
   return out;
 }
 
@@ -225,13 +228,21 @@ const BY_ID = new Map<string, { from: string }>(
 /** What a species evolves into, or undefined once it's fully evolved. */
 export const evolutionOf = (species: string) => BY_FROM.get(species);
 
-/** The first form of a species' line: an evolved form's base form, or the species itself. */
-export const lineOf = (species: string) => BY_ID.get(species)?.from ?? species;
+/**
+ * The first form of a species' line: an evolved form's base form, or the species itself. Walks
+ * back more than one step, for the London lines that evolve twice.
+ */
+export function lineOf(species: string): string {
+  let id = species;
+  for (let from = BY_ID.get(id)?.from; from; from = BY_ID.get(id)?.from) id = from;
+  return id;
+}
 
-/** The form a species takes at a level, for trainers' and wild Ranemon. */
+/** The form a species takes at a level, for trainers' and wild Ranemon: every step it's reached. */
 export function formAt(species: string, level: number): string {
-  const evo = evolutionOf(species);
-  return evo && level >= evo.level ? evo.id : species;
+  let id = species;
+  for (let evo = evolutionOf(id); evo && level >= evo.level; evo = evolutionOf(id)) id = evo.id;
+  return id;
 }
 
 const FORMS = new Map([...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, LEGEND].map((c) => [c.id, c]));
