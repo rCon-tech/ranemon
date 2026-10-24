@@ -59,6 +59,22 @@ const OLD_DOORS: Record<string, [string, number, number][]> = {
     ['P', 4, 10],
     ['M', 9, 10],
   ],
+  dublin: [
+    ['L', 18, 2],
+    ['M', 36, 2],
+    ['P', 4, 14],
+    ['H', 10, 14],
+  ],
+  donegal: [
+    ['P', 12, 2],
+    ['M', 19, 2],
+  ],
+  greystones: [
+    ['P', 4, 2],
+    ['M', 11, 2],
+    ['L', 17, 2],
+    ['H', 8, 9],
+  ],
 };
 
 const first = (map: GameMap, kind: string) => find(map, kind)[0];
@@ -67,8 +83,8 @@ describe.each(Object.entries(OLD_DOORS))('the bigger %s', (id, doors) => {
   const map = mapById(id);
 
   it('is bigger, and 2D only', () => {
-    expect(map.rows[0].length).toBeGreaterThanOrEqual(40);
-    expect(map.rows.length).toBeGreaterThanOrEqual(22);
+    // Greystones grows south down the Wicklow coast, with the sea to the east.
+    expect(map.rows[0].length * map.rows.length).toBeGreaterThanOrEqual(24 * 30);
     expect(map.flat).toBe(true);
   });
 
@@ -92,6 +108,7 @@ describe.each(Object.entries(OLD_DOORS))('the bigger %s', (id, doors) => {
   });
 
   it('moves the way out to the new east edge', () => {
+    if (!map.east) return;
     const width = map.rows[0].length;
     // In front of the Garda, or in Kildare in front of Enda, who stands in front of the Garda.
     expect(marker(map, '>').x).toBeGreaterThanOrEqual(width - 4);

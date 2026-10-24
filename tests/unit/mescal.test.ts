@@ -76,13 +76,14 @@ describe('Paul Mescal', () => {
     expect(spottedBy(dublin, here.x - 1, here.y, new Set([MESCAL_GONE]), beaten)).toBeNull();
   });
 
-  it('runs all the way to the edge of the map', () => {
+  it('runs off, out of sight', () => {
     const f = { index: here.index, dir: 'right' as const, t0: 1000, dur: FLEE_MS };
     expect(runOff(f, 1000)).toEqual({ tiles: 0, step: 0, t: 0 });
     expect(runOff(f, 1000 + FLEE_MS / 2).tiles).toBe(FLEE_TILES / 2);
     expect(runOff(f, 1000 + FLEE_MS * 3)).toEqual({ tiles: FLEE_TILES, step: FLEE_TILES, t: 0 });
-    // Past the last tile of road and into the trees at the edge of town.
-    expect(here.x + FLEE_TILES).toBeGreaterThanOrEqual(dublin.rows[0].length - 1);
+    // Further than half the screen (10 tiles across), so he's gone from view.
+    expect(FLEE_TILES).toBeGreaterThan(10 / 2);
+    expect(here.x + FLEE_TILES).toBeLessThan(dublin.rows[0].length);
   });
 
   it('wears tiny shorts over bare legs, a moustache and a sad face', () => {

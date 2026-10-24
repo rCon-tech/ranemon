@@ -1,5 +1,6 @@
 import { homeward } from './station';
 import type { GameMap, Npc, Step } from '@/lib/story/world';
+import { WICKLOW_HOUSES, WICKLOW_LANDMARKS, WICKLOW_NPCS, WICKLOW_SIGNS } from './legends';
 
 /**
  * Greystones, Co. Wicklow, by DART from Connolly Station in Dublin: the richest town in Ireland,
@@ -173,6 +174,8 @@ export const GREYSTONES: GameMap = {
   name: 'Greystones, Co. Wicklow',
   county: 9,
   slate: true,
+  // Grown south along the Wicklow coast: 2D only, like everything new.
+  flat: true,
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTT',
     'Tp"^^^^"p.^^^^.p^^^^^d~~',
@@ -186,6 +189,24 @@ export const GREYSTONES: GameMap = {
     'T....=.#H####.......dd~~',
     'Tp""S=.h=hp".,,,,,,.d~~~',
     'T,,,,,,,=,,,,,,,,,,,dd~~',
+    'TTTTTTTT=TTTTTTTTTTTdd~~',
+    'T.......=..........dd~~~',
+    'T.RRRRR.=...uuuuu..dd~~~',
+    'TRRRRRRR=...qqLqq..dd~y~',
+    'T.RRRR..=.........Sd~~~~',
+    'T..S....===========dd~~~',
+    'T...........=.......d~~~',
+    'T.^^^^^^....=..8....dd~~',
+    'T.##H###....=.......dd~~',
+    'T...........=...,,,,dd~~',
+    'T~~~~~~~....=...,,,,d~~~',
+    'T~~~~~~~dd..=...,9,,dd~~',
+    'T~~~~~~~d...=...,,,,d~~~',
+    'T......S....=........d~~',
+    'T.jjjj..RR..=.....,,dd~~',
+    'T.#L##..RR..=.....,,d~~~',
+    'T~~.....0...=.....,,dd~~',
+    'T~~~~..........S...dd~~~',
     'TTTTTTTTTTTTTTTTTTTTTTTT',
   ],
   wild: {
@@ -221,11 +242,16 @@ export const GREYSTONES: GameMap = {
     },
     DART_DRIVER,
     { look: 'cyclist', face: 'left', trainer: 'greystones-cyclist', sight: 3 },
+    ...WICKLOW_NPCS,
   ],
   signs: [
     'GREYSTONES STATION. DART to Bray, Dún Laoghaire and Connolly Station, Dublin.',
     'GREYSTONES MARINA. Moorings €40,000 a year. Waiting list: eleven years.',
     'GREYSTONES GOLF CLUB. Members only. The long grass is full of lost balls and wild Ranemon.',
+    WICKLOW_SIGNS.gaol,
+    WICKLOW_SIGNS.sugarloaf,
+    WICKLOW_SIGNS.tay,
+    WICKLOW_SIGNS.glendalough,
   ],
   houses: [
     [
@@ -238,6 +264,7 @@ export const GREYSTONES: GameMap = {
         text: 'LOCAL: The Happy Pear Twins? Lovely lads. Very fit. Very, very fit. Nobody can keep up with them.',
       },
     ],
+    ...WICKLOW_HOUSES,
   ],
   landmarks: [
     [
@@ -263,5 +290,6 @@ export const GREYSTONES: GameMap = {
         ],
       },
     ],
+    ...WICKLOW_LANDMARKS,
   ],
 };

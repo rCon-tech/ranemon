@@ -67,8 +67,9 @@ describe('the DART to Greystones', () => {
   const npc = (map: GameMap, look: Look) => npcsOf(map).find((n) => n.item.look === look)!;
 
   it('leaves from Connolly Station, the third landmark door in Dublin', () => {
-    // St James's Gate, the Hellfire Club, Connolly Station and the Rave Cave.
-    expect(find(dublin, 'L')).toHaveLength(4);
+    // St James's Gate, the Hellfire Club, Connolly Station and the Rave Cave, then the
+    // landmarks of the bigger Dublin after them.
+    expect(find(dublin, 'L').length).toBeGreaterThanOrEqual(4);
     expect(station.id).toBe(STATION_ID);
     expect(station.name).toBe('Connolly Station, Dublin City');
     expect(npc(station, 'dart').item.talk).toEqual(aboard(departureTo('greystones')));
@@ -94,8 +95,9 @@ describe('the DART to Greystones', () => {
       expect(find(greystones, tile).length, tile).toBeGreaterThan(0);
     expect(isWalkable('d')).toBe(true);
     for (const tile of ['p', 'y', 'c']) expect(isWalkable(tile), tile).toBe(false);
-    // Its own McGrattans and Vapes, and the Happy Pear café.
-    for (const door of ['P', 'M', 'L']) expect(find(greystones, door), door).toHaveLength(1);
+    // Its own McGrattans and Vapes, and the Happy Pear café, the first of its landmarks.
+    for (const door of ['P', 'M']) expect(find(greystones, door), door).toHaveLength(1);
+    expect(find(greystones, 'L')[0]).toEqual({ x: 17, y: 2 });
   });
 
   it('joins the Town Map once you have been, after Dublin', () => {

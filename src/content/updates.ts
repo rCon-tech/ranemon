@@ -14,8 +14,8 @@ export const UPDATES: Update[] = [
     date: '2026-10-24',
     title: 'Bigger counties',
     notes: [
-      'Every county from Clare to Kildare is much bigger, and looks more like the real place: castles, cliffs, cathedrals, lakes, mountains and a few things only locals know about.',
-      'There are new people to meet, local legends to hear, and a few gifts for anyone who goes looking. More counties are on the way.',
+      'Every county on the road, Dublin included, is much bigger, and looks more like the real place: castles, cliffs, cathedrals, lakes, mountains and a few things only locals know about.',
+      'There are new people to meet, local legends to hear, and a few gifts for anyone who goes looking. The places the trains go are bigger too.',
       'Everything you knew is where you left it: the new ground is to the east and south of each town.',
     ],
   },
