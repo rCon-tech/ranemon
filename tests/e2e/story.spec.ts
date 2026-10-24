@@ -1163,7 +1163,7 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
         version: 1,
         schema: 3,
         map: 'kildare',
-        x: 17,
+        x: 31,
         y: 11,
         face: 'right',
         party: [
@@ -1256,7 +1256,7 @@ test('story mode: Enda waves you over as you walk into Kildare', async ({ page }
         version: 1,
         schema: 3,
         map: 'meath',
-        x: 22,
+        x: 39,
         y: 12,
         face: 'right',
         party: [
