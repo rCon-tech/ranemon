@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Missions',
+    notes: [
+      'A new MISSIONS option on the START menu shows every mission you have on the go, what to do next and where to go.',
+      'Side stories appear there once you’ve started them, and drop off once they’re done.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Skins',
     notes: [
       'SKINS on the START menu: beat one of the characters you meet on your travels, or finish their side quest, and you can walk around dressed as them.',

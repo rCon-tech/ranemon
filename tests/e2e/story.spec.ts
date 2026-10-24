@@ -1337,3 +1337,49 @@ test('story mode: SKINS dresses you as someone you’ve beaten, in 2D and back i
   await page.waitForTimeout(1500);
   expect(errors).toEqual([]);
 });
+
+test('story mode: MISSIONS on the START menu shows what you have open, and what to do next', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(
+    ([open, none]) => {
+      if (localStorage.getItem('ranemon.story.v1:missions')) return;
+      localStorage.setItem('ranemon.story.v1:missions', JSON.stringify(open));
+      localStorage.setItem('ranemon.story.v1:nomissions', JSON.stringify(none));
+    },
+    [
+      championSave('trinity', 1, 7, 'left', ['rent:start', 'rent:crumbs', 'limepass']),
+      championSave('trinity', 1, 7, 'left', []),
+    ],
+  );
+  const missions = async (name: string) => {
+    await page.goto('/story');
+    await page.getByTestId('trainer-name').fill(name);
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    await expect(page.getByTestId('overworld')).toBeVisible();
+    await page.getByRole('button', { name: 'START' }).click();
+    await page.getByRole('button', { name: 'MISSIONS', exact: true }).click();
+  };
+
+  // With LIMEPASS and SKINS too, the START menu is long enough to scroll, and EXIT still works.
+  await missions('Missions');
+  await page.getByRole('button', { name: 'BACK' }).click();
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'EXIT', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'MISSIONS', exact: true })).toHaveCount(0);
+
+  // The rent, a clue in: one of three, and the next clue to find. The main story is over.
+  await missions('Missions');
+  const rent = page.getByTestId('mission-rent');
+  await expect(rent).toContainText('The missing rent');
+  await expect(rent).toContainText('1/3');
+  await expect(rent).toContainText('Garda on the quays');
+  await expect(page.getByTestId('mission-champions')).toHaveCount(0);
+  await page.getByRole('button', { name: 'BACK' }).click();
+  await expect(rent).toHaveCount(0);
+
+  // Nothing open: a friendly empty screen.
+  await missions('NoMissions');
+  await expect(page.getByTestId('missions-empty')).toBeVisible();
+});
