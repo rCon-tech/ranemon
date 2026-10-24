@@ -1,4 +1,5 @@
 import type { Creature } from './creature';
+import { hasUkForm, UK, ukSprite } from './uk';
 
 /**
  * Variants: a second look for a Ranemon, from another photo. It's the same Ranemon with the same
@@ -106,9 +107,16 @@ export const VARIANTS: Record<string, Variant[]> = {
 
 export const variantsOf = (species: string): Variant[] => VARIANTS[species] ?? [];
 
-/** A species' variant by id, or undefined for its usual look or a variant it doesn't have. */
-export const variantOf = (species: string, id: string | undefined) =>
-  id === undefined ? undefined : variantsOf(species).find((v) => v.id === id);
+/**
+ * A species' variant by id, or undefined for its usual look or a variant it doesn't have. The
+ * UK form (`uk.ts`) is one too, for the species that are drawn.
+ */
+export function variantOf(species: string, id: string | undefined): Variant | undefined {
+  if (id === undefined) return undefined;
+  if (id === UK)
+    return hasUkForm(species) ? { id, label: 'UK', sprite: ukSprite(species) } : undefined;
+  return variantsOf(species).find((v) => v.id === id);
+}
 
 /**
  * A creature in a variant's look. An unknown variant (one a later update took out, say) leaves

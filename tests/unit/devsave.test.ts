@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
+import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from '@/content/story/kneecap';
 import { TECHNO_DJ } from '@/content/story/techno';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
@@ -57,8 +58,18 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
+    // The London expansion is all still to play, from Próvaí at Connolly on.
+    const london = [
+      PROVAI_MET,
+      PROVAI_ASKED,
+      LANDED,
+      UK_STARTER,
+      FIXTURES,
+      'seen:london',
+      'seen:airport',
+    ];
     for (const f of storyFlags().filter(
-      (f) => ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE].includes(f),
+      (f) => ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE, ...london].includes(f),
     ))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.

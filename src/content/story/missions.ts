@@ -5,6 +5,7 @@ import { BEAT_PEARS, PEAR_HEARD } from './greystones';
 import { LEGEND_FLAG } from './maps';
 import { RENT_ACCUSED, RENT_CLUES, RENT_DONE, RENT_READY, RENT_START } from './rent';
 import { HEAD_OF_SECURITY } from './techno';
+import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from './kneecap';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 
@@ -222,6 +223,37 @@ export const MISSIONS: Mission[] = [
         until: TECHNO_DONE,
         todo: 'Get past stage security and beat DJ Vandenbass at the decks.',
         where: 'Flanders Expo, Ghent',
+      },
+    ],
+  },
+  {
+    id: 'kneecap',
+    name: 'Free the Lads',
+    about:
+      'Mo Chara and Móglaí Bap of Kneecap went to London on a mission and never came back. DJ Próvaí needs you.',
+    start: PROVAI_MET,
+    // For now the story runs as far as Próvaí telling you what happened; the Premier League is next.
+    done: FIXTURES,
+    steps: [
+      {
+        until: PROVAI_ASKED,
+        todo: 'Tell Próvaí yes. He’s on the concourse.',
+        where: 'Connolly Station, Dublin',
+      },
+      {
+        until: LANDED,
+        todo: 'Get the airport bus from platform 7, then the Ryanair flight to London Stansted.',
+        where: 'Dublin Airport',
+      },
+      {
+        until: UK_STARTER,
+        todo: 'Get the Stansted Express into London, and find Próvaí in W.B Yates.',
+        where: 'London',
+      },
+      {
+        until: FIXTURES,
+        todo: 'Hear Próvaí out. What happened the lads?',
+        where: 'W.B Yates, London',
       },
     ],
   },

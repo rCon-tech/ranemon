@@ -106,7 +106,16 @@ export type Look =
   | 'king'
   | 'eurostar'
   | 'security'
-  | 'headliner';
+  | 'headliner'
+  | 'provai'
+  | 'bus'
+  | 'neeson'
+  | 'border'
+  | 'crew'
+  | 'stag'
+  | 'gatecamper'
+  | 'donal'
+  | 'fiddler';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -138,7 +147,14 @@ export type Step =
    */
   | { do: 'flee'; flag: string; dir: Dir }
   | { do: 'heal' }
-  | { do: 'starter' }
+  /** The starter pick: Michael D's at home, or Próvaí's UK Ranemon in London (`uk`). */
+  | { do: 'starter'; uk?: true }
+  /**
+   * Over the border between Ireland and Britain: Ranemon can't cross it, so the party and Group
+   * Chat you had are left behind, and the ones waiting on this side (none, the first time) come
+   * back. You'd wake in `pub` after a blackout until you next visit one.
+   */
+  | { do: 'border'; pub: { map: string; x: number; y: number } }
   | { do: 'pub' }
   /** Vapes, or someone's own stall with its own prices. */
   | { do: 'shop'; stall?: Stall }
@@ -170,6 +186,8 @@ export interface Trainer {
   rival?: boolean;
   /** A first battle you can lose: no blackout, and the story carries on either way. */
   friendly?: boolean;
+  /** In Britain: its Ranemon are UK forms, and a rival's team is worked out from your UK starter. */
+  uk?: boolean;
 }
 
 export interface Npc {
@@ -258,6 +276,23 @@ export interface GameMap {
   after?: { flag: string } & Partial<Omit<GameMap, 'id' | 'after'>>;
   /** A party, with everything that goes with it. */
   party?: Party;
+  /**
+   * In Britain (the London expansion): wild Ranemon are UK forms, the pubs are W.B Yates and
+   * the shop is a Tesco Express, and the Limepass doesn't cross the sea.
+   */
+  uk?: boolean;
+  /** This town's W.B Yates: who runs it and what's different about it. */
+  yates?: Yates;
+}
+
+/** A W.B Yates, the pubs in England: each run by Irish people living there, and each its own. */
+export interface Yates {
+  /** Whoever runs it, standing at the end of the bar. */
+  owner: Npc;
+  /** Someone else in, if there is. */
+  regular?: Npc;
+  /** What the things in the room say, over the usual ones. */
+  things?: Record<string, string>;
 }
 
 export interface Party {

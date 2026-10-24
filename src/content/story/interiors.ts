@@ -120,6 +120,35 @@ const firstLine = (steps: Step[]) => {
   return s?.do === 'say' ? s.text : '…';
 };
 
+/** A layout with only the first `n` people's places in it: the rest are floor. */
+const placesFor = (rows: string[], n: number) =>
+  rows.map((r) => r.replace(/[1-9]/g, (d) => (Number(d) <= n ? d : 'F')));
+
+/**
+ * A pub in Britain: a W.B Yates, with Liam Neeson behind the bar and its own owner and regulars
+ * (`yates` on the town's map). In London that's Donal from Cork, with Próvaí in the back.
+ */
+function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'inside'>): GameMap {
+  const town = outside.name.split(',')[0];
+  const yates = outside.yates;
+  const npcs: Npc[] = [
+    { look: 'neeson', face: 'down', talk: [{ do: 'pub' }] },
+    ...(yates ? [yates.owner, ...(yates.regular ? [yates.regular] : [])] : []),
+  ];
+  return {
+    ...base,
+    name: `W.B Yates, ${town}`,
+    rows: placesFor(LAYOUTS.P, npcs.length),
+    npcs,
+    things: {
+      V: 'Every whiskey in Ireland, a few from Scotland, and none at all from England.',
+      U: 'A sticky table, a pint of Guinness and a packet of King crisps, smuggled over.',
+      J: 'A turf fire. Where they get turf in London, nobody asks.',
+      ...yates?.things,
+    },
+  };
+}
+
 function room(outside: GameMap, kind: Kind, index: number): GameMap {
   const id = interiorId(outside.id, kind, index);
   const home = id === HOME_ID;
@@ -129,6 +158,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
 
   switch (kind) {
     case 'P':
+      if (outside.uk) return yatesRoom(outside, base);
       return {
         ...base,
         name: `McGrattans, ${town}`,
@@ -158,6 +188,28 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
         },
       };
     case 'M':
+      if (outside.uk)
+        return {
+          ...base,
+          name: `Tesco Express, ${town}`,
+          rows: LAYOUTS.M,
+          npcs: [
+            {
+              look: 'shopkeeper',
+              face: 'down',
+              talk: [
+                {
+                  do: 'say',
+                  text: 'TESCO: Welcome to Tesco Express. Unexpected item in the bagging area. That’s just what I say now.',
+                },
+                { do: 'shop' },
+              ],
+            },
+          ],
+          things: {
+            A: 'Meal deals, a fridge of Blue Ghosts at London prices and Tayto, in the “World Foods” aisle.',
+          },
+        };
       return {
         ...base,
         name: `Vapes, ${town}`,

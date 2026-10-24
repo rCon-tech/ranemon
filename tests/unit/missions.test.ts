@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { UK_STARTER } from '@/content/story/kneecap';
 import { COUNTIES, MAPS } from '@/content/story/maps';
 import { RENT_CLUES, RENT_DONE, RENT_READY, RENT_START } from '@/content/story/rent';
 import { TRAINERS } from '@/content/story/trainers';
@@ -33,8 +34,10 @@ describe('the missions', () => {
       ...TRAINERS.map((t) => beatFlag(t.id)),
       ...DEX.map((c) => `caught:${c.id}`),
       ...JERSEYS,
-      // Set by the starter screen and the ending, not by a script step.
+      // Set by the starter screens (Michael D's, and Próvaí's in London) and the ending, not by
+      // a script step.
       'starter',
+      UK_STARTER,
       'champion',
     ]);
     for (const m of MISSIONS) {

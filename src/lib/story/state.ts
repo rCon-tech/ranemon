@@ -36,6 +36,13 @@ export interface StoryState {
   /** The next member uid. */
   uid: number;
   starter?: string;
+  /** The UK Ranemon Próvaí gave you in London (`docs/london-expansion.md`). */
+  ukStarter?: string;
+  /**
+   * The party and Group Chat on the other side of the Irish Sea: Ranemon can't cross the border,
+   * so whichever lot you aren't with waits here (`crossBorder`).
+   */
+  away?: { party: Member[]; box: Member[] };
   steps: number;
   /** `steps` when the dog walking with you last found something (`lib/story/norm.ts`). */
   foundAt?: number;
@@ -152,7 +159,12 @@ export function recruit(
   level: number,
   from?: Partial<Member>,
 ): { state: StoryState; line: string | null } {
-  const member: Member = { ...makeMember(species, level, s.uid), ...from, uid: s.uid };
+  // A UK Ranemon stays the way it's drawn: it isn't made up evolved, whatever its level.
+  const member: Member = {
+    ...makeMember(species, level, s.uid, from?.variant),
+    ...from,
+    uid: s.uid,
+  };
   const caught = s.caught.includes(member.species) ? s.caught : [...s.caught, member.species];
   const next = { ...see(s, member.species), uid: s.uid + 1, caught };
   if (s.party.length < PARTY_SIZE) {
@@ -233,13 +245,26 @@ export function settleBattle(
   if (result === 'loss' || result === 'draw') {
     const tab = Math.floor(state.money / 2);
     state = { ...healParty(state), money: state.money - tab, ...s.pub, face: 'down' };
-    const town = outsideOf(mapById(s.pub.map)).name.split(',')[0];
+    const outside = outsideOf(mapById(s.pub.map));
+    const town = outside.name.split(',')[0];
+    // In Britain the pubs are W.B Yates, and the tab is in pounds.
     lines.push(
       'You’re out of Ranemon that can fight!',
-      `You come round in McGrattans, ${town}, with a bar tab of €${tab}.`,
+      outside.uk
+        ? `You come round in W.B Yates, ${town}, with a bar tab of £${tab}. Liam Neeson is standing over you. He says nothing.`
+        : `You come round in McGrattans, ${town}, with a bar tab of €${tab}.`,
     );
   }
   return { state, lines };
+}
+
+/**
+ * Over the border: the party and Group Chat you have stay behind, and the ones that were waiting
+ * on the far side (none, the first time over) are yours again. A blackout wakes you at `pub`.
+ */
+export function crossBorder(s: StoryState, pub: StoryState['pub']): StoryState {
+  const back = s.away ?? { party: [], box: [] };
+  return { ...s, party: back.party, box: back.box, away: { party: s.party, box: s.box }, pub };
 }
 
 export const toggleExpShare = (s: StoryState): StoryState => ({ ...s, expShare: !s.expShare });

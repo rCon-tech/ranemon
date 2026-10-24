@@ -106,7 +106,7 @@ export function lineCues(text: string): Cue[] {
 const roomKind = (id: string) => /-([PMGHL])\d+$/.exec(id)?.[1] ?? null;
 
 /** Where the city's music plays instead of the road's. */
-const CITIES = ['dublin', 'trinity', 'brighton', 'belgium'];
+const CITIES = ['dublin', 'trinity', 'brighton', 'belgium', 'airport', 'stansted', 'london'];
 
 /** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */
 const TECHNO = ['belgium-L1'];

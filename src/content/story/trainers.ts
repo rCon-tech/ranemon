@@ -8,6 +8,7 @@ import { PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
+import { UK_TRAINERS } from './london';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -591,6 +592,7 @@ const T: Trainer[] = [
   ...RAVE_TRAINERS,
   ...BRIGHTON_TRAINERS,
   ...TECHNO_TRAINERS,
+  ...UK_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {
@@ -631,6 +633,8 @@ const RIVAL_STAGES: Record<string, { levels: number[] }> = {
   'rival-3': { levels: [22, 20, 20] },
   'rival-4': { levels: [42, 40, 40, 41] },
   'rival-5': { levels: [46, 44, 44, 45, 45, 44] },
+  // In London, with the UK Ranemon she picked after yours.
+  'rival-uk-1': { levels: [38] },
 };
 const RIVAL_BENCH = [
   'killemon',

@@ -1,6 +1,7 @@
 import { BOYDE } from './boyde';
 import { ENDA_ASKED } from './enda';
 import { CRAMPS_AT_STATION, TECHNO_ASKED } from './cramps';
+import { PROVAI_ARRIVE, PROVAI_ASKED, PROVAI_AT_STATION } from './kneecap';
 import { interiorId } from './interiors';
 import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
 
@@ -149,6 +150,32 @@ export const DEPARTURES: (Departure | Line)[] = [
   },
   { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 5, soon: true },
   { id: 'galway', line: 'Intercity', to: 'Galway', platform: 6, soon: true },
+  {
+    id: 'airport',
+    line: 'Airport Bus',
+    to: 'Dublin Airport',
+    platform: 7,
+    at: { x: 3, y: 6, face: 'up' },
+    staff: 'bus',
+    ask: 'BUS DRIVER: The bus to Dublin Airport. Hop on?',
+    notNow: 'BUS DRIVER: No bother. There’s another one in twenty minutes. Or forty.',
+    ride: [
+      'Platform 7 turns out to be the car park. A bus is waiting. There is still no train to the airport.',
+      'Up the M1 in the bus lane, past everyone stuck in traffic. It feels great.',
+    ],
+    first:
+      'DUBLIN AIRPORT. Planes overhead, taxis honking, and a stag party in matching pink T-shirts at 6am.',
+    lock: {
+      flag: PROVAI_ASKED,
+      locked:
+        'CLERK: The airport bus? Platform 7. Well, the car park. Where are you off to? You’ve nowhere to be yet, by the look of you.',
+    },
+    back: {
+      ask: 'BUS DRIVER: Back into town, to Connolly?',
+      ride: 'Down the M1 into Dublin, and round the back of Connolly.',
+      notNow: 'BUS DRIVER: Grand. Mind your bags.',
+    },
+  },
 ];
 
 export const isRunning = (d: Departure | Line): d is Departure => !d.soon;
@@ -202,6 +229,8 @@ export function homeward(id: string): Step[] {
       yes: [
         { do: 'say', text: back.ride },
         { do: 'travel', map: STATION_ID, ...PLATFORM },
+        // Back from Ghent, Próvaí is waiting on the platform (kneecap.ts).
+        ...PROVAI_ARRIVE,
       ],
       no: [{ do: 'say', text: back.notNow }],
     },
@@ -226,13 +255,16 @@ const CLERK: Step[] = [
 ];
 
 /** Where the platform staff stand along the top of the concourse, in platform order. */
-const STAFF_X = [2, 7, 3, 6];
+const STAFF_X = [2, 7, 3, 6, 5];
 
 /** Where Jamie Boyde stands on the concourse, by the benches, out of everyone's way. */
 const BOYDE_AT = { x: 7, y: 5 };
 
 /** Where Cramps waits on the concourse once he's asked you to I Love Techno. */
 const CRAMPS_AT = { x: 5, y: 5 };
+
+/** Where Próvaí waits on the concourse once he's found you. */
+const PROVAI_AT = { x: 6, y: 4 };
 
 export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
   // The clerk is person 1; each running line's staff stand at the top, in platform order, and
@@ -252,6 +284,7 @@ export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
   staff.forEach((_, i) => (rows[2][STAFF_X[i]] = String(i + 2)));
   rows[BOYDE_AT.y][BOYDE_AT.x] = String(staff.length + 2);
   rows[CRAMPS_AT.y][CRAMPS_AT.x] = String(staff.length + 3);
+  rows[PROVAI_AT.y][PROVAI_AT.x] = String(staff.length + 4);
   return {
     name: 'Connolly Station',
     rows: rows.map((r) => r.join('')),
@@ -260,6 +293,7 @@ export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
       ...staff.map((d) => ({ look: d.staff, face: 'down' as Dir, talk: aboard(d) })),
       BOYDE,
       CRAMPS_AT_STATION,
+      PROVAI_AT_STATION,
     ],
     things: {
       D: boardText(),
@@ -274,4 +308,6 @@ export const STATION_ARRIVE: Step[] = [
     do: 'say',
     text: 'CONNOLLY STATION. Trains are humming at every platform. The ticket desk is by the door.',
   },
+  // Back from Ghent, DJ Próvaí is waiting (kneecap.ts).
+  ...PROVAI_ARRIVE,
 ];

@@ -13,7 +13,9 @@ import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
 import { CRAMPS_ARRIVE } from './cramps';
+import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
+import { AIRPORT, LONDON, STANSTED } from './london';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1123,7 +1125,7 @@ export const MAPS: GameMap[] = [
     },
     landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom() },
     // Once you're Champion, Cramps comes running up the street the first time you're back out.
-    arrive: CRAMPS_ARRIVE,
+    arrive: [...CRAMPS_ARRIVE, ...PROVAI_ARRIVE],
     west: 'kildare',
     east: 'trinity',
   },
@@ -1229,6 +1231,9 @@ export const MAPS: GameMap[] = [
   GREYSTONES,
   BRIGHTON,
   BELGIUM,
+  AIRPORT,
+  STANSTED,
+  LONDON,
 ];
 
 /** The rooms behind every door. */

@@ -5,6 +5,7 @@ import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
+import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from '@/content/story/kneecap';
 import { DEFAULT_SKIN, SKINS } from '@/content/story/skins';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
@@ -56,6 +57,14 @@ const LEFT_TO_PLAY = new Set([
   TECHNO_DONE,
   NORM,
   ELVIS,
+  // The London expansion, from Próvaí at Connolly on.
+  PROVAI_MET,
+  PROVAI_ASKED,
+  LANDED,
+  UK_STARTER,
+  FIXTURES,
+  'seen:london',
+  'seen:airport',
 ]);
 
 /** Every script step in the maps and trainers, found by walking the content. */

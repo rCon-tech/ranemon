@@ -7,16 +7,19 @@ import { Panel } from './Panels';
 export function LimepassPanel({
   flags,
   here,
+  uk,
   onGo,
   onClose,
 }: {
   flags: ReadonlySet<string>;
   /** The map you're on, which isn't worth a ride. */
   here: string;
+  /** In Britain: the Lime only goes to towns there. */
+  uk: boolean;
   onGo: (stop: LimeStop) => void;
   onClose: () => void;
 }) {
-  const stops = limeStops(flags);
+  const stops = limeStops(flags, uk);
   return (
     <Panel title="LIMEPASS" onClose={onClose}>
       <p className="text-[11px] leading-relaxed">Where to? Any town you’ve been to.</p>
