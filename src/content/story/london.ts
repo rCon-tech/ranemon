@@ -660,6 +660,7 @@ export const LONDON: GameMap = {
   name: 'London, England',
   county: 9,
   flat: true,
+  terraces: 'english',
   slate: true,
   uk: true,
   yates: LONDON_YATES,

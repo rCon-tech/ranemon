@@ -79,6 +79,7 @@ export const SHOREDITCH: GameMap = {
   name: 'Shoreditch & Hackney, London',
   county: 9,
   flat: true,
+  terraces: 'english',
   uk: true,
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',

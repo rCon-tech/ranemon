@@ -472,6 +472,7 @@ export const GALWAY: GameMap = {
   county: 10,
   // New places are 2D only: the 3D look shows Galway and the Hall in 2D.
   flat: true,
+  terraces: 'georgian',
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTT',
     'T^^^^^^vv^^^^^v^^^^^^^^T',

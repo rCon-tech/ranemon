@@ -28,6 +28,7 @@ import {
   type BikeKind,
   type Style,
 } from './people';
+import { drawLamp, facadesOf, lampsOf } from './facades';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
 import { paintFacade, paintRoom } from './brands';
 import {
@@ -284,6 +285,7 @@ export function Overworld(props: Props) {
       const camX = snap(clamp(px + 8 - SCREEN_W / 2, mapW, SCREEN_W));
       const camY = snap(clamp(py + 8 - SCREEN_H / 2, mapH, SCREEN_H));
       const gymRoofs = gymRoofsOf(map);
+      const facades = facadesOf(map);
       const sx = (x: number) => snap(x - camX);
       const sy = (y: number) => snap(y - camY);
 
@@ -316,6 +318,7 @@ export function Overworld(props: Props) {
             variant,
             frameOf(tile, now),
             tile === '^' && gymRoofs.has(`${tx},${ty}`),
+            facades.get(`${tx},${ty}`),
           );
           c.drawImage(image, sx(tx * TILE), sy(ty * TILE), TILE, TILE);
           if (TALL.has(tile)) {
@@ -715,6 +718,17 @@ export function Overworld(props: Props) {
         );
       }
 
+      // Street lamps along the kerbs of a city of terraces.
+      for (const l of lampsOf(map)) {
+        if (l.x < x0 - 1 || l.x > x0 + SCREEN_W / TILE + 1) continue;
+        if (l.y < y0 - 1 || l.y > y0 + SCREEN_H / TILE + 2) continue;
+        const foot = l.y * TILE + TILE - 1;
+        drawn.push({
+          y: foot - TILE + 0.5,
+          paint: () => drawLamp(c, sx(l.x * TILE + 8), sy(foot), light.night, map.terraces!),
+        });
+      }
+
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
 
       // A party's fairy lights, strung over everyone's heads.
@@ -818,6 +832,17 @@ export function Overworld(props: Props) {
       if (light.night > 0) {
         c.save();
         c.globalCompositeOperation = 'lighter';
+        // Each street lamp throws a pool of light.
+        for (const l of lampsOf(map)) {
+          const gx = sx(l.x * TILE + 8);
+          const gy = sy(l.y * TILE + TILE - 1 - 24);
+          if (gx < -40 || gy < -40 || gx > SCREEN_W + 40 || gy > SCREEN_H + 40) continue;
+          const g = c.createRadialGradient(gx, gy + 12, 1, gx, gy + 12, 24);
+          g.addColorStop(0, `rgb(255 220 140 / ${0.32 * light.night})`);
+          g.addColorStop(1, 'rgb(255 220 140 / 0)');
+          c.fillStyle = g;
+          c.fillRect(gx - 24, gy - 12, 48, 48);
+        }
         for (const d of map.inside ? [] : doors(map)) {
           const gx = sx(d.x * TILE + 8);
           const gy = sy(d.y * TILE + 14);

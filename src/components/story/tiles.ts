@@ -1,3 +1,4 @@
+import { drawFacade, facadeKey, type Facade } from './facades';
 import { BEAT_MS } from './partyfx';
 import { TILE } from './pixels';
 
@@ -168,10 +169,20 @@ const ROADISH = new Set(['a', 'B', 'c']);
  */
 function pavement(c: Ctx, r: () => number, around: Around) {
   px(c, 0, 0, T, T, '#c8c4bc');
+  // Each slab weathered a shade of its own, so a wide pavement doesn't read as one grey sheet.
+  const slabs = ['#c8c4bc', '#c2beb4', '#ccc8c0', '#bebab0'];
   for (let row = 0; row < 2; row++) {
     const y = row * 16;
+    const seam = row ? 0 : 16;
+    for (const [x, w] of seam
+      ? [
+          [-16, 32],
+          [16, 32],
+        ]
+      : [[0, 32]])
+      px(c, Math.max(0, x), y, Math.min(T, x + w) - Math.max(0, x), 16, slabs[(r() * 4) | 0]);
     px(c, 0, y, T, 1, '#a8a49c');
-    px(c, row ? 0 : 16, y, 1, 16, '#a8a49c');
+    px(c, seam, y, 1, 16, '#a8a49c');
     px(c, 0, y + 1, T, 1, '#d8d4cc');
   }
   for (let i = 0; i < 18; i++)
@@ -1488,12 +1499,16 @@ export function tileImage(
   variant: number,
   frame: number,
   slate = false,
+  facade?: Facade,
 ) {
   const v = variant % 4;
   const joins = `${around.n}${around.e}${around.s}${around.w}`;
-  return kept(`${tile}:${v}:${frame}:${joins}:${slate}`, () => {
+  const front = facade ? facadeKey(facade) : '';
+  return kept(`${tile}:${v}:${frame}:${joins}:${slate}:${front}`, () => {
     const [cv, c] = canvas();
     const r = rng(v * 977 + tile.charCodeAt(0) * 31);
+    // A house in a city terrace, drawn by facades.ts.
+    if (facade && drawFacade(c, tile, facade, r)) return cv;
     switch (tile) {
       case ',':
         tallGrass(c, frame, false);
