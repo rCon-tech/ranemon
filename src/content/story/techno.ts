@@ -52,16 +52,23 @@ export const DJ_REWARD: Step[] = [
   },
 ];
 
-/** Everyone you battle in Ghent, in the order you meet them. */
+/**
+ * Everyone you battle in Ghent, in the order you meet them, all on Hard. Tuned for a party at
+ * each one's ace level: the guards win about 1 time in 10 to 1 in 5, and the DJ about 1 in 3.
+ * Hugengar and Vinnisaur are there for Tobymon. Hugengar takes half from his Brains moves and
+ * hits his Defense, his weaker guard, with base 138 Attack; Vinnisaur, Charm and Brains like him,
+ * takes half from everything he has (`tests/sim/postgame.test.ts`).
+ */
 export const TECHNO_TRAINERS: Trainer[] = [
   {
     id: 'techno-wouter',
     name: 'Security Wouter',
     team: [
-      ['boydemon', 52],
+      ['boydemon', 53],
       ['steadmon', 53],
+      ['enda', 54],
     ],
-    ai: 'normal',
+    ai: 'hard',
     prize: 1060,
     before:
       'SECURITY WOUTER: Wristband? No wristband, no entry. A County Clare jersey is not a wristband.',
@@ -71,11 +78,12 @@ export const TECHNO_TRAINERS: Trainer[] = [
     id: 'techno-ilse',
     name: 'Security Ilse',
     team: [
-      ['gibbsmon', 53],
-      ['conemon', 53],
-      ['simomon', 54],
+      ['gibbsmon', 54],
+      ['conemon', 54],
+      ['hugomon', 55],
+      ['simomon', 55],
     ],
-    ai: 'normal',
+    ai: 'hard',
     prize: 1080,
     before:
       'SECURITY ILSE: Champion of Ireland? I don’t know what that is. In Belgium we have a king. Is he on the list? No. Neither are you.',
@@ -85,9 +93,10 @@ export const TECHNO_TRAINERS: Trainer[] = [
     id: HEAD_OF_SECURITY,
     name: 'Head of Security Dirk',
     team: [
-      ['carlmon', 54],
-      ['killemon', 55],
-      ['boydemon', 55],
+      ['carlmon', 55],
+      ['hugomon', 55],
+      ['killemon', 56],
+      ['boydemon', 56],
     ],
     ai: 'hard',
     prize: 1100,
@@ -100,9 +109,10 @@ export const TECHNO_TRAINERS: Trainer[] = [
     id: 'techno-bart',
     name: 'Stage Security Bart',
     team: [
-      ['robinmon', 55],
+      ['robinmon', 56],
       ['lorcamon', 56],
-      ['simomon', 56],
+      ['vinnimon', 57],
+      ['steadmon', 57],
     ],
     ai: 'hard',
     prize: 1120,
@@ -114,8 +124,8 @@ export const TECHNO_TRAINERS: Trainer[] = [
     id: TECHNO_DJ,
     name: 'DJ Vandenbass',
     team: [
-      ['owemon', 56],
-      ['jammon', 57],
+      ['hugomon', 56],
+      ['vinnimon', 57],
       ['crampemon', 58],
       ['oismon', 58],
       ['olliemon', 59],
@@ -175,8 +185,8 @@ export const BELGIUM: GameMap = {
     'TTTTTTTTTTTTTTTTTTTTTTTT',
   ],
   wild: {
-    min: 50,
-    max: 56,
+    min: 54,
+    max: 58,
     table: [
       ['thilomon', 20],
       ['crampemon', 20],
