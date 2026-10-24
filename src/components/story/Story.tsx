@@ -17,6 +17,7 @@ import { interiorId } from '@/content/story/interiors';
 import { lookOf, unlockSkins, wearSkin } from '@/content/story/skins';
 import { ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
+import { levelCap, scaleTeam } from '@/lib/story/levels';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
 import { LEGEND } from '@/lib/battle/legend';
@@ -35,7 +36,7 @@ import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
-import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
+import { COMPANIONS, companionOf, finds, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
   itemEvolve,
@@ -108,6 +109,7 @@ import { rollVariant } from '@/lib/battle/variants';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
 import { FLEE_MS, type Flight } from './walk';
+import { COLLINS, ELITE } from '@/content/story/galway';
 
 /** The 3D overworld and its WebGL library load only when the 3D look is picked. */
 const Overworld3D = dynamic(() => import('./Overworld3D'), {
@@ -228,14 +230,15 @@ function EvolutionScene({ text, party }: { text: string; party: Member[] }) {
 }
 
 /**
- * The battlefield's backdrop: B&S and the legend at night, gyms indoors, the streets of Dublin
- * Brighton and Ghent, or the fields.
+ * The battlefield's backdrop: B&S, the legend and Michael Collins at night, gyms and the Hall of
+ * Champions indoors, the streets of Dublin, Brighton, Ghent and Galway, or the fields.
  */
 function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   if (trainer?.startsWith('bns') || foe === LEGEND.id) return 'night';
-  if (trainer && map.gym?.trainer === trainer) return 'gym';
+  if (trainer === COLLINS) return 'night';
+  if (trainer && (map.gym?.trainer === trainer || ELITE.includes(trainer))) return 'gym';
   const outside = outsideOf(map).id;
-  if (['dublin', 'trinity', 'brighton', 'belgium'].includes(outside)) return 'city';
+  if (['dublin', 'trinity', 'brighton', 'belgium', 'galway'].includes(outside)) return 'city';
   return 'field';
 }
 
@@ -316,7 +319,7 @@ export function Story() {
       playSfx('door');
     }
   }, [here]);
-  // Each line's sound: items, levels, the pub, Norm.
+  // Each line's sound: items, levels, the pub, the dogs.
   useEffect(() => {
     if (line && !line.full) play(lineCues(line.text));
     // Once per line, not again when it's skipped to the end.
@@ -462,7 +465,9 @@ export function Story() {
               break;
             }
             const t = trainerById(s.trainer);
-            const team = teamOf(t, g.starter).map(([id, level], i) =>
+            // Once you're Champion, every trainer scales up to your party; the Championship
+            // in Galway always does, Champion or not.
+            const team = scaleTeam(teamOf(t, g.starter), g, t.above).map(([id, level], i) =>
               toEntrant(makeMember(id, level, -1 - i)),
             );
             for (const e of team) g = see(g, e.creature.id);
@@ -566,10 +571,12 @@ export function Story() {
       return;
     }
 
-    // Norm has a nose for things: every so often he turns something up.
-    if (hasFlag(g, NORM) && Math.random() < NORM_FIND_RATE) {
+    // Norm and Elvis have a nose for things: every so often the dog turns something up.
+    const dog = companionOf(g.flags);
+    if (dog && finds(g.steps, g.foundAt, Math.random())) {
+      g = { ...g, foundAt: g.steps };
       run(g, [
-        { do: 'say', text: 'Norm found something!' },
+        { do: 'say', text: `${COMPANIONS[dog].name} found something!` },
         { do: 'give', item: pickFind(Math.random()) },
       ]);
       return;
@@ -814,7 +821,7 @@ export function Story() {
       ]);
       return;
     }
-    const settled = settleBattle(game, state, result, fought, trainer !== null);
+    const settled = settleBattle(game, state, result, fought, trainer !== null, trainer?.id);
     let g = settled.state;
     // Scripts ask whether a particular Ranemon was befriended, such as the legend.
     if (result === 'caught') g = setFlag(g, `caught:${fight.teams[1][0].creature.id}`);
@@ -1078,7 +1085,7 @@ export function Story() {
   const map = mapFor(game.map, game.flags);
   const flags = new Set(game.flags);
   const walker = follower(game);
-  const norm = flags.has(NORM);
+  const dog = companionOf(flags);
   const ghosts = find(map, '*').filter((p) => !flags.has(ghostFlag(map.id, p.x, p.y)));
 
   return (
@@ -1091,10 +1098,10 @@ export function Story() {
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
-          follower={norm ? null : (walker?.species ?? null)}
+          follower={dog ? null : (walker?.species ?? null)}
           followerShiny={!!walker?.shiny}
           followerVariant={walker?.variant}
-          dog={norm}
+          dog={dog}
           frozen={busy}
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
           look={lookOf(game)}
@@ -1197,7 +1204,7 @@ export function Story() {
               let g = take(game, id);
               let lines: string[];
               if (item.use.kind === 'level') {
-                const r = blueGhost(m, game.party);
+                const r = blueGhost(m, game.party, levelCap(game));
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = r.lines;
               } else if (item.use.kind === 'hold') {

@@ -1,4 +1,4 @@
-import type { Dir, Look } from '@/lib/story/world';
+import type { Dir, Dog, Look } from '@/lib/story/world';
 import { INK } from './pixels';
 
 /**
@@ -65,6 +65,8 @@ export interface Style {
   tiny?: boolean;
   /** Anyone very tall: drawn bigger, head and shoulders over everyone. */
   tall?: boolean;
+  /** A big man, like Carl Ryan: drawn bigger again, towering over the tall. */
+  big?: boolean;
   /** Big DJ headphones over the head, in this colour. */
   headphones?: string;
   /** A St George's cross on the chest. */
@@ -78,6 +80,12 @@ export interface Style {
   sad?: boolean;
   /** A glow stick in each hand, in this colour. */
   glowsticks?: string;
+  /** Sleeveless, with big bare arms: a gym vest. */
+  vest?: boolean;
+  /** A plastic bag pulled down over the whole head, with eye holes, in this colour. */
+  plasticBag?: string;
+  /** A leather strap across the chest from the shoulder, like an officer's Sam Browne belt. */
+  strap?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -89,8 +97,12 @@ export const TINY = 0.64;
 /** How tall someone `tall` stands, next to everyone else. */
 export const TALL = 1.22;
 
+/** How big someone `big` is drawn, next to everyone else. */
+export const BIG = 1.5;
+
 /** How big someone is drawn, next to everyone else. */
-export const scaleOf = (s: Style) => (s.tiny ? TINY : s.small ? SMALL : s.tall ? TALL : 1);
+export const scaleOf = (s: Style) =>
+  s.tiny ? TINY : s.small ? SMALL : s.big ? BIG : s.tall ? TALL : 1;
 
 const SKIN = '#f8d0a8';
 
@@ -573,21 +585,21 @@ export const STYLES: Record<Look | 'player', Style> = {
     socks: '#f4f4f4',
     shoes: '#141418',
   },
-  // Carl Ryan at the Trinity Ball: very tall, in black tie with a Blue Ghost blue bow tie, and a
-  // blue sports bag full of cans over his shoulder.
+  // Carl Ryan: a big man, in a stone-coloured blazer over an open white shirt, navy trousers, a
+  // black belt, clubmaster shades and a moustache, with a blue sports bag full of cans.
   carl: {
     skin: SKIN,
-    hair: '#3a2a1e',
-    hairStyle: 'short',
-    top: '#18181e',
+    hair: '#2e2018',
+    hairStyle: 'slick',
+    top: '#d8d0c0',
     topKind: 'suit',
-    trim: '#f4f4f4',
-    tie: '#3a8ae8',
-    legs: '#18181e',
-    shoes: '#0c0c10',
+    trim: '#f6f6f8',
+    legs: '#1c2440',
+    shoes: '#2a1e16',
+    glasses: 'shades',
+    moustache: '#4a3020',
     bag: '#3a8ae8',
-    beard: '#3a2a1e',
-    tall: true,
+    big: true,
   },
   // At the Ball in black tie, bow tie loosened.
   reveller: {
@@ -837,6 +849,83 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#18161c',
     shoes: '#f4f4f4',
     headphones: '#f0c040',
+  },
+  // Rob Lipsett, a gym bro: a fade, a tan, a tight black vest over huge arms, and a shaker.
+  lipsett: {
+    skin: '#e8b080',
+    hair: '#3a2416',
+    hairStyle: 'short',
+    beard: '#3a2416',
+    top: '#18181c',
+    topKind: 'shirt',
+    trim: '#f04848',
+    legs: '#3a3a44',
+    shoes: '#f4f4f4',
+    vest: true,
+    tall: true,
+  },
+  // Blindboy Boatclub: a plastic shopping bag over his head, a Limerick jersey and jeans.
+  blindboy: {
+    skin: '#f8d0a8',
+    hair: '#f8d0a8',
+    hairStyle: 'none',
+    plasticBag: '#ece8de',
+    top: '#2a7a3a',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#2c3c64',
+    shoes: '#18181c',
+  },
+  // Johnny B of The 2 Johnnies: a Tipperary jersey, a flat cap and wellies.
+  johnnyb: {
+    skin: '#f4c8a0',
+    hair: '#6a3a1e',
+    hairStyle: 'short',
+    hat: { kind: 'flat', colour: '#5a6a48' },
+    top: '#1e4aa0',
+    topKind: 'shirt',
+    trim: '#f0c030',
+    legs: '#3a4a30',
+    shoes: '#1c3a1c',
+  },
+  // Johnny Smacks: a red beard, a check shirt and a gilet, and wellies too.
+  johnnysmacks: {
+    skin: '#f8d0a8',
+    hair: '#b05a28',
+    hairStyle: 'short',
+    beard: '#b05a28',
+    top: '#3a3a40',
+    topKind: 'waistcoat',
+    trim: '#c83a3a',
+    legs: '#2c3c64',
+    shoes: '#1c3a1c',
+  },
+  // Bono: slicked-back hair, tinted shades, all in black leather, and an earring.
+  bono: {
+    skin: '#f0c8a0',
+    hair: '#24181a',
+    hairStyle: 'slick',
+    glasses: 'shades',
+    earrings: '#e0c060',
+    top: '#141418',
+    topKind: 'jacket',
+    trim: '#2a2a30',
+    legs: '#141418',
+    shoes: '#141418',
+  },
+  // Michael Collins: the green uniform of the Free State army, a peaked cap and a Sam Browne belt.
+  collins: {
+    skin: '#f4caa0',
+    hair: '#2a1a12',
+    hairStyle: 'slick',
+    hat: { kind: 'garda', colour: '#4a5a32', trim: '#c8a040' },
+    top: '#4a5a32',
+    topKind: 'coat',
+    trim: '#c8a040',
+    legs: '#4a5a32',
+    shoes: '#3a2414',
+    strap: '#6a3a1e',
+    tall: true,
   },
 };
 
@@ -1100,6 +1189,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   }
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
   if (s.hearts && back) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
+  if (back && s.strap) for (let i = 0; i < 26; i++) px(c, 44 - i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
@@ -1175,6 +1265,14 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, 36, y0 + 22, 9, 1, light);
       break;
     case 'shirt':
+      if (s.vest) {
+        // A scooped neck and wide armholes, and a logo on the chest.
+        round(c, 25, y0 - 1, 14, 6, 3, s.skin);
+        px(c, 17, y0, 4, 8, s.skin);
+        px(c, 43, y0, 4, 8, s.skin);
+        px(c, 29, y0 + 10, 7, 3, s.trim);
+        break;
+      }
       // A collar, a placket and a stripe.
       px(c, 26, y0, 5, 3, s.trim);
       px(c, 33, y0, 5, 3, s.trim);
@@ -1205,6 +1303,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, 18, y0 + h - 2, 28, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.hearts) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
+  if (s.strap) for (let i = 0; i < 26; i++) px(c, 20 + i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (s.cross) {
     px(c, 30, y0 + 3, 4, 16, s.cross);
     px(c, 23, y0 + 9, 18, 4, s.cross);
@@ -1244,6 +1343,12 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       shaded(c, x - 2, ay, 11, 26, 4, s.top, 0.3, 0.35);
       px(c, x + 2, ay + 6, 1, 16, shade(s.top, 0.7));
       px(c, x, ay + 21, 7, 4, s.trim);
+    } else if (s.vest) {
+      // Bare arms, a size up, with a bulge at the bicep and a line where it meets the forearm.
+      shaded(c, x - 1, ay, 9, 22, 4, s.skin, 0.3, 0.3);
+      round(c, x - 2, ay + 3, 11, 8, 4, s.skin);
+      px(c, x + (x < 32 ? 1 : 3), ay + 5, 4, 2, shade(s.skin, 1.12));
+      px(c, x, ay + 12, 7, 1, shade(s.skin, 0.82));
     } else {
       shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
       // An elbow fold and a cuff.
@@ -1312,7 +1417,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     c.restore();
   }
   if (s.bag) shaded(c, 38, y0 + 4, 10, 22, 4, s.bag, 0.3, 0.3);
-  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, far, 0.1, 0.4);
+  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, s.vest ? shade(s.skin, 0.8) : far, 0.1, 0.4);
   shaded(c, 21, y0, 22, h, 5, s.top, 0.3, 0.25);
   px(c, 21, y0 + h - 1, 22, 1, shade(s.top, 0.6));
   if (s.topKind === 'hivis') {
@@ -1343,8 +1448,15 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
   // The near arm, in front.
   const wide = s.topKind === 'agbada' || s.topKind === 'gown';
   const ax = 27 - swing;
-  shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
-  px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  if (s.vest) {
+    shaded(c, ax - 1, y0 + 1, 10, 22, 4, s.skin, 0.35, 0.3);
+    round(c, ax - 2, y0 + 3, 12, 8, 4, s.skin);
+    px(c, ax, y0 + 12, 8, 1, shade(s.skin, 0.82));
+  } else {
+    shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
+    px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  }
+  if (s.strap) px(c, 24, y0 + 1, 3, h - 3, s.strap);
   if (s.hearts) heart(c, ax + 2, y0 + 5, s.hearts);
   round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
   if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
@@ -1570,6 +1682,42 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
   }
   if (s.headphones) headphones(c, s.headphones, side, y);
   if (covered) hat(c, s, side, y);
+  if (s.plasticBag) plasticBag(c, s.plasticBag, side, y);
+}
+
+/** A plastic shopping bag over the whole head: creased, tied at the neck, with two eye holes. */
+function plasticBag(c: Ctx, colour: string, side: Side, y: number) {
+  const crease = shade(colour, 0.8);
+  const light = shade(colour, 1.08);
+  // The handles, sticking up off the top like ears.
+  for (const x of side === 'left' ? [26, 38] : [18, 42]) {
+    px(c, x, y - 4, 4, 7, colour);
+    px(c, x + 1, y - 3, 2, 4, crease);
+  }
+  round(c, 13, 1 + y, 38, 37, 11, colour);
+  round(c, 17, 4 + y, 10, 18, 4, light);
+  for (const [x, y1, h] of [
+    [22, 8, 12],
+    [34, 5, 14],
+    [42, 12, 16],
+    [27, 26, 8],
+  ])
+    px(c, x, y1 + y, 1, h, crease);
+  // Gathered in at the neck.
+  px(c, 18, 35 + y, 28, 3, crease);
+  if (side === 'up') return;
+  // Eye holes, and a little smile drawn on in marker.
+  const eyes = side === 'left' ? [19] : [22, 36];
+  for (const ex of eyes) {
+    round(c, ex, 18 + y, 7, 6, 2, '#18181c');
+    px(c, ex + 2, 20 + y, 2, 2, '#f8f8f8');
+  }
+  if (side === 'left') px(c, 18, 30 + y, 5, 1, '#2a2a30');
+  else {
+    px(c, 27, 30 + y, 10, 1, '#2a2a30');
+    px(c, 26, 29 + y, 1, 1, '#2a2a30');
+    px(c, 37, 29 + y, 1, 1, '#2a2a30');
+  }
 }
 
 /** DJ headphones: a band over the top of the head and a big cup over each ear. */
@@ -1723,7 +1871,7 @@ export function paintPerson(
   return flipped;
 }
 
-// ---------- Norm ----------
+// ---------- dogs: Norm and Elvis ----------
 
 export const DOG = '#1e1e24';
 export const DOG_SHINE = '#3e3e4a';
@@ -1731,13 +1879,33 @@ export const DOG_WHITE = '#f4f4f0';
 export const DOG_GREY = '#c8c8cc';
 export const NOSE = '#0a0a0c';
 export const TONGUE = '#e86a7a';
+const GLINT = '#f4f4f0';
+
+/** A dog's colours: its coat, the coat's highlight, its markings and their shadow. */
+export interface Coat {
+  coat: string;
+  shine: string;
+  white: string;
+  grey: string;
+  /** Drawn this much bigger than Norm, standing on the same spot. */
+  scale: number;
+}
+
+export const COATS: Record<Dog, Coat> = {
+  // Norm: a border collie, black with a white blaze, chest, socks and tail tip.
+  norm: { coat: DOG, shine: DOG_SHINE, white: DOG_WHITE, grey: DOG_GREY, scale: 1 },
+  // Elvis, Carl Ryan's dog: really huge and black all over, only a dusty grey chest and muzzle.
+  elvis: { coat: '#141418', shine: '#30303a', white: '#3c3c46', grey: '#2a2a32', scale: 2 },
+};
 
 /**
- * Norm, Sibeal's black and white dog, who walks behind you in place of your Ranemon: a border
- * collie with a white blaze, white chest and socks, and a white tip to his tail. On the same
- * 64 × 96 canvas as a person, standing on the same ground, but half as tall.
+ * A dog who walks behind you in place of your Ranemon, or waits in a corner: Norm is a border
+ * collie with a white blaze, white chest and socks, and a white tip to his tail, and Elvis the
+ * same shape in black. On the same 64 × 96 canvas as a person, standing on the same ground, but
+ * half as tall; draw it `COATS[dog].scale` times bigger.
  */
-export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
+export function paintDog(dir: Dir, frame: number, dog: Dog = 'norm'): HTMLCanvasElement {
+  const { coat, shine, white, grey } = COATS[dog];
   const canvas = document.createElement('canvas');
   canvas.width = PERSON_W;
   canvas.height = PERSON_H;
@@ -1748,60 +1916,60 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
   if (dir === 'left' || dir === 'right') {
     // Tail first, curving up behind.
     const wag = p.stride % 2 ? 1 : 0;
-    px(c, 50, 60 + lift - wag, 4, 10, DOG);
-    px(c, 53, 54 + lift - wag, 4, 8, DOG);
-    px(c, 55, 50 + lift - wag, 4, 5, DOG_WHITE);
+    px(c, 50, 60 + lift - wag, 4, 10, coat);
+    px(c, 53, 54 + lift - wag, 4, 8, coat);
+    px(c, 55, 50 + lift - wag, 4, 5, white);
     // Legs: far pair in shadow, then the body, then the near pair.
     const swing = p.stride * 2;
     const leg = (x: number, far: boolean, dx: number) => {
       const up = Math.abs(dx) >= 4 ? 2 : 0;
-      px(c, x + dx, 74 + lift, 5, ground - 74 - lift - 4 - up, far ? DOG_SHINE : DOG);
-      px(c, x + dx, ground - 5 - up, 5, 5, far ? DOG_GREY : DOG_WHITE);
+      px(c, x + dx, 74 + lift, 5, ground - 74 - lift - 4 - up, far ? shine : coat);
+      px(c, x + dx, ground - 5 - up, 5, 5, far ? grey : white);
     };
     leg(17, true, -swing);
     leg(43, true, swing);
-    shaded(c, 12, 58 + lift, 42, 20, 9, DOG, 0.18, 0.2);
+    shaded(c, 12, 58 + lift, 42, 20, 9, coat, 0.18, 0.2);
     // The white chest and belly.
-    round(c, 12, 64 + lift, 12, 14, 5, DOG_WHITE);
-    px(c, 22, 74 + lift, 20, 3, DOG_GREY);
+    round(c, 12, 64 + lift, 12, 14, 5, white);
+    px(c, 22, 74 + lift, 20, 3, grey);
     leg(14, false, swing);
     leg(40, false, -swing);
     // The head, out in front: a black skull, a white blaze and muzzle, and a floppy ear.
-    shaded(c, 4, 42 + lift, 22, 20, 8, DOG, 0.2, 0.2);
-    round(c, 0, 52 + lift, 14, 10, 4, DOG_WHITE);
-    px(c, 10, 42 + lift, 4, 12, DOG_WHITE);
+    shaded(c, 4, 42 + lift, 22, 20, 8, coat, 0.2, 0.2);
+    round(c, 0, 52 + lift, 14, 10, 4, white);
+    px(c, 10, 42 + lift, 4, 12, white);
     px(c, 0, 52 + lift, 4, 4, NOSE);
     px(c, 4, 61 + lift, 5, 3, TONGUE);
     px(c, 9, 48 + lift, 3, 3, NOSE);
-    px(c, 9, 48 + lift, 1, 1, DOG_WHITE);
-    px(c, 16, 38 + lift, 7, 6, DOG);
-    px(c, 18, 44 + lift, 6, 8, DOG_SHINE);
+    px(c, 9, 48 + lift, 1, 1, GLINT);
+    px(c, 16, 38 + lift, 7, 6, coat);
+    px(c, 18, 44 + lift, 6, 8, shine);
   } else if (dir === 'down') {
     // Facing you: head over a white chest, front legs below, the back end behind.
-    shaded(c, 18, 60 + lift, 28, 22, 10, DOG, 0.2, 0.25);
-    round(c, 23, 62 + lift, 18, 18, 7, DOG_WHITE);
+    shaded(c, 18, 60 + lift, 28, 22, 10, coat, 0.2, 0.25);
+    round(c, 23, 62 + lift, 18, 18, 7, white);
     for (const [x, foot] of [
       [22, -1],
       [37, 1],
     ] as const) {
       const up = p.stride === foot * 2 ? 2 : p.stride === foot ? 1 : 0;
-      px(c, x, 76 + lift, 6, ground - 76 - lift - up, DOG);
-      px(c, x, ground - 6 - up, 6, 6, DOG_WHITE);
+      px(c, x, 76 + lift, 6, ground - 76 - lift - up, coat);
+      px(c, x, ground - 6 - up, 6, 6, white);
     }
     // Ears, one up and one flopped.
-    px(c, 16, 38 + lift, 7, 8, DOG);
-    px(c, 41, 42 + lift, 8, 6, DOG);
-    shaded(c, 18, 40 + lift, 28, 24, 10, DOG, 0.2, 0.2);
+    px(c, 16, 38 + lift, 7, 8, coat);
+    px(c, 41, 42 + lift, 8, 6, coat);
+    shaded(c, 18, 40 + lift, 28, 24, 10, coat, 0.2, 0.2);
     // The blaze down the middle, opening into a white muzzle.
-    px(c, 30, 40 + lift, 4, 14, DOG_WHITE);
-    round(c, 24, 52 + lift, 16, 12, 5, DOG_WHITE);
+    px(c, 30, 40 + lift, 4, 14, white);
+    round(c, 24, 52 + lift, 16, 12, 5, white);
     round(c, 29, 52 + lift, 6, 4, 2, NOSE);
     px(c, 30, 60 + lift, 4, 4, TONGUE);
     // Eyes, with a glint.
     px(c, 23, 47 + lift, 4, 4, NOSE);
     px(c, 37, 47 + lift, 4, 4, NOSE);
-    px(c, 23, 47 + lift, 1, 1, DOG_WHITE);
-    px(c, 37, 47 + lift, 1, 1, DOG_WHITE);
+    px(c, 23, 47 + lift, 1, 1, GLINT);
+    px(c, 37, 47 + lift, 1, 1, GLINT);
   } else {
     // Walking away: the back legs, the body, the back of the head and the tail up high.
     for (const [x, foot] of [
@@ -1809,16 +1977,16 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
       [38, 1],
     ] as const) {
       const up = p.stride === foot * 2 ? 2 : p.stride === foot ? 1 : 0;
-      px(c, x, 76 + lift, 6, ground - 76 - lift - up, DOG);
-      px(c, x, ground - 6 - up, 6, 6, DOG_WHITE);
+      px(c, x, 76 + lift, 6, ground - 76 - lift - up, coat);
+      px(c, x, ground - 6 - up, 6, 6, white);
     }
-    shaded(c, 17, 56 + lift, 30, 26, 11, DOG, 0.2, 0.25);
-    shaded(c, 20, 42 + lift, 24, 18, 8, DOG, 0.2, 0.2);
-    px(c, 18, 38 + lift, 7, 8, DOG);
-    px(c, 39, 42 + lift, 7, 6, DOG);
+    shaded(c, 17, 56 + lift, 30, 26, 11, coat, 0.2, 0.25);
+    shaded(c, 20, 42 + lift, 24, 18, 8, coat, 0.2, 0.2);
+    px(c, 18, 38 + lift, 7, 8, coat);
+    px(c, 39, 42 + lift, 7, 6, coat);
     const wag = p.stride > 0 ? 2 : p.stride < 0 ? -2 : 0;
-    px(c, 30 + wag, 62 + lift, 4, 12, DOG_SHINE);
-    px(c, 30 + wag, 72 + lift, 4, 5, DOG_WHITE);
+    px(c, 30 + wag, 62 + lift, 4, 12, shine);
+    px(c, 30 + wag, 72 + lift, 4, 5, white);
   }
   outline(c);
   if (dir !== 'right') return canvas;

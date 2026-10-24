@@ -6,15 +6,32 @@ import { asset } from '@/lib/asset';
 import { variantForm } from '@/lib/battle/variants';
 import { speciesById } from '@/lib/story/party';
 import { shinySprite } from '@/lib/story/shiny';
-import { DELTA, isPresent, npcsOf, type Dir, type GameMap } from '@/lib/story/world';
+import {
+  DELTA,
+  isDog,
+  isPresent,
+  npcsOf,
+  type Dir,
+  type Dog,
+  type GameMap,
+} from '@/lib/story/world';
 import { daylight, gymRoofsOf, type Props } from './Overworld';
 import { Figure } from './figure3d';
 import { Bike, Norm } from './models3d';
-import { monStyle, STYLES, type BikeKind } from './people';
+import { COATS, monStyle, paintDog, STYLES, type BikeKind } from './people';
 import { INK, LIGHT } from './pixels';
 import { dance } from './partyfx';
 import { buildLevel, pixelTexture, quality, type Level } from './scene3d';
-import { isRiding, placeWalk, runOff, startWalk, stepT, tickWalk, type Trail } from './walk';
+import {
+  isRiding,
+  placeWalk,
+  runOff,
+  startWalk,
+  stepPose,
+  stepT,
+  tickWalk,
+  type Trail,
+} from './walk';
 
 /**
  * The overworld in 2.5D: the same map, walking and people as the 2D one, but the land is built
@@ -193,6 +210,15 @@ export default function Overworld3D(props: Props) {
     const normBlob = new THREE.Mesh(blobGeo, blobMat);
     normBlob.scale.set(0.8, 1, 1.25);
     scene.add(norm.group, normBlob);
+    // Elvis is 2D only: in 3D he stands up as his 2D sprite, facing the camera like a photo head.
+    const flatDogs = new Map<string, THREE.Mesh>();
+    const dogTextures = new Map<string, THREE.Texture>();
+    const dogTexture = (dog: Dog, dir: Dir, frame: number) => {
+      const key = `${dog}:${dir}:${frame}`;
+      let tex = dogTextures.get(key);
+      if (!tex) dogTextures.set(key, (tex = pixelTexture(paintDog(dir, frame, dog))));
+      return tex;
+    };
     // Bikes, made when first ridden; the wheels' turn goes on with how far you've gone.
     const bikes = new Map<BikeKind, Bike>();
     let wheelTurn = 0;
@@ -342,6 +368,27 @@ export default function Overworld3D(props: Props) {
       const swingOf = (moving: boolean) =>
         moving ? Math.sin(t * Math.PI) * (w.frame % 2 ? 1 : -1) : 0;
       const seen = new Set<string>();
+      /** A dog drawn flat, from its 2D sprite, standing on (wx, wz) and as big as in 2D. */
+      const flatDog = (key: string, dog: Dog, dir: Dir, frame: number, wx: number, wz: number) => {
+        let mesh = flatDogs.get(key);
+        if (!mesh) {
+          const k = COATS[dog].scale;
+          const geo = new THREE.PlaneGeometry(k, 1.5 * k);
+          geo.translate(0, 0.75 * k, 0);
+          mesh = new THREE.Mesh(
+            geo,
+            new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide }),
+          );
+          mesh.rotation.x = LEAN;
+          mesh.castShadow = true;
+          flatDogs.set(key, mesh);
+          scene.add(mesh);
+        }
+        show(mesh, dogTexture(dog, dir, frame));
+        mesh.position.set(wx, 0, wz);
+        mesh.visible = true;
+        seen.add(key);
+      };
       const person = (
         key: string,
         make: () => Figure,
@@ -378,6 +425,17 @@ export default function Overworld3D(props: Props) {
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
         const look = n.item.look;
+        if (isDog(look)) {
+          flatDog(
+            `npc:${n.index}:${look}`,
+            look,
+            p.faces[n.index] ?? n.item.face,
+            0,
+            n.x + 0.5,
+            n.y + 0.5,
+          );
+          continue;
+        }
         if (p.flight?.index === n.index) {
           // Running off, a step at a time, out of sight.
           const run = runOff(p.flight, now);
@@ -440,7 +498,9 @@ export default function Overworld3D(props: Props) {
         const fdir: Dir =
           toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down';
         const lift = moving ? Math.sin(t * Math.PI) * 0.1 : idle(0.5);
-        if (p.dog || !p.follower) {
+        if (p.dog === 'elvis') {
+          flatDog('dog:elvis', 'elvis', fdir, moving ? stepPose(t, w.frame) : 0, fx, fz);
+        } else if (p.dog || !p.follower) {
           norm.pose(fx, fz, fdir, swingOf(moving), moving ? 0 : lift / 2, now);
           normBlob.position.set(fx, 0.015, fz);
           normBlob.rotation.y = fdir === 'left' || fdir === 'right' ? Math.PI / 2 : 0;
@@ -487,6 +547,7 @@ export default function Overworld3D(props: Props) {
         ride,
       );
       for (const [k, fig] of figures) if (!seen.has(k)) fig.group.visible = false;
+      for (const [k, mesh] of flatDogs) if (!seen.has(k)) mesh.visible = false;
       for (let i = used; i < blobs.length; i++) blobs[i].visible = false;
 
       // Blue Ghosts, rebuilt when one is picked up.
@@ -517,6 +578,11 @@ export default function Overworld3D(props: Props) {
       level?.dispose();
       [headGeo, blobGeo, canGeo, glowGeo].forEach((g) => g.dispose());
       (followerHead.material as THREE.Material).dispose();
+      for (const mesh of flatDogs.values()) {
+        mesh.geometry.dispose();
+        (mesh.material as THREE.Material).dispose();
+      }
+      for (const tex of dogTextures.values()) tex.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };

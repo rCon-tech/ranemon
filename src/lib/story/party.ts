@@ -16,6 +16,7 @@ import { ROSTER } from '../battle/roster';
 import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '../battle/second-specials';
 import { variantForm } from '../battle/variants';
 import { heldBoost, type ItemId } from './items';
+import type { LevelCap } from './levels';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
 
@@ -273,22 +274,38 @@ function evolve(m: Member, lines: string[]): Member {
   return { ...next, hp: m.hp > 0 ? m.hp + gained : 0 };
 }
 
+/** No cap: as high as any Ranemon goes. */
+export const NO_CAP: LevelCap = { level: MAX_LEVEL, leader: null };
+
+/** Said when a Ranemon reaches the level cap, or can't go past it. */
+export const capLine = (m: Member, cap: LevelCap) =>
+  `${nameOf(m)} can’t grow past Lv${cap.level} until you beat ${cap.leader}.`;
+
 /**
- * Adds EXP and applies any level-ups. Returns the lines to show. The party is for evolutions
- * that need a partner alongside.
+ * Adds EXP and applies any level-ups, up to the level cap (`levels.ts`): a Ranemon at the cap
+ * gets no EXP until it lifts. Returns the lines to show. The party is for evolutions that need a
+ * partner alongside.
  */
 export function gainExp(
   m: Member,
   amount: number,
   party: Member[] = [],
+  cap: LevelCap = NO_CAP,
 ): { member: Member; lines: string[] } {
+  const top = Math.min(MAX_LEVEL, cap.level);
   if (m.level >= MAX_LEVEL) return { member: m, lines: [] };
+  if (m.level >= top) return { member: m, lines: [capLine(m, cap)] };
   const lines = [`${nameOf(m)} gained ${amount} EXP!`];
   let member: Member = { ...m, exp: m.exp + amount };
-  while (member.level < MAX_LEVEL && member.exp >= expAt(member.level + 1)) {
+  while (member.level < top && member.exp >= expAt(member.level + 1)) {
     member = levelUp(member, lines, party);
   }
   if (member.level >= MAX_LEVEL) member = { ...member, exp: expAt(MAX_LEVEL) };
+  else if (member.level >= top) {
+    // EXP past the cap is lost, so nothing piles up to spend the moment it lifts.
+    member = { ...member, exp: expAt(member.level) };
+    lines.push(capLine(member, cap));
+  }
   return { member, lines };
 }
 
@@ -322,10 +339,15 @@ export function itemEvolve(m: Member, item: string): { member: Member; lines: st
   };
 }
 
-/** A Blue Ghost: exactly one level, with EXP set to the start of it. */
-export function blueGhost(m: Member, party: Member[] = []): { member: Member; lines: string[] } {
+/** A Blue Ghost: exactly one level, with EXP set to the start of it. Not past the level cap. */
+export function blueGhost(
+  m: Member,
+  party: Member[] = [],
+  cap: LevelCap = NO_CAP,
+): { member: Member; lines: string[] } {
   const lines = [`${nameOf(m)} took a Blue Ghost and got yipped!`];
   if (m.level >= MAX_LEVEL) return { member: m, lines: [...lines, 'It won’t have any effect.'] };
+  if (m.level >= cap.level) return { member: m, lines: [...lines, capLine(m, cap)] };
   const member = levelUp(m, lines, party);
   return { member: { ...member, exp: expAt(member.level) }, lines };
 }

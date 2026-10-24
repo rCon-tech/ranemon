@@ -12,6 +12,53 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Bigger counties',
+    notes: [
+      'Clare, Limerick and Tipperary are much bigger, and look more like the real places: castles, cliffs, cathedrals, lakes, mountains and a few things only locals know about.',
+      'There are new people to meet, local legends to hear, and a few gifts for anyone who goes looking. More counties are on the way.',
+      'Everything you knew is where you left it: the new ground is to the east and south of each town.',
+    ],
+  },
+  {
+    date: '2026-10-24',
+    title: 'Back to 2D',
+    notes: [
+      'The 3D look is switched off for now, so everything draws in the classic 2D look and the 2D / 3D button is gone.',
+      'Nothing else changes: your save, your party and where you are all stay the same.',
+    ],
+  },
+  {
+    date: '2026-10-24',
+    title: 'The Championship of Ireland',
+    notes: [
+      'Ranemon can now grow all the way to Lv100.',
+      'Beaten B&S? A new line runs from Connolly Station, out west, to the toughest test in the country: four battles in a row with no trips to McGrattans in between.',
+      'They keep pace with your best Ranemon, however strong you get. Stock up on food first.',
+      'Rumour has it there’s one more room for anyone who makes it through.',
+      'This trip is in the 2D look only. It switches to 2D by itself while you’re there.',
+    ],
+  },
+  {
+    date: '2026-10-24',
+    title: 'The big lad',
+    notes: [
+      'Someone in McGrattans has a very big dog who badly needs a walk. Ask about him.',
+      'You can walk one dog at a time.',
+      'Dogs find things a bit less often now, so it’s more of a treat when they do.',
+    ],
+  },
+  {
+    date: '2026-10-24',
+    title: 'No grinding needed',
+    notes: [
+      'Someone is sitting in the corner of every McGrattans with a sports bag of Blue Ghosts, going cheap. Don’t ask where they came from.',
+      'A level cap: your Ranemon can’t grow past the level of the next gym leader’s strongest Ranemon. Beat the leader to raise it. PARTY shows the cap.',
+      'Ranemon already past the cap keep their levels. They just won’t grow until it catches up.',
+      'Once you’re Champion the cap is gone, and trainers you battle after that bring teams as strong as yours.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Missions',
     notes: [
       'A new MISSIONS option on the START menu shows every mission you have on the go, what to do next and where to go.',

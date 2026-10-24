@@ -235,11 +235,13 @@ export interface Target {
   stages?: Record<Stat, number>;
   /** Out of battle: its species, for items that set off an evolution. */
   species?: string;
+  /** The level cap (`levels.ts`), for a Blue Ghost. None is no cap. */
+  cap?: number;
 }
 
 /** Whether an item would do anything for this Ranemon right now. */
 export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
-  if (use.kind === 'level') return t.level < MAX_LEVEL;
+  if (use.kind === 'level') return t.level < Math.min(MAX_LEVEL, t.cap ?? MAX_LEVEL);
   if (use.kind === 'evolve') return !!item && !!t.species && !!itemEvolutionOf(t.species, item);
   if (use.kind === 'hold') return !!t.species && (!use.line || lineOf(t.species) === use.line);
   if (use.kind === 'pint') return false;
@@ -258,10 +260,10 @@ export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
   }
 }
 
-export const canUseOn = (item: Item, m: Member) =>
+export const canUseOn = (item: Item, m: Member, cap?: number) =>
   canUse(
     item.use,
-    { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level, species: m.species },
+    { hp: m.hp, maxHp: statsOf(m).hp, status: m.status, level: m.level, species: m.species, cap },
     item.id,
   );
 

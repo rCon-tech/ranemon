@@ -5,13 +5,21 @@ import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
+import {
+  CHAMPION_OF_IRELAND,
+  COLLINS,
+  COLLINS_HEARD,
+  ELITE,
+  RUN,
+  wonFlag,
+} from '@/content/story/galway';
 import { DEFAULT_SKIN, SKINS } from '@/content/story/skins';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
 import { variantsOf } from '../battle/variants';
 import { ITEMS } from './items';
 import { HM, CERT, TABLET, TABLET_TAKEN } from './keys';
-import { NORM } from './norm';
+import { ELVIS, NORM } from './norm';
 import { makeMember, PARTY_SIZE, type Member } from './party';
 import { SCHEMA } from './save';
 import { beatFlag, playerId, type StoryState } from './state';
@@ -43,7 +51,8 @@ export const DEV_LEVEL = 60;
 /**
  * Left for you to play: the bosses you'd want to test (the Happy Pear Twins, the Arcade King and
  * DJ Vandenbass among them, with the end of the Brighton trip and the start of I Love Techno),
- * and Norm, who you borrow from Sibeal.
+ * the whole Championship in Galway,
+ * and the dogs: Norm, who you borrow from Sibeal, and Elvis, who you walk for Carl.
  * Everything else a script can set is set.
  */
 const LEFT_TO_PLAY = new Set([
@@ -54,7 +63,12 @@ const LEFT_TO_PLAY = new Set([
   BRIGHTON_DONE,
   beatFlag(TECHNO_DJ),
   TECHNO_DONE,
+  ...RUN,
+  ...[...ELITE, COLLINS].map(wonFlag),
+  COLLINS_HEARD,
+  CHAMPION_OF_IRELAND,
   NORM,
+  ELVIS,
 ]);
 
 /** Every script step in the maps and trainers, found by walking the content. */

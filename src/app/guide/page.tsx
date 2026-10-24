@@ -197,7 +197,14 @@ export default function Guide() {
           </li>
           <li>
             <b>Levels</b>: Ranemon earn EXP from battles. A Blue Ghost gives one level straight
-            away. Every Ranemon evolves once, at level 30.
+            away, and there’s a man in the corner of every McGrattans who sells them cheap, if you’d
+            rather not grind. Every Ranemon evolves once, at level 30.
+          </li>
+          <li>
+            <b>Level cap</b>: no Ranemon can grow past the level of the next gym leader’s strongest
+            Ranemon, by EXP or Blue Ghost. Beat the leader and the cap goes up. PARTY shows the cap.
+            Once you’re Champion there’s no cap, and trainers you meet after that bring teams as
+            strong as yours.
           </li>
           <li>
             <b>Town Map</b>: pick MAP from the START menu, tap the place name at the top of the
@@ -243,6 +250,12 @@ export default function Guide() {
             Station.
           </li>
           <li>
+            <b>The Championship of Ireland</b>: once you’re Champion, the Intercity from Connolly
+            Station runs to Galway. Four trainers wait in the Hall of Champions, one after the
+            other, and they always level up to keep pace with your best Ranemon. Food from the BAG
+            is allowed, but heal at McGrattans or lose and you start again from the first.
+          </li>
+          <li>
             <b>Held items</b>: some items are given to a Ranemon to hold from the BAG, and help it
             in every battle. Take them back from PARTY.
           </li>
@@ -250,6 +263,11 @@ export default function Guide() {
             <b>Norm</b>: Sibeal in Limerick will lend you her dog. Norm walks behind you instead of
             your Ranemon, never fights, and every so often finds you something. Give him back to
             Sibeal in any McGrattans.
+          </li>
+          <li>
+            <b>Elvis</b>: Carl Ryan’s really huge dog, in every McGrattans. Talk to him and Carl
+            will ask you to walk him. He finds things just like Norm. You can only walk one dog at a
+            time, so Norm goes back to Sibeal. Give Elvis back to Carl in any McGrattans.
           </li>
           <li>
             <b>Limepass</b>: the Lime rep in Limerick signs you up. Hold B to ride a Lime e-bike,

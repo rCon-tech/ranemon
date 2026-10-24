@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { THREE_D } from '../../src/lib/view';
 import { unlock } from './helpers';
 
 test('story mode: Michael D hands over a starter in Clare', async ({ page }) => {
@@ -211,7 +212,21 @@ test('story mode: the Town Map opens from START and from the place name', async 
   await expect(page.getByTestId('town-map')).toBeVisible();
 });
 
+test('story mode: with 3D switched off, a browser that picked 3D still draws in 2D', async ({
+  page,
+}) => {
+  test.skip(THREE_D, 'Only while the 3D look is switched off.');
+  await unlock(page);
+  await page.addInitScript(() => localStorage.setItem('ranemon.view', '3d'));
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Flat');
+  await page.getByRole('button', { name: 'NEW GAME' }).click();
+  await expect(page.getByTestId('overworld')).toHaveAttribute('data-view', '2d');
+  await expect(page.getByTestId('view')).toHaveCount(0);
+});
+
 test('story mode in 3D: walks into the house just like 2D', async ({ page }) => {
+  test.skip(!THREE_D, 'The 3D look is switched off for now.');
   await unlock(page);
   await page.addInitScript(() => {
     localStorage.setItem('ranemon.view', '3d');
@@ -332,6 +347,73 @@ test('story mode: Sibeal in Limerick lends you Norm', async ({ page }) => {
   expect(save.party).toHaveLength(1);
 });
 
+test('story mode: Elvis in McGrattans goes for a walk, and Norm goes back to Sibeal', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:elvis')) return;
+    // In McGrattans in Limerick, walking Norm, just right of Elvis at Carl's feet.
+    localStorage.setItem(
+      'ranemon.story.v1:elvis',
+      JSON.stringify({
+        version: 1,
+        map: 'limerick-P0',
+        x: 2,
+        y: 7,
+        face: 'left',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 12,
+            exp: 2000,
+            hp: 40,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:limerick', 'jersey:clare', 'norm:with-you'],
+        seen: [],
+        caught: [],
+        pub: { map: 'limerick', x: 2, y: 12 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Elvis');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const text = page.getByTestId('story-text');
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('Elvis');
+  for (let i = 0; i < 8 && !(await page.getByRole('button', { name: 'YES' }).count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await page.getByRole('button', { name: 'YES' }).click();
+  await expect(text).toContainText('Norm went back to Sibeal');
+  // Then Carl, Elvis falling in, and the Sibeal skin for Norm's walk.
+  for (let i = 0; i < 12 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:elvis')!),
+  );
+  expect(save.flags).toContain('elvis:with-you');
+  expect(save.flags).not.toContain('norm:with-you');
+});
+
 test('story mode: the Limepass fast travels to a town you’ve been to', async ({ page }) => {
   await unlock(page);
   await page.addInitScript(() => {
@@ -410,7 +492,7 @@ const dexSave = () => ({
   steps: 0,
 });
 
-for (const view of ['2d', '3d'] as const) {
+for (const view of THREE_D ? (['2d', '3d'] as const) : (['2d'] as const)) {
   test(`story mode in ${view.toUpperCase()}: a Ranedex page for each Ranemon you've seen`, async ({
     page,
   }) => {
@@ -995,7 +1077,7 @@ test('story mode: the Rave Cave, where a beaten raver always goes again', async 
   expect(save.map).toBe('dublin-L3');
 });
 
-for (const view of ['2d', '3d'] as const) {
+for (const view of THREE_D ? (['2d', '3d'] as const) : (['2d'] as const)) {
   test(`story mode in ${view.toUpperCase()}: Carl Ryan sells cheap Blue Ghosts at the Trinity Ball`, async ({
     page,
   }) => {
@@ -1130,6 +1212,14 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   const save = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1:enda')!));
 
+  // Loading in Kildare, he's already waving you over.
+  await expect(text).toContainText('Over here!');
+  for (let i = 0; i < 4 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+
   // Try to walk out to Dublin: Enda is in the road, and won't budge.
   await walk('ArrowRight', 6);
   await page.waitForTimeout(300);
@@ -1153,6 +1243,59 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   await expect(world).toHaveAttribute('aria-label', /^Dublin City/, { timeout: 10_000 });
   await page.keyboard.up('ArrowRight');
   expect((await save()).map).toBe('dublin');
+});
+
+test('story mode: Enda waves you over as you walk into Kildare', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:wave')) return;
+    // On the road at the east edge of Meath, a step from Kildare, with the Meath jersey.
+    localStorage.setItem(
+      'ranemon.story.v1:wave',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'meath',
+        x: 22,
+        y: 12,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:meath', 'visited:kildare', 'jersey:meath'],
+        seen: [],
+        caught: [],
+        pub: { map: 'meath', x: 4, y: 8 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Wave');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(250);
+  await page.keyboard.press('ArrowRight');
+  await expect(world).toHaveAttribute('aria-label', /^The Curragh, Co\. Kildare/, {
+    timeout: 10_000,
+  });
+  await expect(page.getByTestId('story-text')).toContainText('Over here!');
 });
 
 /** A Champion's save for the I Love Techno tests, with a strong lead and these flags. */
@@ -1259,6 +1402,33 @@ test('story mode: Ghent stays 2D with the 3D look picked, and its security won�
   await page.waitForTimeout(300);
   await page.keyboard.press('ArrowUp');
   await expect(text).toContainText(/HEAD OF SECURITY DIRK|SECURITY/, { timeout: 10_000 });
+});
+
+test('story mode: Galway stays 2D with the 3D look picked, and the Hall of Champions sets the rules', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(
+    (save) => {
+      localStorage.setItem('ranemon.view', '3d');
+      if (localStorage.getItem('ranemon.story.v1:galway')) return;
+      localStorage.setItem('ranemon.story.v1:galway', JSON.stringify(save));
+    },
+    championSave('galway', 19, 5, 'up', ['visited:galway']),
+  );
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Galway');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toHaveAttribute('aria-label', /^Galway City/);
+  await expect(world).toHaveAttribute('data-view', '2d');
+  await page.waitForTimeout(400);
+  // In through the door: the rules, and still 2D inside.
+  await page.keyboard.press('ArrowUp');
+  await expect(text).toContainText('Four in a row, no healing in between', { timeout: 10_000 });
+  await expect(world).toHaveAttribute('aria-label', /^Rob Lipsett’s Gym/);
+  await expect(world).toHaveAttribute('data-view', '2d');
 });
 
 test('story mode: SKINS dresses you as someone you’ve beaten, in 2D and back in 3D', async ({

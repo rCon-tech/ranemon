@@ -8,6 +8,7 @@ import { PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
+import { GALWAY_TRAINERS } from './galway';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -450,6 +451,42 @@ const T: Trainer[] = [
     'STAG! STAG! STAG!',
   ),
   trainer(
+    'clare-surfer',
+    'Surfer Aoife',
+    [
+      ['owemon', 6],
+      ['lorcamon', 7],
+    ],
+    'The waves at Lahinch are mad today. So am I!',
+  ),
+  trainer(
+    'clare-fiddler',
+    'Fiddler Tomás',
+    [
+      ['simomon', 6],
+      ['enda', 7],
+    ],
+    'Join the session! First one to miss a note loses.',
+  ),
+  trainer(
+    'limerick-poet',
+    'Poet Nuala',
+    [
+      ['hugomon', 10],
+      ['jammon', 10],
+    ],
+    'A trainer who came from afar / thought battling Nuala was par. / But the Ranemon she chose / got a punch on the nose… / Ah, you know how the rest of it are.',
+  ),
+  trainer(
+    'limerick-munster',
+    'Munster Fan Rory',
+    [
+      ['boydemon', 10],
+      ['lorcamon', 11],
+    ],
+    'Stand up and fight! Like we did in ’78 against the All Blacks!',
+  ),
+  trainer(
     'tipp-hurler',
     'Hurler Pádraig',
     [
@@ -466,6 +503,24 @@ const T: Trainer[] = [
       ['jammon', 15],
     ],
     'Have you seen the groom? We lost him in Limerick.',
+  ),
+  trainer(
+    'tipp-camogie',
+    'Camogie Star Siobhán',
+    [
+      ['killemon', 14],
+      ['carlmon', 15],
+    ],
+    'Seven All-Irelands in our club and I want an eighth. Sliotar’s in!',
+  ),
+  trainer(
+    'tipp-angler',
+    'Angler Mick',
+    [
+      ['paulimon', 14],
+      ['conemon', 14],
+    ],
+    'The trout in the Suir won’t bite today. Maybe you will.',
   ),
   trainer(
     'kk-comic',
@@ -591,6 +646,7 @@ const T: Trainer[] = [
   ...RAVE_TRAINERS,
   ...BRIGHTON_TRAINERS,
   ...TECHNO_TRAINERS,
+  ...GALWAY_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {

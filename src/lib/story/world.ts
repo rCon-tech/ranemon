@@ -19,7 +19,8 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
  * `B` bridge, `F` floor, `s` stone steps, `d` sand, and in a city `v` pavement and `a` tarmac. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
  * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge,
- * `p` a palm tree, `y` a yacht on the water, `c` a parked car. Doors are blocked too, and walking
+ * `p` a palm tree, `y` a yacht on the water, `c` a parked car, `q` castle stone and `u` the
+ * battlements on top of it, `j` a slate roof in a town of red ones. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
  * Indoors (see content/story/interiors.ts): `g` gym floor, `r` rug, `l` a dance floor and `k` a club's floor are walkable, and `E` is
  * the way out, blocked like a door.
@@ -106,7 +107,21 @@ export type Look =
   | 'king'
   | 'eurostar'
   | 'security'
-  | 'headliner';
+  | 'headliner'
+  | 'lipsett'
+  | 'blindboy'
+  | 'johnnyb'
+  | 'johnnysmacks'
+  | 'bono'
+  | 'collins';
+
+/**
+ * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
+ * behind you as your companion (lib/story/norm.ts), and an `Npc` can be one, drawn as a dog.
+ */
+export type Dog = 'norm' | 'elvis';
+export const DOGS: readonly Dog[] = ['norm', 'elvis'];
+export const isDog = (look: string): look is Dog => (DOGS as readonly string[]).includes(look);
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -162,10 +177,15 @@ export interface Trainer {
   rival?: boolean;
   /** A first battle you can lose: no blackout, and the story carries on either way. */
   friendly?: boolean;
+  /**
+   * Always scales up to your party, Champion or not, with its ace this many levels from your
+   * best Ranemon (negative is under it, and never past MAX_LEVEL): the Championship in Galway.
+   */
+  above?: number;
 }
 
 export interface Npc {
-  look: Look;
+  look: Look | Dog;
   face: Dir;
   /** What talking to them does. A trainer's battle comes first if it hasn't been won. */
   talk?: Step[];

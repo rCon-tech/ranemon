@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CHAMPION_OF_IRELAND, COLLINS, COLLINS_HEARD, ELITE } from '@/content/story/galway';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
@@ -11,7 +12,7 @@ import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import { devSave, isDevName, recruits, storyFlags } from '@/lib/story/devsave';
-import { NORM } from '@/lib/story/norm';
+import { ELVIS, NORM } from '@/lib/story/norm';
 import { exportCode, importCode, parseSave } from '@/lib/story/save';
 import { beatFlag } from '@/lib/story/state';
 
@@ -57,7 +58,12 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
-    for (const f of storyFlags().filter((f) => ![NORM, BRIGHTON_DONE, TECHNO_DONE].includes(f)))
+    for (const f of storyFlags().filter(
+      (f) =>
+        ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE, COLLINS_HEARD, CHAMPION_OF_IRELAND].includes(
+          f,
+        ) && !f.startsWith('galway:won:'),
+    ))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
     expect(g.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all')).toHaveLength(9);
@@ -67,8 +73,16 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King and DJ Vandenbass to fight', () => {
-    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS, ARCADE_KING, TECHNO_DJ];
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass and Galway to fight', () => {
+    const bosses = [
+      'poseidon',
+      'bns-rematch',
+      ...PEAR_TRAINERS,
+      ARCADE_KING,
+      TECHNO_DJ,
+      ...ELITE,
+      COLLINS,
+    ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);
     for (const id of bosses) expect(flags.has(beatFlag(id)), id).toBe(false);

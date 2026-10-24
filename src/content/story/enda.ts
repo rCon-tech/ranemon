@@ -103,6 +103,25 @@ const AFTER: Step[] = [
   },
 ];
 
+/**
+ * Every time you come into Kildare until you've met him, by road, train or Lime: he's small, so
+ * he waves you over from the road to Dublin. That way nobody misses him, even coming back from
+ * Dublin with him behind them.
+ */
+export const ENDA_CALLS: Step[] = [
+  {
+    do: 'if',
+    flag: ENDA_MET,
+    then: [],
+    else: [
+      {
+        do: 'say',
+        text: 'ENDA: HIYA! You! Yes, YOU! Over here! (A very small man is jumping up and down on the road to Dublin, at the far east end of the Curragh, waving both arms.)',
+      },
+    ],
+  },
+];
+
 /** Enda in the road out to Dublin, until you've met him. */
 export const ENDA_IN_ROAD: Npc = { look: 'enda', face: 'left', hideIf: ENDA_MET, talk: INTRO };
 
