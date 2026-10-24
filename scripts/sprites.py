@@ -37,6 +37,9 @@ TYPE_COLOUR = {
     "chill": (79, 179, 232),
     "charm": (240, 122, 174),
     "hype": (242, 196, 24),
+    "posh": (43, 74, 155),
+    "graft": (180, 112, 42),
+    "arty": (47, 163, 122),
 }
 
 # Looks redrawn in more detail from a bigger, full-length cut-out: (size, colours) for the battle

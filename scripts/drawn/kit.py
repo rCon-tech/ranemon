@@ -72,6 +72,11 @@ def speckle(base, fleck, every=5) -> Paint:
 
 SKIN = ramp((236, 178, 140), (250, 214, 178), (196, 128, 100))
 SKIN_RUDDY = ramp((230, 160, 128), (248, 200, 168), (188, 112, 90))
+# More skin tones, for the London Ranemon: they're London, so they're everyone.
+SKIN_PALE = ramp((244, 204, 176), (255, 228, 206), (206, 156, 128))
+SKIN_OLIVE = ramp((214, 160, 112), (236, 194, 150), (168, 112, 74))
+SKIN_BROWN = ramp((170, 112, 72), (204, 148, 104), (120, 72, 44))
+SKIN_DEEP = ramp((116, 72, 48), (152, 102, 70), (78, 44, 30))
 
 
 # --- Shapes ---------------------------------------------------------------------------------
@@ -164,7 +169,7 @@ class Figure:
 @dataclass
 class Look:
     skin: Ramp = SKIN
-    # bald, short, slick, quiff, messy, long, curly, swept
+    # bald, short, slick, quiff, messy, long, curly, swept, bun, afro, bob, ponytail
     hair: str = "short"
     hair_colour: tuple = (120, 80, 48)
     # none, stubble, beard, bigbeard, goatee, moustache, bigmoustache, tache_stubble
@@ -177,7 +182,7 @@ class Look:
     frame: tuple = (40, 40, 48)
     # smile, grin, smirk, flat, laugh
     mouth: str = "smile"
-    # none, cap, trilby, fila, headphones
+    # none, cap, trilby, fila, headphones, beanie, helmet
     hat: str = "none"
     hat_colour: tuple = (60, 60, 70)
     hat_band: tuple = (120, 200, 140)
@@ -199,7 +204,8 @@ class Look:
     # point, hips, down, crossed, moustache, chin, hold, raise, both, guard
     pose: str = "down"
     # none, fish, stein, can, wine, fakemoustache, shades_collar, tricolour, chefbuttons,
-    # beads, tattoo, logo
+    # beads, tattoo, logo; and for London: cup, tote, card, laptop, flowers, bagel, skateboard,
+    # placard, vape, lanyard, apron, phone
     props: tuple = ()
     build: float = 1.0
     # Boxing gloves in this colour in place of hands.
@@ -265,6 +271,14 @@ def hair_front(look: Look) -> np.ndarray | None:
     if h == "long":
         m |= poly((25, 14), (31, 14), (31, 46), (26, 52), (22, 48), (23, 30))
         m |= poly((65, 14), (71, 14), (73, 30), (74, 48), (70, 52), (65, 46))
+    if h == "bun":
+        m |= ellipse(39, -6, 57, 9)
+    if h == "afro":
+        m |= bumps(CX, 20, 25, 20, 6, 150, 390, 16) & (Y < 34)
+    if h == "bob":
+        m |= poly((24, 14), (31, 14), (31, 40), (24, 42)) | poly((65, 14), (72, 14), (72, 42), (65, 40))
+    if h == "ponytail":
+        m |= ellipse(64, 6, 78, 20)
     return m
 
 
@@ -282,6 +296,14 @@ def hair_back(look: Look) -> np.ndarray | None:
             m |= poly((x, 14), (x + 6, 12), (x + 3, 4))
     if h == "curly":
         m |= bumps(49, 30, 23, 23, 5, 150, 390, 16) & (Y < 52)
+    if h == "bun":
+        m |= ellipse(39, -2, 59, 16)
+    if h == "afro":
+        m |= bumps(49, 28, 26, 24, 7, 140, 400, 18) & (Y < 54)
+    if h == "bob":
+        m |= ellipse(22, 20, 76, 62) & (Y < 58)
+    if h == "ponytail":
+        m |= capsule((49, 40), (52, 66), 9)
     return m
 
 
@@ -452,6 +474,12 @@ def hat_front(f: Figure, look: Look):
     elif h == "headphones":
         f.part(capsule((25, 22), (48, 2), 4) | capsule((71, 22), (48, 2), 4), c)
         f.part(ellipse(20, 20, 30, 36) | ellipse(66, 20, 76, 36), c)
+    elif h == "beanie":
+        f.part(ellipse(25, -2, 71, 36) & (Y < 16), c)
+        f.part(rect(25, 12, 71, 18), ramp(np.array(look.hat_colour) * 0.85))
+    elif h == "helmet":
+        f.part(ellipse(23, -4, 73, 34) & (Y < 18), c)
+        f.part(rect(36, 0, 39, 9) | rect(47, -2, 50, 9) | rect(58, 0, 61, 9), ramp(look.hat_band), line=False)
 
 
 def face(im: Image.Image, look: Look):
@@ -496,7 +524,7 @@ def face(im: Image.Image, look: Look):
         d.line([(43, ey - 2), (52, ey - 2)], fill=INK)
         d.line([(27, ey - 2), (33, ey - 2)], fill=INK)
         d.line([(63, ey - 2), (69, ey - 2)], fill=INK)
-    if e != "shades" and look.hat not in ("cap", "trilby", "fila"):
+    if e != "shades" and look.hat not in ("cap", "trilby", "fila", "beanie", "helmet"):
         d.line([(35, 22), (40, 21)], fill=brow, width=2)
         d.line([(55, 21), (60, 22)], fill=brow, width=2)
     elif e != "shades":
@@ -557,6 +585,48 @@ def props_front(f: Figure, look: Look, arms: list[Arm]):
     if "fakemoustache" in p:
         f.part(poly((38, 41), (48, 39), (58, 41), (60, 46), (55, 44), (48, 43), (41, 44), (36, 46)),
                ramp((40, 36, 40)))
+    london_props(f, look, arms)
+
+
+def london_props(f: Figure, look: Look, arms: list[Arm]):
+    """The London Ranemon's props, held in the last hand (or both, for the laptop)."""
+    p = look.props
+    hx, hy = arms[-1].hand
+    lx, ly = arms[0].hand
+    if "apron" in p:
+        f.part(poly((CX - 13, 62), (CX + 13, 62), (CX + 15, 86), (CX - 15, 86)), ramp((60, 52, 46)))
+    if "cup" in p:
+        f.part(poly((hx - 4, hy - 13), (hx + 4, hy - 13), (hx + 3, hy - 2), (hx - 3, hy - 2)),
+               ramp((236, 228, 212)))
+        f.part(rect(hx - 5, hy - 15, hx + 5, hy - 13), ramp((70, 60, 54)))
+        f.part(rect(hx - 4, hy - 9, hx + 4, hy - 6), ramp((150, 110, 74)), line=False)
+    if "tote" in p:
+        f.part(capsule((lx - 1, ly - 10), (lx - 1, ly - 2), 2), ramp((214, 200, 170)), line=False)
+        f.part(rect(lx - 9, ly - 2, lx + 7, ly + 14), ramp((226, 214, 186)))
+    if "card" in p:
+        f.part(rect(hx - 4, hy - 10, hx + 4, hy - 4), ramp((60, 120, 200)))
+    if "laptop" in p:
+        f.part(rect(CX - 16, 60, CX + 16, 70), ramp((176, 180, 190)))
+        f.part(rect(CX - 2, 63, CX + 2, 66), ramp((236, 236, 240)), line=False)
+    if "flowers" in p:
+        f.part(poly((hx - 2, hy), (hx + 2, hy), (hx + 1, hy - 12), (hx - 1, hy - 12)), ramp((80, 150, 70)))
+        for i, (dx, dy) in enumerate(((-6, -18), (0, -22), (6, -18), (-3, -13), (4, -13))):
+            col = ((232, 70, 100), (250, 200, 60), (240, 120, 180), (250, 250, 240), (200, 80, 200))[i]
+            f.part(ellipse(hx + dx - 4, hy + dy - 4, hx + dx + 4, hy + dy + 4), ramp(col))
+    if "bagel" in p:
+        f.part(ellipse(hx - 7, hy - 14, hx + 7, hy - 2) & ~ellipse(hx - 2, hy - 10, hx + 2, hy - 6),
+               ramp((214, 160, 90)))
+    if "skateboard" in p:
+        f.part(capsule((lx - 3, ly - 22), (lx - 3, ly + 14), 7), ramp((200, 70, 60)))
+        f.part(ellipse(lx - 8, ly - 20, lx - 4, ly - 15) | ellipse(lx - 8, ly + 8, lx - 4, ly + 13),
+               ramp((240, 236, 220)))
+    if "placard" in p:
+        f.part(rect(lx - 1, ly - 30, lx + 1, ly + 2), ramp((150, 110, 70)))
+        f.part(rect(lx - 14, ly - 46, lx + 14, ly - 28), ramp((246, 240, 224)))
+    if "vape" in p:
+        f.part(rect(hx - 2, hy - 12, hx + 2, hy - 3), ramp((80, 170, 220)))
+    if "phone" in p:
+        f.part(rect(hx - 3, hy - 13, hx + 3, hy - 2), ramp((40, 40, 48)))
 
 
 def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
@@ -591,6 +661,14 @@ def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
     if "fish" in p:
         d.point((22, 66), fill=INK)
         d.line([(26, 64), (26, 71)], fill=(96, 116, 100))
+    if "lanyard" in p:
+        d.line([(CX - 7, 54), (CX - 1, 66)], fill=(200, 40, 60))
+        d.line([(CX + 7, 54), (CX + 1, 66)], fill=(200, 40, 60))
+        d.rectangle([CX - 3, 66, CX + 3, 71], fill=(246, 246, 246), outline=(120, 120, 130))
+    if "placard" in p:
+        x, y = arms[0].hand
+        for i, row in enumerate((y - 42, y - 37, y - 32)):
+            d.line([(x - 10, row), (x + 10 - i * 4, row)], fill=(40, 40, 48))
     for a in arms:
         if a.finger:
             pass
@@ -685,6 +763,12 @@ def back(look: Look, outlined: bool = True) -> Image.Image:
     elif h == "headphones":
         f.part(capsule((24, 28), (49, 6), 4) | capsule((74, 28), (49, 6), 4), c)
         f.part(ellipse(19, 24, 30, 40) | ellipse(68, 24, 79, 40), c)
+    elif h == "beanie":
+        f.part(ellipse(25, 2, 73, 42) & (Y < 24), c)
+        f.part(rect(25, 20, 73, 26), ramp(np.array(look.hat_colour) * 0.85))
+    elif h == "helmet":
+        f.part(ellipse(23, 0, 75, 40) & (Y < 26), c)
+        f.part(rect(36, 4, 39, 16) | rect(48, 2, 51, 16) | rect(60, 4, 63, 16), ramp(look.hat_band), line=False)
     x(f, look, "head", "back")
     x(f, look, "front", "back")
     im = f.render()
