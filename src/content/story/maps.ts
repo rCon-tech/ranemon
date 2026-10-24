@@ -16,6 +16,7 @@ import { CRAMPS_ARRIVE } from './cramps';
 import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
+import { GALWAY, HALL_ROOMS } from './galway';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1234,10 +1235,11 @@ export const MAPS: GameMap[] = [
   AIRPORT,
   STANSTED,
   LONDON,
+  GALWAY,
 ];
 
 /** The rooms behind every door. */
-export const INTERIORS = MAPS.flatMap(interiorsOf);
+export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS];
 
 const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {

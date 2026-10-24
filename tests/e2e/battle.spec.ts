@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { THREE_D } from '../../src/lib/view';
 import { unlock } from './helpers';
 
 /** Taps through a whole battle: always the first usable move, the first healthy replacement. */
@@ -62,11 +63,16 @@ test('pick 6 of the 20, then a full 6v6 battle against the CPU', async ({ page }
   await expect(page.getByTestId('info-you')).toBeVisible();
   await expect(page.getByTestId('info-foe')).toBeVisible();
 
-  // The 3D look swaps in a 3D battlefield behind the same sprites, and back again.
-  await page.getByTestId('view').click();
-  await expect(page.locator('.backdrop[data-view="3d"] canvas')).toBeVisible();
-  await page.getByTestId('view').click();
-  await expect(page.locator('.backdrop[data-view="3d"]')).toHaveCount(0);
+  if (THREE_D) {
+    // The 3D look swaps in a 3D battlefield behind the same sprites, and back again.
+    await page.getByTestId('view').click();
+    await expect(page.locator('.backdrop[data-view="3d"] canvas')).toBeVisible();
+    await page.getByTestId('view').click();
+    await expect(page.locator('.backdrop[data-view="3d"]')).toHaveCount(0);
+  } else {
+    // The 3D look is switched off for now: no button to pick it.
+    await expect(page.getByTestId('view')).toHaveCount(0);
+  }
 
   await playToTheEnd(page);
   const ending = await page.getByTestId('text-box').textContent();

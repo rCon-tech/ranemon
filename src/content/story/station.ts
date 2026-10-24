@@ -2,8 +2,9 @@ import { BOYDE } from './boyde';
 import { ENDA_ASKED } from './enda';
 import { CRAMPS_AT_STATION, TECHNO_ASKED } from './cramps';
 import { PROVAI_ARRIVE, PROVAI_ASKED, PROVAI_AT_STATION } from './kneecap';
+import { BALL_FLAG } from './ball';
 import { interiorId } from './interiors';
-import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
+import { slot, type Dir, type GameMap, type Look, type Step } from '@/lib/story/world';
 
 /**
  * Connolly Station, Dublin: one door for every train out of the city. The clerk at the ticket
@@ -149,7 +150,33 @@ export const DEPARTURES: (Departure | Line)[] = [
     },
   },
   { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 5, soon: true },
-  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 6, soon: true },
+  {
+    id: 'galway',
+    line: 'Intercity',
+    to: 'Galway City, Co. Galway',
+    platform: 6,
+    at: { x: 2, y: 3, face: 'left' },
+    staff: 'conductor',
+    ask: 'CONDUCTOR: The Intercity to Galway, for the Championship of Ireland. All aboard?',
+    notNow:
+      'CONDUCTOR: No bother. The Championship has been waiting a hundred years. It’ll wait a bit more.',
+    ride: [
+      'The Intercity heads west out of Dublin, over the Shannon at Athlone and across the bogs. A man across the aisle is eating a full chicken out of a bag.',
+      'Stone walls, more stone walls, then the sea: Galway Bay, and the city on the Corrib.',
+    ],
+    first:
+      'GALWAY CITY, CO. GALWAY. Buskers, the Spanish Arch and the Hall of Champions on Eyre Square, where the Championship of Ireland is held.',
+    lock: {
+      flag: BALL_FLAG,
+      locked:
+        'CLERK: The Galway Intercity? That’s the Championship special. Only for those who’ve beaten B&S, I’m afraid.',
+    },
+    back: {
+      ask: 'CONDUCTOR: Back to Dublin Connolly?',
+      ride: 'The Intercity rattles back east across the bogs to Dublin.',
+      notNow: 'CONDUCTOR: Enjoy Galway. Mind the hen parties on Shop Street.',
+    },
+  },
   {
     id: 'airport',
     line: 'Airport Bus',
@@ -254,8 +281,18 @@ const CLERK: Step[] = [
   { do: 'departures' },
 ];
 
-/** Where the platform staff stand along the top of the concourse, in platform order. */
-const STAFF_X = [2, 7, 3, 6, 5];
+/**
+ * Where the platform staff stand, in platform order: along the top of the concourse, leaving a
+ * gap to the departures board, then down the left wall.
+ */
+const STAFF_AT = [
+  { x: 2, y: 2 },
+  { x: 7, y: 2 },
+  { x: 3, y: 2 },
+  { x: 6, y: 2 },
+  { x: 5, y: 2 },
+  { x: 1, y: 3 },
+];
 
 /** Where Jamie Boyde stands on the concourse, by the benches, out of everyone's way. */
 const BOYDE_AT = { x: 7, y: 5 };
@@ -269,7 +306,7 @@ const PROVAI_AT = { x: 6, y: 4 };
 export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
   // The clerk is person 1; each running line's staff stand at the top, in platform order, and
   // Jamie Boyde and Cramps come after them.
-  const staff = RUNNING.slice(0, STAFF_X.length);
+  const staff = RUNNING.slice(0, STAFF_AT.length);
   const rows = [
     'WWWWWWWWWW',
     'WODDDDDDOW',
@@ -281,10 +318,10 @@ export function stationRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
     'WFFF@FFFFW',
     'WWWWEWWWWW',
   ].map((r) => r.split(''));
-  staff.forEach((_, i) => (rows[2][STAFF_X[i]] = String(i + 2)));
+  staff.forEach((_, i) => (rows[STAFF_AT[i].y][STAFF_AT[i].x] = String(i + 2)));
   rows[BOYDE_AT.y][BOYDE_AT.x] = String(staff.length + 2);
   rows[CRAMPS_AT.y][CRAMPS_AT.x] = String(staff.length + 3);
-  rows[PROVAI_AT.y][PROVAI_AT.x] = String(staff.length + 4);
+  rows[PROVAI_AT.y][PROVAI_AT.x] = slot(staff.length + 3);
   return {
     name: 'Connolly Station',
     rows: rows.map((r) => r.join('')),

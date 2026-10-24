@@ -6,6 +6,7 @@ import { LEGEND_FLAG } from './maps';
 import { RENT_ACCUSED, RENT_CLUES, RENT_DONE, RENT_READY, RENT_START } from './rent';
 import { HEAD_OF_SECURITY } from './techno';
 import { FIXTURES, LANDED, PROVAI_ASKED, PROVAI_MET, UK_STARTER } from './kneecap';
+import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 
@@ -254,6 +255,26 @@ export const MISSIONS: Mission[] = [
         until: FIXTURES,
         todo: 'Hear Próvaí out. What happened the lads?',
         where: 'W.B Yates, London',
+      },
+    ],
+  },
+  {
+    id: 'galway',
+    name: 'The Championship of Ireland',
+    about:
+      'Four of the best in the country wait in the Hall of Champions in Galway, one after the other.',
+    start: 'visited:galway',
+    done: CHAMPION_OF_IRELAND,
+    steps: [
+      {
+        until: COLLINS_HEARD,
+        todo: 'Beat Rob Lipsett, Blindboy Boatclub, The 2 Johnnies and Bono in a row. Heal at McGrattans, or lose, and you start again from the first.',
+        where: 'The Hall of Champions, Galway',
+      },
+      {
+        until: CHAMPION_OF_IRELAND,
+        todo: 'Beat the four in a row again, then the secret Champion behind Bono’s door.',
+        where: 'The Hall of Champions, Galway',
       },
     ],
   },

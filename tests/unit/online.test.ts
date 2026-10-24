@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { MAX_LEVEL } from '@/lib/battle/creature';
 import { legalActions, startBattle, switchTargets, type Side } from '@/lib/battle/engine';
 import { LEGEND } from '@/lib/battle/legend';
 import { PETCHEMON } from '@/lib/battle/petchemon';
@@ -53,7 +54,7 @@ describe('online teams', () => {
     expect(bad([])).toMatch(/empty/);
     expect(bad([...late, makeMember('enda', 10, 99)])).toMatch(/at most 6/);
     expect(bad([{ ...late[0], species: 'mewtwo' }])).toMatch(/isn’t in this version/);
-    expect(bad([{ ...late[0], level: 61 }])).toMatch(/outside/);
+    expect(bad([{ ...late[0], level: MAX_LEVEL + 1 }])).toMatch(/outside/);
     expect(bad([{ ...late[0], level: 20 }])).toMatch(/can’t have evolved/);
     expect(bad([{ ...late[3], moves: ['hole-in-one'] }])).toMatch(/can’t know hole-in-one/);
     expect(bad([{ ...late[3], moves: ['dark-web', 'dark-web'] }])).toMatch(/twice/);

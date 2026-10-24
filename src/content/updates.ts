@@ -12,6 +12,25 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Back to 2D',
+    notes: [
+      'The 3D look is switched off for now, so everything draws in the classic 2D look and the 2D / 3D button is gone.',
+      'Nothing else changes: your save, your party and where you are all stay the same.',
+    ],
+  },
+  {
+    date: '2026-10-24',
+    title: 'The Championship of Ireland',
+    notes: [
+      'Ranemon can now grow all the way to Lv100.',
+      'Beaten B&S? A new line runs from Connolly Station, out west, to the toughest test in the country: four battles in a row with no trips to McGrattans in between.',
+      'They keep pace with your best Ranemon, however strong you get. Stock up on food first.',
+      'Rumour has it there’s one more room for anyone who makes it through.',
+      'This trip is in the 2D look only. It switches to 2D by itself while you’re there.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'The big lad',
     notes: [
       'Someone in McGrattans has a very big dog who badly needs a walk. Ask about him.',

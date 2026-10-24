@@ -5,6 +5,12 @@
  */
 export type View = '2d' | '3d';
 
+/**
+ * The 3D look is switched off for now: everything draws in 2D and the 2D / 3D button is hidden.
+ * The 3D code and each browser's saved choice are kept, so turning this back on brings it all back.
+ */
+export const THREE_D = false;
+
 const KEY = 'ranemon.view';
 let view: View = '2d';
 const listeners = new Set<() => void>();
@@ -15,7 +21,7 @@ try {
   // No storage: start in 2D.
 }
 
-export const getView = (): View => view;
+export const getView = (): View => (THREE_D ? view : '2d');
 
 export function setView(next: View) {
   view = next;
@@ -35,6 +41,7 @@ export function subscribeView(listener: () => void) {
 /** Whether this browser can draw in 3D at all. Checked once. */
 let webgl: boolean | null = null;
 export function canDraw3d(): boolean {
+  if (!THREE_D) return false;
   if (webgl === null) {
     try {
       webgl = !!document.createElement('canvas').getContext('webgl2');

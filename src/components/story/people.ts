@@ -84,6 +84,12 @@ export interface Style {
   balaclava?: [string, string, string];
   /** Bands of Celtic knotwork down the sleeves, in this colour. */
   knots?: string;
+  /** Sleeveless, with big bare arms: a gym vest. */
+  vest?: boolean;
+  /** A plastic bag pulled down over the whole head, with eye holes, in this colour. */
+  plasticBag?: string;
+  /** A leather strap across the chest from the shoulder, like an officer's Sam Browne belt. */
+  strap?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -964,6 +970,83 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#f4f4f4',
     headphones: '#f0c040',
   },
+  // Rob Lipsett, a gym bro: a fade, a tan, a tight black vest over huge arms, and a shaker.
+  lipsett: {
+    skin: '#e8b080',
+    hair: '#3a2416',
+    hairStyle: 'short',
+    beard: '#3a2416',
+    top: '#18181c',
+    topKind: 'shirt',
+    trim: '#f04848',
+    legs: '#3a3a44',
+    shoes: '#f4f4f4',
+    vest: true,
+    tall: true,
+  },
+  // Blindboy Boatclub: a plastic shopping bag over his head, a Limerick jersey and jeans.
+  blindboy: {
+    skin: '#f8d0a8',
+    hair: '#f8d0a8',
+    hairStyle: 'none',
+    plasticBag: '#ece8de',
+    top: '#2a7a3a',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#2c3c64',
+    shoes: '#18181c',
+  },
+  // Johnny B of The 2 Johnnies: a Tipperary jersey, a flat cap and wellies.
+  johnnyb: {
+    skin: '#f4c8a0',
+    hair: '#6a3a1e',
+    hairStyle: 'short',
+    hat: { kind: 'flat', colour: '#5a6a48' },
+    top: '#1e4aa0',
+    topKind: 'shirt',
+    trim: '#f0c030',
+    legs: '#3a4a30',
+    shoes: '#1c3a1c',
+  },
+  // Johnny Smacks: a red beard, a check shirt and a gilet, and wellies too.
+  johnnysmacks: {
+    skin: '#f8d0a8',
+    hair: '#b05a28',
+    hairStyle: 'short',
+    beard: '#b05a28',
+    top: '#3a3a40',
+    topKind: 'waistcoat',
+    trim: '#c83a3a',
+    legs: '#2c3c64',
+    shoes: '#1c3a1c',
+  },
+  // Bono: slicked-back hair, tinted shades, all in black leather, and an earring.
+  bono: {
+    skin: '#f0c8a0',
+    hair: '#24181a',
+    hairStyle: 'slick',
+    glasses: 'shades',
+    earrings: '#e0c060',
+    top: '#141418',
+    topKind: 'jacket',
+    trim: '#2a2a30',
+    legs: '#141418',
+    shoes: '#141418',
+  },
+  // Michael Collins: the green uniform of the Free State army, a peaked cap and a Sam Browne belt.
+  collins: {
+    skin: '#f4caa0',
+    hair: '#2a1a12',
+    hairStyle: 'slick',
+    hat: { kind: 'garda', colour: '#4a5a32', trim: '#c8a040' },
+    top: '#4a5a32',
+    topKind: 'coat',
+    trim: '#c8a040',
+    legs: '#4a5a32',
+    shoes: '#3a2414',
+    strap: '#6a3a1e',
+    tall: true,
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -1226,6 +1309,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   }
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
   if (s.hearts && back) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
+  if (back && s.strap) for (let i = 0; i < 26; i++) px(c, 44 - i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
@@ -1301,6 +1385,14 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, 36, y0 + 22, 9, 1, light);
       break;
     case 'shirt':
+      if (s.vest) {
+        // A scooped neck and wide armholes, and a logo on the chest.
+        round(c, 25, y0 - 1, 14, 6, 3, s.skin);
+        px(c, 17, y0, 4, 8, s.skin);
+        px(c, 43, y0, 4, 8, s.skin);
+        px(c, 29, y0 + 10, 7, 3, s.trim);
+        break;
+      }
       // A collar, a placket and a stripe.
       px(c, 26, y0, 5, 3, s.trim);
       px(c, 33, y0, 5, 3, s.trim);
@@ -1331,6 +1423,7 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, 18, y0 + h - 2, 28, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.hearts) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
+  if (s.strap) for (let i = 0; i < 26; i++) px(c, 20 + i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (s.cross) {
     px(c, 30, y0 + 3, 4, 16, s.cross);
     px(c, 23, y0 + 9, 18, 4, s.cross);
@@ -1370,6 +1463,12 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       shaded(c, x - 2, ay, 11, 26, 4, s.top, 0.3, 0.35);
       px(c, x + 2, ay + 6, 1, 16, shade(s.top, 0.7));
       px(c, x, ay + 21, 7, 4, s.trim);
+    } else if (s.vest) {
+      // Bare arms, a size up, with a bulge at the bicep and a line where it meets the forearm.
+      shaded(c, x - 1, ay, 9, 22, 4, s.skin, 0.3, 0.3);
+      round(c, x - 2, ay + 3, 11, 8, 4, s.skin);
+      px(c, x + (x < 32 ? 1 : 3), ay + 5, 4, 2, shade(s.skin, 1.12));
+      px(c, x, ay + 12, 7, 1, shade(s.skin, 0.82));
     } else {
       shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
       // An elbow fold and a cuff.
@@ -1439,7 +1538,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     c.restore();
   }
   if (s.bag) shaded(c, 38, y0 + 4, 10, 22, 4, s.bag, 0.3, 0.3);
-  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, far, 0.1, 0.4);
+  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, s.vest ? shade(s.skin, 0.8) : far, 0.1, 0.4);
   shaded(c, 21, y0, 22, h, 5, s.top, 0.3, 0.25);
   px(c, 21, y0 + h - 1, 22, 1, shade(s.top, 0.6));
   if (s.topKind === 'hivis') {
@@ -1470,8 +1569,15 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
   // The near arm, in front.
   const wide = s.topKind === 'agbada' || s.topKind === 'gown';
   const ax = 27 - swing;
-  shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
-  px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  if (s.vest) {
+    shaded(c, ax - 1, y0 + 1, 10, 22, 4, s.skin, 0.35, 0.3);
+    round(c, ax - 2, y0 + 3, 12, 8, 4, s.skin);
+    px(c, ax, y0 + 12, 8, 1, shade(s.skin, 0.82));
+  } else {
+    shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
+    px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
+  }
+  if (s.strap) px(c, 24, y0 + 1, 3, h - 3, s.strap);
   if (s.hearts) heart(c, ax + 2, y0 + 5, s.hearts);
   if (s.knots) knotwork(c, ax + 2, y0 + 2, 17, s.knots);
   round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
@@ -1699,6 +1805,7 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
   if (s.headphones) headphones(c, s.headphones, side, y);
   if (covered) hat(c, s, side, y);
   if (s.balaclava) balaclava(c, s.balaclava, s.skin, side, y);
+  if (s.plasticBag) plasticBag(c, s.plasticBag, side, y);
 }
 
 /**
@@ -1747,6 +1854,41 @@ function knotwork(c: Ctx, x: number, y: number, h: number, colour: string) {
     px(c, x + 2, y + i, 1, 2, colour);
     px(c, x + 1, y + i + 1, 1, 2, dark);
     px(c, x, y + i + 2, 3, 1, colour);
+  }
+}
+
+/** A plastic shopping bag over the whole head: creased, tied at the neck, with two eye holes. */
+function plasticBag(c: Ctx, colour: string, side: Side, y: number) {
+  const crease = shade(colour, 0.8);
+  const light = shade(colour, 1.08);
+  // The handles, sticking up off the top like ears.
+  for (const x of side === 'left' ? [26, 38] : [18, 42]) {
+    px(c, x, y - 4, 4, 7, colour);
+    px(c, x + 1, y - 3, 2, 4, crease);
+  }
+  round(c, 13, 1 + y, 38, 37, 11, colour);
+  round(c, 17, 4 + y, 10, 18, 4, light);
+  for (const [x, y1, h] of [
+    [22, 8, 12],
+    [34, 5, 14],
+    [42, 12, 16],
+    [27, 26, 8],
+  ])
+    px(c, x, y1 + y, 1, h, crease);
+  // Gathered in at the neck.
+  px(c, 18, 35 + y, 28, 3, crease);
+  if (side === 'up') return;
+  // Eye holes, and a little smile drawn on in marker.
+  const eyes = side === 'left' ? [19] : [22, 36];
+  for (const ex of eyes) {
+    round(c, ex, 18 + y, 7, 6, 2, '#18181c');
+    px(c, ex + 2, 20 + y, 2, 2, '#f8f8f8');
+  }
+  if (side === 'left') px(c, 18, 30 + y, 5, 1, '#2a2a30');
+  else {
+    px(c, 27, 30 + y, 10, 1, '#2a2a30');
+    px(c, 26, 29 + y, 1, 1, '#2a2a30');
+    px(c, 37, 29 + y, 1, 1, '#2a2a30');
   }
 }
 

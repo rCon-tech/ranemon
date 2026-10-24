@@ -56,9 +56,12 @@ describe('Connolly Station', () => {
 
   it('puts every running line’s staff on the platforms, and their train runs', () => {
     for (const d of RUNNING) {
-      const staff = npcsOf(station).find((n) => n.item.look === d.staff)!;
-      expect(staff, d.id).toBeTruthy();
-      expect(staff.item.talk).toEqual(aboard(d));
+      // Two lines can share a look, such as the Intercity conductors.
+      const staff = npcsOf(station).filter((n) => n.item.look === d.staff);
+      expect(
+        staff.map((n) => n.item.talk),
+        d.id,
+      ).toContainEqual(aboard(d));
     }
   });
 

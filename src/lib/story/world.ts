@@ -115,7 +115,13 @@ export type Look =
   | 'stag'
   | 'gatecamper'
   | 'donal'
-  | 'fiddler';
+  | 'fiddler'
+  | 'lipsett'
+  | 'blindboy'
+  | 'johnnyb'
+  | 'johnnysmacks'
+  | 'bono'
+  | 'collins';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -188,6 +194,11 @@ export interface Trainer {
   friendly?: boolean;
   /** In Britain: its Ranemon are UK forms, and a rival's team is worked out from your UK starter. */
   uk?: boolean;
+  /**
+   * Always scales up to your party, Champion or not, with its ace this many levels from your
+   * best Ranemon (negative is under it, and never past MAX_LEVEL): the Championship in Galway.
+   */
+  above?: number;
 }
 
 export interface Npc {
