@@ -20,6 +20,15 @@ export const UPDATES: Update[] = [
     ],
   },
   {
+    date: '2026-10-24',
+    title: 'Champions get a proper challenge',
+    notes: [
+      'After you’re Champion, the trip abroad is tougher: everyone at the door brings more Ranemon and battles smarter, and the long grass there is stronger too.',
+      'The weekly rematch at Trinity has a new face on the team.',
+      'One very rare Ranemon was far too strong and has been brought into line. It’s still the best around, just not unbeatable.',
+    ],
+  },
+  {
     date: '2026-10-22',
     title: 'The celebrations go on',
     notes: [
