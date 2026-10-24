@@ -328,7 +328,7 @@ A few details:
 - **Fiddlemon is a gift.** The W.B Yates London fiddler, who already battles you, hands you one when you beat him. His evolved forms are wild in Kilburn.
 - **Rare ones.** Aerodactivist (1 in 100 in Spitalfields), Hedgonair's line (rare in the Docks), Supercarmory (only at night in Knightsbridge), Misgravus (only at dusk in Highgate).
 - **The legends.** Strikedos appears once, on a Tube strike day after the Arsenal jersey (Lv45). Drizzticuno and Heatwavtres are post-game (Lv60), in the rain and in the Central line in August. Mewtube is below the deepest platform after the credits (Lv70). Mewseum, #151, is in the British Museum basement once you've caught the other 150 (Lv65), guarding everything that was never theirs to keep; a nod to the Irish Crown Jewels story.
-- **Trainers.** Each new area gets four to six trainers with London Ranemon from that area. The twelve club legends keep their teams of lads, since that's their story, but each could add one London Ranemon as an extra (Rich's call).
+- **Trainers.** Each new area gets four to six trainers with London Ranemon from that area. Each of the twelve club legends adds one London Ranemon to their team of lads, from the area that opens around their ground's turn, in the jersey battle itself. There's no extra mission to earn it: every one is catchable in the wild anyway.
 
 ## Moves
 
@@ -381,9 +381,11 @@ Each batch is its own PR, with its areas' 2D maps, sprites, entries and moves, a
 
 Batches 1 to 5 each make a playable stretch of the story on their own, so the game is never half-built between them.
 
-## Decisions for Rich
+## Decided (24 October 2026)
 
-1. **"150" means 151 new species, evolutions included** (this plan), rather than 150 in total or 150 base forms.
-2. **Three new types (Posh, Graft, Arty)**, rather than none or four.
+Rich approved the plan as written:
+
+1. **"150" means 151 new species, evolutions included**, not counting the lads.
+2. **Three new types: Posh, Graft and Arty.**
 3. **The five cuts and the merges** above.
-4. **Whether the club legends get a London Ranemon each**, or keep all-lad teams.
+4. **Each club legend gets one London Ranemon**, used in the jersey battle, with no extra mission.
