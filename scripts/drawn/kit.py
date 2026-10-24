@@ -586,7 +586,7 @@ def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
             pass
 
 
-def front(look: Look) -> Image.Image:
+def front(look: Look, outlined: bool = True) -> Image.Image:
     hw = round(18 * look.build)
     f = Figure()
     legs_front(f, look)
@@ -608,10 +608,10 @@ def front(look: Look) -> Image.Image:
     im = f.render()
     face(im, look)
     overlays_front(im, look, arms)
-    return sprites.outline(im)
+    return sprites.outline(im) if outlined else im
 
 
-def back(look: Look) -> Image.Image:
+def back(look: Look, outlined: bool = True) -> Image.Image:
     """From behind and a bit to the left, bigger and cut off at the bottom."""
     f = Figure()
     w = round(6 * (look.build - 1) * 4)
@@ -671,7 +671,7 @@ def back(look: Look) -> Image.Image:
     if look.hair == "bald":
         d.ellipse([35, 13, 46, 19], fill=tuple(min(255, v + 18) for v in look.skin[0]))
         d.arc([40, 44, 58, 54], 20, 160, fill=look.skin[2])
-    return sprites.outline(im)
+    return sprites.outline(im) if outlined else im
 
 
 def mini(im: Image.Image) -> Image.Image:

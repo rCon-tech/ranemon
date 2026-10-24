@@ -11,9 +11,11 @@ For each of the 20 lads, Petchemon, Tobymon and Cholokill (Poseidon is already p
 - `shiny/<id>.png` and `shiny/<id>-back.png`, in the usual gold (`gild` in `scripts/sprites.py`);
 - `mini/<id>.png`, the follower for story mode.
 
-`overview.png` has every front and back in a grid, and `sheet.png` puts each photo beside its drawings.
+The evolved forms are there too, under their own names (`carlizard.png`, `carlizard-back.png` and so on): the drawn base form wearing the same costume pieces and type glow `scripts/sprites.py` gives the photo ones, and CrampsB2BThilomon as the two drawn lads back to back behind the decks.
 
-Rebuild them all with `python3 scripts/drawn/roster.py`, or one with `python3 scripts/drawn/roster.py carlmon`.
+`overview.png` has every base form's front and back in a grid, `evolved.png` puts each base form beside its evolution, and `sheet.png` puts each photo beside its drawings.
+
+Rebuild them with `python3 scripts/drawn/roster.py` (the base forms) and `python3 scripts/drawn/evolved.py` (the evolutions, after the base forms), or just one with its id after either.
 
 ## How they're drawn
 
@@ -34,4 +36,4 @@ Each part is a shape with a three-tone colour ramp. The kit shades every part fr
 
 - **As a look**: add a variant (`variants.ts`) whose sprite is the drawn front, so it sits beside the photo. A back view needs `backSprite` on the creature and in `Sprite.tsx` (an earlier version of this branch did that for Cholokill).
 - **Instead of the photos**: copy the files into `public/sprites/bw/` (and `shiny/`, `mini/`) under the Ranemon's own names.
-- **Not done yet**: the evolved forms (they'd want drawn costume pieces in place of the ones `evolve()` lays over a photo), the second looks, the type glow on evolved forms, B&S, and solid 3D figures.
+- **Not done yet**: the second looks and their evolutions, the type glow on evolved forms, B&S, and solid 3D figures.
