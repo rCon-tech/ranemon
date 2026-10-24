@@ -51,7 +51,8 @@ The other two members of Kneecap. Off-screen hostages for most of the story, see
 ### New in London
 
 - **Sgt. Pemberton, UK Border Force**, who explains the rules nobody has read.
-- **The London barman** at W.B Yates London, a Corkman who's been here since 1987 and still says he's going home next year.
+- **Liam Neeson**, the barman in every W.B Yates. Very serious. He heals your party as if he's rescuing a hostage (see **The W.B Yates pubs**).
+- **Donal**, who runs W.B Yates London: a Corkman who's been here since 1987 and still says he's going home next year. Each W.B Yates is run by a different Irish family living in England.
 - **The 12 club legends** (see the Premier League table).
 - **The Royal Family**: Prince Edward, Princess Anne, Prince William, Prince Andrew, Zombie Queen Elizabeth, King Charles, and Queen Camilla at his side (she doesn't fight). Prince Harry has left a note.
 - **Bridie from Ballina**, a palace cleaner, and the rest of the palace's Irish staff.
@@ -105,7 +106,12 @@ Your Irish party and Group Chat are kept, untouched, for the ending. In London y
 The Stansted Express drops you at Liverpool Street, the first London map. Próvaí is waiting outside with a sign that has your name on it, spelt in Irish, wrong.
 
 > **PRÓVAÍ:** They took the Ranemon off you? Ah, they did the same to me. Even took my decks.
-> **PRÓVAÍ:** Don't worry. I've a friend. Over here the pubs are all called W.B Yates. Named after an Irish poet, run by the English. The one round the corner is grand.
+> **PRÓVAÍ:** Don't worry. I've a friend. Over here the pubs are all called W.B Yates. Every one of them run by the Irish in England. They're a home away from home.
+
+Behind the bar, Liam Neeson is polishing a glass. He doesn't look up.
+
+> **LIAM NEESON:** I don't know who you are. I don't know what you want. If you're looking for a pint, I can tell you it takes 119.5 seconds.
+> **LIAM NEESON:** I have a very particular set of skills. Skills I have acquired over a very long career. Pouring is one of them.
 
 The back room of W.B Yates London. 20 pints of Guinness on a long table, one per Ranemon, like Michael D's kitchen. They are poured badly.
 
@@ -358,7 +364,7 @@ The ending plays as one long party, the palace's `after` form, which stays for g
 - The ballroom becomes a céilí. Bridie, the chef from Tuam and the gardener from Ballyfermot lead the dancing.
 - Ollie's parents walk in with your **whole Irish party and Group Chat**, which rejoin you (the UK starter and your UK catches stay too). Your old follower runs straight to you.
 - Michael D lands on the palace lawn in the Irish Air Corps helicopter, with his dogs, and hands the Irish Crown Jewels to Próvaí "to bring home to Dublin Castle, where they belong. And this time, lock the door."
-- The State Dining Room is now **W.B Yates, Buckingham Palace**. Dua Lipa pulls the pints. Charles works behind the bar in an apron. He is not good at it.
+- The State Dining Room is now **W.B Yates, Buckingham Palace**, run by Bridie. Liam Neeson and Dua Lipa pull the pints side by side; he's not impressed by her pouring. Charles works behind the bar in an apron. He is not good at it.
 - The cameos dance in the crowd: Enda (best friends with Camilla now), Kill and Stead (see Side quests), Carl Ryan with Elvis selling Blue Ghosts from his sports bag, the 12 legends (Roy Keane still not clapping), Paul Mescal crying ("These are happy tears. I think."), and Alex Simonin in the corner, in pink: "How do we always end up here?"
 
 Credits roll over a Tube-map-style map of the whole expansion, station by station, with your party.
@@ -439,9 +445,30 @@ The expansion adds one main mission and a handful of side missions to START → 
 | Brighton          | Existing map, reused; the Amex gets the legend                                                                                                     |
 | Buckingham Palace | Forecourt, Grand Staircase, Royal Mews, Harry's rooms, Ballroom, East Wing, State Dining Room, Throne Room; its `after` form is the takeover party |
 
-**Pubs in England are W.B Yates, not McGrattans.** Every English town in the expansion (London, Manchester, Leeds, Liverpool, Birmingham, Newcastle) has a W.B Yates, which does what McGrattans does at home: the barman heals the party for free and the Group Chat is on the wall. Brighton's existing McGrattans keeps its name.
-
 Each new map, room and battle is drawn flat with the 3D look picked, as Ghent and the I Love Techno hall are. No 3D models are made for any of them.
+
+## The W.B Yates pubs
+
+In England the pubs aren't McGrattans: they're **W.B Yates**, every one run by Irish people who live in England. Each does what McGrattans does at home (free heals, the Group Chat on the wall), but no two are alike: each has its own owner, its own look and something of its own to find.
+
+**Liam Neeson** works the bar in every one of them. Nobody asks how. ("I commute.") He is completely serious about everything, and heals your party as if he's getting it back from kidnappers.
+
+> **LIAM NEESON:** _(on a heal)_ Your Ranemon were taken from you. I found them. I healed them. Don't thank me. Thank the stout.
+> **LIAM NEESON:** _(after you black out)_ Someone did this to your Ranemon. I will look for them. I will find them. And I will beat them in a Ranemon battle.
+> **LIAM NEESON:** _(if you talk to him twice)_ I'm from Ballymena. We don't do small talk.
+> **LIAM NEESON:** _(if you try to throw a pint)_ That pint has done nothing to you.
+
+| Town              | Run by                                               | What makes it different                                                                                                                |
+| ----------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| London            | Donal, a Corkman, here since 1987                    | The back room where you pick your starter. A trad session every evening in the corner; the fiddler battles you (Normal AI).            |
+| Manchester        | Two brothers from Mayo who won't speak to each other | One brother at each end of the bar, each sending messages to the other through you. The jukebox only plays Oasis.                      |
+| Leeds             | Bríd from Kerry, who runs the local GAA club too     | Hurleys on the walls and the All-Ireland final on every screen, whatever day it is. Bríd gives you a Spice Bag after the Leeds jersey. |
+| Liverpool         | The Kellys, a Scouse-Irish family, four generations  | A sign over the bar: "Liverpool, the real capital of Ireland". A ferry timetable to Dublin on the wall that Próvaí reads, wistfully.   |
+| Birmingham        | Mick from Tipperary, in a flat cap                   | Photos of 60 years of Birmingham's St Patrick's Day parade. A rack of flat caps by the door, and everyone inside is wearing one.       |
+| Newcastle         | Gráinne, a fisherman's daughter from Donegal         | No heating, ever. Everyone's in a T-shirt. Gráinne swaps fish stories with you for Chicken Fillet Rolls.                               |
+| Buckingham Palace | Bridie from Ballina, after the takeover              | The State Dining Room, with a chandelier over the bar. Charles works there in an apron and is not good at it.                          |
+
+Brighton's existing McGrattans keeps its name.
 
 ## Open questions for Rich
 
