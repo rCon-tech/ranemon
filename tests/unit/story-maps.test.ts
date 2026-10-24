@@ -173,8 +173,13 @@ describe('rooms', () => {
         });
       }
     }
+    // Plus the rooms behind doors in rooms: the Hall of Champions in Galway, one after another.
+    const inner = INTERIORS.flatMap((room) =>
+      [...DOORS].flatMap((kind) => find(room, kind).map((_, i) => interiorId(room.id, kind, i))),
+    );
+    for (const id of inner) expect(mapById(id).id).toBe(id);
     expect(INTERIORS.length).toBe(
-      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0),
+      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0) + inner.length,
     );
   });
 

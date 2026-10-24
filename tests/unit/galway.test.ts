@@ -8,10 +8,12 @@ import {
   ELITE,
   GALWAY_TRAINERS,
   HALL_ID,
+  ROOMS,
   RUN,
   wonFlag,
 } from '@/content/story/galway';
-import { mapById } from '@/content/story/maps';
+import { mapById, outsideOf } from '@/content/story/maps';
+import { interiorId } from '@/content/story/interiors';
 import { MISSIONS } from '@/content/story/missions';
 import { skinById } from '@/content/story/skins';
 import { departureTo, homeward, STATION_ID, ticket } from '@/content/story/station';
@@ -28,7 +30,6 @@ import {
   canEnter,
   DELTA,
   find,
-  isPresent,
   isWalkable,
   marker,
   npcsOf,
@@ -82,9 +83,6 @@ function reach(map: GameMap, flags: Set<string>): Set<string> {
 
 const hall = mapById(HALL_ID);
 const galway = mapById('galway');
-const byTrainer = (id: string) => npcsOf(hall).find((n) => n.item.trainer === id)!;
-const nextTo = (seen: Set<string>, n: { x: number; y: number }) =>
-  Object.values(DELTA).some(([dx, dy]) => seen.has(`${n.x + dx},${n.y + dy}`));
 
 describe('the level cap', () => {
   it('goes to 100', () => {
@@ -129,7 +127,7 @@ describe('Galway', () => {
     for (const door of ['P', 'M']) expect(find(galway, door), door).toHaveLength(1);
     expect(find(galway, 'L')).toHaveLength(2);
     expect(find(galway, ',').length).toBeGreaterThan(0);
-    expect(hall.name).toBe('The Hall of Champions, Galway City');
+    expect(hall.name).toBe('Rob Lipsett’s Gym, Galway City');
   });
 
   it('has the doorman tell you the rules', () => {
@@ -141,7 +139,30 @@ describe('Galway', () => {
 });
 
 describe('the Hall of Champions', () => {
-  it('has the four in order, each one in the way of the next', () => {
+  const rooms = ROOMS.map((id) => mapById(id));
+
+  it('is five rooms in a row, each one 2D and each way out back to Eyre Square', () => {
+    expect(rooms.map((r) => r.name)).toEqual([
+      'Rob Lipsett’s Gym, Galway City',
+      'Blindboy’s Study, Galway City',
+      'The 2 Johnnies’ Kitchen, Galway City',
+      'Bono’s Stage, Galway City',
+      'The Champion’s Hall, Galway City',
+    ]);
+    const door = find(galway, 'L')[1];
+    for (const room of rooms) {
+      expect(room.inside, room.id).toEqual({ map: 'galway', ...door });
+      expect(outsideOf(room).flat, room.id).toBe(true);
+    }
+    // Each of the four's rooms has one door at the top, into the next; the Champion's has none.
+    for (const [i, room] of rooms.entries()) {
+      const doors = find(room, 'L');
+      expect(doors, room.id).toHaveLength(i < 4 ? 1 : 0);
+      if (i < 4) expect(interiorId(room.id, 'L', 0)).toBe(ROOMS[i + 1]);
+    }
+  });
+
+  it('puts each battler in the middle of their room, in the way of the door to the next', () => {
     expect(GALWAY_TRAINERS.map((t) => t.name)).toEqual([
       'Rob Lipsett',
       'Blindboy Boatclub',
@@ -149,36 +170,32 @@ describe('the Hall of Champions', () => {
       'Bono',
       'Michael Collins',
     ]);
-    const flags = new Set<string>();
-    for (const [i, id] of ELITE.entries()) {
-      const seen = reach(hall, flags);
-      // You can get to this one, but not past them to the next.
-      expect(nextTo(seen, byTrainer(id)), id).toBe(true);
-      if (i + 1 < ELITE.length) {
-        const next = byTrainer(ELITE[i + 1]);
-        expect(next.item.readyIf).toBe(`beat:${id}`);
-        expect(seen.has(`${next.x + 1},${next.y}`) || seen.has(`${next.x - 1},${next.y}`)).toBe(
-          false,
-        );
-      }
-      win(id, flags);
+    for (const [i, id] of [...ELITE, COLLINS].entries()) {
+      const room = rooms[i];
+      const who = npcsOf(room).find((n) => n.item.trainer === id)!;
+      expect(who, id).toBeTruthy();
+      if (i > 0) expect(who.item.readyIf).toBe(`beat:${ELITE[i - 1]}`);
+      // One step in from the door and they've seen you.
+      const flags = new Set(i > 0 ? [`beat:${ELITE[i - 1]}`] : []);
+      const start = marker(room, '@');
+      expect(who.x, id).toBe(start.x);
+      expect(spottedBy(room, start.x, start.y - 1, flags, () => false)?.item.trainer, id).toBe(id);
+      if (i === 4) continue;
+      // Their door stays shut until they're beaten in this run.
+      expect(room.landmarkLocks?.[0]?.flag, id).toBe(`beat:${id}`);
+      const door = find(room, 'L')[0];
+      flags.add(`beat:${id}`);
+      expect(reach(room, flags).has(`${door.x},${door.y + 1}`), id).toBe(true);
     }
   });
 
-  it('keeps Collins hidden until all four are beaten in the same run', () => {
-    const collins = byTrainer(COLLINS);
-    expect(isPresent(collins.item, new Set())).toBe(false);
-    expect(isPresent(collins.item, new Set(RUN.slice(0, 3)))).toBe(false);
+  it('reveals Collins once all four are beaten in the same run', () => {
     const flags = new Set<string>();
     const said = ELITE.flatMap((id) => win(id, flags)).join(' ');
     expect(said).toMatch(/one true Champion of Ireland/);
     expect(flags.has(COLLINS_HEARD)).toBe(true);
-    expect(isPresent(collins.item, flags)).toBe(true);
-    // And then he sees you coming up through Bono's doorway.
-    const spots = [...reach(hall, flags)].map((k) => k.split(',').map(Number));
-    expect(
-      spots.some(([x, y]) => spottedBy(hall, x, y, flags, () => false)?.item.trainer === COLLINS),
-    ).toBe(true);
+    // His room is behind Bono's door.
+    expect(rooms[3].landmarkLocks?.[0]?.flag).toBe(`beat:${ELITE[3]}`);
   });
 
   it('makes you Champion of Ireland the first time you beat Collins', () => {

@@ -1412,7 +1412,7 @@ test('story mode: Galway stays 2D with the 3D look picked, and the Hall of Champ
   // In through the door: the rules, and still 2D inside.
   await page.keyboard.press('ArrowUp');
   await expect(text).toContainText('Four in a row, no healing in between', { timeout: 10_000 });
-  await expect(world).toHaveAttribute('aria-label', /^The Hall of Champions/);
+  await expect(world).toHaveAttribute('aria-label', /^Rob Lipsett’s Gym/);
   await expect(world).toHaveAttribute('data-view', '2d');
 });
 

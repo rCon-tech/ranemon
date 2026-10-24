@@ -111,13 +111,18 @@ const CITIES = ['dublin', 'trinity', 'brighton', 'belgium', 'galway'];
 /** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */
 const TECHNO = ['belgium-L1'];
 
+/** The Hall of Champions in Galway (its second landmark door) and the rooms behind it: gym music. */
+const HALL = 'galway-L1';
+
 /**
  * The music for a map: McGrattans has its reel, the gyms their own theme, homes and shops a quiet
- * one, Dublin, Trinity, Brighton and Ghent the city's, Flanders Expo techno, and the road its
- * jig. Other landmarks keep the music outside.
+ * one (and so do the rooms of Galway's Hall of Champions), Dublin, Trinity, Brighton, Ghent and
+ * Galway the city's, Flanders Expo techno, and the road its jig. Other landmarks keep the music
+ * outside.
  */
 export function areaSong(mapId: string, outsideId: string): SongId {
   if (TECHNO.includes(mapId)) return 'techno';
+  if (mapId.startsWith(HALL)) return 'gym';
   const kind = roomKind(mapId);
   if (kind === 'P') return 'pub';
   if (kind === 'G') return 'gym';

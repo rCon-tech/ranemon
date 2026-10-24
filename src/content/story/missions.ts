@@ -241,7 +241,7 @@ export const MISSIONS: Mission[] = [
       },
       {
         until: CHAMPION_OF_IRELAND,
-        todo: 'Beat the four in a row again, then the secret Champion at the top of the hall.',
+        todo: 'Beat the four in a row again, then the secret Champion behind Bono’s door.',
         where: 'The Hall of Champions, Galway',
       },
     ],
