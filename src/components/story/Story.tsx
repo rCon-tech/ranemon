@@ -122,6 +122,7 @@ import {
   EndingPanel,
   GroupChatPanel,
   JerseysPanel,
+  MissionsPanel,
   PartyPanel,
   RanedexPanel,
   ShopPanel,
@@ -146,6 +147,7 @@ type Overlay =
   | 'dex'
   | 'card'
   | 'skins'
+  | 'missions'
   | 'map'
   | 'limepass'
   | 'starter'
@@ -1273,6 +1275,7 @@ export function Story() {
             onClose={closeOverlay}
           />
         )}
+        {overlay === 'missions' && <MissionsPanel game={game} onClose={closeOverlay} />}
         {overlay === 'map' && <TownMapPanel game={game} onClose={closeOverlay} />}
         {overlay === 'limepass' && (
           <LimepassPanel
@@ -1361,7 +1364,17 @@ function StartMenu({
   /** Whether you have the Limepass, which adds LIMEPASS to the menu. */
   limepass: boolean;
   onPick: (
-    o: 'party' | 'bag' | 'dex' | 'map' | 'limepass' | 'card' | 'skins' | 'share' | 'save',
+    o:
+      | 'party'
+      | 'bag'
+      | 'dex'
+      | 'map'
+      | 'missions'
+      | 'limepass'
+      | 'card'
+      | 'skins'
+      | 'share'
+      | 'save',
   ) => void;
   onClose: () => void;
 }) {
@@ -1370,6 +1383,7 @@ function StartMenu({
     ['bag', 'BAG'],
     ['dex', 'RANEDEX'],
     ['map', 'MAP'],
+    ['missions', 'MISSIONS'],
     ...(limepass ? ([['limepass', 'LIMEPASS']] as const) : []),
     ['card', 'JERSEYS'],
     ['skins', 'SKINS'],
@@ -1377,7 +1391,7 @@ function StartMenu({
     ['save', 'SAVE'],
   ] as const;
   return (
-    <div className="dialog absolute right-0 top-0 z-20 flex w-[55%] flex-col gap-1 p-2">
+    <div className="dialog absolute right-0 top-0 z-20 flex max-h-full w-[55%] flex-col gap-1 overflow-y-auto p-2">
       {items.map(([id, label]) => (
         <button
           key={id}

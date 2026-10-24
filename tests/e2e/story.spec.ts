@@ -1130,6 +1130,14 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   const save = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem('ranemon.story.v1:enda')!));
 
+  // Loading in Kildare, he's already waving you over.
+  await expect(text).toContainText('Over here!');
+  for (let i = 0; i < 4 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+
   // Try to walk out to Dublin: Enda is in the road, and won't budge.
   await walk('ArrowRight', 6);
   await page.waitForTimeout(300);
@@ -1153,6 +1161,59 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   await expect(world).toHaveAttribute('aria-label', /^Dublin City/, { timeout: 10_000 });
   await page.keyboard.up('ArrowRight');
   expect((await save()).map).toBe('dublin');
+});
+
+test('story mode: Enda waves you over as you walk into Kildare', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:wave')) return;
+    // On the road at the east edge of Meath, a step from Kildare, with the Meath jersey.
+    localStorage.setItem(
+      'ranemon.story.v1:wave',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'meath',
+        x: 22,
+        y: 12,
+        face: 'right',
+        party: [
+          {
+            uid: 1,
+            species: 'conemon',
+            level: 50,
+            exp: 125000,
+            hp: 170,
+            pp: [10],
+            status: null,
+            moves: ['try-hard'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:meath', 'visited:kildare', 'jersey:meath'],
+        seen: [],
+        caught: [],
+        pub: { map: 'meath', x: 4, y: 8 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Wave');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  await expect(world).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(250);
+  await page.keyboard.press('ArrowRight');
+  await expect(world).toHaveAttribute('aria-label', /^The Curragh, Co\. Kildare/, {
+    timeout: 10_000,
+  });
+  await expect(page.getByTestId('story-text')).toContainText('Over here!');
 });
 
 /** A Champion's save for the I Love Techno tests, with a strong lead and these flags. */
@@ -1336,4 +1397,50 @@ test('story mode: SKINS dresses you as someone you’ve beaten, in 2D and back i
   await expect(page.getByTestId('overworld')).toBeVisible();
   await page.waitForTimeout(1500);
   expect(errors).toEqual([]);
+});
+
+test('story mode: MISSIONS on the START menu shows what you have open, and what to do next', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(
+    ([open, none]) => {
+      if (localStorage.getItem('ranemon.story.v1:missions')) return;
+      localStorage.setItem('ranemon.story.v1:missions', JSON.stringify(open));
+      localStorage.setItem('ranemon.story.v1:nomissions', JSON.stringify(none));
+    },
+    [
+      championSave('trinity', 1, 7, 'left', ['rent:start', 'rent:crumbs', 'limepass']),
+      championSave('trinity', 1, 7, 'left', []),
+    ],
+  );
+  const missions = async (name: string) => {
+    await page.goto('/story');
+    await page.getByTestId('trainer-name').fill(name);
+    await page.getByRole('button', { name: 'CONTINUE' }).click();
+    await expect(page.getByTestId('overworld')).toBeVisible();
+    await page.getByRole('button', { name: 'START' }).click();
+    await page.getByRole('button', { name: 'MISSIONS', exact: true }).click();
+  };
+
+  // With LIMEPASS and SKINS too, the START menu is long enough to scroll, and EXIT still works.
+  await missions('Missions');
+  await page.getByRole('button', { name: 'BACK' }).click();
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'EXIT', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'MISSIONS', exact: true })).toHaveCount(0);
+
+  // The rent, a clue in: one of three, and the next clue to find. The main story is over.
+  await missions('Missions');
+  const rent = page.getByTestId('mission-rent');
+  await expect(rent).toContainText('The missing rent');
+  await expect(rent).toContainText('1/3');
+  await expect(rent).toContainText('Garda on the quays');
+  await expect(page.getByTestId('mission-champions')).toHaveCount(0);
+  await page.getByRole('button', { name: 'BACK' }).click();
+  await expect(rent).toHaveCount(0);
+
+  // Nothing open: a friendly empty screen.
+  await missions('NoMissions');
+  await expect(page.getByTestId('missions-empty')).toBeVisible();
 });

@@ -10,6 +10,7 @@ import { ROSTER } from '@/lib/battle/roster';
 import { canUseOn, ITEMS, itemById, priceOf, shopStock, type ItemId } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import { levelCap, type LevelCap } from '@/lib/story/levels';
+import { openMissions } from '@/lib/story/missions';
 import {
   creatureOf,
   expProgress,
@@ -713,6 +714,39 @@ export function SkinsPanel({
       <p className="text-[9px] leading-relaxed">
         Skins show on the map in 2D, and on your Trainer Card.
       </p>
+    </Panel>
+  );
+}
+
+/** START → MISSIONS: every mission you've started and not finished, and what to do next. */
+export function MissionsPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+  const open = openMissions(new Set(game.flags));
+  return (
+    <Panel title="MISSIONS" onClose={onClose}>
+      {open.length === 0 && (
+        <p className="text-[11px] leading-relaxed" data-testid="missions-empty">
+          No missions open right now. Get out and talk to people: someone always needs a hand.
+        </p>
+      )}
+      {open.map(({ mission, step, progress }) => (
+        <div
+          key={mission.id}
+          className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist px-2 py-1.5"
+          data-testid={`mission-${mission.id}`}
+        >
+          <h3 className="flex justify-between gap-2 text-[11px] font-bold">
+            <span>{mission.name}</span>
+            {progress && (
+              <span>
+                {progress.got}/{progress.of}
+              </span>
+            )}
+          </h3>
+          <p className="text-[8px] leading-relaxed">{mission.about}</p>
+          <p className="text-[9px] leading-relaxed">▶ {step.todo}</p>
+          <p className="text-[8px] leading-relaxed">WHERE: {step.where}</p>
+        </div>
+      ))}
     </Panel>
   );
 }
