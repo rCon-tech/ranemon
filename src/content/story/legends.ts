@@ -279,3 +279,227 @@ export const TIPPERARY_LANDMARKS: Step[][] = [
     'CAHIR CASTLE. One of the biggest castles in Ireland, on its own island in the Suir. It was so strong that it was only ever taken by cannon. Twice. And once by a letter.',
   ),
 ];
+
+// ---------- Kilkenny: St Canice's, Kyteler's Inn, the Medieval Mile, Dunmore Cave, Jerpoint and Inistioge ----------
+
+export const KILKENNY_NPCS: Npc[] = [
+  {
+    look: 'local',
+    face: 'left',
+    talk: say(
+      'LOCAL: You know why we’re the Cats? Two cats in Kilkenny once fought so hard that they ate each other up, all but the tails.',
+      'LOCAL: Some say it was soldiers who tied two cats together by the tails for sport, and cut them loose when the officer came. Left the tails behind as proof.',
+      'LOCAL: Either way, nobody in Kilkenny gives up. Not the cats, and not the hurlers.',
+    ),
+  },
+  { look: 'trainer', face: 'down', trainer: 'kk-hurler', sight: 3 },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: [
+      ...say(
+        'OLD MAN: Dame Alice Kyteler kept the inn on the corner, back in 1324. Four husbands, and every one of them died rich and left it all to Alice.',
+        'OLD MAN: The bishop had her tried as a witch, the first in Ireland. Alice slipped away to England the night before, and was never seen again.',
+        'OLD MAN: Her maid Petronella wasn’t so lucky. Some nights, they say, you can still hear Alice laughing in the cellar.',
+      ),
+      once(
+        'gift:kyteler',
+        'OLD MAN: Here, take these. Alice always said a strong drink was the best spell of all.',
+        'settled-pint',
+        2,
+        'OLD MAN: If you hear laughing in Kyteler’s cellar, don’t go down to look.',
+      ),
+    ],
+  },
+  { look: 'trainer', face: 'left', trainer: 'kk-kayaker', sight: 3 },
+];
+
+export const KILKENNY_SIGNS = {
+  canice:
+    'ST CANICE’S CATHEDRAL. The round tower beside it is 1,200 years old, and you can still climb to the top. Kilkenny is named after the saint: Cill Chainnigh.',
+  mile: 'THE MEDIEVAL MILE. From the Castle to St Canice’s: Kyteler’s Inn, Rothe House, the Black Abbey and Smithwick’s.',
+  dunmore:
+    'DUNMORE CAVE. In 928 a thousand people hid here from the Vikings of Dublin. Viking coins were still being found in the cracks in 1999.',
+  jerpoint:
+    'JERPOINT ABBEY. A Cistercian ruin full of carvings: knights, saints, dragons, and a man with a very sore stomach.',
+};
+
+export const KILKENNY_HOUSES: Step[][] = [
+  [
+    {
+      do: 'say',
+      text: 'KYTELER’S INN. The oldest inn in Kilkenny, since 1324. There’s a statue of Dame Alice by the stairs, and she’s looking at you.',
+    },
+    once(
+      'gift:kytelers-inn',
+      'BARMAN: First visit? A pint on the house, for luck. You’ll need it with Alice watching.',
+      'pint',
+      2,
+      'BARMAN: She moved again last night. A few inches to the left. Don’t ask.',
+    ),
+  ],
+  say(
+    'SMITHWICK’S. Monks were brewing ale in the abbey here back in the 1200s. The guide says the recipe hasn’t changed. The guide says that about everything.',
+  ),
+  say(
+    'LOCAL: Inistioge. They filmed half the films in Ireland here: the bridge, the square, the river. I was an extra in three of them. I was “man on bridge”.',
+  ),
+];
+
+export const KILKENNY_LANDMARKS: Step[][] = [
+  say(
+    'ST CANICE’S CATHEDRAL. Inside, the tombs of the Butlers, Earls of Ormonde, lie in stone, with their dogs at their feet.',
+  ),
+  say(
+    'DUNMORE CAVE. Dripping limestone halls, and a pillar called the Market Cross. It’s cold, and it’s very, very quiet.',
+  ),
+  say(
+    'JERPOINT ABBEY. In the cloister, carved knights and ladies stand between the arches. One of them has been holding his sword for 800 years.',
+  ),
+];
+
+// ---------- Laois: the Rock of Dunamase, Emo Court, Morrissey's, the Slieve Bloom and St Fintan's tree ----------
+
+export const LAOIS_NPCS: Npc[] = [
+  { look: 'farmer', face: 'left', trainer: 'laois-steam', sight: 2 },
+  { look: 'trainer', face: 'down', trainer: 'laois-glamper', sight: 3 },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: say(
+      'HILLWALKER: The Slieve Bloom, named for Bladhma, a warrior in the old stories who hid out up here when all of Ireland was hunting him.',
+      'HILLWALKER: Nobody found him. Nobody finds anyone in the Slieve Bloom. I’ve been looking for my car since Tuesday.',
+    ),
+  },
+  { look: 'trainer', face: 'up', trainer: 'laois-footballer', sight: 3 },
+  {
+    look: 'local',
+    face: 'right',
+    talk: [
+      ...say(
+        'LOCAL: That’s St Fintan’s Tree. The monks at Clonenagh had a holy well, and when a landowner filled it in, the water moved up into this tree instead.',
+        'LOCAL: People pushed coins into the bark for luck, for two hundred years. The tree’s that full of money now it’s more of a bank.',
+      ),
+      once(
+        'gift:fintan',
+        'LOCAL: I won’t take a coin off you. Here: the tree gave me a few of these, I swear.',
+        'full-irish',
+        1,
+        'LOCAL: Make a wish on the tree. Not a big one. It’s an old tree.',
+      ),
+    ],
+  },
+];
+
+export const LAOIS_SIGNS = {
+  dunamase:
+    'THE ROCK OF DUNAMASE. A castle on a crag, given to Strongbow in 1170 as part of Aoife MacMurrough’s dowry. Cromwell’s men blew it up in 1650.',
+  emo: 'EMO COURT. A domed mansion by James Gandon, who built the Custom House in Dublin. Lovely gardens. Lovelier tea rooms.',
+  bloom: 'THE SLIEVE BLOOM MOUNTAINS. Blanket bog, waterfalls and no phone signal for miles.',
+};
+
+export const LAOIS_HOUSES: Step[][] = [
+  say(
+    'EMO COURT. The guide tells you Gandon designed it in 1790 and it took 70 years to finish. “The builders in Laois are thorough,” she says.',
+  ),
+  [
+    {
+      do: 'say',
+      text: 'MORRISSEY’S, ABBEYLEIX. A pub, a grocer’s and once an undertaker’s, since 1775. Biscuit tins on the shelves, and a pot-bellied stove in the corner.',
+    },
+    once(
+      'gift:morrisseys',
+      'BARMAN: Pint? On the house, for the trainer passing through.',
+      'pint',
+      2,
+      'BARMAN: The tea’s from 1775 as well. Only joking. It’s from 1976.',
+    ),
+  ],
+];
+
+export const LAOIS_LANDMARKS: Step[][] = [
+  say(
+    'THE ROCK OF DUNAMASE. From the top you can see the whole of Laois, and the Slieve Bloom blue in the west. The wind up here has been at it since 1170.',
+  ),
+];
+
+// ---------- Offaly: Birr Castle, Tullamore, Lough Boora, the Bog of Allen, Leap and Charleville Castles, Moneygall ----------
+
+export const OFFALY_NPCS: Npc[] = [
+  {
+    look: 'local',
+    face: 'down',
+    talk: say(
+      'LOCAL: Did you hear about the ship in the sky? Monks at Clonmacnoise saw it in 744, sailing over the church in the clouds.',
+      'LOCAL: Its anchor caught on the altar rail. A sailor climbed down the rope to free it, and the monks held on to him till he cried he was drowning in our air.',
+      'LOCAL: They let him go, he climbed back up, and the ship sailed off. The anchor’s long gone. The monks never did find out what ship it was.',
+    ),
+  },
+  { look: 'trainer', face: 'up', trainer: 'offaly-astronomer', sight: 3 },
+  {
+    look: 'farmer',
+    face: 'down',
+    talk: say(
+      'TURF CUTTER: In 2003 they found a man in the bog by Croghan Hill. Old Croghan Man, 2,000 years dead, and his fingernails still done.',
+      'TURF CUTTER: A king, they think, given to the bog. The bog keeps everything: butter, bodies, the odd Ranemon. I check every sod twice.',
+    ),
+  },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: [
+      ...say(
+        'OLD MAN: Leap Castle. The most haunted house in Ireland. The O’Carrolls killed their own brother, a priest, at the altar in the Bloody Chapel.',
+        'OLD MAN: When they cleared out a dungeon behind the wall, they found it full of bones. And something lives there still. They call it the Elemental. It smells of sulphur.',
+      ),
+      once(
+        'gift:leap',
+        'OLD MAN: Here, take these, in case you go in. You’ll want your Ranemon in good form.',
+        'chicken-fillet-roll',
+        3,
+        'OLD MAN: Did you smell it? You did. You’ve gone white.',
+      ),
+    ],
+  },
+];
+
+export const OFFALY_SIGNS = {
+  birr: 'BIRR CASTLE. Home of the Leviathan, for 70 years the biggest telescope in the world.',
+  tullamore:
+    'TULLAMORE. Home of Tullamore D.E.W. In 1785 a hot-air balloon crashed here and burned half the town. The town put the balloon on its crest.',
+  boora:
+    'LOUGH BOORA. An old cutaway bog turned into a park of lakes and giant sculptures. Mind the grey partridges.',
+  bog: 'THE BOG OF ALLEN. A thousand square kilometres of bog. Keep to the path.',
+  leap: 'LEAP CASTLE. Most haunted house in Ireland. Visitors at own risk.',
+};
+
+export const OFFALY_HOUSES: Step[][] = [
+  [
+    {
+      do: 'say',
+      text: 'TULLAMORE D.E.W. The letters are Daniel E. Williams, who ran the distillery from the age of 15. Give every man his Dew, the old ad said.',
+    },
+    once(
+      'gift:dew',
+      'GUIDE: The tasting’s for over-18s, but your Ranemon can have these.',
+      'mulligans',
+      1,
+      'GUIDE: Give every man his Dew. And every Ranemon a pint.',
+    ),
+  ],
+  say(
+    'LOCAL: Moneygall. Barack Obama’s great-great-great-grandfather was the shoemaker here. When Obama came for a pint in 2011, the whole village had a pint with him.',
+  ),
+];
+
+export const OFFALY_LANDMARKS: Step[][] = [
+  say(
+    'BIRR CASTLE. The Leviathan of Parsonstown, built by the 3rd Earl of Rosse in 1845. Through it he was the first to see that some nebulae were spirals.',
+  ),
+  say(
+    'LEAP CASTLE. It’s cold, it’s dark, and somebody upstairs is walking slowly from one end of the Bloody Chapel to the other. Nobody else is here.',
+  ),
+  say(
+    'CHARLEVILLE CASTLE. A gothic castle in an oak forest. A little girl, Harriet, slid down the banister in 1861 and fell. Some say she still plays on the stairs.',
+  ),
+];

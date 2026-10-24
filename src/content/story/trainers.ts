@@ -531,6 +531,51 @@ const T: Trainer[] = [
     'Did you hear the one about the trainer who lost?',
   ),
   trainer(
+    'kk-hurler',
+    'Hurler Eoin',
+    [
+      ['robinmon', 18],
+      ['steadmon', 19],
+    ],
+    'Nine All-Irelands in ten years. Do you know who we are? We’re the Cats.',
+  ),
+  trainer(
+    'kk-kayaker',
+    'Kayaker Órla',
+    [
+      ['enda', 18],
+      ['robinmon', 19],
+    ],
+    'I paddled from Inistioge to here and I’m not even tired. Well, a bit.',
+  ),
+  trainer(
+    'laois-steam',
+    'Steam Rally Seán',
+    [
+      ['killemon', 22],
+      ['oismon', 22],
+    ],
+    'Out of the way! This traction engine has no brakes. Well, it has, but they’re from 1911.',
+  ),
+  trainer(
+    'laois-glamper',
+    'Glamper Ciara',
+    [
+      ['olliemon', 22],
+      ['crampemon', 23],
+    ],
+    'Electric Picnic ended three weeks ago. I’m not ready to go home.',
+  ),
+  trainer(
+    'laois-footballer',
+    'Footballer Darragh',
+    [
+      ['thilomon', 22],
+      ['killemon', 23],
+    ],
+    'Laois! Laois! Laois! Sorry, it just comes out.',
+  ),
+  trainer(
     'lads-ringleader',
     'Ringleader Shane',
     [
@@ -566,6 +611,15 @@ const T: Trainer[] = [
       ['hugomon', 26],
     ],
     'Mind the bog. It swallows people.',
+  ),
+  trainer(
+    'offaly-astronomer',
+    'Astronomer Niamh',
+    [
+      ['hugomon', 26],
+      ['skehemon', 27],
+    ],
+    'The Leviathan saw galaxies from Birr. I only need to see you lose.',
   ),
   trainer(
     'wm-fan',

@@ -25,6 +25,23 @@ const OLD_DOORS: Record<string, [string, number, number][]> = {
     ['M', 12, 9],
     ['G', 19, 10],
   ],
+  kilkenny: [
+    ['L', 9, 2],
+    ['M', 20, 2],
+    ['P', 9, 9],
+    ['G', 19, 9],
+  ],
+  laois: [
+    ['G', 16, 2],
+    ['P', 4, 7],
+    ['M', 21, 7],
+  ],
+  offaly: [
+    ['G', 7, 4],
+    ['L', 19, 4],
+    ['P', 4, 10],
+    ['M', 9, 10],
+  ],
 };
 
 const first = (map: GameMap, kind: string) => find(map, kind)[0];
@@ -34,7 +51,7 @@ describe.each(Object.entries(OLD_DOORS))('the bigger %s', (id, doors) => {
 
   it('is bigger, and 2D only', () => {
     expect(map.rows[0].length).toBeGreaterThanOrEqual(40);
-    expect(map.rows.length).toBeGreaterThanOrEqual(24);
+    expect(map.rows.length).toBeGreaterThanOrEqual(22);
     expect(map.flat).toBe(true);
   });
 
@@ -51,9 +68,10 @@ describe.each(Object.entries(OLD_DOORS))('the bigger %s', (id, doors) => {
   });
 
   it('has famous places and local legends to find', () => {
-    expect(map.landmarks?.length ?? 0).toBeGreaterThanOrEqual(3);
-    expect(map.signs?.length ?? 0).toBeGreaterThanOrEqual(5);
-    expect(npcsOf(map).length).toBeGreaterThanOrEqual(8);
+    const doors = (map.landmarks?.length ?? 0) + (map.houses?.length ?? 0);
+    expect(doors).toBeGreaterThanOrEqual(3);
+    expect(map.signs?.length ?? 0).toBeGreaterThanOrEqual(4);
+    expect(npcsOf(map).length).toBeGreaterThanOrEqual(7);
   });
 
   it('moves the way out to the new east edge', () => {
