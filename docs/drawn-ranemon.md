@@ -36,4 +36,4 @@ Each part is a shape with a three-tone colour ramp. The kit shades every part fr
 
 - **As a look**: add a variant (`variants.ts`) whose sprite is the drawn front, so it sits beside the photo. A back view needs `backSprite` on the creature and in `Sprite.tsx` (an earlier version of this branch did that for Cholokill).
 - **Instead of the photos**: copy the files into `public/sprites/bw/` (and `shiny/`, `mini/`) under the Ranemon's own names.
-- **Not done yet**: the second looks and their evolutions, the type glow on evolved forms, B&S, and solid 3D figures.
+- **Not done yet**: the second looks and their evolutions, B&S, and solid 3D figures.
