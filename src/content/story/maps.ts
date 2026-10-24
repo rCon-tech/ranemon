@@ -28,6 +28,14 @@ import { palaceRooms } from './palace';
 import { PL_MAPS } from './premier';
 import { SHOREDITCH } from './shoreditch';
 import { GALWAY, HALL_ROOMS } from './galway';
+import {
+  SILICON_LABELS,
+  SILICON_LANDMARKS,
+  SILICON_LOCKS,
+  SILICON_ROOMS,
+  SILICON_ROWS,
+  SILICON_SIGNS,
+} from './silicon';
 import * as LEGENDS from './legends';
 
 /**
@@ -1257,7 +1265,8 @@ export const MAPS: GameMap[] = [
       'TvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvRRRRRRRvvvvvvvvvvvdd~~T',
       'T,,,,,,,,,,vvvvvvvvvvvvvvvvvvSvvvvvvRRRvvvvv,,,,,,,dd~~T',
       'T,,,,,,,,,,vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv,,,,,,,dd~~T',
-      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+      // Silicon Docks, through the gap in the trees along the bottom (silicon.ts).
+      ...SILICON_ROWS,
     ],
     wild: {
       min: 40,
@@ -1313,7 +1322,7 @@ export const MAPS: GameMap[] = [
       LEGENDS.DUBLIN_SIGNS.croke,
       LEGENDS.DUBLIN_SIGNS.poolbeg,
       'TEMPLE BAR. A pint here costs more than a Ranemon. Mind the hen parties.',
-      'SILICON DOCKS. Everyone here works in tech, and nobody can tell you what they actually do.',
+      'SILICON DOCKS. Everyone here works in tech, and nobody can tell you what they actually do. The HQs are down past the bottom of the city, through the gap in the trees.',
       'CONNOLLY STATION. Trains to Greystones, Bundoran and beyond. Tickets inside.',
       LEGENDS.DUBLIN_SIGNS.bull,
       'THE RAVE CAVE. Open all night, every night. Everyone inside is up for a battle.',
@@ -1321,6 +1330,7 @@ export const MAPS: GameMap[] = [
       LEGENDS.DUBLIN_SIGNS.liberties,
       LEGENDS.DUBLIN_SIGNS.brazen,
       LEGENDS.DUBLIN_SIGNS.molly,
+      ...SILICON_SIGNS,
     ],
     // The GPO and Supermac's on O'Connell Street come first in reading order, then the Temple
     // Bar house, then The Temple Bar pub: saves inside the houses after them are moved along
@@ -1373,6 +1383,7 @@ export const MAPS: GameMap[] = [
       STATION_ARRIVE,
       RAVE_ARRIVE,
       ...LEGENDS.DUBLIN_LANDMARKS,
+      ...SILICON_LANDMARKS,
     ],
     landmarkLocks: {
       1: {
@@ -1382,8 +1393,10 @@ export const MAPS: GameMap[] = [
         opened:
           'The three coral beads glow warm in your bag. The boards fall away from the door on their own…',
       },
+      ...SILICON_LOCKS,
     },
-    landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom() },
+    landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom(), ...SILICON_ROOMS },
+    landmarkLabels: SILICON_LABELS,
     // Once you're Champion, Cramps comes running up the street the first time you're back out.
     arrive: [...CRAMPS_ARRIVE, ...PROVAI_ARRIVE],
     west: 'kildare',

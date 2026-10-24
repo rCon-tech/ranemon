@@ -152,7 +152,18 @@ export type Look =
   | 'johnnyb'
   | 'johnnysmacks'
   | 'bono'
-  | 'collins';
+  | 'collins'
+  | 'receptionist'
+  | 'techie'
+  | 'pichai'
+  | 'zuckerberg'
+  | 'nadella'
+  | 'cook'
+  | 'bezos'
+  | 'chew'
+  | 'musk'
+  | 'pcollison'
+  | 'jcollison';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -291,6 +302,10 @@ export interface GameMap {
   landmarkLocks?: Record<number, Lock>;
   /** A landmark's own room instead of the plain one, by landmark index. */
   landmarkRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
+  /** A sign over a landmark door, such as a company's name, by landmark index. */
+  landmarkLabels?: Record<number, { text: string; colour: string; brand?: Brand }>;
+  /** A company's look over a room: its colour washed over it and its logo in the floor. */
+  brand?: Brand;
   /** A house's own room instead of the plain one, by house index. */
   houseRooms?: Record<number, Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap>>;
   /** The gym behind the `G` door: its leader, and where it is, for the sign at the door. */
@@ -327,6 +342,23 @@ export interface GameMap {
   uk?: boolean;
   /** This town's W.B Yates: who runs it and what's different about it. */
   yates?: Yates;
+}
+
+/** The logos the overworld can draw (components/story/brands.ts). */
+export type Logo = 'google' | 'meta' | 'microsoft' | 'apple' | 'amazon' | 'tiktok' | 'x' | 'stripe';
+
+/** A company's own look, on its building and in its rooms, in Silicon Docks. */
+export interface Brand {
+  logo: Logo;
+  /** The main colour: the sign, and the wash over its rooms. */
+  colour: string;
+  /** Laid over the glass of its building, this strongly (0 to 1). */
+  facade: string;
+  tint: number;
+  /** What the logo sits on. */
+  panel: string;
+  /** Stripes along the top of the building and under the logo in the floor, if not `colour`. */
+  band?: string[];
 }
 
 /** A W.B Yates, the pubs in England: each run by Irish people living there, and each its own. */

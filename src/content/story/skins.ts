@@ -9,6 +9,7 @@ import { BEAT_PEARS } from './greystones';
 import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
+import { COLLISONS } from './silicon';
 import { NORM_RETURNED } from './sibeal';
 import { ELVIS_RETURNED } from '@/lib/story/norm';
 
@@ -276,6 +277,67 @@ export const SKINS: Skin[] = [
     name: 'Cramps',
     unlock: [TECHNO_DONE],
     hint: 'Go to I Love Techno with Cramps.',
+  },
+  // ---------- Silicon Docks ----------
+  {
+    id: 'techie',
+    name: 'Tech Worker',
+    unlock: beat(...wearing('techie')),
+    hint: 'Beat everyone on staff in the HQs of Silicon Docks, Dublin.',
+  },
+  {
+    id: 'pichai',
+    name: 'Sundar Pichai',
+    unlock: beat('silicon-pichai'),
+    hint: 'Beat the CEO at the top of Google in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'zuckerberg',
+    name: 'Mark Zuckerberg',
+    unlock: beat('silicon-zuckerberg'),
+    hint: 'Beat the CEO at the top of Meta in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'nadella',
+    name: 'Satya Nadella',
+    unlock: beat('silicon-nadella'),
+    hint: 'Beat the CEO at the top of Microsoft in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'cook',
+    name: 'Tim Cook',
+    unlock: beat('silicon-cook'),
+    hint: 'Beat the CEO at the top of Apple in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'bezos',
+    name: 'Jeff Bezos',
+    unlock: beat('silicon-bezos'),
+    hint: 'Beat the CEO at the top of Amazon in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'chew',
+    name: 'Shou Chew',
+    unlock: beat('silicon-chew'),
+    hint: 'Beat the CEO at the top of TikTok in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'musk',
+    name: 'Elon Musk',
+    unlock: beat('silicon-musk'),
+    hint: 'Beat the CEO at the top of X in Silicon Docks, Dublin.',
+  },
+  {
+    id: 'pcollison',
+    name: 'Patrick Collison',
+    unlock: beat(COLLISONS),
+    hint: 'Beat every CEO in Silicon Docks, Dublin. Two more are waiting at the end.',
+  },
+  {
+    id: 'jcollison',
+    name: 'John Collison',
+    unlock: beat(COLLISONS),
+    hint: 'Beat every CEO in Silicon Docks, Dublin. Two more are waiting at the end.',
   },
 ];
 

@@ -10,9 +10,9 @@ import { LONDON } from '@/lib/battle/london';
 const LONDONERS = new Set(LONDON.map((c) => c.id));
 const original = (id: string) => !LONDONERS.has(id);
 
-/** Gym leaders, rivals, bosses, scholars, club legends, royals and the Championship. */
+/** Gym leaders, rivals, bosses, scholars, club legends, royals, the Championship and big tech. */
 const IMPORTANT =
-  /^(rival|gym-|scholar-|bns|poseidon|rent-|pear-|trinity-|dublin-mescal|rave-mossy|arcade-king|techno-dj|pl-|palace-(?!guard)|galway-)/;
+  /^(rival|gym-|scholar-|bns|poseidon|rent-|pear-|trinity-|dublin-mescal|rave-mossy|arcade-king|techno-dj|pl-|palace-(?!guard)|galway-|silicon-)/;
 
 describe('the original Ranemon', () => {
   it('are at least three quarters of every wild table', () => {

@@ -29,6 +29,7 @@ import {
   type Style,
 } from './people';
 import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
+import { paintFacade, paintRoom } from './brands';
 import {
   balloonsAt,
   bulbsOf,
@@ -365,33 +366,68 @@ export function Overworld(props: Props) {
         }
       }
 
+      // A company's own look: its building in Silicon Docks, or the room inside it.
+      if (map.brand) {
+        const start = find(map, '@')[0];
+        paintRoom(
+          c,
+          map.brand,
+          sx(0),
+          sy(0),
+          map.rows[0].length,
+          map.rows.length,
+          start.x + 1,
+          4.5,
+        );
+      }
+      find(map, 'L').forEach((d, i) => {
+        const brand = map.landmarkLabels?.[i]?.brand;
+        if (!brand) return;
+        const glass = (x: number, y: number) => 'zL'.includes(map.rows[y]?.[x] ?? '.');
+        let x0 = d.x;
+        let x1 = d.x;
+        let y0 = d.y;
+        while (glass(x0 - 1, d.y)) x0--;
+        while (glass(x1 + 1, d.y)) x1++;
+        while (glass(d.x, y0 - 1)) y0--;
+        paintFacade(c, brand, sx(0), sy(0), x0, y0, x1, d.y);
+      });
+
       // Shop signs over the doors, in the door's own colour.
       c.font = '700 7px "Pixelify Sans", sans-serif';
       c.textAlign = 'center';
       c.textBaseline = 'middle';
-      for (const [door, label] of Object.entries(DOOR_LABEL)) {
-        for (const d of find(map, door)) {
-          const width = Math.ceil(c.measureText(label).width) + 6;
-          // Centred over the door, but kept on the building's front when it's long.
-          const row = map.rows[d.y];
-          let x0 = d.x;
-          let x1 = d.x;
-          while ('#PMGHL'.includes(row[x0 - 1] ?? '.')) x0--;
-          while ('#PMGHL'.includes(row[x1 + 1] ?? '.')) x1++;
-          const lo = x0 * TILE + width / 2;
-          const hi = (x1 + 1) * TILE - width / 2;
-          const centre = d.x * TILE + 8;
-          const lx = sx(lo <= hi ? Math.min(hi, Math.max(lo, centre)) : (lo + hi) / 2);
-          const ly = sy((d.y - 1) * TILE + 8);
-          c.fillStyle = INK;
-          c.fillRect(lx - width / 2 - 0.5, ly - 5, width + 1, 10);
-          c.fillStyle = SIGN_COLOUR[door];
-          c.fillRect(lx - width / 2, ly - 4.5, width, 9);
-          c.fillStyle = 'rgb(255 255 255 / 0.3)';
-          c.fillRect(lx - width / 2, ly - 4.5, width, 1);
-          c.fillStyle = LIGHT;
-          c.fillText(label, lx, ly + 0.5);
-        }
+      // And a company's own sign over its landmark door, such as the HQs in Silicon Docks.
+      const signs = [
+        ...Object.entries(DOOR_LABEL).flatMap(([door, label]) =>
+          find(map, door).map((d) => ({ d, label, colour: SIGN_COLOUR[door] })),
+        ),
+        ...find(map, 'L').flatMap((d, i) => {
+          const own = map.landmarkLabels?.[i];
+          return own ? [{ d, label: own.text, colour: own.colour }] : [];
+        }),
+      ];
+      for (const { d, label, colour } of signs) {
+        const width = Math.ceil(c.measureText(label).width) + 6;
+        // Centred over the door, but kept on the building's front when it's long.
+        const row = map.rows[d.y];
+        let x0 = d.x;
+        let x1 = d.x;
+        while ('#zPMGHL'.includes(row[x0 - 1] ?? '.')) x0--;
+        while ('#zPMGHL'.includes(row[x1 + 1] ?? '.')) x1++;
+        const lo = x0 * TILE + width / 2;
+        const hi = (x1 + 1) * TILE - width / 2;
+        const centre = d.x * TILE + 8;
+        const lx = sx(lo <= hi ? Math.min(hi, Math.max(lo, centre)) : (lo + hi) / 2);
+        const ly = sy((d.y - 1) * TILE + 8);
+        c.fillStyle = INK;
+        c.fillRect(lx - width / 2 - 0.5, ly - 5, width + 1, 10);
+        c.fillStyle = colour;
+        c.fillRect(lx - width / 2, ly - 4.5, width, 9);
+        c.fillStyle = 'rgb(255 255 255 / 0.3)';
+        c.fillRect(lx - width / 2, ly - 4.5, width, 1);
+        c.fillStyle = LIGHT;
+        c.fillText(label, lx, ly + 0.5);
       }
 
       // Blue Ghosts lie about as little blue cans, with a glint every so often.

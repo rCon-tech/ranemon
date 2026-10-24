@@ -466,6 +466,50 @@ function wall(c: Ctx, r: () => number, around: Around) {
   }
 }
 
+/**
+ * The glass of an office block in Silicon Docks: panes in a steel grid, a floor line every half
+ * tile, the sky caught in them as a diagonal shine, a parapet along the top and a frame down
+ * each end.
+ */
+function glass(c: Ctx, around: Around) {
+  const g = c.createLinearGradient(0, 0, T, T);
+  g.addColorStop(0, '#7ab8e0');
+  g.addColorStop(1, '#3a6a98');
+  c.fillStyle = g;
+  c.fillRect(0, 0, T, T);
+  // The sky in the glass: a broad shine running down to the right, unbroken across the block.
+  c.fillStyle = 'rgb(232 246 255 / 0.35)';
+  for (let y = 0; y < T; y++) c.fillRect((y + 4) % T, y, 6, 1);
+  c.fillStyle = 'rgb(232 246 255 / 0.15)';
+  for (let y = 0; y < T; y++) c.fillRect((y + 13) % T, y, 3, 1);
+  // Mullions and the dark band of each floor.
+  for (let x = 0; x < T; x += 8) px(c, x, 0, 1, T, '#c8d4dc');
+  for (let y = 0; y < T; y += 16) {
+    px(c, 0, y + 13, T, 3, '#2a4058');
+    px(c, 0, y + 13, T, 1, '#5a7a98');
+  }
+  if (around.n !== 'z') {
+    px(c, 0, 0, T, 4, '#d8dce0');
+    px(c, 0, 4, T, 1, '#6a7480');
+  }
+  if (around.w !== 'z' && around.w !== 'L') px(c, 0, 0, 2, T, '#5a6470');
+  if (around.e !== 'z' && around.e !== 'L') px(c, T - 2, 0, 2, T, '#3a4450');
+  if (around.s !== 'z' && around.s !== 'L') px(c, 0, T - 2, T, 2, '#8a8a90');
+}
+
+/** A glass door in a glass front: two sliding panes in a steel frame, with a mat. */
+function glassDoor(c: Ctx, around: Around) {
+  glass(c, { ...around, w: 'z', e: 'z', s: 'z' });
+  px(c, 5, 8, 22, 24, '#3a4450');
+  px(c, 6, 9, 20, 23, '#b8e4f8');
+  px(c, 6, 9, 20, 1, '#e8f6ff');
+  px(c, 15, 9, 2, 23, '#3a4450');
+  for (let i = 0; i < 6; i++) px(c, 8 + i, 20 - i, 1, 1, '#f4fbff');
+  px(c, 12, 18, 2, 4, '#6a7480');
+  px(c, 18, 18, 2, 4, '#6a7480');
+  px(c, 5, T - 2, 22, 2, '#4a4a52');
+}
+
 function door(c: Ctx, r: () => number, around: Around, kind: string) {
   // A door set into a castle or a rock face has stone round it, not plaster.
   if ([around.w, around.e].some((t) => t === 'q' || t === 'R')) castleWall(c, () => 0.9, around);
@@ -1573,7 +1617,11 @@ export function tileImage(
       case 'G':
       case 'H':
       case 'L':
-        door(c, r, around, tile);
+        if (around.w === 'z' || around.e === 'z') glassDoor(c, around);
+        else door(c, r, around, tile);
+        break;
+      case 'z':
+        glass(c, around);
         break;
       case 'S':
         sign(c, r, around);
@@ -1730,7 +1778,7 @@ export function groundOverlay(
   c.putImageData(img, 0, 0);
 
   // Buildings throw a shadow down and to the right onto the ground.
-  const building = (t: string) => '#^PMGHLw'.includes(t);
+  const building = (t: string) => '#^PMGHLwz'.includes(t);
   for (let ty = 0; ty < height; ty++) {
     for (let tx = 0; tx < width; tx++) {
       if (!building(at(tx, ty))) continue;

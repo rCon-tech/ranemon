@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Silicon Docks',
+    notes: [
+      'Every big tech company has an HQ in Dublin now. Find the gap in the trees at the bottom of the city.',
+      'Each one has someone at the top who’ll battle you, and something for you if you win. Beat enough of them and one more door opens.',
+      'There are new skins to earn there, and a new mission on the START menu.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Every door opens',
     notes: [
       'Every building on the road now has a door, and someone inside to talk to. Castles, caves, cathedrals and abbeys all have a guide, a monk or a caretaker with a story about the place.',
