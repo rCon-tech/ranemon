@@ -250,6 +250,12 @@ export default function Guide() {
             Station.
           </li>
           <li>
+            <b>The Championship of Ireland</b>: once you’re Champion, the Intercity from Connolly
+            Station runs to Galway. Four trainers wait in the Hall of Champions, one after the
+            other, and they always level up to keep pace with your best Ranemon. Food from the BAG
+            is allowed, but heal at McGrattans or lose and you start again from the first.
+          </li>
+          <li>
             <b>Held items</b>: some items are given to a Ranemon to hold from the BAG, and help it
             in every battle. Take them back from PARTY.
           </li>

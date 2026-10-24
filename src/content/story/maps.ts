@@ -14,6 +14,7 @@ import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
 import { CRAMPS_ARRIVE } from './cramps';
 import { BELGIUM } from './techno';
+import { GALWAY, HALL_ROOMS } from './galway';
 import * as LEGENDS from './legends';
 
 /**
@@ -1470,10 +1471,11 @@ export const MAPS: GameMap[] = [
   GREYSTONES,
   BRIGHTON,
   BELGIUM,
+  GALWAY,
 ];
 
 /** The rooms behind every door. */
-export const INTERIORS = MAPS.flatMap(interiorsOf);
+export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS];
 
 const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {

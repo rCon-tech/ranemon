@@ -109,6 +109,7 @@ import { rollVariant } from '@/lib/battle/variants';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
 import { FLEE_MS, type Flight } from './walk';
+import { COLLINS, ELITE } from '@/content/story/galway';
 
 /** The 3D overworld and its WebGL library load only when the 3D look is picked. */
 const Overworld3D = dynamic(() => import('./Overworld3D'), {
@@ -229,14 +230,15 @@ function EvolutionScene({ text, party }: { text: string; party: Member[] }) {
 }
 
 /**
- * The battlefield's backdrop: B&S and the legend at night, gyms indoors, the streets of Dublin
- * Brighton and Ghent, or the fields.
+ * The battlefield's backdrop: B&S, the legend and Michael Collins at night, gyms and the Hall of
+ * Champions indoors, the streets of Dublin, Brighton, Ghent and Galway, or the fields.
  */
 function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   if (trainer?.startsWith('bns') || foe === LEGEND.id) return 'night';
-  if (trainer && map.gym?.trainer === trainer) return 'gym';
+  if (trainer === COLLINS) return 'night';
+  if (trainer && (map.gym?.trainer === trainer || ELITE.includes(trainer))) return 'gym';
   const outside = outsideOf(map).id;
-  if (['dublin', 'trinity', 'brighton', 'belgium'].includes(outside)) return 'city';
+  if (['dublin', 'trinity', 'brighton', 'belgium', 'galway'].includes(outside)) return 'city';
   return 'field';
 }
 
@@ -463,8 +465,9 @@ export function Story() {
               break;
             }
             const t = trainerById(s.trainer);
-            // Once you're Champion, every trainer scales up to your party.
-            const team = scaleTeam(teamOf(t, g.starter), g).map(([id, level], i) =>
+            // Once you're Champion, every trainer scales up to your party; the Championship
+            // in Galway always does, Champion or not.
+            const team = scaleTeam(teamOf(t, g.starter), g, t.above).map(([id, level], i) =>
               toEntrant(makeMember(id, level, -1 - i)),
             );
             for (const e of team) g = see(g, e.creature.id);

@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { afterEach, expect, it } from 'vitest';
 import { MAPS, mapById } from '@/content/story/maps';
 import { trainerById } from '@/content/story/trainers';
 import { Rng } from '@/lib/battle/rng';
@@ -9,6 +9,10 @@ import { RAVE_TRAINERS } from '@/content/story/rave';
 import { ARCADE_KING, BRIGHTON_TRAINERS } from '@/content/story/brighton';
 import { TECHNO_DJ, TECHNO_TRAINERS } from '@/content/story/techno';
 import { afterBattle, makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
+
+// These battles run without a break, so let vitest's worker messages through between tests:
+// a file that holds its worker for over 60 seconds fails with "Timeout calling onTaskUpdate".
+afterEach(() => new Promise((resolve) => setImmediate(resolve)));
 
 const RUNS = Number(process.env.SIM_RUNS ?? 400);
 
