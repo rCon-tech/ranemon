@@ -62,15 +62,24 @@ function patchUp(mine: Member[], bag: { revive: number; restore: number }): Memb
     });
 }
 
-function single(id: string, level: number): number {
+/**
+ * Lets the test runner's messages through between battles: a long run of battles with no break
+ * holds up the worker until vitest gives up on it.
+ */
+const breather = () => new Promise((resolve) => setImmediate(resolve));
+
+async function single(id: string, level: number): Promise<number> {
   const rng = new Rng(1922);
   let won = 0;
-  for (let i = 0; i < RUNS; i++) if (fight(party(rng, level), id, i * 13).won) won++;
+  for (let i = 0; i < RUNS; i++) {
+    if (fight(party(rng, level), id, i * 13).won) won++;
+    if (i % 20 === 0) await breather();
+  }
   return won / RUNS;
 }
 
 /** The whole run: the four then Collins, with no healing but the bag in between. */
-function run(level: number): number {
+async function run(level: number): Promise<number> {
   const rng = new Rng(1916);
   let won = 0;
   for (let i = 0; i < RUNS; i++) {
@@ -86,6 +95,7 @@ function run(level: number): number {
       mine = patchUp(r.party, bag);
     }
     if (ok) won++;
+    if (i % 10 === 0) await breather();
   }
   return won / RUNS;
 }
@@ -97,11 +107,9 @@ function run(level: number): number {
  * them. A party picked to cover each one's type does much better.
  */
 for (const level of LEVELS) {
-  it(`the Championship is hard at Lv${level}, over ${RUNS} runs`, () => {
-    const row: Record<string, number> = {
-      ...Object.fromEntries([...ELITE, COLLINS].map((id) => [id, single(id, level)])),
-      run: run(level),
-    };
+  it(`the Championship is hard at Lv${level}, over ${RUNS} runs`, async () => {
+    const row: Record<string, number> = { run: await run(level) };
+    for (const id of [...ELITE, COLLINS]) row[id] = await single(id, level);
     console.table({ [`Lv${level}`]: row });
     for (const id of ELITE) {
       expect(row[id], id).toBeGreaterThanOrEqual(0.6);
