@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AMEX_ID, ARCADE_ID, ARCADE_KING, BRIGHTON_TRAINERS } from '@/content/story/brighton';
-import { BRIGHTON_DONE, ENDA_ASKED, ENDA_MET, MATCH_DONE } from '@/content/story/enda';
+import { BRIGHTON_DONE, ENDA_ASKED, ENDA_CALLS, ENDA_MET, MATCH_DONE } from '@/content/story/enda';
 import { mapById, mapFor } from '@/content/story/maps';
 import { STATION_ID, departureTo, homeward, ticket } from '@/content/story/station';
 import { stopsOf } from '@/content/story/townmap';
@@ -111,6 +111,12 @@ describe('Enda, in Kildare', () => {
     const arrive = marker(kildare, '>');
     const enda = person(kildare, 'enda');
     expect(Math.abs(arrive.x - enda.x) + Math.abs(arrive.y - enda.y)).toBe(1);
+  });
+
+  it('waves you over every time you come into Kildare, until you have met him', () => {
+    expect(kildare.arrive).toBe(ENDA_CALLS);
+    expect(play(ENDA_CALLS, new Set()).join(' ')).toMatch(/Over here!.*road to Dublin/);
+    expect(play(ENDA_CALLS, new Set([ENDA_MET]))).toEqual([]);
   });
 
   it('makes you his best friend and asks you to Brighton with Ollie and Kill', () => {
