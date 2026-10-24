@@ -1321,3 +1321,80 @@ test('story mode: Ghent stays 2D with the 3D look picked, and its security wonâ€
   await page.keyboard.press('ArrowUp');
   await expect(text).toContainText(/HEAD OF SECURITY DIRK|SECURITY/, { timeout: 10_000 });
 });
+
+test('story mode: SKINS dresses you as someone youâ€™ve beaten, in 2D and back in 3D', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:skins')) return;
+    // Back from Brighton, from before skins: Enda's should be waiting.
+    localStorage.setItem(
+      'ranemon.story.v1:skins',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'clare',
+        x: 3,
+        y: 3,
+        face: 'down',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 40,
+            exp: 64000,
+            hp: 100,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'brighton:done', 'beat:arcade-king'],
+        seen: [],
+        caught: [],
+        pub: { map: 'clare', x: 3, y: 3 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Skins');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'SKINS' }).click();
+  await expect(page.getByTestId('skin-enda')).toBeEnabled();
+  await expect(page.getByTestId('skin-king')).toBeEnabled();
+  await expect(page.getByTestId('skin-poseidon')).toBeDisabled();
+  await expect(page.getByTestId('skin-poseidon')).toContainText('Beat the god of the sea');
+  await page.getByTestId('skin-enda').click();
+  await expect(page.getByTestId('skin-enda')).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('x');
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:skins')!),
+  );
+  expect(save.skin).toBe('enda');
+  expect(save.skins).toEqual(expect.arrayContaining(['enda', 'king']));
+
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'JERSEYS' }).click();
+  await expect(page.locator('canvas[data-look="enda"]')).toBeVisible();
+  await page.keyboard.press('x');
+
+  // The 3D look still draws you, in the usual cap and jacket.
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.evaluate(() => localStorage.setItem('ranemon.view', '3d'));
+  await page.reload();
+  await page.getByTestId('trainer-name').fill('Skins');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.waitForTimeout(1500);
+  expect(errors).toEqual([]);
+});
