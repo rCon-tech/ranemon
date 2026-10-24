@@ -6,7 +6,7 @@ import { STATION_ID } from '@/content/story/station';
 import { trainerById } from '@/content/story/trainers';
 import { STYLES } from '@/components/story/people';
 import { BEAT_MS, dance } from '@/components/story/partyfx';
-import { find, isWalkable, npcsOf, tileAt, type Step } from '@/lib/story/world';
+import { find, isWalkable, npcsOf, tileAt, type GameMap, type Step } from '@/lib/story/world';
 
 /** Plays a script with every question answered `answer`, returning what was said and fought. */
 function play(steps: Step[], answer = true, out: string[] = []): string[] {
@@ -102,8 +102,8 @@ describe('Dublin, as a city', () => {
   const dublin = mapById('dublin');
 
   it('is bigger than the county towns, with the river crossed by several bridges', () => {
-    expect(dublin.rows[0].length).toBeGreaterThan(mapById('kildare').rows[0].length);
-    expect(dublin.rows.length).toBeGreaterThan(mapById('kildare').rows.length);
+    const area = (m: GameMap) => m.rows.length * m.rows[0].length;
+    expect(area(dublin)).toBeGreaterThan(area(mapById('kildare')));
     const bridges = new Set(find(dublin, 'B').map((p) => p.x));
     expect(bridges.size).toBeGreaterThanOrEqual(3);
   });

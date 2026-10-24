@@ -669,6 +669,60 @@ const T: Trainer[] = [
     'Halt! Who goes there?',
   ),
   trainer(
+    'wm-showband',
+    'Showband Fan Bernie',
+    [
+      ['lorcamon', 30],
+      ['robinmon', 31],
+    ],
+    'Make me an island! I’m all alone! Sorry, I can’t stop singing it. Battle?',
+  ),
+  trainer(
+    'wm-angler',
+    'Pike Angler Dara',
+    [
+      ['conemon', 30],
+      ['carlmon', 31],
+    ],
+    'I came for pike and found a trainer. Better again.',
+  ),
+  trainer(
+    'meath-reenactor',
+    'Reenactor Fiachra',
+    [
+      ['vinnimon', 34],
+      ['steadmon', 35],
+    ],
+    'I’ve fought the Battle of the Boyne every July for twenty years. Lost every time. Not today!',
+  ),
+  trainer(
+    'meath-archaeologist',
+    'Archaeologist Gráinne',
+    [
+      ['enda', 34],
+      ['simomon', 35],
+    ],
+    'Careful where you step! That could be 5,000 years old. That could be you, after this.',
+  ),
+  trainer(
+    'kildare-jockey',
+    'Jockey Aisling',
+    [
+      ['owemon', 38],
+      ['gibbsmon', 39],
+    ],
+    'I ride at Punchestown on Tuesday. This is my warm-up. Get up!',
+  ),
+  trainer(
+    'kildare-punter',
+    'Punter Gerry',
+    [
+      ['boydemon', 38],
+      ['owemon', 39],
+    ],
+    'I’ve a tenner on myself at 7 to 1. Don’t you dare let me down.',
+  ),
+  trainer(
     'dublin-jogger',
     'Jogger Ruth',
     [

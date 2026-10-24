@@ -503,3 +503,226 @@ export const OFFALY_LANDMARKS: Step[][] = [
     'CHARLEVILLE CASTLE. A gothic castle in an oak forest. A little girl, Harriet, slid down the banister in 1861 and fell. Some say she still plays on the stairs.',
   ),
 ];
+
+// ---------- Westmeath: Mullingar, Belvedere and the Jealous Wall, Lough Derravaragh, Uisneach and Fore ----------
+
+export const WESTMEATH_NPCS: Npc[] = [
+  { look: 'trainer', face: 'left', trainer: 'wm-showband', sight: 3 },
+  {
+    look: 'local',
+    face: 'down',
+    talk: [
+      ...say(
+        'LOCAL: See the swans on Lough Derravaragh? Lir’s four children were turned into swans by their jealous stepmother, Aoife.',
+        'LOCAL: Three hundred years here, three hundred on the cold Sea of Moyle, and three hundred more off Inis Glora, singing the whole time.',
+        'LOCAL: When a church bell finally rang, they turned back, nine hundred years old, and were buried together. Nobody in Westmeath would harm a swan.',
+      ),
+      once(
+        'gift:lir',
+        'LOCAL: Here. I bring bread for the swans, but they’re fussy. You have it.',
+        'chicken-fillet-roll',
+        2,
+        'LOCAL: Listen. On a still evening you’d swear they were singing.',
+      ),
+    ],
+  },
+  { look: 'lad', face: 'up', trainer: 'wm-angler', sight: 3 },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: say(
+      'OLD MAN: Fore has seven wonders. A monastery built on a bog. A mill with no stream. Water that flows uphill.',
+      'OLD MAN: A tree with three branches that won’t burn. Water that won’t boil. A hermit sealed in a stone cell. And a lintel no man could lift, raised by a saint’s prayer.',
+      'OLD MAN: I’ve tried boiling the water. My kettle has never been the same.',
+    ),
+  },
+];
+
+export const WESTMEATH_SIGNS = {
+  cathedral:
+    'MULLINGAR. The Cathedral of Christ the King, and a bronze Joe Dolan outside the Market House, mid-song.',
+  uisneach:
+    'THE HILL OF UISNEACH. The middle of Ireland. The Catstone here is where the five provinces met, and where the goddess Ériu is said to lie.',
+  fore: 'FORE ABBEY. A Benedictine priory in a valley of seven wonders. Ask the old man.',
+  derravaragh: 'LOUGH DERRAVARAGH. Mind the swans. Really. Mind them.',
+};
+
+export const WESTMEATH_HOUSES: Step[][] = [
+  say(
+    'BELVEDERE HOUSE. Lord Belvedere fell out with his brother next door, so in 1760 he built the biggest fake ruin in Ireland, the Jealous Wall, so he’d never have to look at his house again.',
+    'He also locked his wife up for 31 years on a rumour. The guide says he “wasn’t the easiest”.',
+  ),
+  [
+    {
+      do: 'say',
+      text: 'LOCKE’S DISTILLERY. Licensed in 1757, the oldest in Ireland. The waterwheel still turns, and the whole place smells of malt.',
+    },
+    once(
+      'gift:lockes',
+      'GUIDE: Nothing for the trainer under 18, but here, for the Ranemon.',
+      'mulligans',
+      1,
+      'GUIDE: The wheel’s been turning since before your great-great-grandmother was born.',
+    ),
+  ],
+];
+
+export const WESTMEATH_LANDMARKS: Step[][] = [
+  say(
+    'THE CATHEDRAL OF CHRIST THE KING. Finished in 1936, with two great towers you can see from the Hill of Uisneach. The mosaics took years to put up.',
+  ),
+  say(
+    'FORE ABBEY. Inside the walls it’s very still. A stone set over the old church door is the one St Féichín’s prayer lifted.',
+  ),
+];
+
+// ---------- Meath: the Boyne, the Hill of Slane, Trim Castle, Kells, Knowth and Loughcrew ----------
+
+export const MEATH_NPCS: Npc[] = [
+  { look: 'trainer', face: 'left', trainer: 'meath-reenactor', sight: 3 },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: say(
+      'OLD MAN: The cairns at Loughcrew? The Cailleach made them, the old hag. She leapt from hill to hill with an apron full of stones, dropping one on every hill.',
+      'OLD MAN: On the last hill she slipped, fell and broke her neck. Her stone chair is up there still. Sit in it and make a wish, they say.',
+    ),
+  },
+  {
+    look: 'local',
+    face: 'down',
+    talk: [
+      {
+        do: 'ask',
+        text: 'LOCAL: Up on Tara there’s the Lia Fáil, the Stone of Destiny. It roars when the true High King of Ireland touches it. Will I bring you up to try?',
+        yes: say(
+          'You put your hand on the Lia Fáil. Silence. Not a squeak.',
+          'LOCAL: Ah, don’t mind it. It hasn’t roared for anyone in about 1,500 years.',
+        ),
+        no: say('LOCAL: Probably wise. It’s a long way up to be told you’re not a king.'),
+      },
+    ],
+  },
+  { look: 'trainer', face: 'up', trainer: 'meath-archaeologist', sight: 3 },
+  {
+    look: 'farmer',
+    face: 'down',
+    talk: [
+      ...say(
+        'FISHERMAN: The Salmon of Knowledge lived in the Boyne here. Finegas the poet fished seven years for it, and when he caught it he gave it to young Fionn to cook.',
+        'FISHERMAN: Fionn burned his thumb on the skin and sucked it, and all the knowledge in the world went into him. Finegas got the rest of the fish, and no knowledge at all.',
+      ),
+      once(
+        'gift:salmon',
+        'FISHERMAN: No salmon today. But here, a few things from the cool box.',
+        'spice-bag',
+        2,
+        'FISHERMAN: Every time I burn my thumb, I check. Nothing yet.',
+      ),
+    ],
+  },
+];
+
+export const MEATH_SIGNS = {
+  slane:
+    'THE HILL OF SLANE. In 433 St Patrick lit a fire here, right in sight of the High King at Tara, who’d banned all fires that night.',
+  trim: 'TRIM CASTLE. The biggest Norman castle in Ireland. They filmed Braveheart here and pretended it was England.',
+  knowth:
+    'KNOWTH. A great passage tomb ringed by smaller ones, carved with more ancient art than anywhere else in Europe.',
+  loughcrew: 'LOUGHCREW. Thirty cairns on the hills, and the Hag’s Chair at the top.',
+  boyne:
+    'THE BATTLE OF THE BOYNE, 1690. Two kings, one river, and an argument that’s never quite finished.',
+};
+
+export const MEATH_HOUSES: Step[][] = [
+  say(
+    'LOCAL: Kells. The monks here finished the Book of Kells, about the year 800. Then Dublin took it, and it’s in Trinity now. We’d like it back, if anyone’s asking.',
+  ),
+];
+
+export const MEATH_LANDMARKS: Step[][] = [
+  say(
+    'TRIM CASTLE. The great keep has twenty corners. Mel Gibson was here once in a kilt, and the town has never fully recovered.',
+  ),
+  say(
+    'KNOWTH. Inside the great mound, a long stone passage runs into the dark. Swirls and circles are carved into the stones all around you.',
+  ),
+  say(
+    'LOUGHCREW, CAIRN T. A tight stone passage, and at the equinox the sunrise lights up the carved suns on the back stone. Right now it’s just dark.',
+  ),
+];
+
+// ---------- Kildare: Kildare Town, the National Stud, Castletown, the Hill of Allen, the Grand Canal and Punchestown ----------
+
+export const KILDARE_NPCS: Npc[] = [
+  { look: 'trainer', face: 'left', trainer: 'kildare-jockey', sight: 3 },
+  {
+    look: 'local',
+    face: 'down',
+    talk: say(
+      'LOCAL: St Brigid asked the King of Leinster for land for her convent. He laughed and said she could have as much as her cloak would cover.',
+      'LOCAL: Four of her sisters took a corner each and ran: north, south, east and west. The cloak spread and spread, over the whole of the Curragh.',
+      'LOCAL: The king gave her the lot, and Kildare got its church under the oak. Cill Dara.',
+    ),
+  },
+  {
+    look: 'oldman',
+    face: 'down',
+    talk: [
+      ...say(
+        'OLD MAN: That’s the Hill of Allen. Fionn Mac Cumhaill had his fort up there, and the Fianna trained on the plain below.',
+        'OLD MAN: They say Fionn and his men are only sleeping under the hill. When Ireland needs them, they’ll wake.',
+      ),
+      once(
+        'gift:allen',
+        'OLD MAN: Here. If they wake up hungry, they’ll want these. Until then, you have them.',
+        'full-irish',
+        1,
+        'OLD MAN: Still asleep. I’d say they’d want a full Irish when they wake.',
+      ),
+    ],
+  },
+  {
+    look: 'local',
+    face: 'right',
+    talk: say(
+      'LOCAL: At Castletown House, back in the 1700s, a stranger in black joined the card game. Someone dropped a card, bent to get it, and saw he had cloven hooves.',
+      'LOCAL: The stranger went up through the ceiling in a ball of fire, and cracked the hearth on his way. The crack is still there. Go and look.',
+    ),
+  },
+  { look: 'trainer', face: 'up', trainer: 'kildare-punter', sight: 3 },
+];
+
+export const KILDARE_SIGNS = {
+  town: 'KILDARE TOWN. St Brigid’s Cathedral and its round tower, St Brigid’s Well, and Kildare Village if you’re after a bargain.',
+  castletown:
+    'CASTLETOWN HOUSE, CELBRIDGE. The biggest Palladian house in Ireland. Arthur Guinness was born up the road in 1725.',
+  allen: 'THE HILL OF ALLEN. Fionn Mac Cumhaill’s fort. Mind the quarry.',
+  canal:
+    'THE GRAND CANAL. Dublin to the Shannon by barge, at walking pace. Slower if you stop for a pint.',
+};
+
+export const KILDARE_HOUSES: Step[][] = [
+  [
+    {
+      do: 'say',
+      text: 'THE IRISH NATIONAL STUD. Champion racehorses in the paddocks, and the Japanese Gardens, whose path walks you through the life of a man, birth to death.',
+    },
+    once(
+      'gift:stud',
+      'GROOM: The horses get the best feed in Ireland. You can have the next best.',
+      'full-irish',
+      1,
+      'GROOM: Don’t stand behind that one. He kicks, and he wins.',
+    ),
+  ],
+  say(
+    'CASTLETOWN HOUSE. In the hall, the marble hearth has a long crack across it. The guide won’t say how it got there. She just looks at the ceiling.',
+  ),
+];
+
+export const KILDARE_LANDMARKS: Step[][] = [
+  say(
+    'ST BRIGID’S CATHEDRAL. Beside it, a round tower you can climb, the second tallest in Ireland, and the old fire temple where nuns kept Brigid’s flame burning for centuries.',
+  ),
+];
