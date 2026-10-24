@@ -277,9 +277,14 @@ function evolve(m: Member, lines: string[]): Member {
 /** No cap: as high as any Ranemon goes. */
 export const NO_CAP: LevelCap = { level: MAX_LEVEL, leader: null };
 
-/** Said when a Ranemon reaches the level cap, or can't go past it. */
-export const capLine = (m: Member, cap: LevelCap) =>
-  `${nameOf(m)} can’t grow past Lv${cap.level} until you beat ${cap.leader}.`;
+/** Said when Ranemon (one, or a list of names) reach the level cap, or can't go past it. */
+export const cappedLine = (names: string, cap: LevelCap) =>
+  `${names} can’t grow past Lv${cap.level} until you beat ${cap.leader}.`;
+
+export const capLine = (m: Member, cap: LevelCap) => cappedLine(nameOf(m), cap);
+
+/** Said when a Ranemon gains EXP. */
+export const gainedLine = (name: string, amount: number) => `${name} gained ${amount} EXP!`;
 
 /**
  * Adds EXP and applies any level-ups, up to the level cap (`levels.ts`): a Ranemon at the cap
@@ -295,7 +300,7 @@ export function gainExp(
   const top = Math.min(MAX_LEVEL, cap.level);
   if (m.level >= MAX_LEVEL) return { member: m, lines: [] };
   if (m.level >= top) return { member: m, lines: [capLine(m, cap)] };
-  const lines = [`${nameOf(m)} gained ${amount} EXP!`];
+  const lines = [gainedLine(nameOf(m), amount)];
   let member: Member = { ...m, exp: m.exp + amount };
   while (member.level < top && member.exp >= expAt(member.level + 1)) {
     member = levelUp(member, lines, party);

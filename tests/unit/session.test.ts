@@ -3,7 +3,9 @@ import { legalActions, startBattle } from '@/lib/battle/engine';
 import { creatureById } from '@/lib/battle/roster';
 import { STARTERS } from '../fixtures/placeholders';
 import { applyEvent, describeEvent, viewOf } from '@/lib/ui/playback';
+import { battleCues } from '@/lib/sound/cues';
 import {
+  EFFECT_MS,
   messagePause,
   reduce,
   SPECIAL_MS,
@@ -63,6 +65,27 @@ describe('battle session', () => {
     expect(s.lunges[0]).toBe(1);
     expect(s.pause).toBe(messagePause(s.message));
     expect(s.pause).toBeGreaterThanOrEqual(2000);
+  });
+
+  it('plays the miss in place of a move’s animation when the move misses', () => {
+    const ready = untilInput(fresh());
+    let s: Session = {
+      ...ready,
+      mode: 'playing',
+      queue: [
+        { kind: 'move', side: 0, moveId: 'galaxy-brain' },
+        { kind: 'miss', side: 0 },
+      ],
+    };
+    s = reduce(s, { type: 'step', random: 0 });
+    expect(s.message).toMatch(/used Galaxy Brain!$/);
+    expect(s.effect).toBeNull();
+    expect(s.lunges[0]).toBe(ready.lunges[0] + 1);
+    expect(battleCues(s.last!, s.state, s.view, s.queue)).toEqual([]);
+    s = reduce(s, { type: 'step', random: 0 });
+    expect(s.message).toMatch(/attack missed!$/);
+    expect(s.pause).toBeGreaterThanOrEqual(EFFECT_MS);
+    expect(battleCues(s.last!, s.state, s.view, s.queue)).toEqual([{ sfx: 'miss' }]);
   });
 
   it('plays a special move’s own scene for as long as it runs', () => {

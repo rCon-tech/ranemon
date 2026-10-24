@@ -5,8 +5,11 @@ import type { Result } from '../ui/session';
 import type { ItemId } from './items';
 import {
   afterBattle,
+  capLine,
+  cappedLine,
   expYield,
   gainExp,
+  gainedLine,
   heal,
   makeMember,
   PARTY_SIZE,
@@ -175,6 +178,24 @@ export const canFight = (s: StoryState) => s.party.some((m) => m.hp > 0);
 /** The member who walks behind you: the first one still standing. */
 export const follower = (s: StoryState) => s.party.find((m) => m.hp > 0) ?? null;
 
+const GREW = / grew to Lv\d+!$/;
+
+/** Names as a list: “Carlmon, Enda and Jammon”. */
+const listOf = (names: string[]) =>
+  names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+/** Everyone's EXP from a battle in one line, grouping those who got the same. */
+export function expLine(gains: { name: string; amount: number }[]): string {
+  const amounts = [...new Set(gains.map((g) => g.amount))];
+  return amounts
+    .map((amount) => {
+      const names = gains.filter((g) => g.amount === amount).map((g) => g.name);
+      if (names.length === 1) return gainedLine(names[0], amount);
+      return `${listOf(names)} gained ${amount} EXP each!`;
+    })
+    .join(' ');
+}
+
 /**
  * What a finished battle leaves behind: HP, PP and status copied back, EXP for every foe that
  * fainted, and the catch or the blackout. The Ranemon that fought a foe share its EXP. The rest
@@ -195,18 +216,14 @@ export function settleBattle(
   let party = s.party.map((m, i) => afterBattle(m, battle.teams[0].battlers[i]));
 
   if (result === 'win' || result === 'caught') {
+    // What each member earns from every foe that fainted, added up so it's said once.
+    const earned = party.map(() => 0);
     const foes = battle.teams[1].battlers.filter((b) => b.hp === 0 && !b.left);
     for (const foe of foes) {
       const total = expYield(foe.level, trainer);
       const fighters = fought.filter((i) => i < party.length && party[i].hp > 0);
-      const shareOut = (i: number, amount: number) => {
-        const { member, lines: more } = gainExp(party[i], amount, party, cap);
-        party = party.map((m, j) => (j === i ? member : m));
-        // Each line about the cap once, however many foes fainted.
-        lines.push(...more.filter((l) => !lines.includes(l) || !l.includes('can’t grow past')));
-      };
       const each = Math.max(1, Math.floor(total / Math.max(1, fighters.length)));
-      for (const i of fighters) shareOut(i, each);
+      for (const i of fighters) earned[i] += each;
       const bench = s.expShare
         ? each
         : hasFlag(s, 'round')
@@ -214,10 +231,34 @@ export function settleBattle(
           : 0;
       if (bench) {
         party.forEach((m, i) => {
-          if (!fighters.includes(i) && m.hp > 0) shareOut(i, bench);
+          if (!fighters.includes(i) && m.hp > 0) earned[i] += bench;
         });
       }
     }
+    const gains: { name: string; amount: number }[] = [];
+    const levels: string[] = [];
+    const capped: string[] = [];
+    const rest: string[] = [];
+    earned.forEach((amount, i) => {
+      if (!amount) return;
+      const before = party[i];
+      const gained = gainedLine(nameOf(before), amount);
+      const { member, lines: more } = gainExp(before, amount, party, cap);
+      party = party.map((m, j) => (j === i ? member : m));
+      if (more[0] === gained) gains.push({ name: nameOf(before), amount });
+      // Only the level it ends on, however many it went up.
+      const grew = more.filter((l) => GREW.test(l));
+      if (grew.length) levels.push(grew[grew.length - 1]);
+      const atCap = (l: string) => l === capLine(before, cap) || l === capLine(member, cap);
+      if (more.some(atCap)) capped.push(nameOf(member));
+      rest.push(...more.filter((l) => l !== gained && !GREW.test(l) && !atCap(l)));
+    });
+    // One box for everyone's EXP, one for everyone's new level and one for everyone at the
+    // level cap; what they learnt and their evolutions still get a box each.
+    if (gains.length) lines.push(expLine(gains));
+    if (levels.length) lines.push(levels.join(' '));
+    lines.push(...rest);
+    if (capped.length) lines.push(cappedLine(listOf(capped), cap));
   }
 
   let state: StoryState = { ...s, party };

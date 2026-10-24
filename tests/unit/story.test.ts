@@ -18,6 +18,7 @@ import {
 } from '@/lib/story/party';
 import {
   load,
+  expLine,
   newer,
   newGame,
   playerId,
@@ -251,6 +252,42 @@ describe('story state', () => {
     expect(gain(toggleExpShare(s))).toEqual([full, full, 0]);
     expect(toggleExpShare(toggleExpShare(s)).expShare).toBe(false);
     expect(gain({ ...s, flags: ['round'] })).toEqual([full, Math.floor(full / 2), 0]);
+  });
+
+  it('says everyone’s EXP in one box, and everyone’s new level in one more', () => {
+    let s = recruit(newGame(), 'carlmon', 5).state;
+    s = recruit(s, 'enda', 5).state;
+    s = recruit(s, 'jammon', 8).state;
+    s = toggleExpShare(s);
+    const foes = [
+      { creature: creatureById('olliemon'), level: 9 },
+      { creature: creatureById('olliemon'), level: 9 },
+    ];
+    const { state } = startBattle([s.party.map(toEntrant), foes], 1);
+    const won = structuredClone(state);
+    for (const b of won.teams[1].battlers) b.hp = 0;
+    const { lines } = settleBattle(s, won, 'win', [0], true);
+    const each = 2 * expYield(9, true);
+    expect(lines[0]).toBe(
+      `${s.party
+        .map((m) => creatureOf(m).name)
+        .join(', ')
+        .replace(/, (?=[^,]*$)/, ' and ')} gained ${each} EXP each!`,
+    );
+    expect(lines.filter((l) => / gained \d+ EXP/.test(l))).toHaveLength(1);
+    expect(lines[1]).toMatch(/^\S+ grew to Lv\d+! \S+ grew to Lv\d+! \S+ grew to Lv\d+!$/);
+    expect(lines.filter((l) => /grew to/.test(l))).toHaveLength(1);
+  });
+
+  it('groups EXP by amount when the party earns different shares', () => {
+    expect(
+      expLine([
+        { name: 'Carlmon', amount: 120 },
+        { name: 'Enda', amount: 60 },
+        { name: 'Jammon', amount: 60 },
+      ]),
+    ).toBe('Carlmon gained 120 EXP! Enda and Jammon gained 60 EXP each!');
+    expect(expLine([{ name: 'Carlmon', amount: 20 }])).toBe('Carlmon gained 20 EXP!');
   });
 
   it('saves and loads under a trainer name, and falls back to a copy if the save breaks', () => {

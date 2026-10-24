@@ -84,3 +84,34 @@ export function MoveEffect({ moveId }: { moveId: string }) {
     </div>
   );
 }
+
+/** The streaks of a missed attack, as offsets from the middle of the sprite (in %), off to one side. */
+const STREAKS = [
+  [-34, -18],
+  [-38, 4],
+  [-30, 24],
+];
+
+/**
+ * What plays when an attack misses, in place of the move's own animation: the attack whooshes
+ * past the Ranemon it was aimed at (on `side`), and MISS pops up over it. Give it a new `key`
+ * each time.
+ */
+export function MissEffect({ side }: { side: 0 | 1 }) {
+  return (
+    <div
+      className={`move-fx miss-fx ${side === 1 ? 'miss-foe' : 'miss-you'}`}
+      aria-hidden="true"
+      data-testid="miss-effect"
+    >
+      {STREAKS.map(([dx, dy], i) => (
+        <span
+          key={i}
+          className="miss-streak"
+          style={{ '--dx': dx, '--dy': dy, '--delay': `${i * 50}ms` } as React.CSSProperties}
+        />
+      ))}
+      <span className="miss-word">MISS!</span>
+    </div>
+  );
+}

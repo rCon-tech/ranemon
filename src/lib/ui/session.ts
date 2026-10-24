@@ -130,6 +130,10 @@ function randomFrom(seed: number): () => number {
   return () => rng.next();
 }
 
+/** Whether a move is about to miss: its user's miss comes straight after it. */
+export const missed = (item: QueueItem, rest: QueueItem[]) =>
+  item.kind === 'move' && rest[0]?.kind === 'miss' && rest[0].side === item.side;
+
 const bump = (pair: [number, number], side: Side): [number, number] =>
   side === 0 ? [pair[0] + 1, pair[1]] : [pair[0], pair[1] + 1];
 
@@ -278,13 +282,18 @@ function step(s: Session, random: number): Session {
     if (event.kind === 'move') {
       const move = moveById(event.moveId);
       const side: Side = aimsAtFoe(move) ? (event.side === 0 ? 1 : 0) : event.side;
-      next = {
-        ...next,
-        effect: { side, user: event.side, moveId: move.id, n: (s.effect?.n ?? 0) + 1 },
-        lunges: move.category === 'status' ? next.lunges : bump(next.lunges, event.side),
-        pause: Math.max(next.pause, move.signature ? SPECIAL_MS : EFFECT_MS),
-      };
+      const lunges = move.category === 'status' ? next.lunges : bump(next.lunges, event.side);
+      // A move that misses doesn't play its animation: the miss plays instead, next step.
+      next = missed(event, rest)
+        ? { ...next, effect: null, lunges }
+        : {
+            ...next,
+            effect: { side, user: event.side, moveId: move.id, n: (s.effect?.n ?? 0) + 1 },
+            lunges,
+            pause: Math.max(next.pause, move.signature ? SPECIAL_MS : EFFECT_MS),
+          };
     }
+    if (event.kind === 'miss') next = { ...next, pause: Math.max(next.pause, EFFECT_MS) };
     if (event.kind === 'damage' || event.kind === 'recoil' || event.kind === 'status-damage') {
       next = { ...next, hits: bump(next.hits, event.side) };
     }
