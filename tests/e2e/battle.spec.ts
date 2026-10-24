@@ -112,10 +112,10 @@ test('how to play: the guide explains the game and shows the type chart', async 
   await page.getByRole('link', { name: 'HOW TO PLAY' }).click();
   await expect(page.getByRole('heading', { name: 'HOW TO PLAY' })).toBeVisible();
   const chart = page.getByTestId('type-chart');
-  await expect(chart.locator('tbody tr')).toHaveCount(6);
-  // Each type hits two types for 2× and two for ½.
-  await expect(chart.locator('td', { hasText: '2×' })).toHaveCount(12);
-  await expect(chart.locator('td', { hasText: '½' })).toHaveCount(12);
+  await expect(chart.locator('tbody tr')).toHaveCount(9);
+  // Each type hits three types for 2× and three for ½.
+  await expect(chart.locator('td', { hasText: '2×' })).toHaveCount(27);
+  await expect(chart.locator('td', { hasText: '½' })).toHaveCount(27);
 });
 
 test('updates: the title shows NEW until you’ve read the Updates screen', async ({ page }) => {
