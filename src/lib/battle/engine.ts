@@ -203,6 +203,11 @@ export function moveFor(b: Battler, index: number): Move {
   return moveById(b.creature.moves[index]);
 }
 
+/** How many of a side's Ranemon can still fight, the one that's out included: Rush Hour's hits. */
+export function standing(state: BattleState, side: Side): number {
+  return Math.max(1, state.teams[side].battlers.filter((b) => b.hp > 0).length);
+}
+
 /** Bench indices a side could switch to: not active and not fainted. */
 export function switchTargets(state: BattleState, side: Side): number[] {
   const team = state.teams[side];
@@ -331,7 +336,11 @@ class Turn {
     let dealt = 0;
     if (move.category !== 'status') {
       const hits =
-        move.effect?.kind === 'multiHit' ? this.rng.int(move.effect.min, move.effect.max) : 1;
+        move.effect?.kind === 'multiHit'
+          ? this.rng.int(move.effect.min, move.effect.max)
+          : move.effect?.kind === 'teamHit'
+            ? standing(this.state, side)
+            : 1;
       let landed = 0;
       for (let i = 0; i < hits && foe.hp > 0; i++) {
         const crit = this.rng.chance(CRIT_CHANCE);

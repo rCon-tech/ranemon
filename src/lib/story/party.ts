@@ -1,13 +1,16 @@
 import { levelStats, MAX_LEVEL, type BaseStats, type Creature } from '../battle/creature';
 import type { Battler, Entrant } from '../battle/engine';
 import {
+  ALL_ITEM_EVOLUTIONS,
   EVOLVED,
   evolutionOf,
   formAt,
   ITEM_EVOLVED,
   itemEvolutionOf,
   lineOf,
+  previousOf,
 } from '../battle/evolutions';
+import { LONDON } from '../battle/london';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
 import { PETCHEMON } from '../battle/petchemon';
@@ -67,7 +70,9 @@ export const BOSS: Creature = {
 };
 
 const SPECIES = new Map(
-  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON].map((c) => [c.id, c]),
+  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON, ...LONDON].map(
+    (c) => [c.id, c],
+  ),
 );
 
 export function speciesById(id: string): Creature {
@@ -77,7 +82,7 @@ export function speciesById(id: string): Creature {
 }
 
 /** Ranemon that are harder to befriend. Everyone else has the common rate. */
-const RARE = ['gibbsmon', 'thilomon', 'oismon', 'olliemon'];
+const RARE = ['gibbsmon', 'thilomon', 'oismon', 'olliemon', 'aerodactivist'];
 /** Evolved Ranemon are harder again. */
 export function catchRate(species: string): number {
   // The legend is as hard as they come: worn down to 1 HP and asleep, a Mulligan's Pint
@@ -394,8 +399,8 @@ export function evolutionIn(
   // Which evolution: the one the line names, or the item evolution a member of the line has
   // just taken, or else the one it reaches by levelling.
   const into = finished ? BY_NAME.get(finished[2].replace(SHINY_STAR, ''))?.id : undefined;
-  const branches = [evolutionOf(base.id)?.id, ...ITEM_EVOLVED.map((c) => c.id)].filter(
-    (id): id is string => !!id && lineOf(id) === base.id,
+  const branches = [evolutionOf(base.id)?.id, ...ALL_ITEM_EVOLUTIONS.map((e) => e.id)].filter(
+    (id): id is string => !!id && previousOf(id) === base.id,
   );
   const taken = party.find(
     (m) => m.species !== evolutionOf(base.id)?.id && branches.includes(m.species),

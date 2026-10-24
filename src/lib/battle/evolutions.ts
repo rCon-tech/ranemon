@@ -1,5 +1,6 @@
-import { STAT_KEYS, type BaseStats, type Creature } from './creature';
+import { scaleStats, type BaseStats, type Creature } from './creature';
 import { LEGEND } from './legend';
+import { LONDON, LONDON_EVOLUTIONS, LONDON_ITEM_EVOLUTIONS } from './london';
 import { ROSTER } from './roster';
 
 /**
@@ -148,14 +149,7 @@ export const EVOLUTIONS: Evolution[] = [
  * Scales a base budget up to `budget` (EVOLVED_BUDGET unless a London stage says otherwise),
  * keeping the shape; the largest stat takes the rounding.
  */
-export function evolvedStats(base: BaseStats, budget = EVOLVED_BUDGET): BaseStats {
-  const total = STAT_KEYS.reduce((sum, k) => sum + base[k], 0);
-  const out = { ...base };
-  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * budget) / total);
-  const top = STAT_KEYS.reduce((a, b) => (base[b] > base[a] ? b : a));
-  out[top] += budget - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
-  return out;
-}
+export const evolvedStats = (base: BaseStats, budget = EVOLVED_BUDGET) => scaleStats(base, budget);
 
 const BASE_FORMS = new Map(ROSTER.map((c) => [c.id, c]));
 
@@ -216,17 +210,29 @@ export const ITEM_EVOLVED: Creature[] = ITEM_EVOLUTIONS.map((e) => {
   };
 });
 
+/** Every item evolution: the lads' and Wickmon's branches. */
+export const ALL_ITEM_EVOLUTIONS: ItemEvolution[] = [...ITEM_EVOLUTIONS, ...LONDON_ITEM_EVOLUTIONS];
+
 /** The item evolution a species can take with an item, if any. */
 export const itemEvolutionOf = (species: string, item: string) =>
-  ITEM_EVOLUTIONS.find((e) => e.from === species && e.item === item);
+  ALL_ITEM_EVOLUTIONS.find((e) => e.from === species && e.item === item);
 
-const BY_FROM = new Map(EVOLUTIONS.map((e) => [e.from, e]));
-const BY_ID = new Map<string, { from: string }>(
-  [...EVOLUTIONS, ...ITEM_EVOLUTIONS].map((e) => [e.id, e]),
+const BY_FROM = new Map([...EVOLUTIONS, ...LONDON_EVOLUTIONS].map((e) => [e.from, e]));
+const BY_ID = new Map<string, { from: string; level?: number }>(
+  [...EVOLUTIONS, ...LONDON_EVOLUTIONS, ...ALL_ITEM_EVOLUTIONS].map((e) => [e.id, e]),
 );
 
-/** What a species evolves into, or undefined once it's fully evolved. */
-export const evolutionOf = (species: string) => BY_FROM.get(species);
+/** The form a species evolved from, or undefined for a line's first form. */
+export const previousOf = (species: string) => BY_ID.get(species)?.from;
+
+/** The lowest level a form can be at: the level of the last levelled evolution on its way, or 0. */
+export function reachedAt(species: string): number {
+  for (let e = BY_ID.get(species); e; e = BY_ID.get(e.from)) if (e.level) return e.level;
+  return 0;
+}
+
+/** What a species evolves into by levelling, or undefined once it's fully evolved. */
+export const evolutionOf = (species: string): Evolution | undefined => BY_FROM.get(species);
 
 /**
  * The first form of a species' line: an evolved form's base form, or the species itself. Walks
@@ -245,7 +251,9 @@ export function formAt(species: string, level: number): string {
   return id;
 }
 
-const FORMS = new Map([...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, LEGEND].map((c) => [c.id, c]));
+const FORMS = new Map(
+  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, LEGEND, ...LONDON].map((c) => [c.id, c]),
+);
 
 /** Any Ranemon, base or evolved. */
 export function formById(id: string): Creature {

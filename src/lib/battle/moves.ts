@@ -1,3 +1,4 @@
+import { LONDON_MOVES } from './london-moves';
 import { PETCHEMON_MOVES } from './petchemon';
 import { POSEIDON_MOVES } from './poseidon';
 import { SECOND_SPECIALS } from './second-specials';
@@ -18,7 +19,9 @@ export type MoveEffect =
   /** The user heals this fraction of its max HP. */
   | { kind: 'heal'; fraction: number }
   /** The move hits between min and max times. */
-  | { kind: 'multiHit'; min: number; max: number };
+  | { kind: 'multiHit'; min: number; max: number }
+  /** The move hits once for every Ranemon on the user's team still able to fight. */
+  | { kind: 'teamHit' };
 
 /** What a friend's special move does beyond (or instead of) damage. */
 export type SpecialEffect =
@@ -1068,6 +1071,7 @@ const BY_ID = new Map(
     ...SPORT_MOVES,
     ...POSEIDON_MOVES,
     ...PETCHEMON_MOVES,
+    ...LONDON_MOVES,
     FLAIL,
   ].map((m) => [m.id, m]),
 );

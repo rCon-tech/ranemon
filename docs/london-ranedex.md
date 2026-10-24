@@ -381,6 +381,16 @@ Each batch is its own PR, with its areas' 2D maps, sprites, entries and moves, a
 
 Batches 1 to 5 each make a playable stretch of the story on their own, so the game is never half-built between them.
 
+### Batch 1, as built
+
+- **Code.** `src/lib/battle/london.ts` holds the species (one stat shape per line, scaled to each stage's budget), `london-moves.ts` their special moves, `content/story/shoreditch.ts` the map and its trainers. Sprites come from `scripts/drawn/london.py`, which writes them straight into `public/sprites/london/` and `public/sprites/shiny/london/`, each with its mini.
+- **Special moves from Lv1, on every stage.** As with the lads, each line's special is known from the first form and kept as it evolves; each of Wickmon's branches swaps it for its own. Wickmon has one too, **Bin Rota**. **Rush Hour** hits once for every Ranemon on the team still standing.
+- **Sport moves.** Three new sports, six moves each like the old ones: polo (mostly Posh), Sunday League (mostly Graft) and synchronised swimming (mostly Arty).
+- **The hub's wild table** is now Oystermon, Speedmon, Pedalmon and Skatemon, with eight of the lads at low odds.
+- **Shoreditch & Hackney** is reached by the Overground conductor on Liverpool Street's concourse once you have a UK Ranemon. Five trainers; the barista, the flatmate at the Tesco noticeboard and the canal boater give the tamper, the listing and the vape; Raver Ffion gives the wristband and Founder Jasper the wallet when beaten.
+- **The London Ranedex** is a second tab on the Ranedex, shown once you've seen a London Ranemon, numbered from 001.
+- **Not yet:** London special moves use their type's move effect rather than a scene of their own.
+
 ## Decided (24 October 2026)
 
 Rich approved the plan as written:

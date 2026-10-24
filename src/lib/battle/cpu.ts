@@ -4,6 +4,7 @@ import {
   effectiveStat,
   legalActions,
   moveFor,
+  standing,
   switchTargets,
   type Action,
   type BattleState,
@@ -24,10 +25,15 @@ export type Random = () => number;
 const other = (side: Side): Side => (side === 0 ? 1 : 0);
 
 /** Average damage of one use, counting accuracy and multi-hits but not crits. */
-function expectedDamage(user: Battler, target: Battler, index: number): number {
+function expectedDamage(user: Battler, target: Battler, index: number, team = 1): number {
   const move = moveFor(user, index);
   if (move.category === 'status') return 0;
-  const hits = move.effect?.kind === 'multiHit' ? (move.effect.min + move.effect.max) / 2 : 1;
+  const hits =
+    move.effect?.kind === 'multiHit'
+      ? (move.effect.min + move.effect.max) / 2
+      : move.effect?.kind === 'teamHit'
+        ? team
+        : 1;
   const accuracy = move.accuracy === null ? 1 : move.accuracy / 100;
   return computeDamage(user, target, move, false, 0.5) * hits * accuracy;
 }
@@ -41,14 +47,14 @@ function moveValue(state: BattleState, side: Side, index: number): number {
     (sum, e) => sum + specialValue(state, side, e, move.accuracy),
     0,
   );
-  return effectValue(user, target, index) + specials;
+  return effectValue(user, target, index, standing(state, side)) + specials;
 }
 
-function effectValue(user: Battler, target: Battler, index: number): number {
+function effectValue(user: Battler, target: Battler, index: number, team: number): number {
   const move = moveFor(user, index);
   const effect = move.effect;
   if (move.category !== 'status') {
-    const damage = Math.min(expectedDamage(user, target, index), target.hp);
+    const damage = Math.min(expectedDamage(user, target, index, team), target.hp);
     // Finishing the target off is worth more than the HP it had left.
     const ko = damage >= target.hp ? target.stats.hp * 0.3 : 0;
     const recoil = effect?.kind === 'recoil' ? damage * effect.fraction * 0.5 : 0;

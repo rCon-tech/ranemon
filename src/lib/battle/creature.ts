@@ -55,6 +55,16 @@ export function levelStats(base: BaseStats, level: number = LEVEL): BaseStats {
 }
 
 export const STAT_KEYS: (keyof BaseStats)[] = ['hp', 'attack', 'defense', 'spirit', 'speed'];
+
+/** Stats in the same shape, adding up to `budget`; the largest stat takes the rounding. */
+export function scaleStats(base: BaseStats, budget: number): BaseStats {
+  const total = STAT_KEYS.reduce((sum, k) => sum + base[k], 0);
+  const out = { ...base };
+  for (const k of STAT_KEYS) out[k] = Math.round((base[k] * budget) / total);
+  const top = STAT_KEYS.reduce((a, b) => (base[b] > base[a] ? b : a));
+  out[top] += budget - STAT_KEYS.reduce((sum, k) => sum + out[k], 0);
+  return out;
+}
 export const BATTLE_STATS: Stat[] = ['attack', 'defense', 'spirit', 'speed'];
 
 /**

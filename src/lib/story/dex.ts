@@ -1,5 +1,5 @@
 import type { Creature } from '../battle/creature';
-import { evolutionOf, formById, ITEM_EVOLUTIONS, lineOf } from '../battle/evolutions';
+import { ALL_ITEM_EVOLUTIONS, evolutionOf, formById, lineOf } from '../battle/evolutions';
 import { LEGEND } from '../battle/legend';
 import { moveById, type Move } from '../battle/moves';
 import { secondSpecialOf } from '../battle/second-specials';
@@ -71,19 +71,33 @@ export interface Stage {
   how?: string;
 }
 
-/** A line's first form and every form it can evolve into. */
+/** The forms a line reaches by levelling, first form first, with the level each is reached at. */
+function levelChain(first: string): { id: string; level: number }[] {
+  const chain = [{ id: first, level: 0 }];
+  for (let evo = evolutionOf(first); evo; evo = evolutionOf(evo.id))
+    chain.push({ id: evo.id, level: evo.level });
+  return chain;
+}
+
+/**
+ * A line's first form and every form it can evolve into. A London line that evolves twice
+ * names the form its last stage comes from.
+ */
 export function evolutionLine(id: string): { first: Creature; branches: Stage[] } {
   const first = formById(lineOf(id));
   const branches: Stage[] = [];
-  const evo = evolutionOf(first.id);
-  if (evo) {
+  const chain = levelChain(first.id);
+  for (const [i, step] of chain.entries()) {
+    if (i === 0) continue;
+    const evo = evolutionOf(chain[i - 1].id)!;
     const partner = evo.partner && formById(evo.partner).name;
+    const from = i > 1 ? `${formById(chain[i - 1].id).name} at ` : '';
     branches.push({
-      creature: formById(evo.id),
-      how: `Lv${evo.level}${partner ? ` with a ${partner} in the party` : ''}`,
+      creature: formById(step.id),
+      how: `${from}Lv${step.level}${partner ? ` with a ${partner} in the party` : ''}`,
     });
   }
-  for (const e of ITEM_EVOLUTIONS.filter((e) => e.from === first.id))
+  for (const e of ALL_ITEM_EVOLUTIONS.filter((e) => e.from === first.id))
     branches.push({ creature: formById(e.id), how: `Given a ${itemById(e.item as ItemId).name}` });
   return { first, branches };
 }
@@ -136,14 +150,15 @@ export interface Habitat {
 export function habitats(id: string): Habitat[] {
   if (id === LEGEND.id) return [];
   const base = lineOf(id);
-  const evo = evolutionOf(base);
-  const evolved = id !== base;
-  if (evolved && evo?.id !== id) return [];
+  const chain = levelChain(base);
+  const at = chain.findIndex((s) => s.id === id);
+  if (at < 0) return [];
+  const from = chain[at].level;
+  const until = at + 1 < chain.length ? chain[at + 1].level - 1 : Infinity;
   return MAPS.flatMap((map) => {
     if (!map.wild?.table.some(([s]) => s === base)) return [];
-    let { min, max } = map.wild;
-    if (evo && evolved) min = Math.max(min, evo.level);
-    if (evo && !evolved) max = Math.min(max, evo.level - 1);
+    const min = Math.max(map.wild.min, from);
+    const max = Math.min(map.wild.max, until);
     return min <= max ? [{ map: map.id, name: map.name, min, max }] : [];
   });
 }

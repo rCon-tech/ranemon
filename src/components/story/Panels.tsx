@@ -5,7 +5,8 @@ import { DexEntry } from '@/components/DexEntry';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
-import { DEX } from '@/lib/battle/evolutions';
+import { DEX as IRISH_DEX } from '@/lib/battle/evolutions';
+import { LONDON } from '@/lib/battle/london';
 import { ROSTER } from '@/lib/battle/roster';
 import { UK, UK_ENTRIES } from '@/lib/battle/uk';
 import { variantForm } from '@/lib/battle/variants';
@@ -461,6 +462,10 @@ export function RanedexPanel({
   onClose: () => void;
   navRef?: React.RefObject<DexNav | null>;
 }) {
+  // Ireland's Ranedex, or London's once you've seen a London Ranemon (docs/london-ranedex.md).
+  const london = LONDON.some((c) => game.seen.includes(c.id));
+  const [region, setRegion] = useState<'ireland' | 'london'>('ireland');
+  const dex = region === 'london' && london ? LONDON : IRISH_DEX;
   const [cursor, setCursor] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const [look, setLook] = useState(0);
@@ -470,9 +475,14 @@ export function RanedexPanel({
   const shinies = new Set(
     [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
   );
+  const pick = (r: 'ireland' | 'london') => {
+    playSfx('blip');
+    setRegion(r);
+    setCursor(0);
+  };
   // Petchemon is not in the Ranedex, so he is left out of the counts.
-  const inDex = (id: string) => DEX.some((c) => c.id === id);
-  const seen = (i: number) => game.seen.includes(DEX[i].id);
+  const inDex = (id: string) => dex.some((c) => c.id === id);
+  const seen = (i: number) => game.seen.includes(dex[i].id);
 
   const show = (i: number) => {
     setCursor(i);
@@ -482,8 +492,8 @@ export function RanedexPanel({
   };
   /** The next entry you've seen, one way or the other from `from`, wrapping round. */
   const nextSeen = (from: number, step: 1 | -1) => {
-    for (let n = 1; n <= DEX.length; n++) {
-      const i = (from + step * n + DEX.length) % DEX.length;
+    for (let n = 1; n <= dex.length; n++) {
+      const i = (from + step * n + dex.length) % dex.length;
       if (seen(i)) return i;
     }
     return from;
@@ -502,7 +512,7 @@ export function RanedexPanel({
         }
         const step = { left: -1, right: 1, up: -DEX_COLUMNS, down: DEX_COLUMNS }[dir];
         const to = cursor + step;
-        if (to < 0 || to >= DEX.length) return;
+        if (to < 0 || to >= dex.length) return;
         playSfx('blip');
         setCursor(to);
       },
@@ -534,9 +544,9 @@ export function RanedexPanel({
   }, [cursor, open]);
 
   if (open !== null) {
-    const c = DEX[open];
+    const c = dex[open];
     return (
-      <Panel title="RANEDEX" onClose={() => setOpen(null)}>
+      <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={() => setOpen(null)}>
         <div ref={box}>
           <DexEntry
             creature={c}
@@ -544,7 +554,7 @@ export function RanedexPanel({
             know={know}
             look={look}
             onLook={setLook}
-            onOpen={(id) => show(DEX.findIndex((d) => d.id === id))}
+            onOpen={(id) => show(dex.findIndex((d) => d.id === id))}
             onStep={(step) => show(nextSeen(open, step))}
           />
         </div>
@@ -553,14 +563,29 @@ export function RanedexPanel({
   }
 
   return (
-    <Panel title="RANEDEX" onClose={onClose}>
+    <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={onClose}>
+      {london && (
+        <div className="flex gap-1" aria-label="Ranedex">
+          {(['ireland', 'london'] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              className="pixel-btn px-2 py-0.5 text-[10px]"
+              aria-pressed={(dex === LONDON) === (r === 'london')}
+              onClick={() => pick(r)}
+            >
+              {r === 'london' ? 'LONDON' : 'IRELAND'}
+            </button>
+          ))}
+        </div>
+      )}
       <p className="text-[11px]">
         Seen {game.seen.filter(inDex).length} · Befriended {game.caught.filter(inDex).length} /{' '}
-        {DEX.length}
+        {dex.length}
         {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
       <div ref={box} className="grid grid-cols-4 gap-1.5">
-        {DEX.map((c, i) => {
+        {dex.map((c, i) => {
           const seen = game.seen.includes(c.id);
           const shiny = shinies.has(c.id);
           return (

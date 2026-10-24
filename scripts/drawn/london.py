@@ -40,6 +40,8 @@ from kit import (
 )
 
 OUT = Path(__file__).resolve().parents[2] / "art" / "drawn" / "london"
+# What the game loads: the fronts (a back view is the front mirrored), each with its mini.
+PUBLIC = Path(__file__).resolve().parents[2] / "public" / "sprites"
 BX = 49  # the middle of the back view
 
 NAVY = (40, 50, 84)
@@ -610,6 +612,10 @@ def main(ids):
         sprites.gild(f, True).save(OUT / "shiny" / f"{id}.png")
         sprites.gild(b, True).save(OUT / "shiny" / f"{id}-back.png")
         kit.mini(f).save(OUT / "mini" / f"{id}.png")
+        for root, im in ((PUBLIC / "london", f), (PUBLIC / "shiny" / "london", sprites.gild(f, True))):
+            (root / "mini").mkdir(parents=True, exist_ok=True)
+            im.save(root / f"{id}.png")
+            kit.mini(im).save(root / "mini" / f"{id}.png")
     if set(ids) >= set(BATCH_1):
         sheet(LINES).save(OUT / "batch-1.png")
         sheet(LINES, show_back=False).save(OUT / "batch-1-fronts.png")

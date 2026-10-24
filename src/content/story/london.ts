@@ -2,6 +2,7 @@ import { interiorId } from './interiors';
 import { AGREEMENT, CHAMPION, FIXTURES, LANDED, UK_STARTER } from './kneecap';
 import { FORECOURT } from './palace';
 import { KINGS_CROSS_ROOM } from './premier';
+import { OVERGROUND, SHOREDITCH_TRAINERS } from './shoreditch';
 import { homeward } from './station';
 import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
@@ -599,7 +600,7 @@ export const LONDON: GameMap = {
     'T^^^^^^^vv^^^^^^v^^^^^^^vv^^^^^T',
     'T##L####vv##P###v###M###vv#L###T',
     'T@vv2vvvvvvvv1vvvvvvvvvvvvvvvvvT',
-    'TvSvvvvvvvvvvvvvvvvvvvvvvvvvvvvT',
+    'TvSvvvvvvvvvvvvvvvvv7vvvvvvvvvvT',
     'TaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaT',
     'TaacaaaaaaaaaaaaaaaaaaacaaaaaaaT',
     'TvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvT',
@@ -617,15 +618,21 @@ export const LONDON: GameMap = {
   wild: {
     min: 3,
     max: 6,
+    // London's own commuters, runners, cyclists and skaters, and a few of the lads still about
+    // (docs/london-ranedex.md), so their UK forms can still be caught.
     table: [
-      ['simomon', 15],
-      ['robinmon', 15],
-      ['enda', 15],
-      ['steadmon', 15],
-      ['hugomon', 10],
-      ['skehemon', 10],
-      ['killemon', 10],
-      ['vinnimon', 10],
+      ['oystermon', 26],
+      ['speedmon', 15],
+      ['pedalmon', 15],
+      ['skatemon', 12],
+      ['simomon', 5],
+      ['robinmon', 5],
+      ['enda', 5],
+      ['steadmon', 5],
+      ['hugomon', 3],
+      ['skehemon', 3],
+      ['killemon', 3],
+      ['vinnimon', 3],
     ],
   },
   npcs: [
@@ -681,6 +688,7 @@ export const LONDON: GameMap = {
       sight: 3,
       talk: [{ do: 'say', text: 'ISLANDER: I’ve got a text! …No, it’s from Tesco.' }],
     },
+    OVERGROUND,
   ],
   signs: [
     'LIVERPOOL STREET. Trains to and from Stansted Airport. Not Liverpool. Nothing here goes to Liverpool.',
@@ -767,4 +775,4 @@ const LONDON_TRAINERS: Trainer[] = [
   },
 ];
 
-export const UK_TRAINERS = [...AIRPORT_TRAINERS, ...LONDON_TRAINERS];
+export const UK_TRAINERS = [...AIRPORT_TRAINERS, ...LONDON_TRAINERS, ...SHOREDITCH_TRAINERS];

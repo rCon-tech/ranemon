@@ -27,6 +27,7 @@ import {
 } from '@/content/story/galway';
 import { DEFAULT_SKIN, SKINS } from '@/content/story/skins';
 import { DEX, evolutionOf } from '../battle/evolutions';
+import { LONDON } from '../battle/london';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
 import { variantsOf } from '../battle/variants';
 import { ITEMS } from './items';
@@ -135,8 +136,8 @@ export function recruits(): string[] {
 }
 
 /**
- * The whole Ranedex as Ranemon of your own: evolved forms first, then base forms, then the
- * legend, then those a script gives you, then the other looks of those that have them.
+ * The whole Ranedex as Ranemon of your own: evolved forms first, then base forms, then London's,
+ * then the legend, then those a script gives you, then the other looks of those that have them.
  */
 function everyone(): Member[] {
   let uid = 1;
@@ -150,6 +151,11 @@ function everyone(): Member[] {
     const evo = evolutionOf(c.id);
     if (c.id === LEGEND.id || evolved.has(c.id)) continue;
     // Base forms a level short of evolving, so evolution can be tried out in one battle.
+    members.push(makeMember(c.id, evo ? evo.level - 1 : DEV_LEVEL, uid++));
+  }
+  // London's, each a level short of its next evolution if it has one.
+  for (const c of LONDON) {
+    const evo = evolutionOf(c.id);
     members.push(makeMember(c.id, evo ? evo.level - 1 : DEV_LEVEL, uid++));
   }
   members.push(makeMember(LEGEND.id, LEGEND_LEVEL, uid++));
@@ -177,7 +183,7 @@ export function devSave(): StoryState {
     ...storyFlags(),
     ...MAPS.map((m) => `visited:${m.id}`),
     ...TRAINERS.map((t) => beatFlag(t.id)),
-    ...DEX.map((c) => `caught:${c.id}`),
+    ...[...DEX, ...LONDON].map((c) => `caught:${c.id}`),
   ]);
   for (const f of LEFT_TO_PLAY) flags.delete(f);
   return {
@@ -190,8 +196,8 @@ export function devSave(): StoryState {
     bag: Object.fromEntries(ITEMS.map((i) => [i.id, 99])),
     money: 999_999,
     flags: [...flags],
-    seen: DEX.map((c) => c.id),
-    caught: DEX.map((c) => c.id),
+    seen: [...DEX, ...LONDON].map((c) => c.id),
+    caught: [...DEX, ...LONDON].map((c) => c.id),
     pub: { map: dublin.id, ...at },
     uid: members.length + 1,
     starter: members[0].species,
