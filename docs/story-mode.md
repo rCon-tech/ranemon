@@ -108,6 +108,25 @@ Sibeal stands by the road in Limerick with her black and white dog, Norm. Say ye
 
 **The Limepass (Limerick).** The Lime rep, in a lime hi-vis by the gym, signs you up for a Limepass (key item, flag `limepass`). It does two things. You can ride a Lime e-bike, drawn in 2D and 3D as a lime green step-through bike with a black basket: hold B to go twice as fast, just like the High Nelly, which is drawn as a black roadster if you only have that. And LIMEPASS appears on the START menu: pick any town you've been to and you're dropped outside its McGrattans (`limeStops` in lib/story/limepass.ts). It's just a flag, so saves need no change.
 
+**Missions.** START → MISSIONS lists the missions you have open: started (its `start` flag is set, or it has none, like the main story) and not finished (its `done` flag isn't). Each shows its name, a line on what it's about, what to do next and where to go, plus a count like 2/3 for steps that collect things (the rent's clues, the legend's beads). With nothing open it says so and nudges you to go and talk to people. Side stories only appear once they've begun, so nothing is spoiled, and the legend never names who is waiting. Missions are data in `src/content/story/missions.ts`; `openMissions` in `src/lib/story/missions.ts` picks the open ones and, for each, the first step whose `until` flag isn't set. They're read from flags the game already sets, so saves need no change. To add a mission, add one entry to `MISSIONS`:
+
+```ts
+{
+  id: 'rent',
+  name: 'The missing rent',
+  about: 'The rent money is gone from Ollie and Simo’s biscuit tin.',
+  start: RENT_START, // open once this is set; leave it out to be open from the start
+  done: RENT_DONE, // closed once this is set
+  steps: [
+    { until: RENT_READY, todo: 'Find three clues…', where: 'The rent house, Dublin', count: RENT_CLUES },
+    { until: RENT_ACCUSED, todo: 'Accuse MC or Melchior.', where: 'The rent house, Dublin' },
+    { until: RENT_DONE, todo: 'Beat whoever you accused.', where: 'The rent house, Dublin' },
+  ],
+}
+```
+
+The last step's `until` must be the `done` flag, and every flag must be one the game can set; `tests/unit/missions.test.ts` checks both. Open today, when started: Champions of Ireland (the main story, from the starter to B&S), the missing rent, the Happy Pear Twins, Poseidon, the legend of Dublin, Brighton with Enda and I Love Techno.
+
 **Town Map.** START → MAP, a tap on the place name at the top of the screen, or the M key opens a flat map of Ireland in the 5th generation's style. The road runs Clare to Dublin through all ten stops; visited towns are red and the rest grey, a gold star marks each jersey won (Dublin's star is the championship), and a blinking red cap shows where you are (rooms count as their town, Trinity as Dublin). Left and right step through the towns, showing each one's county and gym. It never shows landmarks, so the legend stays hidden.
 
 **Field gates** (what stops you skipping ahead): flooded bog roads need Wellies, rivers need the Currach, a flock of sheep blocking the road into Laois moves only after the Tipperary jersey, and the Trinity Front Gate needs all 9 jerseys. Gating is by key items rather than field moves, so battle moves stay battle-only.
