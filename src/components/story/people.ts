@@ -573,20 +573,20 @@ export const STYLES: Record<Look | 'player', Style> = {
     socks: '#f4f4f4',
     shoes: '#141418',
   },
-  // Carl Ryan at the Trinity Ball: very tall, in black tie with a Blue Ghost blue bow tie, and a
-  // blue sports bag full of cans over his shoulder.
+  // Carl Ryan: very tall, in a stone-coloured blazer over an open white shirt, navy trousers, a
+  // black belt, clubmaster shades and a moustache, with a blue sports bag full of cans.
   carl: {
     skin: SKIN,
-    hair: '#3a2a1e',
-    hairStyle: 'short',
-    top: '#18181e',
+    hair: '#2e2018',
+    hairStyle: 'slick',
+    top: '#d8d0c0',
     topKind: 'suit',
-    trim: '#f4f4f4',
-    tie: '#3a8ae8',
-    legs: '#18181e',
-    shoes: '#0c0c10',
+    trim: '#f6f6f8',
+    legs: '#1c2440',
+    shoes: '#2a1e16',
+    glasses: 'shades',
+    moustache: '#4a3020',
     bag: '#3a8ae8',
-    beard: '#3a2a1e',
     tall: true,
   },
   // At the Ball in black tie, bow tie loosened.
