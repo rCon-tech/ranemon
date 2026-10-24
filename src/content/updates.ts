@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Bigger counties',
+    notes: [
+      'Clare, Limerick and Tipperary are much bigger, and look more like the real places: castles, cliffs, cathedrals, lakes, mountains and a few things only locals know about.',
+      'There are new people to meet, local legends to hear, and a few gifts for anyone who goes looking. More counties are on the way.',
+      'Everything you knew is where you left it: the new ground is to the east and south of each town.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Back to 2D',
     notes: [
       'The 3D look is switched off for now, so everything draws in the classic 2D look and the 2D / 3D button is gone.',

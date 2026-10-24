@@ -19,7 +19,8 @@ export const OPPOSITE: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right
  * Tiles. Walkable: `.` grass, `,` long grass, `b` bog, `"` flowers, `=` road, `:` limestone,
  * `B` bridge, `F` floor, `s` stone steps, `d` sand, and in a city `v` pavement and `a` tarmac. Blocked: `T` tree, `~` water, `w` stone wall, `f` fence, `^` roof,
  * `#` wall, `S` sign, `K` the Campanile, `C` counter, `R` rock, `e` an earth bank, `h` hedge,
- * `p` a palm tree, `y` a yacht on the water, `c` a parked car. Doors are blocked too, and walking
+ * `p` a palm tree, `y` a yacht on the water, `c` a parked car, `q` castle stone and `u` the
+ * battlements on top of it, `j` a slate roof in a town of red ones. Doors are blocked too, and walking
  * into one runs it: `P` pub, `M` corner shop, `G` gym, `H` house, `L` landmark.
  * Indoors (see content/story/interiors.ts): `g` gym floor, `r` rug, `l` a dance floor and `k` a club's floor are walkable, and `E` is
  * the way out, blocked like a door.

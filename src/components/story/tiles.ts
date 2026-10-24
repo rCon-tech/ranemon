@@ -467,7 +467,9 @@ function wall(c: Ctx, r: () => number, around: Around) {
 }
 
 function door(c: Ctx, r: () => number, around: Around, kind: string) {
-  plaster(c, r, around);
+  // A door set into a castle or a rock face has stone round it, not plaster.
+  if ([around.w, around.e].some((t) => t === 'q' || t === 'R')) castleWall(c, () => 0.9, around);
+  else plaster(c, r, around);
   const [base, light, dark] = DOORS[kind];
   px(c, 7, 8, 18, 24, '#3a2a1a');
   px(c, 8, 9, 16, 23, base);
@@ -647,6 +649,100 @@ function stoneWall(c: Ctx, r: () => number, around: Around) {
   if (around.n !== 'w') {
     for (let i = 0; i < 6; i++) px(c, (r() * T) | 0, 0, 3, 2, '#6cb050');
   }
+}
+
+/**
+ * Grey rock, on whatever ground is round it: the sea, sand, the Burren's limestone or grass. A
+ * rock on its own is a boulder; rocks side by side join into one outcrop, so a block of them
+ * makes a crag or a mountain. Cliff edges, dolmens and stone circles are made of them.
+ */
+function rock(c: Ctx, r: () => number, around: Around, frame: number) {
+  const sides = [around.n, around.e, around.s, around.w];
+  const count = (t: string) => sides.filter((s) => s === t).length;
+  if (count('~') >= 2) water(c, frame, { n: '~', e: '~', s: '~', w: '~' });
+  else if (count('d')) sand(c, r);
+  else if (count(':')) limestone(c, r);
+  else grass(c, r);
+  const joined = (side: keyof Around) => around[side] === 'R';
+  // Inset from each side that isn't more rock.
+  const l = joined('w') ? 0 : 2 + ((r() * 3) | 0);
+  const rt = joined('e') ? T : T - 2 - ((r() * 3) | 0);
+  const top = joined('n') ? 0 : 6 + ((r() * 4) | 0);
+  const bottom = joined('s') ? T : T - 3;
+  if (!joined('s')) ellipse(c, T / 2, T - 3, (rt - l) / 2 + 1, 3, 'rgb(20 30 20 / 0.35)');
+  const round = (n: boolean, side: boolean) => (n || side ? 0 : 3);
+  // The body, with its corners knocked off where it ends.
+  px(
+    c,
+    l + round(joined('n'), joined('w')),
+    top,
+    rt - l - round(joined('n'), joined('w')) - round(joined('n'), joined('e')),
+    bottom - top,
+    '#6e6e78',
+  );
+  px(c, l, top + 3, rt - l, bottom - top - 6 + (joined('s') ? 3 : 0), '#6e6e78');
+  px(c, l + 1, top + 1, rt - l - 2, bottom - top - 4, '#8e8e98');
+  // Lit faces and dark cracks, scattered.
+  for (let i = 0; i < 3; i++) {
+    const x = l + 2 + ((r() * Math.max(1, rt - l - 12)) | 0);
+    const y = top + 2 + ((r() * Math.max(1, bottom - top - 10)) | 0);
+    px(c, x, y, 8, 3, '#b4b4be');
+    px(c, x, y + 3, 8, 1, '#5e5e68');
+    px(c, x + 5 + ((r() * 3) | 0), y + 4, 1, 4, '#5a5a64');
+  }
+  if (!joined('n')) px(c, l + 3, top + 1, rt - l - 6, 2, '#c8c8d0');
+  if (!joined('s')) px(c, l + 1, bottom - 3, rt - l - 2, 2, '#4e4e58');
+  if (r() < 0.5) px(c, l + 4 + ((r() * Math.max(1, rt - l - 10)) | 0), top + 6, 3, 2, '#a8b468');
+}
+
+/** Rough castle stone, as on a keep or a tower, with an arrow slit in some blocks. */
+function castleWall(c: Ctx, r: () => number, around: Around) {
+  px(c, 0, 0, T, T, '#6a665e');
+  const greys = ['#9a958a', '#8c877c', '#a6a196', '#827d72'];
+  for (let y = 0; y < T; y += 8) {
+    let x = (y / 8) % 2 ? -6 : 0;
+    while (x < T) {
+      const w = 10 + ((r() * 5) | 0);
+      px(c, x + 1, y + 1, w - 1, 6, greys[(r() * greys.length) | 0]);
+      px(c, x + 1, y + 1, w - 1, 1, '#bcb6aa');
+      x += w;
+    }
+  }
+  if (r() < 0.5) {
+    px(c, 14, 8, 4, 14, '#2a2622');
+    px(c, 15, 9, 2, 12, '#141210');
+  }
+  if (around.n === 'u') px(c, 0, 0, T, 3, 'rgb(20 16 10 / 0.35)');
+  if (around.s !== 'q') {
+    px(c, 0, T - 3, T, 3, '#4e4a44');
+    px(c, 0, T - 4, T, 1, '#8a857a');
+  }
+}
+
+/** The top of a castle wall, seen from above: flagstones, with battlements along the edges. */
+function battlements(c: Ctx, r: () => number, around: Around) {
+  px(c, 0, 0, T, T, '#7a756c');
+  for (let y = 0; y < T; y += 8)
+    for (let x = (y / 8) % 2 ? -4 : 0; x < T; x += 8) {
+      px(c, x + 1, y + 1, 7, 7, r() < 0.5 ? '#8e897e' : '#86817a');
+      px(c, x + 1, y + 1, 7, 1, '#a09a8e');
+    }
+  const merlons = (side: keyof Around) => {
+    if (around[side] === 'u') return;
+    for (let i = 0; i < T; i += 8) {
+      const [x, y, w, h] =
+        side === 'n'
+          ? [i, 0, 5, 6]
+          : side === 's'
+            ? [i, T - 6, 5, 6]
+            : side === 'w'
+              ? [0, i, 6, 5]
+              : [T - 6, i, 6, 5];
+      px(c, x, y, w, h, '#b4aea2');
+      px(c, x, y + h - 1, w, 1, '#5a564e');
+    }
+  };
+  (['n', 'e', 's', 'w'] as const).forEach(merlons);
 }
 
 // ---------- tall things, drawn with people ----------
@@ -1500,6 +1596,25 @@ export function tileImage(
       case 'K':
         path(c, r, { n: '=', e: '=', s: '=', w: '=' });
         break;
+      case 'R':
+        rock(c, r, around, frame);
+        break;
+      case 'q':
+        castleWall(c, r, around);
+        break;
+      case 'u':
+        battlements(c, r, around);
+        break;
+      case 'j': {
+        // A slate roof on its own, for churches and abbeys in a town of red roofs.
+        const as = (t: string) => (t === 'j' ? '^' : t === '^' ? 'x' : t);
+        roof(
+          c,
+          { n: as(around.n), e: as(around.e), s: as(around.s), w: as(around.w) },
+          ROOFS.slate,
+        );
+        break;
+      }
       case 'T':
         grass(c, r);
         break;
