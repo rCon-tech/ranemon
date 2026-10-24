@@ -1,4 +1,5 @@
 import { mapById, outsideOf } from '@/content/story/maps';
+import { breakRun } from '@/content/story/galway';
 import type { BattleState } from '../battle/engine';
 import type { Result } from '../ui/session';
 import type { ItemId } from './items';
@@ -164,8 +165,9 @@ export function recruit(
   };
 }
 
+/** Heals everyone. It also ends a run through the Championship in Galway, which allows no healing. */
 export function healParty(s: StoryState): StoryState {
-  return { ...s, party: s.party.map(heal) };
+  return { ...s, party: s.party.map(heal), flags: breakRun(s.flags) };
 }
 
 export const canFight = (s: StoryState) => s.party.some((m) => m.hp > 0);

@@ -1389,6 +1389,33 @@ test('story mode: Ghent stays 2D with the 3D look picked, and its security won�
   await expect(text).toContainText(/HEAD OF SECURITY DIRK|SECURITY/, { timeout: 10_000 });
 });
 
+test('story mode: Galway stays 2D with the 3D look picked, and the Hall of Champions sets the rules', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(
+    (save) => {
+      localStorage.setItem('ranemon.view', '3d');
+      if (localStorage.getItem('ranemon.story.v1:galway')) return;
+      localStorage.setItem('ranemon.story.v1:galway', JSON.stringify(save));
+    },
+    championSave('galway', 19, 5, 'up', ['visited:galway']),
+  );
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Galway');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const world = page.getByTestId('overworld');
+  const text = page.getByTestId('story-text');
+  await expect(world).toHaveAttribute('aria-label', /^Galway City/);
+  await expect(world).toHaveAttribute('data-view', '2d');
+  await page.waitForTimeout(400);
+  // In through the door: the rules, and still 2D inside.
+  await page.keyboard.press('ArrowUp');
+  await expect(text).toContainText('Four in a row, no healing in between', { timeout: 10_000 });
+  await expect(world).toHaveAttribute('aria-label', /^Rob Lipsett’s Gym/);
+  await expect(world).toHaveAttribute('data-view', '2d');
+});
+
 test('story mode: SKINS dresses you as someone you’ve beaten, in 2D and back in 3D', async ({
   page,
 }) => {

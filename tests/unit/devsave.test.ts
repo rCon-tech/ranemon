@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CHAMPION_OF_IRELAND, COLLINS, COLLINS_HEARD, ELITE } from '@/content/story/galway';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
 import { TECHNO_DONE } from '@/content/story/cramps';
@@ -58,7 +59,10 @@ describe('the developer save', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
     for (const f of storyFlags().filter(
-      (f) => ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE].includes(f),
+      (f) =>
+        ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE, COLLINS_HEARD, CHAMPION_OF_IRELAND].includes(
+          f,
+        ) && !f.startsWith('galway:won:'),
     ))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
@@ -69,8 +73,16 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King and DJ Vandenbass to fight', () => {
-    const bosses = ['poseidon', 'bns-rematch', ...PEAR_TRAINERS, ARCADE_KING, TECHNO_DJ];
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass and Galway to fight', () => {
+    const bosses = [
+      'poseidon',
+      'bns-rematch',
+      ...PEAR_TRAINERS,
+      ARCADE_KING,
+      TECHNO_DJ,
+      ...ELITE,
+      COLLINS,
+    ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);
     for (const id of bosses) expect(flags.has(beatFlag(id)), id).toBe(false);
