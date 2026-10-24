@@ -58,6 +58,7 @@ import {
   give,
   hasFlag,
   healParty,
+  crossBorder,
   load,
   makeLead,
   toggleExpShare,
@@ -67,6 +68,7 @@ import {
   PLAYER_KEY,
   playerId,
   recruit,
+  reunite,
   save,
   see,
   setFlag,
@@ -106,6 +108,9 @@ import { LIMEPASS, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
+import { hasUkForm, UK } from '@/lib/battle/uk';
+import { NEESON_LINES, UK_LEVEL } from '@/content/story/london';
+import { UK_STARTER } from '@/content/story/kneecap';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
 import { FLEE_MS, type Flight } from './walk';
@@ -197,6 +202,12 @@ const DUA_LINES = [
 
 const TOO_TIRED = 'Your Ranemon are too tired. Heal them in McGrattans first!';
 
+/** A wild Ranemon's look: a UK form in Britain, where every Ranemon is drawn, or any at home. */
+function wildLook(mapId: string, species: string): string | undefined {
+  if (outsideOf(mapById(mapId)).uk) return hasUkForm(species) ? UK : undefined;
+  return rollVariant(species, Math.random());
+}
+
 const ghostFlag = (map: string, x: number, y: number) => `ghost:${map}:${x}:${y}`;
 const challenge = (trainer: string): Run[] => [
   { do: 'say', text: trainerById(trainer).before },
@@ -238,7 +249,26 @@ function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   if (trainer === COLLINS) return 'night';
   if (trainer && (map.gym?.trainer === trainer || ELITE.includes(trainer))) return 'gym';
   const outside = outsideOf(map).id;
-  if (['dublin', 'trinity', 'brighton', 'belgium', 'galway'].includes(outside)) return 'city';
+  if (
+    [
+      'dublin',
+      'trinity',
+      'brighton',
+      'belgium',
+      'galway',
+      'airport',
+      'stansted',
+      'london',
+      'manchester',
+      'leeds',
+      'liverpool',
+      'falmer',
+      'birmingham',
+      'newcastle',
+      'tube',
+    ].includes(outside)
+  )
+    return 'city';
   return 'field';
 }
 
@@ -282,6 +312,8 @@ export function Story() {
   const [ask, setAsk] = useState<Extract<Step, { do: 'ask' }> | null>(null);
   /** Whose stall the shop is while the overlay is 'shop': null for Vapes. */
   const [stall, setStall] = useState<Stall | null>(null);
+  /** The starter pick is Próvaí's UK Ranemon, not Michael D's. */
+  const [ukStarter, setUkStarter] = useState(false);
   const [fight, setFight] = useState<Fight | null>(null);
   const [flash, setFlash] = useState<'plain' | 'shiny' | null>(null);
   const [exclaim, setExclaim] = useState<number | null>(null);
@@ -406,14 +438,24 @@ export function Story() {
           case 'heal':
             g = healParty(g);
             break;
-          case 'pub':
+          case 'border':
+            g = crossBorder(g, s.pub);
+            break;
+          case 'reunite':
+            g = reunite(g);
+            break;
+          case 'pub': {
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };
+            // In Britain it's Liam Neeson behind the bar of W.B Yates.
+            const pubOutside = outsideOf(mapById(g.map));
+            const lines = pubOutside.uk || pubOutside.yates ? NEESON_LINES : DUA_LINES;
             q.unshift(
-              { do: 'say', text: DUA_LINES[g.steps % DUA_LINES.length] },
+              { do: 'say', text: lines[g.steps % lines.length] },
               { do: 'say', text: 'Your Ranemon are fighting fit again!' },
               { do: 'offer-chat' },
             );
             break;
+          }
           case 'ask':
             setGame(g);
             setQueue(q);
@@ -430,6 +472,7 @@ export function Story() {
             setQueue(q);
             setLine(null);
             if (s.do === 'shop') setStall(s.stall ?? null);
+            if (s.do === 'starter') setUkStarter(!!s.uk);
             setOverlay(s.do === 'offer-chat' ? 'offer-chat' : s.do === 'shop' ? 'shop' : s.do);
             return;
           case 'travel': {
@@ -440,7 +483,7 @@ export function Story() {
           }
           case 'wild': {
             const shiny = rollShiny(Math.random());
-            const variant = rollVariant(s.species, Math.random());
+            const variant = wildLook(g.map, s.species);
             g = see(g, s.species);
             setGame(g);
             setQueue(q);
@@ -448,7 +491,7 @@ export function Story() {
             setFight({
               teams: [
                 g.party.map(toEntrant),
-                [toEntrant({ ...makeMember(s.species, s.level, -1), shiny, variant })],
+                [toEntrant({ ...makeMember(s.species, s.level, -1, variant), shiny, variant })],
               ],
               foe: { kind: 'wild' },
               ai: 'hard',
@@ -466,9 +509,11 @@ export function Story() {
             }
             const t = trainerById(s.trainer);
             // Once you're Champion, every trainer scales up to your party; the Championship
-            // in Galway always does, Champion or not.
-            const team = scaleTeam(teamOf(t, g.starter), g, t.above).map(([id, level], i) =>
-              toEntrant(makeMember(id, level, -1 - i)),
+            // in Galway always does, Champion or not. Britain is a new story line that starts
+            // again from Lv5, so its trainers keep their own levels.
+            const own = teamOf(t, t.uk ? g.ukStarter : g.starter);
+            const team = (t.uk ? own : scaleTeam(own, g, t.above)).map(([id, level], i) =>
+              toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined)),
             );
             for (const e of team) g = see(g, e.creature.id);
             setGame(g);
@@ -590,9 +635,11 @@ export function Story() {
     ) {
       const wild = pickWild(map.wild, Math.random(), Math.random());
       const { level } = wild;
-      const species = formAt(wild.species, level);
+      // In Britain every Ranemon is a drawn UK form, and those don't evolve.
+      const uk = !!outsideOf(map).uk && hasUkForm(wild.species);
+      const species = uk ? wild.species : formAt(wild.species, level);
       const shiny = rollShiny(Math.random());
-      const variant = rollVariant(species, Math.random());
+      const variant = wildLook(map.id, species);
       g = see(g, species);
       setGame(g);
       playSfx('encounter');
@@ -602,7 +649,7 @@ export function Story() {
         setFight({
           teams: [
             g.party.map(toEntrant),
-            [toEntrant({ ...makeMember(species, level, -1), shiny, variant })],
+            [toEntrant({ ...makeMember(species, level, -1, variant), shiny, variant })],
           ],
           foe: { kind: 'wild' },
           ai: 'easy',
@@ -828,7 +875,8 @@ export function Story() {
     const steps: Run[] = [];
     if (result === 'win' && trainer) {
       g = { ...g, money: g.money + trainer.prize };
-      steps.push({ do: 'say', text: `You got €${trainer.prize} for winning!` });
+      const pounds = outsideOf(mapById(game.map)).uk;
+      steps.push({ do: 'say', text: `You got ${pounds ? '£' : '€'}${trainer.prize} for winning!` });
     }
     steps.push(...settled.lines.map((text) => ({ do: 'say' as const, text })));
     if (result === 'win' && trainer && !hasFlag(g, beatFlag(trainer.id))) {
@@ -1286,6 +1334,7 @@ export function Story() {
           <LimepassPanel
             flags={flags}
             here={outsideOf(map).id}
+            uk={!!outsideOf(map).uk}
             onGo={(stop) => {
               setOverlay(null);
               run(game, [
@@ -1298,16 +1347,24 @@ export function Story() {
         )}
         {overlay === 'starter' && (
           <StarterPanel
+            uk={ukStarter}
             onChoose={(species) => {
-              const g = setFlag(
-                { ...recruit(game, species, 5).state, starter: species },
-                'starter',
-              );
+              const g = ukStarter
+                ? setFlag(
+                    {
+                      ...recruit(game, species, UK_LEVEL, { variant: UK }).state,
+                      ukStarter: species,
+                    },
+                    UK_STARTER,
+                  )
+                : setFlag({ ...recruit(game, species, 5).state, starter: species }, 'starter');
               setOverlay(null);
               run(g, [
                 {
                   do: 'say',
-                  text: `You chose ${speciesById(species).name}! It finished the pint in one go.`,
+                  text: ukStarter
+                    ? `You chose ${speciesById(species).name}! It finished the pint, even though it was poured badly.`
+                    : `You chose ${speciesById(species).name}! It finished the pint in one go.`,
                 },
                 ...queue,
               ]);

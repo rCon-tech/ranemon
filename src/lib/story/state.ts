@@ -40,6 +40,13 @@ export interface StoryState {
   /** The next member uid. */
   uid: number;
   starter?: string;
+  /** The UK Ranemon Próvaí gave you in London (`docs/london-expansion.md`). */
+  ukStarter?: string;
+  /**
+   * The party and Group Chat on the other side of the Irish Sea: Ranemon can't cross the border,
+   * so whichever lot you aren't with waits here (`crossBorder`).
+   */
+  away?: { party: Member[]; box: Member[] };
   steps: number;
   /** `steps` when the dog walking with you last found something (`lib/story/norm.ts`). */
   foundAt?: number;
@@ -156,7 +163,12 @@ export function recruit(
   level: number,
   from?: Partial<Member>,
 ): { state: StoryState; line: string | null } {
-  const member: Member = { ...makeMember(species, level, s.uid), ...from, uid: s.uid };
+  // A UK Ranemon stays the way it's drawn: it isn't made up evolved, whatever its level.
+  const member: Member = {
+    ...makeMember(species, level, s.uid, from?.variant),
+    ...from,
+    uid: s.uid,
+  };
   const caught = s.caught.includes(member.species) ? s.caught : [...s.caught, member.species];
   const next = { ...see(s, member.species), uid: s.uid + 1, caught };
   if (s.party.length < PARTY_SIZE) {
@@ -276,13 +288,43 @@ export function settleBattle(
   if (result === 'loss' || result === 'draw') {
     const tab = Math.floor(state.money / 2);
     state = { ...healParty(state), money: state.money - tab, ...s.pub, face: 'down' };
-    const town = outsideOf(mapById(s.pub.map)).name.split(',')[0];
+    const outside = outsideOf(mapById(s.pub.map));
+    const town = outside.name.split(',')[0];
+    // In England the pubs are W.B Yates, and in the expansion the tab is in pounds.
+    const money = outside.uk ? `£${tab}` : `€${tab}`;
     lines.push(
       'You’re out of Ranemon that can fight!',
-      `You come round in McGrattans, ${town}, with a bar tab of €${tab}.`,
+      outside.uk || outside.yates
+        ? `You come round in W.B Yates, ${town}, with a bar tab of ${money}. Liam Neeson is standing over you. He says nothing.`
+        : `You come round in McGrattans, ${town}, with a bar tab of ${money}.`,
     );
   }
   return { state, lines };
+}
+
+/**
+ * Over the border: the party and Group Chat you have stay behind, and the ones that were waiting
+ * on the far side (none, the first time over) are yours again. A blackout wakes you at `pub`.
+ */
+export function crossBorder(s: StoryState, pub: StoryState['pub']): StoryState {
+  const back = s.away ?? { party: [], box: [] };
+  return { ...s, party: back.party, box: back.box, away: { party: s.party, box: s.box }, pub };
+}
+
+/**
+ * The Good Saturday Agreement: the Ranemon waiting over the sea join you for good. They lead,
+ * so your old follower runs straight back to you; whoever doesn't fit in the party goes to the
+ * Group Chat.
+ */
+export function reunite(s: StoryState): StoryState {
+  if (!s.away) return s;
+  const all = [...s.away.party, ...s.party];
+  return {
+    ...s,
+    party: all.slice(0, PARTY_SIZE),
+    box: [...all.slice(PARTY_SIZE), ...s.away.box, ...s.box],
+    away: undefined,
+  };
 }
 
 export const toggleExpShare = (s: StoryState): StoryState => ({ ...s, expShare: !s.expShare });

@@ -6,12 +6,14 @@ import { TECHNO_DONE } from '@/content/story/cramps';
 import { TECHNO_DJ } from '@/content/story/techno';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
+import { PALACE_TRAINERS } from '@/content/story/palace';
+import { PREMIER_TRAINERS } from '@/content/story/premier';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
 import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
-import { devSave, isDevName, recruits, storyFlags } from '@/lib/story/devsave';
+import { devSave, isDevName, LONDON_TO_PLAY, recruits, storyFlags } from '@/lib/story/devsave';
 import { ELVIS, NORM } from '@/lib/story/norm';
 import { exportCode, importCode, parseSave } from '@/lib/story/save';
 import { beatFlag } from '@/lib/story/state';
@@ -58,11 +60,19 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
+    // The London expansion is all still to play, from Próvaí at Connolly on.
+    const london = LONDON_TO_PLAY;
     for (const f of storyFlags().filter(
       (f) =>
-        ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE, COLLINS_HEARD, CHAMPION_OF_IRELAND].includes(
-          f,
-        ) && !f.startsWith('galway:won:'),
+        ![
+          NORM,
+          ELVIS,
+          BRIGHTON_DONE,
+          TECHNO_DONE,
+          ...london,
+          COLLINS_HEARD,
+          CHAMPION_OF_IRELAND,
+        ].includes(f) && !f.startsWith('galway:won:'),
     ))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
@@ -73,7 +83,7 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass and Galway to fight', () => {
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass, Galway and the Premier League to fight', () => {
     const bosses = [
       'poseidon',
       'bns-rematch',
@@ -82,6 +92,8 @@ describe('the developer save', () => {
       TECHNO_DJ,
       ...ELITE,
       COLLINS,
+      ...PREMIER_TRAINERS.map((t) => t.id),
+      ...PALACE_TRAINERS.map((t) => t.id),
     ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);

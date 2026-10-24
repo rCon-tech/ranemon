@@ -67,6 +67,35 @@ export const KEY_ITEMS: KeyItem[] = [
       'A small white tablet from Josh Lee in Bundoran. He swears that once you take it, you can see Poseidon.',
     usable: true,
   },
+  // From the Premier League legends in the London expansion (content/story/premier.ts).
+  {
+    flag: 'item:hairdryer',
+    name: 'Fergie’s Hairdryer',
+    about:
+      'From Roy Keane. Left in the Old Trafford dressing room in 2013. Point it at something you don’t like.',
+  },
+  {
+    flag: 'item:bucket',
+    name: 'Bielsa’s Bucket',
+    about: 'He sat on it for four years. Sit on it and you’ll think you know everybody’s team.',
+  },
+  {
+    flag: 'item:replica',
+    name: 'Replica Europa League Trophy',
+    about:
+      'From Robbie Keane. Spurs only have the one real one, and a steward polishes it every hour.',
+  },
+  {
+    flag: 'london:railcard',
+    name: 'Ian Wright’s Railcard',
+    about:
+      'A Senior Railcard. The trains to Brighton, Birmingham and Newcastle run for you. Don’t tell anyone.',
+  },
+  {
+    flag: 'item:trophy',
+    name: 'Premier League Trophy',
+    about: 'Yours. The police line on the Mall has to let you through now. It’s the law. Probably.',
+  },
 ];
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;

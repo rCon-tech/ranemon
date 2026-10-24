@@ -15,6 +15,7 @@ import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
 import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '../battle/second-specials';
 import { variantForm } from '../battle/variants';
+import { hasUkForm, UK } from '../battle/uk';
 import { heldBoost, type ItemId } from './items';
 import type { LevelCap } from './levels';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
@@ -151,9 +152,13 @@ export function statsOf(m: Member): BaseStats {
   return levelStats(speciesById(m.species).base, m.level);
 }
 
-/** A new member at a level; a Ranemon met at or past its evolution level comes evolved. */
-export function makeMember(base: string, level: number, uid: number): Member {
-  const species = formAt(base, level);
+/**
+ * A new member at a level; a Ranemon met at or past its evolution level comes evolved. A UK
+ * Ranemon (`look` is `uk`) stays as it's drawn: the UK forms don't evolve.
+ */
+export function makeMember(base: string, level: number, uid: number, look?: string): Member {
+  const uk = look === UK && hasUkForm(base);
+  const species = uk ? base : formAt(base, level);
   const learned = movesAt(speciesById(species), level);
   const moves = fightingMoves(learned);
   const member: Member = {
@@ -166,9 +171,13 @@ export function makeMember(base: string, level: number, uid: number): Member {
     status: null,
     moves,
     learned,
+    ...(uk && { variant: UK }),
   };
   return { ...member, hp: statsOf(member).hp };
 }
+
+/** UK Ranemon are drawn, and a drawing doesn't evolve (`uk.ts`). */
+export const evolves = (m: Member) => m.variant !== UK;
 
 /**
  * Adds any move the member should know by now, for saves from before special moves came at
@@ -258,7 +267,8 @@ function levelUp(m: Member, lines: string[], party: Member[] = []): Member {
     }
   }
   const evo = evolutionOf(next.species);
-  if (evo && next.level >= evo.level && partnered(next, party)) next = evolve(next, lines);
+  if (evo && evolves(next) && next.level >= evo.level && partnered(next, party))
+    next = evolve(next, lines);
   return next;
 }
 
@@ -320,7 +330,7 @@ export function gainExp(
  */
 export function itemEvolve(m: Member, item: string): { member: Member; lines: string[] } {
   const evo = itemEvolutionOf(m.species, item);
-  if (!evo) return { member: m, lines: ['It won’t have any effect.'] };
+  if (!evo || !evolves(m)) return { member: m, lines: ['It won’t have any effect.'] };
   const name = nameOf(m);
   const before = statsOf(m).hp;
   const old = speciesById(m.species).moves.find((id) => moveById(id).signature);

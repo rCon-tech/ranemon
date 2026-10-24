@@ -3,7 +3,7 @@ import { MAPS, mapById } from '@/content/story/maps';
 import { devSave } from '@/lib/story/devsave';
 import { KEY_ITEMS, LIMEPASS } from '@/lib/story/keys';
 import { limeStops } from '@/lib/story/limepass';
-import { canEnter, npcsOf, tileAt, type Step } from '@/lib/story/world';
+import { canEnter, find, npcsOf, tileAt, type Step } from '@/lib/story/world';
 
 function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
   for (const s of steps) {
@@ -33,13 +33,22 @@ describe('the Limepass', () => {
   });
 
   it('drops you on open ground outside every town’s McGrattans', () => {
-    const all = limeStops(new Set(MAPS.map((m) => `visited:${m.id}`)));
+    const visited = new Set(MAPS.map((m) => `visited:${m.id}`));
+    const all = [...limeStops(visited), ...limeStops(visited, true)];
     expect(all).toHaveLength(MAPS.length);
     for (const s of all) {
       const map = mapById(s.map);
       expect(canEnter(map, s.x, s.y, new Set()), `${s.map} ${s.x},${s.y}`).toBe(true);
-      if (s.map !== 'trinity') expect(tileAt(map, s.x, s.y - 1), s.map).toBe('P');
+      if (find(map, 'P').length) expect(tileAt(map, s.x, s.y - 1), s.map).toBe('P');
     }
+  });
+
+  it('doesn’t cross the Irish Sea', () => {
+    const visited = new Set(MAPS.map((m) => `visited:${m.id}`));
+    expect(limeStops(visited).map((s) => s.map)).not.toContain('london');
+    expect(limeStops(visited, true).map((s) => s.map)).toEqual(
+      MAPS.filter((m) => m.uk).map((m) => m.id),
+    );
   });
 
   it('is in the developer save', () => {

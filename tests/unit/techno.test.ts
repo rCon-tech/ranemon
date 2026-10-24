@@ -97,7 +97,7 @@ describe('Cramps, back in Dublin after the Ball', () => {
   const dublin = mapById('dublin');
 
   it('runs up to you the first time you come out into Dublin as Champion', () => {
-    expect(dublin.arrive).toBe(CRAMPS_ARRIVE);
+    expect(dublin.arrive?.slice(0, CRAMPS_ARRIVE.length)).toEqual(CRAMPS_ARRIVE);
     // Not before B&S are beaten.
     expect(play(CRAMPS_ARRIVE, new Set())).toEqual([]);
     const flags = new Set(['champion']);

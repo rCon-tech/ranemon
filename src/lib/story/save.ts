@@ -87,7 +87,10 @@ function repair(d: Raw): Raw {
   const start = newGame();
   const party = repairMembers(d.party);
   const box = repairMembers(d.box);
-  const members = [...party.ok, ...box.ok];
+  const away = isObject(d.away)
+    ? [d.away.party, d.away.box].flatMap((l) => repairMembers(l).ok)
+    : [];
+  const members = [...party.ok, ...box.ok, ...away];
   const place = validPlace(d) ?? validPlace(d.pub) ?? { map: start.map, x: start.x, y: start.y };
   return {
     ...d,
@@ -105,6 +108,10 @@ function repair(d: Raw): Raw {
     seen: strings(d.seen),
     caught: strings(d.caught),
     pub: validPlace(d.pub) ?? start.pub,
+    // The Ranemon left on the other side of the Irish Sea, read the same way as the party.
+    ...(isObject(d.away) && {
+      away: { party: repairMembers(d.away.party).ok, box: repairMembers(d.away.box).ok },
+    }),
     uid: Math.max(num(d.uid, 1), ...members.map((m) => m.uid + 1)),
     steps: num(d.steps, 0),
     // A skin this build doesn't know is kept, and drawn as the usual look (`lookOf`).

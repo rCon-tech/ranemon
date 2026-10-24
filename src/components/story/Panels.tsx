@@ -7,6 +7,9 @@ import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
 import { DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
+import { UK, UK_ENTRIES } from '@/lib/battle/uk';
+import { variantForm } from '@/lib/battle/variants';
+import { UK_LEVEL } from '@/content/story/london';
 import { canUseOn, ITEMS, itemById, priceOf, shopStock, type ItemId } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import { levelCap, type LevelCap } from '@/lib/story/levels';
@@ -789,14 +792,27 @@ function Jersey({ county, won }: { county: string; won: boolean }) {
 }
 
 /** Michael D's kitchen table: a pint for every Ranemon. Pick one to start. */
-export function StarterPanel({ onChoose }: { onChoose: (species: string) => void }) {
+export function StarterPanel({
+  onChoose,
+  uk = false,
+}: {
+  onChoose: (species: string) => void;
+  /** Próvaí's pick in London: every Ranemon in its UK form, at a higher level. */
+  uk?: boolean;
+}) {
   const [pick, setPick] = useState<string | null>(null);
-  const c = pick ? speciesById(pick) : null;
+  const level = uk ? UK_LEVEL : START_LEVEL;
+  const look = (id: string) => {
+    const c = speciesById(id);
+    return uk ? { ...variantForm(c, UK), entry: UK_ENTRIES[id] ?? c.entry } : c;
+  };
+  const c = pick ? look(pick) : null;
   return (
-    <Panel title="PICK YOUR RANEMON">
+    <Panel title={uk ? 'PICK YOUR UK RANEMON' : 'PICK YOUR RANEMON'}>
       <p className="text-[10px] leading-relaxed">
-        Sixteen pints on the table, one for each Ranemon. Whoever you pick starts at Lv
-        {START_LEVEL}.
+        {uk
+          ? `Twenty pints on the table in the back of W.B Yates, one for each UK Ranemon. Whoever you pick starts at Lv${level}.`
+          : `Sixteen pints on the table, one for each Ranemon. Whoever you pick starts at Lv${level}.`}
       </p>
       <div className="grid grid-cols-4 gap-1.5">
         {ROSTER.map((r) => (
@@ -808,7 +824,7 @@ export function StarterPanel({ onChoose }: { onChoose: (species: string) => void
             onClick={() => setPick(r.id)}
           >
             <span className="h-10 w-10">
-              <Sprite creature={r} />
+              <Sprite creature={uk ? look(r.id) : r} />
             </span>
             <span className="text-[8px]">{r.name}</span>
           </button>
@@ -825,10 +841,10 @@ export function StarterPanel({ onChoose }: { onChoose: (species: string) => void
           <span>{c.entry}</span>
           <span>
             Knows:{' '}
-            {movesAt(c, START_LEVEL)
+            {movesAt(c, level)
               .map((id) => moveById(id).name)
               .join(', ')}
-            . Special move at Lv20.
+            .{uk ? '' : ' Special move at Lv20.'}
           </span>
           <button
             type="button"

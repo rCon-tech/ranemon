@@ -13,7 +13,11 @@ import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
 import { CRAMPS_ARRIVE } from './cramps';
+import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
+import { AIRPORT, LONDON, STANSTED } from './london';
+import { palaceRooms } from './palace';
+import { PL_MAPS } from './premier';
 import { GALWAY, HALL_ROOMS } from './galway';
 import * as LEGENDS from './legends';
 
@@ -1344,7 +1348,7 @@ export const MAPS: GameMap[] = [
     },
     landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom() },
     // Once you're Champion, Cramps comes running up the street the first time you're back out.
-    arrive: CRAMPS_ARRIVE,
+    arrive: [...CRAMPS_ARRIVE, ...PROVAI_ARRIVE],
     west: 'kildare',
     east: 'trinity',
   },
@@ -1471,11 +1475,15 @@ export const MAPS: GameMap[] = [
   GREYSTONES,
   BRIGHTON,
   BELGIUM,
+  AIRPORT,
+  STANSTED,
+  LONDON,
+  ...PL_MAPS,
   GALWAY,
 ];
 
 /** The rooms behind every door. */
-export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS];
+export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS, ...palaceRooms(LONDON)];
 
 const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {

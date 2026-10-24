@@ -14,7 +14,8 @@ import type { Step } from '@/lib/story/world';
 const beaten = (n: number) => GYM_ORDER.slice(0, n).map(beatFlag);
 
 describe('Carl Ryan in McGrattans', () => {
-  const pubs = INTERIORS.filter((m) => /-P\d+$/.test(m.id));
+  // In Britain the pubs are W.B Yates (london.ts), where Liam Neeson is on the bar instead.
+  const pubs = INTERIORS.filter((m) => m.name.startsWith('McGrattans'));
 
   it('is in every McGrattans, from the start', () => {
     expect(pubs.length).toBeGreaterThan(5);

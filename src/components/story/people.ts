@@ -80,6 +80,10 @@ export interface Style {
   sad?: boolean;
   /** A glow stick in each hand, in this colour. */
   glowsticks?: string;
+  /** A knitted balaclava over the whole head, in three bands left to right (as you look at it). */
+  balaclava?: [string, string, string];
+  /** Bands of Celtic knotwork down the sleeves, in this colour. */
+  knots?: string;
   /** Sleeveless, with big bare arms: a gym vest. */
   vest?: boolean;
   /** A plastic bag pulled down over the whole head, with eye holes, in this colour. */
@@ -836,6 +840,478 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#18181c',
     shoes: '#0c0c10',
   },
+  // DJ Próvaí of Kneecap: a hand-knitted tricolour balaclava, a black and dark green boiler-suit
+  // tracksuit with red piping, and white Celtic knotwork down the sleeves.
+  provai: {
+    skin: '#f0c49a',
+    hair: '#f0c49a',
+    hairStyle: 'none',
+    top: '#1c2a20',
+    topKind: 'jacket',
+    trim: '#c8282a',
+    legs: '#18221a',
+    shoes: '#141418',
+    balaclava: ['#1e9a50', '#f4f2ea', '#f08a24'],
+    knots: '#ecece4',
+  },
+  // A Dublin Bus driver: a pale blue shirt, a navy jumper and a lanyard.
+  bus: {
+    skin: '#f0c8a0',
+    hair: '#4a3020',
+    hairStyle: 'balding',
+    top: '#1e2e5a',
+    topKind: 'jumper',
+    trim: '#9cc4ec',
+    tie: '#f0c020',
+    legs: '#262a36',
+    shoes: '#18181c',
+    moustache: '#4a3020',
+  },
+  // Liam Neeson, behind the bar of every W.B Yates: very tall, grey and very serious, in a black
+  // shirt with the sleeves rolled up.
+  neeson: {
+    skin: '#ecc09a',
+    hair: '#8a8a90',
+    hairStyle: 'short',
+    top: '#202024',
+    topKind: 'shirt',
+    trim: '#34343a',
+    legs: '#2a2a32',
+    shoes: '#18181c',
+    tall: true,
+  },
+  // UK Border Force: a navy uniform, a peaked cap and a lanyard.
+  border: {
+    skin: '#f0c8a0',
+    hair: '#3a2a1e',
+    hairStyle: 'short',
+    hat: { kind: 'garda', colour: '#141a30', trim: '#d0d4dc' },
+    top: '#1a2038',
+    topKind: 'jacket',
+    trim: '#d0d4dc',
+    tie: '#141418',
+    legs: '#1a2038',
+    shoes: '#0c0c10',
+  },
+  // Ryanair cabin crew: a navy uniform with yellow trim, a bun and a scarf.
+  crew: {
+    skin: '#f0c8a0',
+    hair: '#c89a50',
+    hairStyle: 'bun',
+    top: '#123278',
+    topKind: 'jacket',
+    trim: '#f0c020',
+    tie: '#f0c020',
+    legs: '#123278',
+    shoes: '#141418',
+  },
+  // A stag at the gate: matching pink T-shirt, shorts in October.
+  stag: {
+    skin: '#f4c8a8',
+    hair: '#a86a30',
+    hairStyle: 'spiky',
+    top: '#f070a8',
+    topKind: 'shirt',
+    trim: '#f8f8f8',
+    legs: '#f4c8a8',
+    shorts: '#3a5a8a',
+    socks: '#f8f8f8',
+    shoes: '#f8f8f8',
+  },
+  // The man who's been at the gate since 5am: a fleece, a neck pillow and a carry-on.
+  gatecamper: {
+    skin: '#f0c8a0',
+    hair: '#6a6a70',
+    hairStyle: 'balding',
+    top: '#3a6a4a',
+    topKind: 'jumper',
+    trim: '#d8b048',
+    legs: '#8a7a5a',
+    shoes: '#5a3a24',
+    bag: '#2a2a34',
+    glasses: 'glasses',
+  },
+  // Donal, the Corkman who runs W.B Yates in London: grey curls, a waistcoat over a white shirt.
+  donal: {
+    skin: '#f0bc98',
+    hair: '#b8b8b8',
+    hairStyle: 'short',
+    top: '#3a2a22',
+    topKind: 'waistcoat',
+    trim: '#f4f4f0',
+    legs: '#2a2a30',
+    shoes: '#2a1a12',
+    moustache: '#b8b8b8',
+  },
+  // A trad fiddler: a flat cap, a cardigan and a beard.
+  fiddler: {
+    skin: '#f0c8a0',
+    hair: '#5a3a24',
+    hairStyle: 'short',
+    hat: { kind: 'flat', colour: '#5a5a4a' },
+    beard: '#5a3a24',
+    top: '#7a3a2a',
+    topKind: 'jumper',
+    trim: '#5a2a1a',
+    legs: '#3a3a40',
+    shoes: '#2a1a12',
+  },
+  // The Premier League legends, each in their club's kit (premier.ts).
+  // Roy Keane: United red, a grey beard and a stare.
+  keane: {
+    skin: '#f0c4a0',
+    hair: '#5a5a5a',
+    hairStyle: 'short',
+    beard: '#6a6a6a',
+    top: '#d01c24',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#f4f4f4',
+    shoes: '#18181c',
+  },
+  // Marcelo Bielsa: a navy Leeds tracksuit, glasses and grey hair.
+  bielsa: {
+    skin: '#ecc09a',
+    hair: '#c8c8c8',
+    hairStyle: 'balding',
+    glasses: 'glasses',
+    top: '#1d2f5c',
+    topKind: 'jacket',
+    trim: '#f6c21c',
+    legs: '#1d2f5c',
+    shoes: '#f4f4f4',
+  },
+  // Duncan Ferguson: Everton blue, and enormous.
+  ferguson: {
+    skin: '#f0c8a8',
+    hair: '#3a2a1e',
+    hairStyle: 'short',
+    top: '#1b3f9c',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#f4f4f4',
+    shoes: '#18181c',
+    big: true,
+  },
+  // Robbie Keane: Spurs white with navy.
+  robbie: {
+    skin: '#f0c4a0',
+    hair: '#3a2a1e',
+    hairStyle: 'spiky',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#132257',
+    legs: '#132257',
+    shoes: '#f4f4f4',
+  },
+  // Ian Wright: Palace red and blue stripes, and a big grin.
+  wright: {
+    skin: '#6a4028',
+    hair: '#1a1a1a',
+    hairStyle: 'none',
+    top: '#c8102e',
+    topKind: 'shirt',
+    trim: '#1b458f',
+    stripes: '#1b458f',
+    legs: '#1b458f',
+    shoes: '#f4f4f4',
+  },
+  // Glenn Murray: Brighton blue and white stripes.
+  murray: {
+    skin: '#f0c4a0',
+    hair: '#8a6a40',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#0057b8',
+    stripes: '#0057b8',
+    legs: '#0057b8',
+    shoes: '#18181c',
+  },
+  // Paul McGrath: Villa claret and blue, and the calmest man in England.
+  mcgrath: {
+    skin: '#7a4a2a',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    top: '#670e36',
+    topKind: 'shirt',
+    trim: '#95bfe5',
+    legs: '#f4f4f4',
+    shoes: '#18181c',
+  },
+  // Alan Shearer: Newcastle black and white stripes.
+  shearer: {
+    skin: '#f0c4a0',
+    hair: '#c8b088',
+    hairStyle: 'balding',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#16181c',
+    stripes: '#16181c',
+    legs: '#16181c',
+    shoes: '#18181c',
+  },
+  // John Terry: Chelsea blue, in full kit, shin pads and all.
+  terry: {
+    skin: '#f0c4a0',
+    hair: '#2a1e18',
+    hairStyle: 'short',
+    top: '#034694',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#034694',
+    shoes: '#18181c',
+  },
+  // Steven Gerrard: Liverpool red.
+  gerrard: {
+    skin: '#f0c4a0',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    top: '#c8102e',
+    topKind: 'shirt',
+    trim: '#f6c21c',
+    legs: '#c8102e',
+    shoes: '#18181c',
+  },
+  // Thierry Henry: Arsenal red with white sleeves.
+  henry: {
+    skin: '#5a3420',
+    hair: '#1a1a1a',
+    hairStyle: 'none',
+    top: '#ef0107',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#f4f4f4',
+    shoes: '#18181c',
+  },
+  // Sergio Agüero: City sky blue.
+  aguero: {
+    skin: '#d8a07a',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    top: '#6cabdd',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#f4f4f4',
+    shoes: '#18181c',
+  },
+  // The W.B Yates owners. Seán and Pádraig, the Mayo brothers: green and red jumpers, flat caps.
+  mayo: {
+    skin: '#f0c4a0',
+    hair: '#8a8a8a',
+    hairStyle: 'short',
+    hat: { kind: 'flat', colour: '#4a4a3a' },
+    top: '#1f7a3a',
+    topKind: 'jumper',
+    trim: '#c8282a',
+    legs: '#3a3a40',
+    shoes: '#2a1a12',
+  },
+  // Bríd from Kerry: red hair and a Kerry green and gold jumper.
+  brid: {
+    skin: '#f4d0b0',
+    hair: '#b8481e',
+    hairStyle: 'long',
+    top: '#11804a',
+    topKind: 'jumper',
+    trim: '#f6c21c',
+    legs: '#2a2a30',
+    shoes: '#2a1a12',
+  },
+  // Nana Kelly: grey bob, a cardigan.
+  kelly: {
+    skin: '#f0c8a8',
+    hair: '#c8c8c8',
+    hairStyle: 'bob',
+    top: '#8a2a3a',
+    topKind: 'jumper',
+    trim: '#f4f0e8',
+    legs: '#3a3a48',
+    shoes: '#2a1a12',
+    pearls: true,
+  },
+  // Mick from Tipperary: a tweed flat cap and a waistcoat.
+  mick: {
+    skin: '#f0c4a0',
+    hair: '#d8d8d8',
+    hairStyle: 'short',
+    hat: { kind: 'flat', colour: '#7a6a4a' },
+    top: '#5a4a3a',
+    topKind: 'waistcoat',
+    trim: '#f4f4f0',
+    legs: '#3a3a40',
+    shoes: '#2a1a12',
+  },
+  // Gráinne from Donegal: an Aran jumper, and no coat.
+  grainne: {
+    skin: '#f4d0b0',
+    hair: '#2a1e18',
+    hairStyle: 'long',
+    top: '#ece4cc',
+    topKind: 'jumper',
+    trim: '#d8cca8',
+    legs: '#2a3a5a',
+    shoes: '#2a1a12',
+  },
+  // Fionnuala from Galway, in Brighton: a maroon cardigan and a sash from a 1994 hen party.
+  fionnuala: {
+    skin: '#f4d0b0',
+    hair: '#c8a050',
+    hairStyle: 'bouffant',
+    top: '#7d1f2e',
+    topKind: 'jumper',
+    trim: '#f4f0e8',
+    legs: '#2a2a38',
+    shoes: '#2a1a12',
+    earrings: '#f6c21c',
+  },
+  // Buckingham Palace (palace.ts). Margaret Thatcher: a royal blue suit, pearls and a handbag.
+  thatcher: {
+    skin: '#f4d4b8',
+    hair: '#d8c8a0',
+    hairStyle: 'bouffant',
+    top: '#1f3f9e',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    legs: '#f0c8a8',
+    shoes: '#1a1a2a',
+    skirt: '#1f3f9e',
+    pearls: true,
+    handbag: '#1a1a2a',
+  },
+  // A Royal Guard: a red tunic and a tall black bearskin.
+  royalguard: {
+    skin: '#f0c4a0',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    hat: { kind: 'beanie', colour: '#141414' },
+    top: '#c8101e',
+    topKind: 'jacket',
+    trim: '#f6c21c',
+    legs: '#141420',
+    shoes: '#0c0c0c',
+    tall: true,
+  },
+  // Prince Edward: a navy blazer nobody notices.
+  edward: {
+    skin: '#f0c8a8',
+    hair: '#8a6a4a',
+    hairStyle: 'balding',
+    top: '#283a5c',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    legs: '#283a5c',
+    shoes: '#1a1a1a',
+    tie: '#8a2a2a',
+  },
+  // Princess Anne: a headscarf and a waxed jacket, in the stables.
+  anne: {
+    skin: '#f0c8a8',
+    hair: '#a08a68',
+    hairStyle: 'bun',
+    top: '#4a5a3a',
+    topKind: 'coat',
+    trim: '#8a6a3a',
+    legs: '#5a4a3a',
+    shoes: '#2a1a12',
+  },
+  // Prince William: a gilet, and no moustache this time.
+  william: {
+    skin: '#f0c8a8',
+    hair: '#a08a68',
+    hairStyle: 'balding',
+    top: '#2a3a4a',
+    topKind: 'waistcoat',
+    trim: '#9ab8d8',
+    legs: '#c8b898',
+    shoes: '#5a3a22',
+  },
+  // Andrew: a dressing gown.
+  andrew: {
+    skin: '#f0c0a0',
+    hair: '#b8b8b8',
+    hairStyle: 'short',
+    top: '#7a2a3a',
+    topKind: 'gown',
+    trim: '#d8b048',
+    legs: '#2a2a30',
+    shoes: '#5a3a22',
+  },
+  // Zombie Queen Elizabeth: grey-green, in a lilac coat and hat, with her handbag.
+  queen: {
+    skin: '#a8b898',
+    hair: '#e0e0e0',
+    hairStyle: 'bouffant',
+    hat: { kind: 'beret', colour: '#b898d0' },
+    top: '#b898d0',
+    topKind: 'coat',
+    trim: '#d8c8e8',
+    legs: '#a8b898',
+    shoes: '#1a1a1a',
+    skirt: '#b898d0',
+    pearls: true,
+    handbag: '#1a1a1a',
+  },
+  // King Charles: a double-breasted suit and a crown.
+  charles: {
+    skin: '#f0b8a0',
+    hair: '#c8c8c8',
+    hairStyle: 'balding',
+    hat: { kind: 'crown', colour: '#f6c21c' },
+    top: '#3a4a5a',
+    topKind: 'suit',
+    trim: '#f4f4f4',
+    legs: '#3a4a5a',
+    shoes: '#1a1a1a',
+    tie: '#5a7a4a',
+  },
+  // Queen Camilla: a blonde bob and a pale blue coat.
+  camilla: {
+    skin: '#f0c8a8',
+    hair: '#e0c890',
+    hairStyle: 'bob',
+    top: '#a8c0d8',
+    topKind: 'coat',
+    trim: '#f4f4f4',
+    legs: '#f0c8a8',
+    shoes: '#1a1a2a',
+    skirt: '#a8c0d8',
+    pearls: true,
+  },
+  // Mo Chara and Móglaí Bap of Kneecap, balaclavas and all.
+  mochara: {
+    skin: '#f0c8a8',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    balaclava: ['#1e9a50', '#f4f2ea', '#f08a24'],
+    top: '#f4f4f4',
+    topKind: 'jacket',
+    trim: '#1e9a50',
+    legs: '#2a2a30',
+    shoes: '#f4f4f4',
+  },
+  moglai: {
+    skin: '#f0c8a8',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    balaclava: ['#1e9a50', '#f4f2ea', '#f08a24'],
+    top: '#1a1a1a',
+    topKind: 'jacket',
+    trim: '#f08a24',
+    legs: '#3a4a3a',
+    shoes: '#1a1a1a',
+  },
+  // Bridie from Ballina, a palace cleaner: a tabard and a headscarf.
+  bridie: {
+    skin: '#f0c8a8',
+    hair: '#8a8a8a',
+    hairStyle: 'bun',
+    top: '#3a7ab8',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#2a2a38',
+    shoes: '#2a1a12',
+  },
   // DJ Vandenbass, the headliner: long silver hair, shades, a black shirt and gold headphones.
   headliner: {
     skin: '#f0c8a0',
@@ -1356,6 +1832,7 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       const cuff = s.topKind === 'jacket' || s.topKind === 'hivis' ? s.trim : shade(s.top, 0.85);
       px(c, x, ay + 19, 7, 3, cuff);
       if (s.hearts) heart(c, x + 1, ay + 5, s.hearts);
+      if (s.knots) knotwork(c, x + 2, ay + 1, 17, s.knots);
     }
     if (!back || !wide) {
       round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
@@ -1458,6 +1935,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
   }
   if (s.strap) px(c, 24, y0 + 1, 3, h - 3, s.strap);
   if (s.hearts) heart(c, ax + 2, y0 + 5, s.hearts);
+  if (s.knots) knotwork(c, ax + 2, y0 + 2, 17, s.knots);
   round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
   if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
   if (s.tote) shaded(c, 34, y0 + 16, 11, 14, 2, s.tote);
@@ -1682,7 +2160,57 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
   }
   if (s.headphones) headphones(c, s.headphones, side, y);
   if (covered) hat(c, s, side, y);
+  if (s.balaclava) balaclava(c, s.balaclava, s.skin, side, y);
   if (s.plasticBag) plasticBag(c, s.plasticBag, side, y);
+}
+
+/**
+ * A knitted balaclava pulled over the whole head, in three bands, with ribbing, a slot for the
+ * eyes and a hole for the mouth.
+ */
+function balaclava(c: Ctx, bands: [string, string, string], skin: string, side: Side, y: number) {
+  const rows = roundRows(14, 2 + y, 36, 38, 13);
+  // Looking at the back of the head the bands are the other way round; side on, two show.
+  const order = side === 'up' ? [bands[2], bands[1], bands[0]] : bands;
+  const edges = side === 'left' ? [14, 14, 30, 50] : [14, 26, 38, 50];
+  for (const [rx, ry, rw] of rows) {
+    for (let b = 0; b < 3; b++) {
+      const from = Math.max(rx, edges[b]);
+      const to = Math.min(rx + rw, edges[b + 1]);
+      px(c, from, ry, to - from, 1, order[b]);
+    }
+  }
+  // Ribbing: a darker line down every few stitches.
+  for (const [rx, ry, rw] of rows) {
+    for (let x = rx + 1; x < rx + rw; x += 3) {
+      const b = x < edges[1] ? 0 : x < edges[2] ? 1 : 2;
+      px(c, x, ry, 1, 1, shade(order[b], 0.82));
+    }
+  }
+  if (side === 'up') return;
+  const eyes = side === 'left' ? [17, 28] : [21, 43];
+  // The eye slot, with the eyes looking out of it, and the mouth.
+  px(c, eyes[0], 18 + y, eyes[1] - eyes[0], 8, skin);
+  px(c, eyes[0], 18 + y, eyes[1] - eyes[0], 1, shade(skin, 0.7));
+  for (const ex of side === 'left' ? [20] : [24, 35]) {
+    px(c, ex, 20 + y, 5, 4, '#f8f8f8');
+    px(c, ex + 1, 20 + y, 3, 4, '#2c3c64');
+    px(c, ex + 2, 21 + y, 1, 2, '#0c1020');
+  }
+  const mouth = side === 'left' ? 17 : 28;
+  round(c, mouth, 28 + y, 8, 5, 2, skin);
+  px(c, mouth + 1, 30 + y, 6, 1, '#a04a48');
+}
+
+/** A band of Celtic knotwork, two pixels of plait either side of a running chain. */
+function knotwork(c: Ctx, x: number, y: number, h: number, colour: string) {
+  const dark = shade(colour, 0.7);
+  for (let i = 0; i < h; i += 4) {
+    px(c, x, y + i, 1, 2, colour);
+    px(c, x + 2, y + i, 1, 2, colour);
+    px(c, x + 1, y + i + 1, 1, 2, dark);
+    px(c, x, y + i + 2, 3, 1, colour);
+  }
 }
 
 /** A plastic shopping bag over the whole head: creased, tied at the neck, with two eye holes. */
