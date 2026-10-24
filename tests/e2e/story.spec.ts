@@ -984,9 +984,10 @@ test('story mode: the Rave Cave, where a beaten raver always goes again', async 
             level: 100,
             exp: 1000000,
             hp: 400,
-            pp: [10],
+            pp: [15],
             status: null,
-            moves: ['fierce-friendship'],
+            // A move that hits, so both battles are won outright and not on Struggle.
+            moves: ['cold-shoulder'],
           },
         ],
         box: [],
