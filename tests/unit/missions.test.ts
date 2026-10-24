@@ -79,6 +79,9 @@ describe('open missions', () => {
       got: 2,
       of: 3,
     });
+    expect(rent(flagsOf(RENT_START)).mission.about).toContain('Alex Simonin');
+    expect(rent(flagsOf(RENT_START)).step.todo).toContain('ask Alex Simonin');
+    expect(JSON.stringify(rent(flagsOf(RENT_START)).mission)).not.toMatch(/\bSimo\b/);
     const ready = rent(flagsOf(RENT_START, ...RENT_CLUES, RENT_READY));
     expect(ready.step.todo).toContain('Accuse');
     expect(ready.progress).toBeUndefined();

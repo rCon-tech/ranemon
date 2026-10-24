@@ -85,13 +85,13 @@ export const MISSIONS: Mission[] = [
     id: 'rent',
     name: 'The missing rent',
     about:
-      'The rent money is gone from Ollie and Simo’s biscuit tin, and it was one of the housemates.',
+      'The rent money is gone from Ollie and Alex Simonin’s biscuit tin, and it was one of the housemates.',
     start: RENT_START,
     done: RENT_DONE,
     steps: [
       {
         until: RENT_READY,
-        todo: 'Find three clues: ask Simo, the neighbour outside and the Garda on the quays.',
+        todo: 'Find three clues: ask Alex Simonin, the neighbour outside and the Garda on the quays.',
         where: 'The rent house and the quays, Dublin',
         count: RENT_CLUES,
       },

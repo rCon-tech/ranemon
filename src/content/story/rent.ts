@@ -1,8 +1,8 @@
 import type { GameMap, Npc, Step } from '@/lib/story/world';
 
 /**
- * The missing rent, a side story in Dublin. In a house by the river, Ollie and Simo find the
- * rent money gone from the biscuit tin. Three clues, from Simo, the neighbour and a Garda on
+ * The missing rent, a side story in Dublin. In a house by the river, Ollie and Alex Simonin
+ * find the rent money gone from the biscuit tin. Three clues, from Alex, the neighbour and a Garda on
  * the quays, could point at either of their housemates: MC or Melchior. Accuse one and you
  * battle them, and whoever you pick says the same thing when they lose. Nobody ever finds out
  * who took it.
@@ -10,7 +10,7 @@ import type { GameMap, Npc, Step } from '@/lib/story/world';
 
 /** Set once Ollie tells you the rent is gone. */
 export const RENT_START = 'rent:start';
-/** The three clues, one from each of Simo, the neighbour and the Garda. */
+/** The three clues, one from each of Alex Simonin, the neighbour and the Garda. */
 export const RENT_CLUES = ['rent:crumbs', 'rent:shout', 'rent:prints'];
 /** Set once all three clues are found, so you can accuse someone. */
 export const RENT_READY = 'rent:ready';
@@ -65,7 +65,7 @@ const OLLIE: Step[] = [
     then: [
       {
         do: 'say',
-        text: 'OLLIE: Still no rent. C’est la vie. Simo says we can pay the landlord in crêpes. I do not think he will accept.',
+        text: 'OLLIE: Still no rent. C’est la vie. Alex says we can pay the landlord in Simomon. I do not think he will accept.',
       },
     ],
     else: [
@@ -85,7 +85,7 @@ const OLLIE: Step[] = [
             then: [
               {
                 do: 'say',
-                text: 'OLLIE: Any clues? Simo found something by the biscuit tin. And ask around outside, somebody must have seen something!',
+                text: 'OLLIE: Any clues? Alex found something by the biscuit tin. And ask around outside, somebody must have seen something!',
               },
             ],
             else: [
@@ -99,11 +99,11 @@ const OLLIE: Step[] = [
               },
               {
                 do: 'say',
-                text: 'OLLIE: Only four of us live here. Simo and me, we would never. So it was MC… or it was Melchior.',
+                text: 'OLLIE: Only four of us live here. Alex and me, we would never. So it was MC… or it was Melchior.',
               },
               {
                 do: 'say',
-                text: 'OLLIE: Please, mon ami, find the clues and work out who it was. Start with Simo, he found something by the tin.',
+                text: 'OLLIE: Please, mon ami, find the clues and work out who it was. Start with Alex, he found something by the tin.',
               },
               { do: 'flag', flag: RENT_START },
             ],
@@ -114,14 +114,14 @@ const OLLIE: Step[] = [
   },
 ];
 
-const SIMO: Step[] = [
+const ALEX_SIMONIN: Step[] = [
   {
     do: 'if',
     flag: RENT_DONE,
     then: [
       {
         do: 'say',
-        text: 'SIMO: Thanks for trying, honestly. I’ll put the kettle on. The rent can wait till tomorrow. Probably.',
+        text: 'ALEX SIMONIN: No rent, no answers, and Simomon’s had no dinner. How do we always end up here?',
       },
     ],
     else: [
@@ -133,23 +133,23 @@ const SIMO: Step[] = [
           [
             {
               do: 'say',
-              text: 'SIMO: I’ve been over the kitchen three times. Look what I found right by the empty biscuit tin.',
+              text: 'ALEX SIMONIN: Simomon sniffed out the kitchen three times. Look what he found right by the empty biscuit tin.',
             },
             {
               do: 'say',
-              text: 'SIMO: Half a croissant… and a single cheese and onion Tayto. Whoever it was, they had a snack on the way out.',
+              text: 'ALEX SIMONIN: Half a croissant… and a single cheese and onion Tayto. Whoever it was, they had a snack on the way out.',
             },
             {
               do: 'say',
-              text: 'SIMO: Melchior eats nothing but croissants. MC eats nothing but Tayto. So that’s no help at all.',
+              text: 'ALEX SIMONIN: Melchior eats nothing but croissants. MC eats nothing but Tayto. So that’s no help at all.',
             },
           ],
-          'SIMO: A croissant AND a Tayto. Honestly, it could be either of them. Try outside.',
+          'ALEX SIMONIN: A croissant AND a Tayto. Simomon can’t pick between them either. Try outside.',
         ),
         else: [
           {
             do: 'say',
-            text: 'SIMO: Oh, hiya. Sorry, it’s been a day. Talk to Ollie, he’ll explain. I need a cup of tea first.',
+            text: 'ALEX SIMONIN: Oh, hiya. The rent’s gone, Ollie’s in bits, and Simomon’s hiding under the table. How do we always end up here? Talk to Ollie.',
           },
         ],
       },
@@ -326,7 +326,7 @@ const MELCHIOR = suspect({
   again: 'You return to the royal court? Very well. En garde!',
 });
 
-/** The house by the river: Ollie and Simo, and their housemates MC and Melchior. */
+/** The house by the river: Ollie and Alex Simonin, and their housemates MC and Melchior. */
 export const RENT_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> = {
   name: 'A house',
   rows: [
@@ -342,7 +342,7 @@ export const RENT_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> = {
   ],
   npcs: [
     { look: 'ollie', face: 'down', talk: OLLIE },
-    { look: 'simo', face: 'down', talk: SIMO },
+    { look: 'alex', face: 'down', talk: ALEX_SIMONIN },
     { look: 'mc', face: 'right', talk: MC },
     { look: 'melchior', face: 'left', talk: MELCHIOR },
   ],
