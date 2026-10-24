@@ -65,6 +65,8 @@ export interface Style {
   tiny?: boolean;
   /** Anyone very tall: drawn bigger, head and shoulders over everyone. */
   tall?: boolean;
+  /** A big man, like Carl Ryan: drawn bigger again, towering over the tall. */
+  big?: boolean;
   /** Big DJ headphones over the head, in this colour. */
   headphones?: string;
   /** A St George's cross on the chest. */
@@ -89,8 +91,12 @@ export const TINY = 0.64;
 /** How tall someone `tall` stands, next to everyone else. */
 export const TALL = 1.22;
 
+/** How big someone `big` is drawn, next to everyone else. */
+export const BIG = 1.5;
+
 /** How big someone is drawn, next to everyone else. */
-export const scaleOf = (s: Style) => (s.tiny ? TINY : s.small ? SMALL : s.tall ? TALL : 1);
+export const scaleOf = (s: Style) =>
+  s.tiny ? TINY : s.small ? SMALL : s.big ? BIG : s.tall ? TALL : 1;
 
 const SKIN = '#f8d0a8';
 
@@ -573,7 +579,7 @@ export const STYLES: Record<Look | 'player', Style> = {
     socks: '#f4f4f4',
     shoes: '#141418',
   },
-  // Carl Ryan: very tall, in a stone-coloured blazer over an open white shirt, navy trousers, a
+  // Carl Ryan: a big man, in a stone-coloured blazer over an open white shirt, navy trousers, a
   // black belt, clubmaster shades and a moustache, with a blue sports bag full of cans.
   carl: {
     skin: SKIN,
@@ -587,7 +593,7 @@ export const STYLES: Record<Look | 'player', Style> = {
     glasses: 'shades',
     moustache: '#4a3020',
     bag: '#3a8ae8',
-    tall: true,
+    big: true,
   },
   // At the Ball in black tie, bow tie loosened.
   reveller: {

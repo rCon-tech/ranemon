@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { STYLES, TALL, scaleOf } from '@/components/story/people';
+import { BIG, STYLES, TALL, scaleOf } from '@/components/story/people';
 import { BEAT_MS, bulbsOf, dance, fireworks } from '@/components/story/partyfx';
 import { BALL_FLAG, CARL_PRICE, CARL_STALL } from '@/content/story/ball';
 import { AFTER_MAPS, mapById, mapFor } from '@/content/story/maps';
@@ -69,11 +69,12 @@ describe('the Trinity Ball', () => {
     expect(party.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('has Carl Ryan, a tall man, selling Blue Ghosts cheap', () => {
+  it('has Carl Ryan, a big man, selling Blue Ghosts cheap', () => {
     const carl = npcsOf(ball).find((n) => n.item.look === 'carl')!;
     expect(carl).toBeTruthy();
-    expect(STYLES.carl.tall).toBe(true);
-    expect(scaleOf(STYLES.carl)).toBe(TALL);
+    expect(STYLES.carl.big).toBe(true);
+    expect(scaleOf(STYLES.carl)).toBe(BIG);
+    expect(BIG).toBeGreaterThan(TALL);
     expect(TALL).toBeGreaterThan(1);
     expect(carl.item.talk).toContainEqual({ do: 'shop', stall: CARL_STALL });
     expect(CARL_STALL.stock).toEqual([{ item: 'blue-ghost', price: CARL_PRICE }]);
