@@ -1,6 +1,7 @@
 import { BOYDE } from './boyde';
 import { ENDA_ASKED } from './enda';
 import { CRAMPS_AT_STATION, TECHNO_ASKED } from './cramps';
+import { BALL_FLAG } from './ball';
 import { interiorId } from './interiors';
 import type { Dir, GameMap, Look, Step } from '@/lib/story/world';
 
@@ -148,7 +149,33 @@ export const DEPARTURES: (Departure | Line)[] = [
     },
   },
   { id: 'belfast', line: 'Enterprise', to: 'Belfast', platform: 5, soon: true },
-  { id: 'galway', line: 'Intercity', to: 'Galway', platform: 6, soon: true },
+  {
+    id: 'galway',
+    line: 'Intercity',
+    to: 'Galway City, Co. Galway',
+    platform: 6,
+    at: { x: 2, y: 3, face: 'left' },
+    staff: 'conductor',
+    ask: 'CONDUCTOR: The Intercity to Galway, for the Championship of Ireland. All aboard?',
+    notNow:
+      'CONDUCTOR: No bother. The Championship has been waiting a hundred years. It’ll wait a bit more.',
+    ride: [
+      'The Intercity heads west out of Dublin, over the Shannon at Athlone and across the bogs. A man across the aisle is eating a full chicken out of a bag.',
+      'Stone walls, more stone walls, then the sea: Galway Bay, and the city on the Corrib.',
+    ],
+    first:
+      'GALWAY CITY, CO. GALWAY. Buskers, the Spanish Arch and the Hall of Champions on Eyre Square, where the Championship of Ireland is held.',
+    lock: {
+      flag: BALL_FLAG,
+      locked:
+        'CLERK: The Galway Intercity? That’s the Championship special. Only for those who’ve beaten B&S, I’m afraid.',
+    },
+    back: {
+      ask: 'CONDUCTOR: Back to Dublin Connolly?',
+      ride: 'The Intercity rattles back east across the bogs to Dublin.',
+      notNow: 'CONDUCTOR: Enjoy Galway. Mind the hen parties on Shop Street.',
+    },
+  },
 ];
 
 export const isRunning = (d: Departure | Line): d is Departure => !d.soon;
@@ -226,7 +253,7 @@ const CLERK: Step[] = [
 ];
 
 /** Where the platform staff stand along the top of the concourse, in platform order. */
-const STAFF_X = [2, 7, 3, 6];
+const STAFF_X = [2, 7, 3, 6, 5];
 
 /** Where Jamie Boyde stands on the concourse, by the benches, out of everyone's way. */
 const BOYDE_AT = { x: 7, y: 5 };

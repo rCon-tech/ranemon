@@ -106,7 +106,13 @@ export type Look =
   | 'king'
   | 'eurostar'
   | 'security'
-  | 'headliner';
+  | 'headliner'
+  | 'lipsett'
+  | 'blindboy'
+  | 'johnnyb'
+  | 'johnnysmacks'
+  | 'bono'
+  | 'collins';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -170,6 +176,11 @@ export interface Trainer {
   rival?: boolean;
   /** A first battle you can lose: no blackout, and the story carries on either way. */
   friendly?: boolean;
+  /**
+   * Always scales up to your party, Champion or not, with its ace this many levels from your
+   * best Ranemon (negative is under it, and never past MAX_LEVEL): the Championship in Galway.
+   */
+  above?: number;
 }
 
 export interface Npc {

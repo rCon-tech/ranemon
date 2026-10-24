@@ -34,7 +34,7 @@ export interface Creature {
 /** Battle mode's level. Story mode runs from 5 to MAX_LEVEL. */
 export const LEVEL = 50;
 export const MIN_LEVEL = 1;
-export const MAX_LEVEL = 60;
+export const MAX_LEVEL = 100;
 export const STAT_BUDGET = 400;
 export const BASE_MIN = 30;
 export const BASE_MAX = 130;
