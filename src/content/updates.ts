@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'Every door opens',
+    notes: [
+      'Every building on the road now has a door, and someone inside to talk to. Castles, caves, cathedrals and abbeys all have a guide, a monk or a caretaker with a story about the place.',
+      'A few buildings that were always shut are open now, in Dublin, Westmeath and Brighton. One of them sells chips.',
+      'If you saved inside a house in Dublin, you’re still in the same house.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'Bigger counties',
     notes: [
       'Every county on the road, Dublin included, is much bigger, and looks more like the real place: castles, cliffs, cathedrals, lakes, mountains and a few things only locals know about.',
