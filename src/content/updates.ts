@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-24',
+    title: 'The big lad',
+    notes: [
+      'Someone in McGrattans has a very big dog who badly needs a walk. Ask about him.',
+      'You can walk one dog at a time.',
+      'Dogs find things a bit less often now, so it’s more of a treat when they do.',
+    ],
+  },
+  {
+    date: '2026-10-24',
     title: 'No grinding needed',
     notes: [
       'Someone is sitting in the corner of every McGrattans with a sports bag of Blue Ghosts, going cheap. Don’t ask where they came from.',

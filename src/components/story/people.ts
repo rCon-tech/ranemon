@@ -1,4 +1,4 @@
-import type { Dir, Look } from '@/lib/story/world';
+import type { Dir, Dog, Look } from '@/lib/story/world';
 import { INK } from './pixels';
 
 /**
@@ -1723,7 +1723,7 @@ export function paintPerson(
   return flipped;
 }
 
-// ---------- Norm ----------
+// ---------- dogs: Norm and Elvis ----------
 
 export const DOG = '#1e1e24';
 export const DOG_SHINE = '#3e3e4a';
@@ -1731,13 +1731,33 @@ export const DOG_WHITE = '#f4f4f0';
 export const DOG_GREY = '#c8c8cc';
 export const NOSE = '#0a0a0c';
 export const TONGUE = '#e86a7a';
+const GLINT = '#f4f4f0';
+
+/** A dog's colours: its coat, the coat's highlight, its markings and their shadow. */
+export interface Coat {
+  coat: string;
+  shine: string;
+  white: string;
+  grey: string;
+  /** Drawn this much bigger than Norm, standing on the same spot. */
+  scale: number;
+}
+
+export const COATS: Record<Dog, Coat> = {
+  // Norm: a border collie, black with a white blaze, chest, socks and tail tip.
+  norm: { coat: DOG, shine: DOG_SHINE, white: DOG_WHITE, grey: DOG_GREY, scale: 1 },
+  // Elvis, Carl Ryan's dog: really huge and black all over, only a dusty grey chest and muzzle.
+  elvis: { coat: '#141418', shine: '#30303a', white: '#3c3c46', grey: '#2a2a32', scale: 2 },
+};
 
 /**
- * Norm, Sibeal's black and white dog, who walks behind you in place of your Ranemon: a border
- * collie with a white blaze, white chest and socks, and a white tip to his tail. On the same
- * 64 × 96 canvas as a person, standing on the same ground, but half as tall.
+ * A dog who walks behind you in place of your Ranemon, or waits in a corner: Norm is a border
+ * collie with a white blaze, white chest and socks, and a white tip to his tail, and Elvis the
+ * same shape in black. On the same 64 × 96 canvas as a person, standing on the same ground, but
+ * half as tall; draw it `COATS[dog].scale` times bigger.
  */
-export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
+export function paintDog(dir: Dir, frame: number, dog: Dog = 'norm'): HTMLCanvasElement {
+  const { coat, shine, white, grey } = COATS[dog];
   const canvas = document.createElement('canvas');
   canvas.width = PERSON_W;
   canvas.height = PERSON_H;
@@ -1748,60 +1768,60 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
   if (dir === 'left' || dir === 'right') {
     // Tail first, curving up behind.
     const wag = p.stride % 2 ? 1 : 0;
-    px(c, 50, 60 + lift - wag, 4, 10, DOG);
-    px(c, 53, 54 + lift - wag, 4, 8, DOG);
-    px(c, 55, 50 + lift - wag, 4, 5, DOG_WHITE);
+    px(c, 50, 60 + lift - wag, 4, 10, coat);
+    px(c, 53, 54 + lift - wag, 4, 8, coat);
+    px(c, 55, 50 + lift - wag, 4, 5, white);
     // Legs: far pair in shadow, then the body, then the near pair.
     const swing = p.stride * 2;
     const leg = (x: number, far: boolean, dx: number) => {
       const up = Math.abs(dx) >= 4 ? 2 : 0;
-      px(c, x + dx, 74 + lift, 5, ground - 74 - lift - 4 - up, far ? DOG_SHINE : DOG);
-      px(c, x + dx, ground - 5 - up, 5, 5, far ? DOG_GREY : DOG_WHITE);
+      px(c, x + dx, 74 + lift, 5, ground - 74 - lift - 4 - up, far ? shine : coat);
+      px(c, x + dx, ground - 5 - up, 5, 5, far ? grey : white);
     };
     leg(17, true, -swing);
     leg(43, true, swing);
-    shaded(c, 12, 58 + lift, 42, 20, 9, DOG, 0.18, 0.2);
+    shaded(c, 12, 58 + lift, 42, 20, 9, coat, 0.18, 0.2);
     // The white chest and belly.
-    round(c, 12, 64 + lift, 12, 14, 5, DOG_WHITE);
-    px(c, 22, 74 + lift, 20, 3, DOG_GREY);
+    round(c, 12, 64 + lift, 12, 14, 5, white);
+    px(c, 22, 74 + lift, 20, 3, grey);
     leg(14, false, swing);
     leg(40, false, -swing);
     // The head, out in front: a black skull, a white blaze and muzzle, and a floppy ear.
-    shaded(c, 4, 42 + lift, 22, 20, 8, DOG, 0.2, 0.2);
-    round(c, 0, 52 + lift, 14, 10, 4, DOG_WHITE);
-    px(c, 10, 42 + lift, 4, 12, DOG_WHITE);
+    shaded(c, 4, 42 + lift, 22, 20, 8, coat, 0.2, 0.2);
+    round(c, 0, 52 + lift, 14, 10, 4, white);
+    px(c, 10, 42 + lift, 4, 12, white);
     px(c, 0, 52 + lift, 4, 4, NOSE);
     px(c, 4, 61 + lift, 5, 3, TONGUE);
     px(c, 9, 48 + lift, 3, 3, NOSE);
-    px(c, 9, 48 + lift, 1, 1, DOG_WHITE);
-    px(c, 16, 38 + lift, 7, 6, DOG);
-    px(c, 18, 44 + lift, 6, 8, DOG_SHINE);
+    px(c, 9, 48 + lift, 1, 1, GLINT);
+    px(c, 16, 38 + lift, 7, 6, coat);
+    px(c, 18, 44 + lift, 6, 8, shine);
   } else if (dir === 'down') {
     // Facing you: head over a white chest, front legs below, the back end behind.
-    shaded(c, 18, 60 + lift, 28, 22, 10, DOG, 0.2, 0.25);
-    round(c, 23, 62 + lift, 18, 18, 7, DOG_WHITE);
+    shaded(c, 18, 60 + lift, 28, 22, 10, coat, 0.2, 0.25);
+    round(c, 23, 62 + lift, 18, 18, 7, white);
     for (const [x, foot] of [
       [22, -1],
       [37, 1],
     ] as const) {
       const up = p.stride === foot * 2 ? 2 : p.stride === foot ? 1 : 0;
-      px(c, x, 76 + lift, 6, ground - 76 - lift - up, DOG);
-      px(c, x, ground - 6 - up, 6, 6, DOG_WHITE);
+      px(c, x, 76 + lift, 6, ground - 76 - lift - up, coat);
+      px(c, x, ground - 6 - up, 6, 6, white);
     }
     // Ears, one up and one flopped.
-    px(c, 16, 38 + lift, 7, 8, DOG);
-    px(c, 41, 42 + lift, 8, 6, DOG);
-    shaded(c, 18, 40 + lift, 28, 24, 10, DOG, 0.2, 0.2);
+    px(c, 16, 38 + lift, 7, 8, coat);
+    px(c, 41, 42 + lift, 8, 6, coat);
+    shaded(c, 18, 40 + lift, 28, 24, 10, coat, 0.2, 0.2);
     // The blaze down the middle, opening into a white muzzle.
-    px(c, 30, 40 + lift, 4, 14, DOG_WHITE);
-    round(c, 24, 52 + lift, 16, 12, 5, DOG_WHITE);
+    px(c, 30, 40 + lift, 4, 14, white);
+    round(c, 24, 52 + lift, 16, 12, 5, white);
     round(c, 29, 52 + lift, 6, 4, 2, NOSE);
     px(c, 30, 60 + lift, 4, 4, TONGUE);
     // Eyes, with a glint.
     px(c, 23, 47 + lift, 4, 4, NOSE);
     px(c, 37, 47 + lift, 4, 4, NOSE);
-    px(c, 23, 47 + lift, 1, 1, DOG_WHITE);
-    px(c, 37, 47 + lift, 1, 1, DOG_WHITE);
+    px(c, 23, 47 + lift, 1, 1, GLINT);
+    px(c, 37, 47 + lift, 1, 1, GLINT);
   } else {
     // Walking away: the back legs, the body, the back of the head and the tail up high.
     for (const [x, foot] of [
@@ -1809,16 +1829,16 @@ export function paintDog(dir: Dir, frame: number): HTMLCanvasElement {
       [38, 1],
     ] as const) {
       const up = p.stride === foot * 2 ? 2 : p.stride === foot ? 1 : 0;
-      px(c, x, 76 + lift, 6, ground - 76 - lift - up, DOG);
-      px(c, x, ground - 6 - up, 6, 6, DOG_WHITE);
+      px(c, x, 76 + lift, 6, ground - 76 - lift - up, coat);
+      px(c, x, ground - 6 - up, 6, 6, white);
     }
-    shaded(c, 17, 56 + lift, 30, 26, 11, DOG, 0.2, 0.25);
-    shaded(c, 20, 42 + lift, 24, 18, 8, DOG, 0.2, 0.2);
-    px(c, 18, 38 + lift, 7, 8, DOG);
-    px(c, 39, 42 + lift, 7, 6, DOG);
+    shaded(c, 17, 56 + lift, 30, 26, 11, coat, 0.2, 0.25);
+    shaded(c, 20, 42 + lift, 24, 18, 8, coat, 0.2, 0.2);
+    px(c, 18, 38 + lift, 7, 8, coat);
+    px(c, 39, 42 + lift, 7, 6, coat);
     const wag = p.stride > 0 ? 2 : p.stride < 0 ? -2 : 0;
-    px(c, 30 + wag, 62 + lift, 4, 12, DOG_SHINE);
-    px(c, 30 + wag, 72 + lift, 4, 5, DOG_WHITE);
+    px(c, 30 + wag, 62 + lift, 4, 12, shine);
+    px(c, 30 + wag, 72 + lift, 4, 5, white);
   }
   outline(c);
   if (dir !== 'right') return canvas;

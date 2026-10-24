@@ -8,14 +8,17 @@ import { shinySprite } from '@/lib/story/shiny';
 import {
   DELTA,
   find,
+  isDog,
   isPresent,
   npcsOf,
   tileAt,
   type Dir,
+  type Dog,
   type GameMap,
   type Look,
 } from '@/lib/story/world';
 import {
+  COATS,
   monStyle,
   paintDog,
   paintPerson,
@@ -81,8 +84,8 @@ export interface Props {
   followerShiny?: boolean;
   /** The follower's look, for a Ranemon with more than one, so its head is the right photo. */
   followerVariant?: string;
-  /** Norm, Sibeal's dog, is walking behind you instead. */
-  dog?: boolean;
+  /** A dog, Norm or Elvis, is walking behind you instead. */
+  dog?: Dog | null;
   /** True while a text box, menu or battle intro is up: no walking. */
   frozen: boolean;
   /** Which bike you have, if any: hold B to ride it. */
@@ -429,18 +432,49 @@ export function Overworld(props: Props) {
             );
           },
         });
+      /** A dog on a tile, feet at its bottom, over a shadow as long as it is; Elvis is huge. */
+      const dogAt = (dog: Dog, dir: Dir, frame: number, wx: number, wy: number, bob = 0) =>
+        drawn.push({
+          y: wy,
+          paint: () => {
+            const k = COATS[dog].scale;
+            c.fillStyle = 'rgb(0 0 0 / 0.25)';
+            c.beginPath();
+            c.ellipse(sx(wx + 8), sy(wy + 13.5), 6 * k, 2 * k, 0, 0, Math.PI * 2);
+            c.fill();
+            c.drawImage(
+              sprite(`dog:${dog}:${dir}:${frame}`, () => paintDog(dir, frame, dog)),
+              sx(wx + 8 - 8 * k),
+              sy(wy + 14.5 - 24 * k - bob),
+              16 * k,
+              24 * k,
+            );
+          },
+        });
       // Standing still, everyone breathes: a half-pixel bob, out of step with each other.
       const idle = (phase: number) => (Math.floor(now / 700 + phase) % 2 ? 0.5 : 0);
 
       for (const n of npcsOf(map)) {
         if (!isPresent(n.item, p.flags)) continue;
+        const look = n.item.look;
+        if (isDog(look)) {
+          dogAt(
+            look,
+            p.faces[n.index] ?? n.item.face,
+            0,
+            n.x * TILE,
+            n.y * TILE,
+            idle(n.index * 0.37),
+          );
+          continue;
+        }
         if (p.flight?.index === n.index) {
           // Running off, a step at a time, out of sight.
           const run = runOff(p.flight, now);
           const [dx, dy] = DELTA[p.flight.dir];
           person(
-            n.item.look,
-            STYLES[n.item.look],
+            look,
+            STYLES[look],
             p.flight.dir,
             stepPose(run.t, run.step),
             (n.x + dx * run.tiles) * TILE,
@@ -455,8 +489,8 @@ export function Overworld(props: Props) {
             ? dance(n.index, now)
             : null;
         person(
-          n.item.look,
-          STYLES[n.item.look],
+          look,
+          STYLES[look],
           moves?.dir ?? p.faces[n.index] ?? n.item.face,
           moves ? DANCE_FRAMES[moves.beat % DANCE_FRAMES.length] : 0,
           n.x * TILE,
@@ -527,10 +561,23 @@ export function Overworld(props: Props) {
       );
 
       // The follower takes the tile you just left: its photo head on a body in its colour,
-      // as tall as you, walking the way it's going and hopping a little. Or Norm, trotting.
+      // as tall as you, walking the way it's going and hopping a little. Or a dog, trotting.
       const tr = trail.current;
       const fname = p.dog ? null : p.follower;
-      if ((fname || p.dog) && (tr.at.x !== w.x || tr.at.y !== w.y)) {
+      if (p.dog && (tr.at.x !== w.x || tr.at.y !== w.y)) {
+        const moving = !!(tr.from && w.from);
+        const toward = moving
+          ? { x: tr.at.x - tr.from!.x, y: tr.at.y - tr.from!.y }
+          : { x: w.x - tr.at.x, y: w.y - tr.at.y };
+        dogAt(
+          p.dog,
+          toward.x < 0 ? 'left' : toward.x > 0 ? 'right' : toward.y < 0 ? 'up' : 'down',
+          moving ? stepPose(t, w.frame) : 0,
+          (moving ? lerp(tr.from!.x, tr.at.x) : tr.at.x) * TILE,
+          (moving ? lerp(tr.from!.y, tr.at.y) : tr.at.y) * TILE,
+          (moving ? Math.sin(t * Math.PI) * 1.5 : idle(0.5)) / 2,
+        );
+      } else if (fname && (tr.at.x !== w.x || tr.at.y !== w.y)) {
         const fx = (tr.from && w.from ? lerp(tr.from.x, tr.at.x) : tr.at.x) * TILE;
         const fy = (tr.from && w.from ? lerp(tr.from.y, tr.at.y) : tr.at.y) * TILE;
         const moving = !!(tr.from && w.from);
@@ -548,16 +595,6 @@ export function Overworld(props: Props) {
             c.beginPath();
             c.ellipse(sx(fx + 8), sy(fy + 13.5), 6, 2, 0, 0, Math.PI * 2);
             c.fill();
-            if (!fname) {
-              c.drawImage(
-                sprite(`dog:${fdir}:${frame}`, () => paintDog(fdir, frame)),
-                sx(fx),
-                sy(fy - 9.5 - hop / 2),
-                16,
-                24,
-              );
-              return;
-            }
             // A shiny's body is gold to match its head.
             const colour = p.followerShiny ? '#f8b830' : speciesById(fname).colour;
             c.drawImage(

@@ -259,6 +259,11 @@ export default function Guide() {
             Sibeal in any McGrattans.
           </li>
           <li>
+            <b>Elvis</b>: Carl Ryan’s really huge dog, in every McGrattans. Talk to him and Carl
+            will ask you to walk him. He finds things just like Norm. You can only walk one dog at a
+            time, so Norm goes back to Sibeal. Give Elvis back to Carl in any McGrattans.
+          </li>
+          <li>
             <b>Limepass</b>: the Lime rep in Limerick signs you up. Hold B to ride a Lime e-bike,
             and pick LIMEPASS from START to zip back to any town you’ve been to.
           </li>
