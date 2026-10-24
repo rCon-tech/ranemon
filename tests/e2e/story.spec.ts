@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { THREE_D } from '../../src/lib/view';
 import { unlock } from './helpers';
 
 test('story mode: Michael D hands over a starter in Clare', async ({ page }) => {
@@ -211,7 +212,21 @@ test('story mode: the Town Map opens from START and from the place name', async 
   await expect(page.getByTestId('town-map')).toBeVisible();
 });
 
+test('story mode: with 3D switched off, a browser that picked 3D still draws in 2D', async ({
+  page,
+}) => {
+  test.skip(THREE_D, 'Only while the 3D look is switched off.');
+  await unlock(page);
+  await page.addInitScript(() => localStorage.setItem('ranemon.view', '3d'));
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Flat');
+  await page.getByRole('button', { name: 'NEW GAME' }).click();
+  await expect(page.getByTestId('overworld')).toHaveAttribute('data-view', '2d');
+  await expect(page.getByTestId('view')).toHaveCount(0);
+});
+
 test('story mode in 3D: walks into the house just like 2D', async ({ page }) => {
+  test.skip(!THREE_D, 'The 3D look is switched off for now.');
   await unlock(page);
   await page.addInitScript(() => {
     localStorage.setItem('ranemon.view', '3d');
@@ -477,7 +492,7 @@ const dexSave = () => ({
   steps: 0,
 });
 
-for (const view of ['2d', '3d'] as const) {
+for (const view of THREE_D ? (['2d', '3d'] as const) : (['2d'] as const)) {
   test(`story mode in ${view.toUpperCase()}: a Ranedex page for each Ranemon you've seen`, async ({
     page,
   }) => {
@@ -1062,7 +1077,7 @@ test('story mode: the Rave Cave, where a beaten raver always goes again', async 
   expect(save.map).toBe('dublin-L3');
 });
 
-for (const view of ['2d', '3d'] as const) {
+for (const view of THREE_D ? (['2d', '3d'] as const) : (['2d'] as const)) {
   test(`story mode in ${view.toUpperCase()}: Carl Ryan sells cheap Blue Ghosts at the Trinity Ball`, async ({
     page,
   }) => {
