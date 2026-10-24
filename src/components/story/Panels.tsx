@@ -9,6 +9,7 @@ import { DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
 import { canUseOn, ITEMS, itemById, priceOf, shopStock, type ItemId } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
+import { levelCap, type LevelCap } from '@/lib/story/levels';
 import {
   creatureOf,
   expProgress,
@@ -28,6 +29,16 @@ import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
+
+/** The level cap, as the PARTY and BAG panels say it. Nothing once there's no cap. */
+function CapNote({ cap }: { cap: LevelCap }) {
+  if (!cap.leader) return null;
+  return (
+    <p className="text-[10px] leading-relaxed">
+      LEVEL CAP: Lv{cap.level}. Beat {cap.leader} to raise it.
+    </p>
+  );
+}
 
 /** A full-screen GB menu: a bordered box with a title and a BACK button. */
 export function Panel({
@@ -145,6 +156,7 @@ export function PartyPanel({
       <p className="text-[10px] leading-relaxed">
         The first Ranemon leads in battle and walks behind you.
       </p>
+      <CapNote cap={levelCap(game)} />
       {game.party.map((m, i) => (
         <div key={m.uid} className="flex flex-col gap-1">
           <MemberRow
@@ -277,6 +289,7 @@ export function BagPanel({
     (k) => hasFlag(game, k.flag) && !(k.goneIf && hasFlag(game, k.goneIf)),
   );
   const items = ITEMS.filter((i) => (game.bag[i.id] ?? 0) > 0);
+  const cap = levelCap(game);
   if (pick) {
     const item = itemById(pick);
     return (
@@ -286,11 +299,12 @@ export function BagPanel({
             ? 'Give it to which Ranemon to hold?'
             : 'Use it on which Ranemon?'}
         </p>
+        {item.use.kind === 'level' && <CapNote cap={cap} />}
         {game.party.map((m, i) => (
           <MemberRow
             key={m.uid}
             m={m}
-            disabled={!canUseOn(item, m)}
+            disabled={!canUseOn(item, m, cap.level)}
             onClick={() => {
               onUse(pick, i);
               setPick(null);

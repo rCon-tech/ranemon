@@ -197,7 +197,14 @@ export default function Guide() {
           </li>
           <li>
             <b>Levels</b>: Ranemon earn EXP from battles. A Blue Ghost gives one level straight
-            away. Every Ranemon evolves once, at level 30.
+            away, and there’s a man in the corner of every McGrattans who sells them cheap, if you’d
+            rather not grind. Every Ranemon evolves once, at level 30.
+          </li>
+          <li>
+            <b>Level cap</b>: no Ranemon can grow past the level of the next gym leader’s strongest
+            Ranemon, by EXP or Blue Ghost. Beat the leader and the cap goes up. PARTY shows the cap.
+            Once you’re Champion there’s no cap, and trainers you meet after that bring teams as
+            strong as yours.
           </li>
           <li>
             <b>Town Map</b>: pick MAP from the START menu, tap the place name at the top of the

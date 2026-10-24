@@ -16,6 +16,7 @@ import { mapById, mapFor, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
+import { levelCap, scaleTeam } from '@/lib/story/levels';
 import type { Difficulty } from '@/lib/battle/cpu';
 import { formAt } from '@/lib/battle/evolutions';
 import { LEGEND } from '@/lib/battle/legend';
@@ -450,7 +451,8 @@ export function Story() {
               break;
             }
             const t = trainerById(s.trainer);
-            const team = teamOf(t, g.starter).map(([id, level], i) =>
+            // Once you're Champion, every trainer scales up to your party.
+            const team = scaleTeam(teamOf(t, g.starter), g).map(([id, level], i) =>
               toEntrant(makeMember(id, level, -1 - i)),
             );
             for (const e of team) g = see(g, e.creature.id);
@@ -802,7 +804,7 @@ export function Story() {
       ]);
       return;
     }
-    const settled = settleBattle(game, state, result, fought, trainer !== null);
+    const settled = settleBattle(game, state, result, fought, trainer !== null, trainer?.id);
     let g = settled.state;
     // Scripts ask whether a particular Ranemon was befriended, such as the legend.
     if (result === 'caught') g = setFlag(g, `caught:${fight.teams[1][0].creature.id}`);
@@ -1184,7 +1186,7 @@ export function Story() {
               let g = take(game, id);
               let lines: string[];
               if (item.use.kind === 'level') {
-                const r = blueGhost(m, game.party);
+                const r = blueGhost(m, game.party, levelCap(game));
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = r.lines;
               } else if (item.use.kind === 'hold') {
