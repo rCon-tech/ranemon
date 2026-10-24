@@ -108,6 +108,14 @@ export type Look =
   | 'security'
   | 'headliner';
 
+/**
+ * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
+ * behind you as your companion (lib/story/norm.ts), and an `Npc` can be one, drawn as a dog.
+ */
+export type Dog = 'norm' | 'elvis';
+export const DOGS: readonly Dog[] = ['norm', 'elvis'];
+export const isDog = (look: string): look is Dog => (DOGS as readonly string[]).includes(look);
+
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
   | { do: 'say'; text: string }
@@ -165,7 +173,7 @@ export interface Trainer {
 }
 
 export interface Npc {
-  look: Look;
+  look: Look | Dog;
   face: Dir;
   /** What talking to them does. A trainer's battle comes first if it hasn't been won. */
   talk?: Step[];

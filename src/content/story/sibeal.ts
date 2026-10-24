@@ -1,4 +1,4 @@
-import { NORM } from '@/lib/story/norm';
+import { ELVIS, ELVIS_RETURNED, NORM } from '@/lib/story/norm';
 import type { Npc, Step } from '@/lib/story/world';
 
 /**
@@ -24,6 +24,16 @@ export const SIBEAL_LENDS: Step[] = [
     do: 'ask',
     text: 'Take Norm on your adventure?',
     yes: [
+      // One dog at a time: Elvis, if he's with you, goes home to Carl (content/story/elvis.ts).
+      {
+        do: 'if',
+        flag: ELVIS,
+        then: [
+          { do: 'unflag', flag: ELVIS },
+          { do: 'flag', flag: ELVIS_RETURNED },
+          { do: 'say', text: 'Elvis went back to Carl. Norm is walking with you now.' },
+        ],
+      },
       { do: 'flag', flag: NORM },
       {
         do: 'say',

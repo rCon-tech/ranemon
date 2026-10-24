@@ -36,7 +36,7 @@ import { replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
-import { NORM, NORM_FIND_RATE, pickFind } from '@/lib/story/norm';
+import { COMPANIONS, companionOf, finds, pickFind } from '@/lib/story/norm';
 import {
   blueGhost,
   itemEvolve,
@@ -317,7 +317,7 @@ export function Story() {
       playSfx('door');
     }
   }, [here]);
-  // Each line's sound: items, levels, the pub, Norm.
+  // Each line's sound: items, levels, the pub, the dogs.
   useEffect(() => {
     if (line && !line.full) play(lineCues(line.text));
     // Once per line, not again when it's skipped to the end.
@@ -568,10 +568,12 @@ export function Story() {
       return;
     }
 
-    // Norm has a nose for things: every so often he turns something up.
-    if (hasFlag(g, NORM) && Math.random() < NORM_FIND_RATE) {
+    // Norm and Elvis have a nose for things: every so often the dog turns something up.
+    const dog = companionOf(g.flags);
+    if (dog && finds(g.steps, g.foundAt, Math.random())) {
+      g = { ...g, foundAt: g.steps };
       run(g, [
-        { do: 'say', text: 'Norm found something!' },
+        { do: 'say', text: `${COMPANIONS[dog].name} found something!` },
         { do: 'give', item: pickFind(Math.random()) },
       ]);
       return;
@@ -1080,7 +1082,7 @@ export function Story() {
   const map = mapFor(game.map, game.flags);
   const flags = new Set(game.flags);
   const walker = follower(game);
-  const norm = flags.has(NORM);
+  const dog = companionOf(flags);
   const ghosts = find(map, '*').filter((p) => !flags.has(ghostFlag(map.id, p.x, p.y)));
 
   return (
@@ -1093,10 +1095,10 @@ export function Story() {
           map={map}
           pos={{ x: game.x, y: game.y, face: game.face }}
           flags={flags}
-          follower={norm ? null : (walker?.species ?? null)}
+          follower={dog ? null : (walker?.species ?? null)}
           followerShiny={!!walker?.shiny}
           followerVariant={walker?.variant}
-          dog={norm}
+          dog={dog}
           frozen={busy}
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
           look={lookOf(game)}

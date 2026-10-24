@@ -1,3 +1,4 @@
+import { CARL_TAKES_ELVIS } from './elvis';
 import type { GameMap, Npc, Stall } from '@/lib/story/world';
 
 /**
@@ -71,6 +72,8 @@ export const CARL_PUB: Npc = {
         },
       ],
     },
+    // Elvis, his dog, if you're walking him (content/story/elvis.ts).
+    CARL_TAKES_ELVIS,
     { do: 'shop', stall: CARL_STALL },
     {
       do: 'say',

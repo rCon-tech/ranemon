@@ -332,6 +332,73 @@ test('story mode: Sibeal in Limerick lends you Norm', async ({ page }) => {
   expect(save.party).toHaveLength(1);
 });
 
+test('story mode: Elvis in McGrattans goes for a walk, and Norm goes back to Sibeal', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:elvis')) return;
+    // In McGrattans in Limerick, walking Norm, just right of Elvis at Carl's feet.
+    localStorage.setItem(
+      'ranemon.story.v1:elvis',
+      JSON.stringify({
+        version: 1,
+        map: 'limerick-P0',
+        x: 2,
+        y: 7,
+        face: 'left',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 12,
+            exp: 2000,
+            hp: 40,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:limerick', 'jersey:clare', 'norm:with-you'],
+        seen: [],
+        caught: [],
+        pub: { map: 'limerick', x: 2, y: 12 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Elvis');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const text = page.getByTestId('story-text');
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.keyboard.press('z');
+  await expect(text).toContainText('Elvis');
+  for (let i = 0; i < 8 && !(await page.getByRole('button', { name: 'YES' }).count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await page.getByRole('button', { name: 'YES' }).click();
+  await expect(text).toContainText('Norm went back to Sibeal');
+  // Then Carl, Elvis falling in, and the Sibeal skin for Norm's walk.
+  for (let i = 0; i < 12 && (await text.count()); i++) {
+    await text.click();
+    await page.waitForTimeout(100);
+  }
+  await expect(text).toHaveCount(0);
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:elvis')!),
+  );
+  expect(save.flags).toContain('elvis:with-you');
+  expect(save.flags).not.toContain('norm:with-you');
+});
+
 test('story mode: the Limepass fast travels to a town you’ve been to', async ({ page }) => {
   await unlock(page);
   await page.addInitScript(() => {

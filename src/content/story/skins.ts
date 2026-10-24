@@ -9,6 +9,7 @@ import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
 import { NORM_RETURNED } from './sibeal';
+import { ELVIS_RETURNED } from '@/lib/story/norm';
 
 /**
  * Skins: the characters you can walk around as. Beat someone in the story, or finish their side
@@ -108,6 +109,12 @@ export const SKINS: Skin[] = [
     name: 'Sibeal',
     unlock: [NORM_RETURNED],
     hint: 'Take Norm for a walk, then give him back.',
+  },
+  {
+    id: 'carl',
+    name: 'Carl Ryan',
+    unlock: [ELVIS_RETURNED],
+    hint: 'Walk Elvis for Carl in McGrattans, then bring him back.',
   },
   {
     id: 'poseidon',

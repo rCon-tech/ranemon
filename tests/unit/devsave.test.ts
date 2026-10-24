@@ -11,7 +11,7 @@ import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
 import { devSave, isDevName, recruits, storyFlags } from '@/lib/story/devsave';
-import { NORM } from '@/lib/story/norm';
+import { ELVIS, NORM } from '@/lib/story/norm';
 import { exportCode, importCode, parseSave } from '@/lib/story/save';
 import { beatFlag } from '@/lib/story/state';
 
@@ -57,7 +57,9 @@ describe('the developer save', () => {
   it('has every jersey, town, key item and story flag', () => {
     for (const m of MAPS) expect(flags.has(`visited:${m.id}`), m.id).toBe(true);
     for (const k of KEY_ITEMS) expect(flags.has(k.flag), k.name).toBe(true);
-    for (const f of storyFlags().filter((f) => ![NORM, BRIGHTON_DONE, TECHNO_DONE].includes(f)))
+    for (const f of storyFlags().filter(
+      (f) => ![NORM, ELVIS, BRIGHTON_DONE, TECHNO_DONE].includes(f),
+    ))
       expect(flags.has(f), f).toBe(true);
     // One jersey per county, Clare to Kildare.
     expect(g.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all')).toHaveLength(9);

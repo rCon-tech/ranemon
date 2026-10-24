@@ -37,6 +37,8 @@ export interface StoryState {
   uid: number;
   starter?: string;
   steps: number;
+  /** `steps` when the dog walking with you last found something (`lib/story/norm.ts`). */
+  foundAt?: number;
   /** Exp Share: every Ranemon in the party gets the EXP, not only the ones that fought. */
   expShare?: boolean;
   /** When it was last saved, to pick the newer of a browser save and an online one. */

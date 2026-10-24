@@ -80,7 +80,7 @@ export function battleCues(item: QueueItem, state: BattleState, view: View): Cue
   }
 }
 
-/** Sounds for a line of text, in battle or out: items, levels, the pub, pints and Norm. */
+/** Sounds for a line of text, in battle or out: items, levels, the pub, pints and the dogs. */
 export function lineCues(text: string): Cue[] {
   if (/^You got /.test(text)) return [{ jingle: 'item' }];
   if (/ grew to Lv\d+!$/.test(text)) return [{ jingle: 'level' }];
@@ -95,7 +95,7 @@ export function lineCues(text: string): Cue[] {
   if (/^Got away safely/.test(text)) return [{ sfx: 'run' }];
   if (/^Can’t escape/.test(text)) return [{ sfx: 'fail' }];
   if (/^You used a /.test(text)) return [{ sfx: 'heal' }];
-  if (/^Norm found something/.test(text)) return [{ sfx: 'bark' }];
+  if (/^(Norm|Elvis) found something/.test(text)) return [{ sfx: 'bark' }];
   if (/^Something glints/.test(text)) return [{ sfx: 'sparkle' }];
   if (/^You hop on a Lime/.test(text)) return [{ sfx: 'bell' }];
   if (/^Saved\./.test(text)) return [{ sfx: 'save' }];
