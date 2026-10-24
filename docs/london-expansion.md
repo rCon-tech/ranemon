@@ -13,12 +13,12 @@ Every new place in it (Dublin Airport, Stansted, London, the Premier League town
 | Back from Ghent, DJ Próvaí of Kneecap greets you: trouble in London       | He's waiting on the Connolly concourse when the Eurostar gets in (Chapter 1)                                                           |
 | Go to the airport                                                         | Bus to Dublin Airport (there's still no train), Ryanair to London Stansted (Chapter 2)                                                 |
 | The Good Friday Agreement doesn't cover Ranemon, so they stay in Ireland  | UK Border Force at Stansted sends them home. Ollie's parents pay for them to be minded on Michael D's farm (Chapter 3)                 |
-| Próvaí offers a new starter; UK Ranemon are a bit different               | 20 pints on a table at the back of McGrattans London; UK Ranemon are the drawn pixel-art ones from PR #59 (Chapter 4)                  |
+| Próvaí offers a new starter; UK Ranemon are a bit different               | 20 pints on a table at the back of W.B Yates London; UK Ranemon are the drawn pixel-art ones from PR #59 (Chapter 4)                   |
 | Any base starter except Tobymon and Petchemon                             | All 20 lads are on offer                                                                                                               |
 | The other two lads are King Charles's hostages; only the champion gets in | Charles has decreed only the Premier League Champion may have an audience (Chapter 5)                                                  |
 | Trains to 12 clubs, beat a club legend at each for the jersey             | 12 club legends, one per ground, in an order that ramps the difficulty (Chapters 6 to 9)                                               |
 | Battle through the Royal Family, including Prince Andrew and Zombie Queen | Buckingham Palace is the Elite Four, floor by floor, with Andrew in the sealed East Wing and the Queen up from the vaults (Chapter 10) |
-| Beat King Charles, free the Kneecap lads, Irish takeover of the palace    | The Good Saturday Agreement, a gig on the balcony and the palace turned into a McGrattans (Chapters 11 and 12)                         |
+| Beat King Charles, free the Kneecap lads, Irish takeover of the palace    | The Good Saturday Agreement, a gig on the balcony and the palace turned into a W.B Yates (Chapters 11 and 12)                          |
 
 **Added to the brief** (all optional, each easy to cut): the Irish Crown Jewels as the reason the lads were taken, Margaret Thatcher back as the rival on home turf, Ollie's parents' updates from the farm after each jersey, Irish staff all through the palace, and a handful of side quests (listed after the chapters).
 
@@ -51,7 +51,7 @@ The other two members of Kneecap. Off-screen hostages for most of the story, see
 ### New in London
 
 - **Sgt. Pemberton, UK Border Force**, who explains the rules nobody has read.
-- **The London barman** at McGrattans London, a Corkman who's been here since 1987 and still says he's going home next year.
+- **The London barman** at W.B Yates London, a Corkman who's been here since 1987 and still says he's going home next year.
 - **The 12 club legends** (see the Premier League table).
 - **The Royal Family**: Prince Edward, Princess Anne, Prince William, Prince Andrew, Zombie Queen Elizabeth, King Charles, and Queen Camilla at his side (she doesn't fight). Prince Harry has left a note.
 - **Bridie from Ballina**, a palace cleaner, and the rest of the palace's Irish staff.
@@ -100,14 +100,14 @@ Your whole party and Group Chat are walked back up the steps of the plane. Your 
 
 Your Irish party and Group Chat are kept, untouched, for the ending. In London you start again with an empty party, a bag that keeps its items, and your money changed into pounds at the airport bureau at a terrible rate.
 
-### Chapter 4: A new starter (McGrattans London)
+### Chapter 4: A new starter (W.B Yates London)
 
 The Stansted Express drops you at Liverpool Street, the first London map. Próvaí is waiting outside with a sign that has your name on it, spelt in Irish, wrong.
 
 > **PRÓVAÍ:** They took the Ranemon off you? Ah, they did the same to me. Even took my decks.
-> **PRÓVAÍ:** Don't worry. I've a friend. There's a McGrattans in every city on earth, and the one here's the best one outside Ireland.
+> **PRÓVAÍ:** Don't worry. I've a friend. Over here the pubs are all called W.B Yates. Named after an Irish poet, run by the English. The one round the corner is grand.
 
-The back room of McGrattans London. 20 pints of Guinness on a long table, one per Ranemon, like Michael D's kitchen. They are poured badly.
+The back room of W.B Yates London. 20 pints of Guinness on a long table, one per Ranemon, like Michael D's kitchen. They are poured badly.
 
 > **PRÓVAÍ:** Now. UK Ranemon are a bit different.
 > **PRÓVAÍ:** Over here, nobody's got a photo of them. They're all _drawn_. Like a cartoon on the BBC. Something about Ofcom.
@@ -147,7 +147,7 @@ The Mall to the palace is shut by a police line until you hold the trophy.
 London is the hub, as Dublin is at home: a big scrolling 2D map with the Thames across the middle and three bridges.
 
 - **North of the river:** King's Cross (the station, below), Camden (market, buskers), Shoreditch (a £9 pint, a £7 coffee and trainers in beanies), Kilburn (the London Irish), and the Tube entrance.
-- **South of the river and the middle:** Westminster and Big Ben, Downing Street (gated, a policeman and a cat), Trafalgar Square (a flock of pigeons blocks the way east until you have Fergie's Hairdryer), Hyde Park and St James's Park (long grass), McGrattans London, a Tesco Express (the London shop, in place of Vapes), and Buckingham Palace at the end of the Mall, behind the police line.
+- **South of the river and the middle:** Westminster and Big Ben, Downing Street (gated, a policeman and a cat), Trafalgar Square (a flock of pigeons blocks the way east until you have Fergie's Hairdryer), Hyde Park and St James's Park (long grass), W.B Yates London, a Tesco Express (the London shop, in place of Vapes), and Buckingham Palace at the end of the Mall, behind the police line.
 
 **King's Cross**, the departures board, works like Connolly. Every train in the expansion leaves from it.
 
@@ -268,7 +268,7 @@ The trophy presentation plays on the Etihad pitch: confetti, the Premier League 
 
 ### Chapter 10: Buckingham Palace (the Royal Family)
 
-The police line on the Mall steps aside for the trophy. The palace is the Elite Four: one way through, every room a battle, and no McGrattans inside.
+The police line on the Mall steps aside for the trophy. The palace is the Elite Four: one way through, every room a battle, and no W.B Yates inside.
 
 **The forecourt.** Three Royal Guards in bearskins, who never move and never speak. Talking to one starts a battle with no lines at all. Then Thatcher, the rival's last battle, in pearls, on the palace steps.
 
@@ -358,14 +358,14 @@ The ending plays as one long party, the palace's `after` form, which stays for g
 - The ballroom becomes a céilí. Bridie, the chef from Tuam and the gardener from Ballyfermot lead the dancing.
 - Ollie's parents walk in with your **whole Irish party and Group Chat**, which rejoin you (the UK starter and your UK catches stay too). Your old follower runs straight to you.
 - Michael D lands on the palace lawn in the Irish Air Corps helicopter, with his dogs, and hands the Irish Crown Jewels to Próvaí "to bring home to Dublin Castle, where they belong. And this time, lock the door."
-- The State Dining Room is now **McGrattans, Buckingham Palace**. Dua Lipa pulls the pints. Charles works behind the bar in an apron. He is not good at it.
+- The State Dining Room is now **W.B Yates, Buckingham Palace**. Dua Lipa pulls the pints. Charles works behind the bar in an apron. He is not good at it.
 - The cameos dance in the crowd: Enda (best friends with Camilla now), Kill and Stead (see Side quests), Carl Ryan with Elvis selling Blue Ghosts from his sports bag, the 12 legends (Roy Keane still not clapping), Paul Mescal crying ("These are happy tears. I think."), and Alex Simonin in the corner, in pink: "How do we always end up here?"
 
 Credits roll over a Tube-map-style map of the whole expansion, station by station, with your party.
 
 ### After the credits
 
-- **Charles rematch.** Talk to Charles behind the bar in McGrattans Buckingham Palace for a rematch every in-game week, at Lv 60.
+- **Charles rematch.** Talk to Charles behind the bar in W.B Yates Buckingham Palace for a rematch every in-game week, at Lv 60.
 - **The new season.** Each club legend rematches after the credits at Lv 60, one a week ("pre-season friendlies").
 - **Free travel.** Your Irish Ranemon can now come and go with you between Connolly and King's Cross. The Sail & Rail and a new Ryanair desk at King's Cross link the two.
 - **UK Ranedex.** A "Complete the UK Ranedex" goal for all 20 lads in UK form.
@@ -403,7 +403,7 @@ Each is optional and stands alone, so any can be cut.
 
 1. **Stead's British passport (London, Kilburn).** Stead from Greystones, who always insisted he was British, is finally in London and nobody believes him. "Mate, you sound like you're from Wicklow." Help him pass a citizenship test from a man in a bowler hat: queue correctly (stand still in a queue lane for 30 steps), apologise to a pigeon, and say the weather's "not bad, considering". He passes, is handed a passport, looks at it, and says he'd actually rather go home. Reward: a Can of Monster x5 and the Stead skin's UK look.
 2. **Kill in Clapham (London).** Kill, the blond lad from Greystones who was sure he'd have to move to Africa, has moved to Clapham instead and thinks it's the same thing. He battles you on Clapham Common (Normal AI, three UK forms at Lv 44).
-3. **Carl Ryan's Blue Ghosts don't need passports (McGrattans London).** Carl's in the corner with his sports bag. Elvis is in quarantine at Stansted and Carl wants him back; bring the quarantine form from Sgt. Pemberton's desk at Stansted (a train ride back) and Elvis is released and lies at Carl's feet in every British McGrattans. Carl then sells Blue Ghosts at £480.
+3. **Carl Ryan's Blue Ghosts don't need passports (W.B Yates London).** Carl's in the corner with his sports bag. Elvis is in quarantine at Stansted and Carl wants him back; bring the quarantine form from Sgt. Pemberton's desk at Stansted (a train ride back) and Elvis is released and lies at Carl's feet in every W.B Yates. Carl then sells Blue Ghosts at £480.
 4. **The London Irish (Kilburn).** An old builder from Mayo on a bench, who came over in 1962. He built half the grounds you're playing in ("Wembley, Old Trafford's new stand, a bit of the Emirates"), and tells you about it. Talk to him after each run and he has another story. After the third, he gives you Mammy's Dinner x3: "My mother's recipe. She'd want you to have it."
 5. **Paul Mescal in the West End (London).** He's in a play near Leicester Square and is, of course, crying at the stage door. Battle him (Normal AI, three UK forms at Lv 46). Beat him and he says "Look over there!" and runs off into the theatre.
 6. **The Shoreditch crypto bro (London).** A trainer who offers to "tokenise" your starter. Beat him and he pays you in a coin that's worth nothing by the time you get to the Tesco Express. Funny once, and the cheapest one to cut.
@@ -412,7 +412,7 @@ Each is optional and stands alone, so any can be cut.
 
 - **Ollie's parents' postcards** after every jersey (12 in all), each with a different Irish Ranemon on the farm.
 - **Próvaí's calls** at the end of each run of grounds, half in Irish, getting more excited each time.
-- **Thatcher**, the rival: at McGrattans London (Chapter 4), at King's Cross before run 2, at Anfield before Gerrard, and on the palace steps.
+- **Thatcher**, the rival: at W.B Yates London (Chapter 4), at King's Cross before run 2, at Anfield before Gerrard, and on the palace steps.
 - **Prince William in disguise** at Villa Park, then the ballroom.
 - **The Irish Crown Jewels**, set up in Chapter 5, seen in the Throne Room, and handed to Michael D at the end.
 
@@ -429,7 +429,7 @@ The expansion adds one main mission and a handful of side missions to START → 
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Dublin Airport    | Bus stop, check-in, security, gate                                                                                                                 |
 | London Stansted   | Arrivals, the border queue, the Stansted Express                                                                                                   |
-| London            | The hub: King's Cross, the Tube, McGrattans, Tesco Express, parks, Buckingham Palace                                                               |
+| London            | The hub: King's Cross, the Tube, W.B Yates, Tesco Express, parks, Buckingham Palace                                                                |
 | Tube grounds (4)  | Tottenham, Selhurst Park, Stamford Bridge, the Emirates                                                                                            |
 | Manchester        | Old Trafford and the Etihad                                                                                                                        |
 | Leeds             | Elland Road                                                                                                                                        |
@@ -438,6 +438,8 @@ The expansion adds one main mission and a handful of side missions to START → 
 | Newcastle         | St James' Park                                                                                                                                     |
 | Brighton          | Existing map, reused; the Amex gets the legend                                                                                                     |
 | Buckingham Palace | Forecourt, Grand Staircase, Royal Mews, Harry's rooms, Ballroom, East Wing, State Dining Room, Throne Room; its `after` form is the takeover party |
+
+**Pubs in England are W.B Yates, not McGrattans.** Every English town in the expansion (London, Manchester, Leeds, Liverpool, Birmingham, Newcastle) has a W.B Yates, which does what McGrattans does at home: the barman heals the party for free and the Group Chat is on the wall. Brighton's existing McGrattans keeps its name.
 
 Each new map, room and battle is drawn flat with the 3D look picked, as Ghent and the I Love Techno hall are. No 3D models are made for any of them.
 
