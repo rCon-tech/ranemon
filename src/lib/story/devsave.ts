@@ -3,6 +3,8 @@ import { TRAINERS } from '@/content/story/trainers';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { ARCADE_KING } from '@/content/story/brighton';
 import { BRIGHTON_DONE } from '@/content/story/enda';
+import { TECHNO_DONE } from '@/content/story/cramps';
+import { TECHNO_DJ } from '@/content/story/techno';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LEGEND, LEGEND_LEVEL } from '../battle/legend';
 import { variantsOf } from '../battle/variants';
@@ -38,8 +40,9 @@ export async function isDevName(name: string, hash = DEV_HASH): Promise<boolean>
 export const DEV_LEVEL = 60;
 
 /**
- * Left for you to play: the bosses you'd want to test (the Happy Pear Twins and the Arcade King
- * among them, with the end of the Brighton trip), and Norm, who you borrow from Sibeal.
+ * Left for you to play: the bosses you'd want to test (the Happy Pear Twins, the Arcade King and
+ * DJ Vandenbass among them, with the end of the Brighton trip and the start of I Love Techno),
+ * and Norm, who you borrow from Sibeal.
  * Everything else a script can set is set.
  */
 const LEFT_TO_PLAY = new Set([
@@ -48,6 +51,8 @@ const LEFT_TO_PLAY = new Set([
   ...PEAR_TRAINERS.map(beatFlag),
   beatFlag(ARCADE_KING),
   BRIGHTON_DONE,
+  beatFlag(TECHNO_DJ),
+  TECHNO_DONE,
   NORM,
 ]);
 

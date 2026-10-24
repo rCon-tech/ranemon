@@ -11,6 +11,25 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-24',
+    title: 'Champions get a proper challenge',
+    notes: [
+      'After you’re Champion, the trip abroad is tougher: everyone at the door brings more Ranemon and battles smarter, and the long grass there is stronger too.',
+      'The weekly rematch at Trinity has a new face on the team.',
+      'One very rare Ranemon was far too strong and has been brought into line. It’s still the best around, just not unbeatable.',
+    ],
+  },
+  {
+    date: '2026-10-22',
+    title: 'The celebrations go on',
+    notes: [
+      'Once you’re Champion, someone is looking for you back in Dublin with an invitation abroad. Already Champion? Head out into Dublin and you’ll be found.',
+      'A fourth line runs from Connolly Station for anyone who says yes, to a night you won’t forget, if you can get past the door.',
+      'A new tune to go with it, in the Sound Test too.',
+      'This trip is in the 2D look only for now. It switches to 2D by itself while you’re there.',
+    ],
+  },
+  {
     date: '2026-10-22',
     title: 'A new best friend',
     notes: [

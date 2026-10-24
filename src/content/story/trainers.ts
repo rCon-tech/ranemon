@@ -7,6 +7,7 @@ import { NEVER_FIND_OUT, RENT_DONE } from './rent';
 import { PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
+import { TECHNO_TRAINERS } from './techno';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -311,7 +312,8 @@ const T: Trainer[] = [
     team: [
       ['oismon', 58],
       ['olliemon', 58],
-      ['gibbsmon', 59],
+      // Hugengar in Gyaragibbs's place: B&S have heard about the legend, and brought an answer.
+      ['hugomon', 59],
       ['thilomon', 59],
       ['petchemon', 59],
       ['bns', 60],
@@ -588,6 +590,7 @@ const T: Trainer[] = [
   ),
   ...RAVE_TRAINERS,
   ...BRIGHTON_TRAINERS,
+  ...TECHNO_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {

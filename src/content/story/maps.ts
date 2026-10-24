@@ -12,6 +12,8 @@ import { HIGGINS, TRINITY_BALL } from './ball';
 import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
+import { CRAMPS_ARRIVE } from './cramps';
+import { BELGIUM } from './techno';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1120,6 +1122,8 @@ export const MAPS: GameMap[] = [
       },
     },
     landmarkRooms: { 1: HELLFIRE_ROOM, 2: stationRoom(), 3: raveRoom() },
+    // Once you're Champion, Cramps comes running up the street the first time you're back out.
+    arrive: CRAMPS_ARRIVE,
     west: 'kildare',
     east: 'trinity',
   },
@@ -1224,6 +1228,7 @@ export const MAPS: GameMap[] = [
   },
   GREYSTONES,
   BRIGHTON,
+  BELGIUM,
 ];
 
 /** The rooms behind every door. */
@@ -1246,8 +1251,8 @@ export function afterOf(map: GameMap): GameMap | null {
   return AFTER.get(map.id)!;
 }
 
-/** Every map's `after` form. */
-export const AFTER_MAPS = MAPS.flatMap((m) => afterOf(m) ?? []);
+/** Every map's and room's `after` form. */
+export const AFTER_MAPS = [...MAPS, ...INTERIORS].flatMap((m) => afterOf(m) ?? []);
 
 /** The map with an id as it is now: in its `after` form once that flag is set. */
 export function mapFor(id: string, flags: readonly string[]): GameMap {

@@ -103,7 +103,10 @@ export type Look =
   | 'fan'
   | 'palace'
   | 'gamer'
-  | 'king';
+  | 'king'
+  | 'eurostar'
+  | 'security'
+  | 'headliner';
 
 /** One step of a script. Scripts are run by the story screen, one step at a time. */
 export type Step =
@@ -229,10 +232,13 @@ export interface GameMap {
   /** A room: the map and door outside it. */
   inside?: { map: string; x: number; y: number };
   /**
-   * Run every time you come in, such as Mam's welcome. Outdoors, every time you walk in from the
-   * next map or arrive by train or Lime, such as Enda calling you over in Kildare.
+   * Run every time you come in, such as Mam's welcome. On a map outdoors, every time you come
+   * onto it, by its edge, out of a door or off a train, such as someone running up to you once a
+   * flag is set: guard it with `if` steps so it only says something when it should.
    */
   arrive?: Step[];
+  /** Only drawn in 2D for now: with the 3D look picked, this map and its rooms show in 2D. */
+  flat?: boolean;
   /** Slate roofs on every building, not only the gym: the look of a well-off town. */
   slate?: boolean;
   /** What the things in a room say when you look at them, by tile. */

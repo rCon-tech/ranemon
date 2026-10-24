@@ -8,7 +8,7 @@ import { Sprite } from '@/components/Sprite';
 import { SpeedButton } from '@/components/SpeedButton';
 import { useView, ViewButton } from '@/components/ViewButton';
 import { play, SoundButton, useMusic } from '@/components/Sound';
-import { areaSong, battleSong, lineCues } from '@/lib/sound/cues';
+import { areaSong, battleSong, lineCues, partySong } from '@/lib/sound/cues';
 import { playSfx } from '@/lib/sound/engine';
 import { MS_PER_CHAR, TypedText } from '@/components/TypedText';
 import { scaled } from '@/lib/speed';
@@ -130,6 +130,9 @@ import {
 /** Script steps plus the story screen's own: the pub's Group Chat question. */
 type Run = Step | { do: 'offer-chat' };
 
+/** What runs each time you come onto a map outdoors, such as someone running up to you. */
+const arrival = (map: GameMap): Run[] => (map.inside ? [] : (map.arrive ?? []));
+
 type Overlay =
   | 'menu'
   | 'party'
@@ -221,13 +224,13 @@ function EvolutionScene({ text, party }: { text: string; party: Member[] }) {
 
 /**
  * The battlefield's backdrop: B&S and the legend at night, gyms indoors, the streets of Dublin
- * and Brighton, or the fields.
+ * Brighton and Ghent, or the fields.
  */
 function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   if (trainer?.startsWith('bns') || foe === LEGEND.id) return 'night';
   if (trainer && map.gym?.trainer === trainer) return 'gym';
   const outside = outsideOf(map).id;
-  if (outside === 'dublin' || outside === 'trinity' || outside === 'brighton') return 'city';
+  if (['dublin', 'trinity', 'brighton', 'belgium'].includes(outside)) return 'city';
   return 'field';
 }
 
@@ -277,13 +280,15 @@ export function Story() {
   const [faces, setFaces] = useState<Record<number, Dir>>({});
   const [flight, setFlight] = useState<Flight | null>(null);
   const held = useRef<Held>({ dir: null, b: false });
-  const World = useView() === '3d' ? Overworld3D : Overworld;
+  const view = useView();
   /** On the bike lately: its theme plays until you've been off it a couple of seconds. */
   const [riding, setRiding] = useState(false);
   const offBike = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Music: the title, then the place you're in. Battles play their own.
   const here = game ? mapFor(game.map, game.flags) : null;
+  // A map that's only drawn in 2D for now shows in 2D whichever look is picked.
+  const World = view === '3d' && !(here && outsideOf(here).flat) ? Overworld3D : Overworld;
   useMusic(
     !game || !here
       ? 'title'
@@ -294,7 +299,7 @@ export function Story() {
           : riding
             ? 'bike'
             : here.party
-              ? 'pub'
+              ? partySong(here.id)
               : areaSong(here.id, outsideOf(here).id),
   );
   // A door's sound going in or out of a room.
@@ -414,10 +419,8 @@ export function Story() {
             return;
           case 'travel': {
             g = setFlag({ ...g, map: s.map, x: s.x, y: s.y, face: s.face }, `visited:${s.map}`);
-            // Somewhere outdoors with something to say every time you arrive, such as Kildare: said
-            // once the rest of the script (the ride, the Lime) is done.
-            const there = mapFor(s.map, g.flags);
-            if (!there.inside) q.push(...(there.arrive ?? []));
+            // Whatever happens on arriving there comes once the rest of this script is done.
+            q.push(...arrival(mapFor(s.map, g.flags)));
             break;
           }
           case 'wild': {
@@ -497,7 +500,7 @@ export function Story() {
     const map = mapFor(g.map, g.flags);
     const intro =
       fresh && map.enter ? [...map.enter, { do: 'flag' as const, flag: `visited:${map.id}` }] : [];
-    run(g, intro);
+    run(g, [...intro, ...arrival(map)]);
   }
 
   // ---------- walking ----------
@@ -513,7 +516,7 @@ export function Story() {
       let g: StoryState = { ...game, map: nextId, ...at, face: to.face };
       const steps: Run[] = [];
       if (next.enter && !hasFlag(g, `visited:${nextId}`)) steps.push(...next.enter);
-      steps.push(...(next.arrive ?? []));
+      steps.push(...arrival(next));
       g = setFlag(g, `visited:${nextId}`);
       persist(g);
       run(g, steps);
@@ -634,7 +637,7 @@ export function Story() {
           map: outside.id,
           ...doorStep(outside, map.inside.x, map.inside.y),
         };
-        return run(g, []);
+        return run(g, arrival(outside));
       }
       case 'X': {
         // A gym's statues name the gym and its leader.
@@ -661,7 +664,7 @@ export function Story() {
           ? map.landmarkLocks?.[doorIndex(map, x, y)]
           : undefined;
     if (lock && !hasFlag(game, lock.flag)) return run(game, [{ do: 'say', text: lock.locked }]);
-    const room = mapById(interiorId(map.id, kind, doorIndex(map, x, y)));
+    const room = mapFor(interiorId(map.id, kind, doorIndex(map, x, y)), game.flags);
     let g: StoryState = { ...game, map: room.id, ...marker(room, '@'), face: 'up' };
     const steps: Run[] = [...(room.arrive ?? [])];
     // The first time through a locked door, say how it opened.
@@ -1047,6 +1050,7 @@ export function Story() {
         foe={fight.foe}
         scene={scene}
         music={battleSong(scene, wild, fight.trainer)}
+        flat={!!outsideOf(mapFor(game.map, game.flags)).flat}
         story={{
           bag,
           rate: wild ? catchRate(fight.teams[1][0].creature.id) : 0,

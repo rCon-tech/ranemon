@@ -2,8 +2,8 @@ import type { Song } from './music';
 
 /**
  * Every tune in the game, all original and written for it: themes for the title, the road, the
- * city, McGrattans, home, the gyms and the bike; four battle themes; and the short jingles for
- * levels, items, the pub's heal, befriending, evolving and losing.
+ * city, McGrattans, home, the gyms, the bike and I Love Techno; four battle themes; and the
+ * short jingles for levels, items, the pub's heal, befriending, evolving and losing.
  */
 export type SongId =
   | 'title'
@@ -17,6 +17,7 @@ export type SongId =
   | 'trainer'
   | 'leader'
   | 'boss'
+  | 'techno'
   | 'victory';
 
 export type JingleId = 'level' | 'item' | 'heal' | 'caught' | 'evolved' | 'lose';
@@ -181,6 +182,24 @@ export const SONGS: Record<SongId, Song> = {
     chords: 'Cm | Ab | Bb | G | Cm | Ab | Fm | G7',
     lead: `C5 - Eb5 - G5 - C6 - | Bb5 - Ab5 - Eb5 - C5 - | D5 - F5 - Bb5 - F5 - | G5 - - - B4 - D5 - |
            Eb5 - D5 C5 G5 - Eb5 - | Ab5 - G5 F5 Eb5 - C5 - | F5 - Ab5 - C6 - Ab5 - | B5 - G5 - F5 - D5 -`,
+  },
+
+  /**
+   * I Love Techno, in Ghent: four to the floor with an open hat on every off-beat, a rolling
+   * octave bass, the arpeggio ticking every sixteenth and a hook on the thin pulse that keeps
+   * coming back.
+   */
+  techno: {
+    bpm: 136,
+    bar: 16,
+    loop: true,
+    leadWave: 'sq12',
+    bass: { style: 'octaves', every: 1 },
+    arp: 1,
+    drums: 'k . o . k . o . k . o . k . o h | k . o . k . o . k . o . k s o s',
+    chords: 'Am | Am | F | G | Am | Am | Dm | E',
+    lead: `A4 . A4 . C5 . A4 . | E5 . . D5 . . C5 . | F5 . F5 . A5 . F5 . | G5 . . F5 . . E5 . |
+           A5 . A5 . C6 . A5 . | E5 . . D5 . . C5 . | D5 . F5 . A5 . F5 . | E5 - - - G#5 - B5 -`,
   },
 
   /** After a win. */

@@ -833,14 +833,16 @@ export const LEGEND_MOVES: Move[] = [
     signature: 'tobymon',
     name: 'Staff of Ages',
     flavour:
-      'Raises the gold-topped staff, and the wisdom of ages comes down on the foe. Raises Spirit by 30%.',
+      'Raises the gold-topped staff, and the wisdom of ages comes down on the foe. Raises Spirit by 15%.',
     type: 'brains',
     category: 'spirit',
-    power: 90,
+    // Was 90 power and +30%: every hit raised the Spirit he attacks and guards with, so three
+    // uses took him past twice his Spirit and nothing could stop him. Now it builds slowly.
+    power: 80,
     accuracy: 100,
     pp: 5,
     priority: 0,
-    specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.3 }],
+    specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.15 }],
   },
 ];
 
