@@ -237,6 +237,12 @@ export default function Guide() {
             Amex and then the arcade. Missed him? Go back to Kildare: he’s still there.
           </li>
           <li>
+            <b>I Love Techno</b>: once you’re Champion, Cramps finds you in Dublin with tickets to a
+            festival in Belgium. Say yes and the Eurostar from Connolly Station takes you to Ghent,
+            where security won’t let anyone in without a battle. Said no? He waits at Connolly
+            Station.
+          </li>
+          <li>
             <b>Held items</b>: some items are given to a Ranemon to hold from the BAG, and help it
             in every battle. Take them back from PARTY.
           </li>

@@ -20,6 +20,7 @@ const SONG_NAME: Record<SongId, string> = {
   trainer: 'Trainer battle',
   leader: 'Gym leader',
   boss: 'Final battles',
+  techno: 'I Love Techno',
   victory: 'Victory',
 };
 

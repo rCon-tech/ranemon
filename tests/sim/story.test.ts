@@ -7,6 +7,7 @@ import { simulateBattle } from '@/lib/battle/simulate';
 import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { RAVE_TRAINERS } from '@/content/story/rave';
 import { ARCADE_KING, BRIGHTON_TRAINERS } from '@/content/story/brighton';
+import { TECHNO_DJ, TECHNO_TRAINERS } from '@/content/story/techno';
 import { afterBattle, makeMember, PARTY_SIZE, toEntrant } from '@/lib/story/party';
 
 const RUNS = Number(process.env.SIM_RUNS ?? 400);
@@ -258,4 +259,39 @@ it(`Brighton builds up to a hard Arcade King over ${RUNS} runs`, () => {
   const king = rates[trainerById(ARCADE_KING).name];
   expect(king.Lv52).toBeGreaterThanOrEqual(0.3);
   expect(king.Lv52).toBeLessThanOrEqual(0.75);
+});
+
+/**
+ * I Love Techno, after B&S: a party of 6 at Lv56 from the Ghent long grass should usually beat
+ * the four guards, and one at Lv58 should beat DJ Vandenbass some of the time but not most:
+ * between 30% and 75%.
+ */
+it(`I Love Techno builds up to a hard DJ over ${RUNS} runs`, () => {
+  const rng = new Rng(2602);
+  const wild = mapById('belgium').wild!.table.map(([id]) => id);
+  const rate = (id: string, level: number) => {
+    const foe = trainerById(id);
+    let won = 0;
+    for (let i = 0; i < RUNS; i++) {
+      const party = Array.from({ length: PARTY_SIZE }, (_, j) =>
+        makeMember(wild[rng.int(0, wild.length - 1)], level, j),
+      );
+      const foes = foe.team.map(([s, l], j) => makeMember(s, l, 100 + j));
+      const { state } = simulateBattle([party.map(toEntrant), foes.map(toEntrant)], i * 31, [
+        'hard',
+        foe.ai,
+      ]);
+      if (state.phase.kind === 'over' && state.phase.winner === 0) won++;
+    }
+    return won / RUNS;
+  };
+  const rates = Object.fromEntries(
+    TECHNO_TRAINERS.map((t) => [t.name, { Lv56: rate(t.id, 56), Lv58: rate(t.id, 58) }]),
+  );
+  console.table(rates);
+  for (const t of TECHNO_TRAINERS.filter((t) => t.id !== TECHNO_DJ))
+    expect(rates[t.name].Lv56, t.name).toBeGreaterThanOrEqual(0.6);
+  const dj = rates[trainerById(TECHNO_DJ).name];
+  expect(dj.Lv58).toBeGreaterThanOrEqual(0.3);
+  expect(dj.Lv58).toBeLessThanOrEqual(0.75);
 });

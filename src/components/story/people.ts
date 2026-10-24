@@ -799,6 +799,45 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#f4f4f4',
     tall: true,
   },
+  // The Eurostar host on platform 4: a navy uniform with yellow trim and a little navy cap.
+  eurostar: {
+    skin: '#e8b890',
+    hair: '#2a1a12',
+    hairStyle: 'bun',
+    hat: { kind: 'garda', colour: '#1c2448', trim: '#f0d030' },
+    top: '#1c2448',
+    topKind: 'jacket',
+    trim: '#f0d030',
+    tie: '#f0d030',
+    legs: '#1c2448',
+    shoes: '#141418',
+  },
+  // Festival security in Ghent: a shaved head, a black T-shirt under a hi-vis vest, and black
+  // combats. Nobody gets past.
+  security: {
+    skin: '#f0c49a',
+    hair: '#f0c49a',
+    hairStyle: 'none',
+    top: '#e8f030',
+    topKind: 'hivis',
+    trim: '#d0d0d8',
+    legs: '#18181c',
+    shoes: '#0c0c10',
+  },
+  // DJ Vandenbass, the headliner: long silver hair, shades, a black shirt and gold headphones.
+  headliner: {
+    skin: '#f0c8a0',
+    hair: '#c8c8d0',
+    hairStyle: 'long',
+    glasses: 'shades',
+    beard: '#a8a8b0',
+    top: '#18161c',
+    topKind: 'shirt',
+    trim: '#30d0f0',
+    legs: '#18161c',
+    shoes: '#f4f4f4',
+    headphones: '#f0c040',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */

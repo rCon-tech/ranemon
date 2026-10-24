@@ -106,14 +106,18 @@ export function lineCues(text: string): Cue[] {
 const roomKind = (id: string) => /-([PMGHL])\d+$/.exec(id)?.[1] ?? null;
 
 /** Where the city's music plays instead of the road's. */
-const CITIES = ['dublin', 'trinity', 'brighton'];
+const CITIES = ['dublin', 'trinity', 'brighton', 'belgium'];
+
+/** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */
+const TECHNO = ['belgium-L1'];
 
 /**
  * The music for a map: McGrattans has its reel, the gyms their own theme, homes and shops a quiet
- * one, Dublin, Trinity and Brighton the city's, and the road its jig. Landmarks keep the music
- * outside.
+ * one, Dublin, Trinity, Brighton and Ghent the city's, Flanders Expo techno, and the road its
+ * jig. Other landmarks keep the music outside.
  */
 export function areaSong(mapId: string, outsideId: string): SongId {
+  if (TECHNO.includes(mapId)) return 'techno';
   const kind = roomKind(mapId);
   if (kind === 'P') return 'pub';
   if (kind === 'G') return 'gym';
@@ -121,8 +125,12 @@ export function areaSong(mapId: string, outsideId: string): SongId {
   return CITIES.includes(outsideId) ? 'city' : 'route';
 }
 
+/** The music at a party: McGrattans' reel, or techno at I Love Techno. */
+export const partySong = (mapId: string): SongId => (TECHNO.includes(mapId) ? 'techno' : 'pub');
+
 /**
- * The battle music: night scenes, Poseidon, the Happy Pear Twins and the Arcade King are bosses,
+ * The battle music: night scenes, Poseidon, the Happy Pear Twins, the Arcade King and DJ
+ * Vandenbass are bosses,
  * a gym's leader has their own.
  */
 export function battleSong(
@@ -134,6 +142,7 @@ export function battleSong(
     scene === 'night' ||
     trainer === 'poseidon' ||
     trainer === 'arcade-king' ||
+    trainer === 'techno-dj' ||
     trainer?.startsWith('pear-')
   )
     return 'boss';
