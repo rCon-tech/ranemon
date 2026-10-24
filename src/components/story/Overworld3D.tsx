@@ -475,6 +475,7 @@ export default function Overworld3D(props: Props) {
         if (!ride) bikes.set(bike, (ride = new Bike(bike)));
         ride.roll(wheelTurn);
       }
+      // Skins are 2D only for now: in 3D you're always in the usual cap and jacket.
       person(
         'player',
         () => new Figure('player', STYLES.player),
