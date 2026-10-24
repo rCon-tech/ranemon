@@ -1503,79 +1503,14 @@ function outline(c: Ctx) {
       )
         edge.push(x, y);
   const n = parseInt(INK.slice(1), 16);
-  const ink = [n >> 16, (n >> 8) & 255, n & 255];
-  const colourAt = (x: number, y: number) => {
-    const at = (y * PERSON_W + x) * 4;
-    return [d[at], d[at + 1], d[at + 2]];
-  };
-  const tinted: number[] = [];
-  for (let i = 0; i < edge.length; i += 2) {
-    const x = edge[i];
-    const y = edge[i + 1];
-    // On the lit side, top and left, the line takes on a dark shade of what it borders, which
-    // softens the silhouette; on the shadow side it stays ink.
-    const from = solid(x + 1, y) ? colourAt(x + 1, y) : solid(x, y + 1) ? colourAt(x, y + 1) : null;
-    const lit = from && !solid(x - 1, y) && !solid(x, y - 1);
-    tinted.push(...(lit ? from.map((v, k) => Math.round(v * 0.42 + ink[k] * 0.58)) : ink));
-  }
   for (let i = 0; i < edge.length; i += 2) {
     const at = (edge[i + 1] * PERSON_W + edge[i]) * 4;
-    const k = (i / 2) * 3;
-    d[at] = tinted[k];
-    d[at + 1] = tinted[k + 1];
-    d[at + 2] = tinted[k + 2];
+    d[at] = n >> 16;
+    d[at + 1] = (n >> 8) & 255;
+    d[at + 2] = n & 255;
     d[at + 3] = 255;
   }
   c.putImageData(img, 0, 0);
-}
-
-/**
- * The rows of a body: round shoulders, in a little at the waist and out again at the hips, or
- * flaring out to the hem for a long coat or robe.
- */
-function trunkRows(x: number, y: number, w: number, h: number, long: boolean) {
-  return roundRows(x, y, w, h, 5).map(([rx, ry, rw]) => {
-    const t = (ry - y) / h;
-    const inset = long
-      ? -Math.round(Math.max(0, t - 0.55) * 4)
-      : t > 0.42 && t < 0.86
-        ? t > 0.55 && t < 0.75
-          ? 2
-          : 1
-        : 0;
-    return [rx + inset, ry, rw - inset * 2] as [number, number, number];
-  });
-}
-
-/** Limits drawing to a body's shape, until the matching restore. */
-function clipTo(c: Ctx, rows: [number, number, number][]) {
-  c.save();
-  c.beginPath();
-  for (const [rx, ry, rw] of rows) c.rect(rx, ry, rw, 1);
-  c.clip();
-}
-
-/** Creases where cloth bunches: under the arms, and above the belt. */
-function folds(c: Ctx, colour: string, x: number, y: number, w: number, h: number) {
-  const dark = shade(colour, 0.7);
-  const light = shade(colour, 1.18);
-  // Under each arm, a pair of short diagonals.
-  for (const [ax, dir] of [
-    [x + 2, 1],
-    [x + w - 3, -1],
-  ] as const) {
-    for (let i = 0; i < 4; i++) px(c, ax + i * dir, y + 5 + i, 1, 1, dark);
-    for (let i = 0; i < 3; i++) px(c, ax + i * dir, y + 10 + i, 1, 1, dark);
-  }
-  // Bunched over the waist.
-  for (const [fx, fy, fw] of [
-    [x + 6, h - 7, 5],
-    [x + w - 11, h - 6, 4],
-    [x + 12, h - 5, 3],
-  ]) {
-    px(c, fx, y + fy, fw, 1, dark);
-    px(c, fx + 1, y + fy - 1, fw - 1, 1, light);
-  }
 }
 
 // ---------- the walk ----------
@@ -1610,14 +1545,9 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     const h = 24 - up;
     shaded(c, x, top, 11, h, 2, s.legs, 0.25, 0.3);
     if (!s.skirt && !s.shorts) {
-      // A crease down the front and a hem, a sheen over the knee, and folds where the
-      // trousers break over the shoe.
+      // A crease down the front and a hem.
       px(c, x + 5, top + 6, 1, h - 8, dark);
       px(c, x, top + h - 2, 11, 1, dark);
-      px(c, x + 2, top + 11, 2, 3, shade(s.legs, 1.2));
-      px(c, x + 1, top + h - 6, 3, 1, dark);
-      px(c, x + 7, top + h - 5, 3, 1, dark);
-      px(c, x + 2, top + h - 7, 2, 1, shade(s.legs, 1.15));
     }
     if (s.hearts)
       for (const dy of foot < 0 ? [5, 14] : [9, 17]) heart(c, x + 3, top + dy, s.hearts);
@@ -1629,10 +1559,8 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     const sy = top + h - 1;
     shaded(c, x - 1, sy, 13, 7, 3, s.shoes, 0.3, 0.3);
     px(c, x + 1, sy + 1, 4, 2, shade(s.shoes, 1.35));
-    px(c, x - 1, sy + 5, 13, 1, shade(s.shoes, 1.5));
     px(c, x - 1, sy + 6, 13, 1, shade(s.shoes, 0.45));
     if (back) px(c, x + 2, sy + 2, 7, 2, shade(s.shoes, 0.75));
-    else for (const lx of [x + 4, x + 7]) px(c, lx, sy + 1, 2, 1, shade(s.shoes, 1.7));
   }
   // The gap between the legs.
   if (!s.skirt) px(c, 32, top + 8, 1, 16, shade(s.legs, 0.55));
@@ -1726,30 +1654,9 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, -3, -30, 6, 5, '#2a2018');
     c.restore();
   }
-  // The trunk: round shoulders, in at the waist, and everything on it kept inside its shape.
-  const rows = trunkRows(17, y0, 30, h, long);
-  clipTo(c, rows);
-  px(c, 0, y0, PERSON_W, h, s.top);
-  px(c, 0, y0, 23, h, shade(s.top, 1.22));
-  px(c, 39, y0, 30, h, shade(s.top, 0.78));
-  px(c, 0, y0 + h - 1, PERSON_W, 1, darker);
-  if (!s.vest) folds(c, s.top, 17, y0, 30, h);
-  try {
-    torsoDetails(c, s, y0, h, long, back, { dark, darker, light });
-  } finally {
-    c.restore();
-  }
-}
-
-function torsoDetails(
-  c: Ctx,
-  s: Style,
-  y0: number,
-  h: number,
-  long: boolean,
-  back: boolean,
-  { dark, darker, light }: { dark: string; darker: string; light: string },
-) {
+  // The trunk, wider at the shoulders.
+  shaded(c, 17, y0, 30, h, 5, s.top, 0.2, 0.28);
+  px(c, 17, y0 + h - 1, 30, 1, darker);
   if (s.bag && back) {
     shaded(c, 20, y0 + 5, 24, 22, 5, s.bag);
     px(c, 22, y0 + 7, 20, 3, shade(s.bag, 1.35));
@@ -1920,27 +1827,16 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, x, ay + 12, 7, 1, shade(s.skin, 0.82));
     } else {
       shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
-      // A round shoulder, the sleeve narrowing to the wrist, a shadow where it meets the body,
-      // and creases at the elbow.
-      round(c, x - 1, ay + 1, 9, 6, 3, s.top);
-      px(c, x < 32 ? x : x + 2, ay + 1, 5, 1, shade(s.top, 1.25));
-      c.clearRect(x < 32 ? x : x + 6, ay + 13, 1, 6);
-      px(c, x < 32 ? x + 7 : x - 1, ay + 2, 1, 18, shade(s.top, 0.55));
+      // An elbow fold and a cuff.
       px(c, x + 1, ay + 11, 5, 1, shade(s.top, 0.72));
-      px(c, x + 2, ay + 12, 3, 1, shade(s.top, 1.2));
-      px(c, x + 1, ay + 9, 2, 1, shade(s.top, 0.8));
       const cuff = s.topKind === 'jacket' || s.topKind === 'hivis' ? s.trim : shade(s.top, 0.85);
       px(c, x, ay + 19, 7, 3, cuff);
       if (s.hearts) heart(c, x + 1, ay + 5, s.hearts);
       if (s.knots) knotwork(c, x + 2, ay + 1, 17, s.knots);
     }
     if (!back || !wide) {
-      const hy = ay + (wide ? 24 : 21);
-      round(c, x, hy, 7, 6, 2, s.skin);
-      px(c, x + (x < 32 ? 0 : 5), hy + 1, 2, 4, shade(s.skin, 0.85));
-      // The thumb, turned in, and the lines between the fingers.
-      px(c, x + (x < 32 ? 5 : 1), hy, 1, 3, shade(s.skin, 1.1));
-      if (!back) for (const fx of [x + 2, x + 4]) px(c, fx, hy + 3, 1, 3, shade(s.skin, 0.8));
+      round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
+      px(c, x + (x < 32 ? 0 : 5), ay + (wide ? 25 : 22), 2, 4, shade(s.skin, 0.85));
     }
     if (s.glowsticks) glowstick(c, s.glowsticks, x + 2, ay + 13);
   }
@@ -2085,12 +1981,7 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     } else if (!bald) {
       // Strands down the back of the head, and a shine on the crown.
       for (let x = 22; x < 44; x += 4) px(c, x, 14 + y, 1, 18, hairDark);
-      for (let x = 20; x < 44; x += 4) {
-        px(c, x + 1, 12 + y, 2, 3, shade(s.hair, 1.15));
-        px(c, x + 2, 29 + y, 1, 3, hairDark);
-      }
       round(c, 23, 8 + y, 12, 5, 2, hairLight);
-      px(c, 26, 8 + y, 4, 1, shade(s.hair, 1.7));
       if (s.hairStyle === 'long') round(c, 17, 20 + y, 30, 30, 8, s.hair);
       if (s.hairStyle === 'bob') round(c, 15, 12 + y, 34, 24, 8, s.hair);
       if (s.hairStyle === 'bun') round(c, 26, 1 + y, 12, 10, 5, s.hair);
@@ -2105,12 +1996,8 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     round(c, 44, 20 + y, 5, 8, 2, skinDark);
     if (s.beard) px(c, 20, 31 + y, 24, 3, s.beard);
   } else if (side === 'down') {
-    // The face: a rounded jaw narrowing to the chin, ears, cheeks.
-    round(c, 18, 8 + y, 28, 22, 10, s.skin);
-    round(c, 21, 20 + y, 22, 16, 8, s.skin);
-    px(c, 20, 29 + y, 2, 3, skinDark);
-    px(c, 42, 29 + y, 2, 3, skinDark);
-    px(c, 26, 34 + y, 12, 1, skinDark);
+    // The face: a rounded jaw, ears, cheeks.
+    round(c, 18, 8 + y, 28, 28, 11, s.skin);
     round(c, 15, 19 + y, 5, 8, 2, skinDark);
     round(c, 44, 19 + y, 5, 8, 2, skinDark);
     px(c, 16, 21 + y, 2, 4, shade(s.skin, 0.72));
@@ -2132,11 +2019,7 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
       px(c, ex + (ex < 32 ? 2 : 1), 20 + y, 3, 5, '#2c3c64');
       px(c, ex + (ex < 32 ? 3 : 2), 21 + y, 1, 2, '#0c1020');
       px(c, ex + (ex < 32 ? 2 : 1), 20 + y, 1, 1, '#ffffff');
-      px(c, ex + (ex < 32 ? 4 : 3), 23 + y, 1, 1, '#8aa0d0');
       px(c, ex, 19 + y, 6, 1, '#3a2a2a');
-      // Lashes at the outer corner and a soft lower lid.
-      px(c, ex < 32 ? ex - 1 : ex + 6, 19 + y, 1, 2, '#3a2a2a');
-      px(c, ex, 25 + y, 6, 1, skinDark);
     }
     // Nose, cheeks and mouth.
     px(c, 31, 25 + y, 2, 3, skinDark);
@@ -2187,19 +2070,9 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
         px(c, x, 10 + y, 1, fringe - 4 + drop, s.hair);
       }
       for (let x = 20; x < 45; x += 4) px(c, x, 6 + y, 1, fringe, hairDark);
-      // Clumps of hair, each lit along its top and darker at the tip, and a band of shine.
-      for (let x = 18; x < 46; x += 4) {
-        px(c, x + 1, 7 + y, 2, 2, shade(s.hair, 1.15));
-        px(c, x + 2, 9 + y + fringe - 4, 1, 2, hairDark);
-      }
       round(c, 21, 4 + y, 13, 3, 1, hairLight);
-      for (let x = 22; x < 34; x += 3) px(c, x, 7 + y, 2, 1, hairLight);
-      px(c, 24, 4 + y, 3, 1, shade(s.hair, 1.7));
       px(c, 15, 12 + y, 4, 10, s.hair);
       px(c, 45, 12 + y, 4, 10, s.hair);
-      // Sideburns, darker at the edge.
-      px(c, 15, 12 + y, 1, 10, hairDark);
-      px(c, 48, 12 + y, 1, 10, hairDark);
       if (s.hairStyle === 'bob') {
         px(c, 12, 12 + y, 6, 22, s.hair);
         px(c, 46, 12 + y, 6, 22, s.hair);
