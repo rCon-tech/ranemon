@@ -14,6 +14,7 @@ import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
 import { BRIGHTON } from './brighton';
 import { CRAMPS_ARRIVE } from './cramps';
 import { BELGIUM } from './techno';
+import { GALWAY } from './galway';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -1229,6 +1230,7 @@ export const MAPS: GameMap[] = [
   GREYSTONES,
   BRIGHTON,
   BELGIUM,
+  GALWAY,
 ];
 
 /** The rooms behind every door. */

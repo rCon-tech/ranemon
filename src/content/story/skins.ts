@@ -1,6 +1,7 @@
 import type { StoryState } from '@/lib/story/state';
 import type { Look } from '@/lib/story/world';
 import { HEAD_OF_SECURITY, TECHNO_DJ } from './techno';
+import { CHAMPION_OF_IRELAND, wonFlag } from './galway';
 import { TECHNO_DONE } from './cramps';
 import { BRIGHTON_DONE } from './enda';
 import { ARCADE_KING } from './brighton';
@@ -233,6 +234,43 @@ export const SKINS: Skin[] = [
     name: 'DJ Vandenbass',
     unlock: beat(TECHNO_DJ),
     hint: 'Beat the headliner at I Love Techno.',
+  },
+  // ---------- the Championship in Galway ----------
+  {
+    id: 'lipsett',
+    name: 'Rob Lipsett',
+    unlock: [wonFlag('galway-lipsett')],
+    hint: 'Beat the first of the four in Galway’s Hall of Champions.',
+  },
+  {
+    id: 'blindboy',
+    name: 'Blindboy Boatclub',
+    unlock: [wonFlag('galway-blindboy')],
+    hint: 'Beat the second of the four in Galway’s Hall of Champions.',
+  },
+  {
+    id: 'johnnyb',
+    name: 'Johnny B',
+    unlock: [wonFlag('galway-johnnies')],
+    hint: 'Beat the third of the four in Galway’s Hall of Champions.',
+  },
+  {
+    id: 'johnnysmacks',
+    name: 'Johnny Smacks',
+    unlock: [wonFlag('galway-johnnies')],
+    hint: 'Beat the third of the four in Galway’s Hall of Champions.',
+  },
+  {
+    id: 'bono',
+    name: 'Bono',
+    unlock: [wonFlag('galway-bono')],
+    hint: 'Beat all four in Galway’s Hall of Champions, in a row.',
+  },
+  {
+    id: 'collins',
+    name: 'Michael Collins',
+    unlock: [CHAMPION_OF_IRELAND],
+    hint: 'Somebody is waiting at the top of Galway’s Hall of Champions.',
   },
   {
     id: 'cramps',

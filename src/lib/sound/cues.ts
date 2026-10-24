@@ -106,7 +106,7 @@ export function lineCues(text: string): Cue[] {
 const roomKind = (id: string) => /-([PMGHL])\d+$/.exec(id)?.[1] ?? null;
 
 /** Where the city's music plays instead of the road's. */
-const CITIES = ['dublin', 'trinity', 'brighton', 'belgium'];
+const CITIES = ['dublin', 'trinity', 'brighton', 'belgium', 'galway'];
 
 /** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */
 const TECHNO = ['belgium-L1'];
@@ -129,9 +129,9 @@ export function areaSong(mapId: string, outsideId: string): SongId {
 export const partySong = (mapId: string): SongId => (TECHNO.includes(mapId) ? 'techno' : 'pub');
 
 /**
- * The battle music: night scenes, Poseidon, the Happy Pear Twins, the Arcade King and DJ
- * Vandenbass are bosses,
- * a gym's leader has their own.
+ * The battle music: night scenes, Poseidon, the Happy Pear Twins, the Arcade King, DJ Vandenbass
+ * and Michael Collins are bosses, a gym's leader has their own, and so do the four in Galway's
+ * Hall of Champions (their scene is a gym).
  */
 export function battleSong(
   scene: 'field' | 'city' | 'gym' | 'night',
@@ -143,6 +143,7 @@ export function battleSong(
     trainer === 'poseidon' ||
     trainer === 'arcade-king' ||
     trainer === 'techno-dj' ||
+    trainer === 'galway-collins' ||
     trainer?.startsWith('pear-')
   )
     return 'boss';

@@ -76,10 +76,11 @@ const WHERE: Record<string, [number, number]> = {
   brighton: [-5.55, 51.5],
   // Ghent is further again, so it sits above Brighton in the same corner.
   belgium: [-5.5, 51.85],
+  galway: [-9.05, 53.27],
 };
 
 /** Stops off the road, reached by train from Dublin: only on the map once you've been. */
-export const SIDE_TRIPS = ['donegal', 'greystones', 'brighton', 'belgium'];
+export const SIDE_TRIPS = ['donegal', 'greystones', 'brighton', 'belgium', 'galway'];
 
 /** The view: the whole island. */
 const WEST = -10.7;
