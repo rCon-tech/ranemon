@@ -12,6 +12,13 @@ const SCHEMA = [
     prev_raw TEXT,               -- the save as it was up to an hour before, to restore by hand
     prev_at BIGINT
   )`,
+  // Counts the writes, so a phone can tell whether another device has saved since it last did.
+  `ALTER TABLE saves ADD COLUMN IF NOT EXISTS rev INTEGER NOT NULL DEFAULT 0`,
+  `CREATE TABLE IF NOT EXISTS devices (
+    hash TEXT PRIMARY KEY,       -- a SHA-256 of a phone's device token, which stands in for the PIN
+    id TEXT NOT NULL,            -- the name it was handed out for
+    created BIGINT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS fails (
     id TEXT PRIMARY KEY,         -- wrong PINs for a name, so a PIN can't be guessed
     count INTEGER NOT NULL,
@@ -111,16 +118,21 @@ export function neonStore(url: string): SaveStore {
     get: async (id) => {
       const [r] = await q('SELECT * FROM saves WHERE id = $1', [id]);
       return r
-        ? ({ ...r, saved_at: n(r.saved_at), prev_at: n(r.prev_at) } as unknown as SaveRow)
+        ? ({
+            ...r,
+            saved_at: n(r.saved_at),
+            prev_at: n(r.prev_at),
+            rev: n(r.rev) ?? 0,
+          } as unknown as SaveRow)
         : null;
     },
     put: async (r) =>
       void (await q(
-        `INSERT INTO saves (id, raw, saved_at, salt, hash, prev_raw, prev_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO saves (id, raw, saved_at, salt, hash, prev_raw, prev_at, rev)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (id) DO UPDATE SET raw = EXCLUDED.raw, saved_at = EXCLUDED.saved_at,
-           prev_raw = EXCLUDED.prev_raw, prev_at = EXCLUDED.prev_at`,
-        [r.id, r.raw, r.saved_at, r.salt, r.hash, r.prev_raw, r.prev_at],
+           prev_raw = EXCLUDED.prev_raw, prev_at = EXCLUDED.prev_at, rev = EXCLUDED.rev`,
+        [r.id, r.raw, r.saved_at, r.salt, r.hash, r.prev_raw, r.prev_at, r.rev ?? 0],
       )),
     fails: async (id) => {
       const [r] = await q('SELECT count, until FROM fails WHERE id = $1', [id]);
@@ -133,5 +145,15 @@ export function neonStore(url: string): SaveStore {
         [id, count, until],
       )),
     clearFails: async (id) => void (await q('DELETE FROM fails WHERE id = $1', [id])),
+    device: async (hash) => {
+      const [r] = await q('SELECT id FROM devices WHERE hash = $1', [hash]);
+      return r ? String(r.id) : null;
+    },
+    addDevice: async (hash, id, now) =>
+      void (await q('INSERT INTO devices (hash, id, created) VALUES ($1, $2, $3)', [
+        hash,
+        id,
+        now,
+      ])),
   };
 }

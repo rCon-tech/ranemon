@@ -250,8 +250,12 @@ export function parseSave(raw: string | null | undefined): StoryState | null {
 
 type Store = Pick<Storage, 'getItem' | 'setItem'>;
 
-/** Why a copy was kept: as you played, before an update converted it, or before a restore or import replaced it. */
-export type BackupReason = 'auto' | 'update' | 'restore' | 'import';
+/**
+ * Why a copy was kept: as you played, before an update converted it, before a restore or import
+ * replaced it, or as the save you didn't pick when this browser and the online save had both
+ * moved on.
+ */
+export type BackupReason = 'auto' | 'update' | 'restore' | 'import' | 'clash';
 
 export interface Backup {
   at: number;
@@ -264,7 +268,7 @@ export const backupKey = (name: string) => `ranemon.backups:${playerId(name)}`;
 /** A copy is kept at most this often while you play. */
 export const BACKUP_EVERY_MS = 10 * 60 * 1000;
 /** How many copies of each kind are kept. */
-const KEEP: Record<BackupReason, number> = { auto: 5, update: 3, restore: 3, import: 3 };
+const KEEP: Record<BackupReason, number> = { auto: 5, update: 3, restore: 3, import: 3, clash: 3 };
 
 export function backups(storage: Pick<Storage, 'getItem'> | null, name: string): Backup[] {
   try {
@@ -339,6 +343,11 @@ export function save(storage: Store | null, s: StoryState, name: string): string
   } catch {
     return null;
   }
+}
+
+/** Keeps a save as a copy, without making it the trainer's save. */
+export function keepCopy(storage: Store | null, name: string, raw: string, why: BackupReason) {
+  keepBackup(storage, name, { at: Date.now(), why, raw });
 }
 
 /**

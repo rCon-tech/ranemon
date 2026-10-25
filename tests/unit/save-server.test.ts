@@ -15,12 +15,15 @@ const at = (raw: string, savedAt: number) => JSON.stringify({ ...JSON.parse(raw)
 function server() {
   const rows = new Map<string, SaveRow>();
   const fails = new Map<string, { count: number; until: number }>();
+  const devices = new Map<string, string>();
   const store: SaveStore = {
     get: async (id) => rows.get(id) ?? null,
     put: async (r) => void rows.set(r.id, r),
     fails: async (id) => fails.get(id) ?? null,
     setFails: async (id, count, until) => void fails.set(id, { count, until }),
     clearFails: async (id) => void fails.delete(id),
+    device: async (hash) => devices.get(hash) ?? null,
+    addDevice: async (hash, id) => void devices.set(hash, id),
   };
   let clock = 1_000_000;
   const opts = { origins: ['https://rcon-tech.github.io'], now: () => clock };
@@ -36,7 +39,7 @@ function server() {
     );
     return { status: res.status, body: await res.json(), headers: res.headers };
   };
-  return { rows, call, tick: (ms: number) => (clock += ms) };
+  return { rows, devices, call, tick: (ms: number) => (clock += ms) };
 }
 
 describe('the save server', () => {
@@ -44,7 +47,10 @@ describe('the save server', () => {
     const s = server();
     expect((await s.call('/api/load', { id: 'rich', pin: '1234' })).body).toEqual({ raw: null });
     expect((await s.call('/api/save', { id: 'rich', pin: '1234', raw: LIVE })).status).toBe(200);
-    expect((await s.call('/api/load', { id: 'rich', pin: '1234' })).body).toEqual({ raw: LIVE });
+    expect((await s.call('/api/load', { id: 'rich', pin: '1234' })).body).toEqual({
+      raw: LIVE,
+      rev: 1,
+    });
     const row = s.rows.get('rich')!;
     expect(JSON.stringify(row)).not.toContain('"1234"');
     expect(row.hash).toHaveLength(44);
@@ -90,6 +96,55 @@ describe('the save server', () => {
       raw: schema(at(LIVE, 300), 6),
     });
     expect(same.status).toBe(200);
+  });
+
+  it('hands a phone a device token that stands in for the PIN', async () => {
+    const s = server();
+    await s.call('/api/save', { id: 'rich', pin: '1234', raw: at(LIVE, 1) });
+    // Only once the PIN has opened the name, and only when asked.
+    expect((await s.call('/api/load', { id: 'rich', pin: '1234' })).body.device).toBeUndefined();
+    const opened = await s.call('/api/load', { id: 'rich', pin: '1234', newDevice: true });
+    const device = opened.body.device as string;
+    expect(device).toMatch(/^[A-Za-z0-9_-]{32}$/);
+    // Only a hash of it is kept.
+    expect([...s.devices.keys()].join()).not.toContain(device);
+
+    const saved = await s.call('/api/save', { id: 'rich', device, raw: at(LIVE, 2), base: 1 });
+    expect(saved.body).toEqual({ ok: true, rev: 2 });
+    expect((await s.call('/api/load', { id: 'rich', device })).body.rev).toBe(2);
+    // It opens only its own name, and a made-up one opens nothing.
+    await s.call('/api/save', { id: 'con', pin: '5555', raw: at(LIVE, 1) });
+    expect((await s.call('/api/load', { id: 'con', device })).status).toBe(401);
+    const fake = 'x'.repeat(32);
+    expect((await s.call('/api/save', { id: 'rich', device: fake, raw: LIVE })).status).toBe(401);
+    // A name with no save yet needs its PIN to set one.
+    expect((await s.call('/api/save', { id: 'new', device, raw: LIVE })).status).toBe(401);
+  });
+
+  it('sends back the other device’s save instead of writing over it', async () => {
+    const s = server();
+    await s.call('/api/save', { id: 'rich', pin: '1234', raw: at(LIVE, 1) });
+    // The laptop saves on from rev 1.
+    const laptop = await s.call('/api/save', {
+      id: 'rich',
+      pin: '1234',
+      raw: at(LIVE, 2),
+      base: 1,
+    });
+    expect(laptop.body.rev).toBe(2);
+    // The phone played offline from rev 1 too, with a later clock: it's told, not written.
+    const phone = await s.call('/api/save', { id: 'rich', pin: '1234', raw: at(LIVE, 9), base: 1 });
+    expect(phone.status).toBe(409);
+    expect(phone.body).toEqual({ error: 'conflict', raw: at(LIVE, 2), rev: 2 });
+    expect(JSON.parse(s.rows.get('rich')!.raw).savedAt).toBe(2);
+    // Once the phone has picked, it saves on from rev 2.
+    const picked = await s.call('/api/save', {
+      id: 'rich',
+      pin: '1234',
+      raw: at(LIVE, 1),
+      base: 2,
+    });
+    expect(picked.body).toEqual({ ok: true, rev: 3 });
   });
 
   it('keeps the save from up to an hour before', async () => {
