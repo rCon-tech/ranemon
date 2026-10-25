@@ -420,6 +420,7 @@ Each is optional and stands alone, so any can be cut.
 4. **The London Irish (Kilburn).** An old builder from Mayo on a bench, who came over in 1962. He built half the grounds you're playing in ("Wembley, Old Trafford's new stand, a bit of the Emirates"), and tells you about it. Talk to him after each run and he has another story. After the third, he gives you Mammy's Dinner x3: "My mother's recipe. She'd want you to have it."
 5. **Paul Mescal in the West End (London).** He's in a play near Leicester Square and is, of course, crying at the stage door. Battle him (Normal AI, three UK forms at Lv 46). Beat him and he says "Look over there!" and runs off into the theatre.
 6. **The Shoreditch crypto bro (London).** A trainer who offers to "tokenise" your starter. Beat him and he pays you in a coin that's worth nothing by the time you get to the Tesco Express. Funny once, and the cheapest one to cut.
+7. **The Sidemen (Wembley Park), as built.** Not in the original plan: Rich asked for it on 25 October 2026. Jamie Elliott, who runs the Sidemen, waits at King's Cross from the Brighton jersey on; beat KSI, Miniminter, Zerkaa, Behzinga, Vikkstar123 and TBJ round Wembley Park (Metropolitan line from King's Cross), each with a drawn Ranemon of their own, then Jamie on the Wembley pitch with all six. See `src/content/story/sidemen.ts`.
 
 ## Running threads
 

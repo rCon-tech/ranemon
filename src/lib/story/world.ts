@@ -166,6 +166,13 @@ export type Look =
   | 'musk'
   | 'pcollison'
   | 'jcollison'
+  | 'ksi'
+  | 'miniminter'
+  | 'zerkaa'
+  | 'behzinga'
+  | 'vikkstar'
+  | 'tbj'
+  | 'jamie'
   | 'champion';
 
 /**

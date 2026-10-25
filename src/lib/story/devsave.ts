@@ -25,6 +25,13 @@ import {
   RUN,
   wonFlag,
 } from '@/content/story/galway';
+import {
+  SIDEMEN_ARRIVED,
+  SIDEMEN_DONE,
+  SIDEMEN_SIX,
+  SIDEMEN_TRAINERS,
+  WEMBLEY_TRAINERS,
+} from '@/content/story/sidemen';
 import { DEFAULT_SKIN, SKINS } from '@/content/story/skins';
 import { DEX, evolutionOf } from '../battle/evolutions';
 import { LONDON } from '../battle/london';
@@ -87,6 +94,14 @@ export const LONDON_TO_PLAY = [
   ...['london', 'airport', ...PL_MAPS.map((m) => m.id)].map((m) => `seen:${m}`),
 ];
 
+/** The Sidemen: Jamie Elliott has asked, so the Metropolitan line runs, and the rest is to play. */
+export const SIDEMEN_TO_PLAY = [
+  SIDEMEN_ARRIVED,
+  SIDEMEN_SIX,
+  SIDEMEN_DONE,
+  ...[...SIDEMEN_TRAINERS, ...WEMBLEY_TRAINERS].map((t) => beatFlag(t.id)),
+];
+
 const LEFT_TO_PLAY = new Set([
   beatFlag('poseidon'),
   beatFlag('bns-rematch'),
@@ -102,6 +117,7 @@ const LEFT_TO_PLAY = new Set([
   NORM,
   ELVIS,
   ...LONDON_TO_PLAY,
+  ...SIDEMEN_TO_PLAY,
 ]);
 
 /** Every script step in the maps and trainers, found by walking the content. */

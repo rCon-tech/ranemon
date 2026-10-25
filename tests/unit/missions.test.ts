@@ -114,6 +114,7 @@ describe('open missions', () => {
     const open = ids(new Set(devSave().flags));
     expect(open).toContain('brighton');
     expect(open).toContain('techno');
+    expect(open).toContain('sidemen');
     expect(open).not.toContain('champions');
   });
 });
