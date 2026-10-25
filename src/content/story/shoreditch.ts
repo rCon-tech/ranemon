@@ -1,6 +1,6 @@
-import { UK_STARTER } from './kneecap';
+import { CHAMPION, FIXTURES, UK_STARTER } from './kneecap';
 import type { ItemId } from '@/lib/story/items';
-import type { GameMap, Npc, Step, Trainer } from '@/lib/story/world';
+import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
 /**
  * Shoreditch & Hackney (docs/london-ranedex.md), the first of London's own areas: the London
@@ -10,8 +10,8 @@ import type { GameMap, Npc, Step, Trainer } from '@/lib/story/world';
 
 export const SHOREDITCH_ID = 'shoreditch';
 
-/** Where the Overground leaves you: on the platform, at the top left. */
-export const SHOREDITCH_ARRIVAL = { map: SHOREDITCH_ID, x: 1, y: 3, face: 'right' } as const;
+/** Where the Overground leaves you: out of the station door, at the top left. */
+export const SHOREDITCH_ARRIVAL = { map: SHOREDITCH_ID, x: 3, y: 3, face: 'down' } as const;
 
 /** The Overground conductor in London's hub, and where he leaves you back there. */
 export const OVERGROUND: Npc = {
@@ -47,6 +47,84 @@ export const OVERGROUND: Npc = {
 
 const say = (text: string): Step[] => [{ do: 'say', text }];
 
+/** The Overground conductor in Shoreditch, by the station and inside it: back to Liverpool Street. */
+const HOMEWARD: Npc = {
+  look: 'conductor',
+  face: 'down',
+  talk: [
+    {
+      do: 'ask',
+      text: 'OVERGROUND: Back to Liverpool Street?',
+      yes: [
+        { do: 'say', text: 'Past the Boxpark and a great many cranes.' },
+        { do: 'travel', map: 'london', x: 20, y: 3, face: 'down' },
+      ],
+      no: say('OVERGROUND: Mind the closing doors. They don’t mind you.'),
+    },
+  ],
+};
+
+/** What to do next in London, as the locals tell it: Próvaí first, then King's Cross. */
+const NEXT: Step[] = [
+  {
+    do: 'if',
+    flag: CHAMPION,
+    then: say(
+      'AOIFE: Premier League Champion, in my pub! Go on to the palace, so. Overground back to Liverpool Street, and down the Mall.',
+    ),
+    else: [
+      {
+        do: 'if',
+        flag: FIXTURES,
+        then: say(
+          'AOIFE: The trains north to the football go from King’s Cross. That’s back in town: get the Overground to Liverpool Street, it’s the station at the top of the street there.',
+        ),
+        else: say(
+          'AOIFE: Próvaí was in looking for you. He’s in the back of W.B Yates London, by Liverpool Street, with a story for you. Get the Overground back, it’s the orange sign at the top of the street.',
+        ),
+      },
+    ],
+  },
+];
+
+/** W.B Yates Shoreditch: Aoife from Sligo runs it, and she knows what Próvaí's up to. */
+const SHOREDITCH_YATES: Yates = {
+  owner: {
+    look: 'aoife',
+    face: 'down',
+    talk: [
+      ...say(
+        'AOIFE: Welcome to W.B Yates! I’m Aoife, from Sligo. Came over for one summer in 2009. Named after the poet, spelled wrong. Being from Sligo, I’d know.',
+      ),
+      ...NEXT,
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a £9 craft stout nobody local would touch.',
+    U: 'A reclaimed scaffolding-plank table. There’s a pint of Guinness on it and a laptop nobody’s claimed.',
+    J: 'A turf fire. Aoife says it’s ironic. It isn’t, it’s just warm.',
+  },
+};
+
+/** Set once you've been told the way round, on your first time off the Overground. */
+const WELCOMED = 'shoreditch:welcomed';
+
+const WELCOME: Step[] = [
+  ...say(
+    'SHOREDITCH HIGH STREET. The Overground doors close behind you. The orange sign over the station is the way back to Liverpool Street.',
+  ),
+  ...say('There’s a W.B Yates down the street, if your Ranemon need a rest.'),
+  { do: 'flag', flag: WELCOMED },
+];
+
+/** The station hall at Shoreditch High Street, with the conductor on the gate. */
+const STATION = {
+  name: 'Shoreditch High Street station',
+  rows: ['WWWWWWWWWW', 'WOWDDDDWOW', 'WFFFF1FFFW', 'WFFFFFFFFW', 'WNFF@FFFNW', 'WWWWEWWWWW'],
+  npcs: [HOMEWARD],
+  things: { D: 'OVERGROUND. Liverpool Street: every few minutes. Nobody knows the timetable.' },
+};
+
 /** Someone who hands you an item once, and says something else after. */
 function giver(
   look: Npc['look'],
@@ -81,10 +159,12 @@ export const SHOREDITCH: GameMap = {
   flat: true,
   terraces: 'english',
   uk: true,
+  yates: SHOREDITCH_YATES,
+  arrive: [{ do: 'if', flag: WELCOMED, then: [], else: WELCOME }],
   rows: [
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
     'T^^^^^^^^^^^^^^^^^^^^^^^^^^^^T',
-    'T####M#######################T',
+    'T##L#####M#####P#############T',
     'T@1vvvvvvvvvvvvvvvvv5vvvvvvvvT',
     'TvvvvSvvvvvvvv4vvvvvvvvvvvvvvT',
     'TaaaaaaaaaaaaaaaaaaaaaaaaaaaaT',
@@ -129,21 +209,7 @@ export const SHOREDITCH: GameMap = {
     ],
   },
   npcs: [
-    {
-      look: 'conductor',
-      face: 'left',
-      talk: [
-        {
-          do: 'ask',
-          text: 'OVERGROUND: Back to Liverpool Street?',
-          yes: [
-            { do: 'say', text: 'Past the Boxpark and a great many cranes.' },
-            { do: 'travel', map: 'london', x: 20, y: 3, face: 'down' },
-          ],
-          no: say('OVERGROUND: Mind the closing doors. They don’t mind you.'),
-        },
-      ],
-    },
+    { ...HOMEWARD, face: 'right' },
     {
       look: 'trainer',
       face: 'down',
@@ -204,9 +270,16 @@ export const SHOREDITCH: GameMap = {
     },
   ],
   signs: [
-    'SHOREDITCH HIGH STREET. A Boxpark, a cereal café and eleven barbers. Dalston and Hackney Wick are down past the grass.',
-    'HACKNEY WICK. Warehouses, a canal, and a lot of people living in them. Mind the bikes on the towpath.',
+    'SHOREDITCH HIGH STREET. A Boxpark, a cereal café and eleven barbers. Overground to Liverpool Street: the orange sign. W.B Yates: down the street. Dalston and Hackney Wick are past the grass.',
+    'HACKNEY WICK. Warehouses, a canal, and a lot of people living in them. Mind the bikes on the towpath. Back to the Overground: over the bridge and up to the top of the high street.',
   ],
+  landmarks: [
+    say(
+      'SHOREDITCH HIGH STREET OVERGROUND. Trains back to Liverpool Street, for W.B Yates London and King’s Cross.',
+    ),
+  ],
+  landmarkLabels: { 0: { text: 'OVERGROUND', colour: '#ee7623' } },
+  landmarkRooms: { 0: STATION },
 };
 
 /** The trainers of Shoreditch & Hackney: London Ranemon at Lv8 to 12. */
