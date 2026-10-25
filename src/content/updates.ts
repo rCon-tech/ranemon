@@ -21,10 +21,11 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
-    title: 'A fresh pint over the sea',
+    title: 'Pick your moves',
     notes: [
-      'Across the Irish Sea the pint by a wild Ranemon’s name starts fresh: it only shows for ones you’ve befriended over there.',
-      'Your Ranedex keeps every one you’ve befriended, and back home the pint is as it was.',
+      'Open a Ranemon in PARTY and every move shows its type and power, so you can see what you are working with.',
+      'Tap MOVES (or CHANGE MOVES when it has spare ones) for a full screen of its moves: type, power, accuracy, PP and what each one is strong against.',
+      'Tap a move it knows and a spare move to swap them. Swapped-out moves stay learnt, so you can always swap them back.',
     ],
   },
   {
