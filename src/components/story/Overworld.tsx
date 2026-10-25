@@ -409,7 +409,7 @@ export function Overworld(props: Props) {
       if (map.scenery) {
         const doorOf = (s: { x0: number; y1: number }) =>
           [...map.rows[s.y1]].findIndex((t, tx) => t === 'L' && tx >= s.x0);
-        paintScenery(c, map.scenery, sx(0), sy(0), doorOf);
+        paintScenery(c, map.scenery, sx(0), sy(0), doorOf, now);
       }
       if (map.crest) {
         // The centre circle off to the left, clear of the legend, and a banner on the far stand.

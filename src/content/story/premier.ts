@@ -353,11 +353,15 @@ const CLUBS: Club[] = [
     legend: 'Sergio Agüero',
     look: 'aguero',
     map: 'manchester',
-    before: 'AGÜERO: You know what 93:20 means here? It means it’s never over. Vamos.',
-    after: 'The commentator, from somewhere high up: “AGÜEROOOO… no. NO! It’s the Irish lad!”',
+    before:
+      'AGÜERO: You know what 93:20 means here? It means it’s never over. Not the season, not the hearing, not the appeal. Vamos.',
+    after:
+      'The commentator, from somewhere high up: “AGÜEROOOO… no. NO! It’s the Irish lad! City will be appealing that, surely.”',
     gift: [],
-    seats: 'Sky blue seats, every one of them full. The board says 93:20.',
-    pitch: 'The Etihad. The clock on the big screen is stuck at 93:20. Nobody here wants it fixed.',
+    seats:
+      'Sky blue seats, every one sponsored by a different company. They all have the same address. It’s in the Gulf.',
+    pitch:
+      'The Etihad. The clock on the big screen is stuck at 93:20, beside a second screen counting the charges: 115. Nobody here wants either fixed.',
   },
   {
     id: 'chelsea',
@@ -996,7 +1000,23 @@ export const MANCHESTER: GameMap = {
   ...grounds(['united', 'city']),
   landmarkRooms: {
     0: groundRoom(clubById('united')),
-    1: groundRoom(clubById('city')),
+    // City's lawyers and their accountant, never far from the touchline.
+    1: groundRoom(clubById('city'), [
+      {
+        look: 'tux',
+        face: 'right',
+        talk: say(
+          'CITY’S LAWYER: 115 charges? Allegations. Proven? Alleged to be proven. We’ll be appealing the appeal. Have you a moment? This is billed by the minute.',
+        ),
+      },
+      {
+        look: 'tux',
+        face: 'left',
+        talk: say(
+          'CITY’S ACCOUNTANT: Sponsorship income from a company that is definitely not the owner, to a club that is definitely within the rules. Here’s the spreadsheet. Don’t look at column F.',
+        ),
+      },
+    ]),
   },
 };
 

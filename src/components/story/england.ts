@@ -165,6 +165,7 @@ function brick(c: Ctx, x: number, y: number, w: number, h: number, base: string)
 /** A ground from the street: tiles x0 to x1, from the top of row y0 to the bottom of y1. */
 function paintStadium(
   c: Ctx,
+  now: number,
   club: ClubId,
   left: number,
   top: number,
@@ -285,6 +286,37 @@ function paintStadium(
       }
     }
     c.stroke();
+    // The money: oil barrels and sacks of cash piled at the turnstiles, a pumpjack nodding
+    // away by the stand, and the charge sheet pinned up for everyone to see.
+    const pump = left + 22;
+    rect(c, pump - 1, body + 6, 2, bodyH - 6, '#2a2a2a');
+    c.save();
+    c.translate(pump, body + 7);
+    c.rotate(Math.sin(now / 600) * 0.25);
+    rect(c, -9, -1.5, 18, 3, '#3a3a3a');
+    rect(c, 8, -3, 3, 6, '#3a3a3a');
+    c.restore();
+    for (const [bx, by] of [
+      [left + 30, 0],
+      [left + 35, 0],
+      [left + 32.5, -6],
+    ]) {
+      rect(c, bx, top + h - 7 + by, 4.5, 6, '#1a1a1a');
+      rect(c, bx, top + h - 6 + by, 4.5, 1, '#f2b705');
+      rect(c, bx, top + h - 3 + by, 4.5, 1, '#f2b705');
+    }
+    for (const bx of [left + w - 34, left + w - 28]) {
+      c.fillStyle = '#c8a860';
+      c.beginPath();
+      c.ellipse(bx, top + h - 3.5, 3, 3.5, 0, 0, Math.PI * 2);
+      c.fill();
+      rect(c, bx - 1, top + h - 8, 2, 1.5, '#8a6a30');
+      text(c, '£', bx, top + h - 3, 4, '#2a6a2a');
+    }
+    rect(c, left + 39, body + 12, 21, 12, '#fffdf0');
+    rect(c, left + 39, body + 12, 21, 2, '#c8102e');
+    text(c, '115 CHARGES', left + 49.5, body + 16.5, 3, '#c8102e', 20);
+    text(c, 'APPEALING', left + 49.5, body + 21, 3.5, '#1a1a1a', 20);
     // Its round ramp towers at the corners.
     for (const tx of [left + 2, left + w - 10]) {
       rect(c, tx, body, 8, bodyH, '#3b4a6b');
@@ -684,6 +716,7 @@ export function paintScenery(
   ox: number,
   oy: number,
   doorX: (s: Scenery) => number,
+  now = 0,
 ) {
   for (const s of scenery) {
     const left = ox + s.x0 * TILE;
@@ -694,7 +727,7 @@ export function paintScenery(
     c.beginPath();
     c.rect(left, top - 20, w, h + 20);
     c.clip();
-    if (s.kind === 'stadium') paintStadium(c, s.club, left, top, w, h, ox + doorX(s) * TILE);
+    if (s.kind === 'stadium') paintStadium(c, now, s.club, left, top, w, h, ox + doorX(s) * TILE);
     else paintLandmark(c, s.kind, left, top, w, h);
     c.restore();
     if (s.kind === 'stadium' && s.tube) roundel(c, s.tube, left + 10, top + h - 26);
