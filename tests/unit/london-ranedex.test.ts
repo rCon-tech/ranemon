@@ -2,7 +2,11 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { mapById } from '@/content/story/maps';
+import { interiorId } from '@/content/story/interiors';
+import { CHAMPION, FIXTURES } from '@/content/story/kneecap';
 import { SHOREDITCH } from '@/content/story/shoreditch';
+import { doorLabels } from '@/components/story/pixels';
+import { find, npcsOf } from '@/lib/story/world';
 import { trainerById } from '@/content/story/trainers';
 import { STAT_KEYS, validateCreature } from '@/lib/battle/creature';
 import { playTurn, startBattle } from '@/lib/battle/engine';
@@ -164,6 +168,35 @@ describe('Shoreditch & Hackney', () => {
     expect(JSON.stringify(SHOREDITCH.npcs)).toContain('"map":"london"');
     expect(SHOREDITCH.flat).toBe(true);
     expect(SHOREDITCH.uk).toBe(true);
+  });
+
+  it('has a station with the Overground sign, the conductor by it and inside, and a W.B Yates', () => {
+    const [station] = find(SHOREDITCH, 'L');
+    expect(SHOREDITCH.landmarkLabels?.[0]?.text).toBe('OVERGROUND');
+    // You come off the train out of the station door, with the conductor beside you.
+    const arrival = JSON.stringify(mapById('london').npcs);
+    expect(arrival).toContain(`"map":"shoreditch","x":${station.x},"y":${station.y + 1}`);
+    const conductor = npcsOf(SHOREDITCH)[0];
+    expect(conductor.item.look).toBe('conductor');
+    expect(Math.abs(conductor.x - station.x) + Math.abs(conductor.y - station.y - 1)).toBe(1);
+    const hall = mapById(interiorId('shoreditch', 'L', 0));
+    expect(JSON.stringify(hall.npcs)).toContain('"map":"london"');
+
+    const pub = mapById(interiorId('shoreditch', 'P', 0));
+    expect(pub.name).toBe('W.B Yates, Shoreditch & Hackney');
+    const [neeson, owner] = pub.npcs;
+    expect(neeson.talk).toEqual([{ do: 'pub' }]);
+    expect(owner.look).toBe('aoife');
+    // She sends you on: to Próvaí, then King's Cross, then the palace.
+    const said = JSON.stringify(owner.talk);
+    for (const flag of [FIXTURES, CHAMPION]) expect(said).toContain(flag);
+    expect(said).toContain('King’s Cross');
+  });
+
+  it('labels the pubs and shops in Britain as W.B Yates and Tesco Express', () => {
+    expect(doorLabels(SHOREDITCH)).toMatchObject({ P: 'W.B YATES', M: 'TESCO EXPRESS' });
+    expect(doorLabels(mapById('london')).P).toBe('W.B YATES');
+    expect(doorLabels(mapById('dublin'))).toMatchObject({ P: 'McGRATTANS', M: 'VAPES' });
   });
 
   it('is mostly the lads at Lv5 to 12, with London’s own and Aerodactivist one time in a hundred', () => {

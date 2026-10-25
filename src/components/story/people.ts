@@ -1153,6 +1153,18 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2a3a5a',
     shoes: '#2a1a12',
   },
+  // Aoife from Sligo, in Shoreditch: a black polo neck, round glasses and a Sligo Rovers scarf.
+  aoife: {
+    skin: '#f4d0b0',
+    hair: '#5a2e1a',
+    hairStyle: 'bun',
+    glasses: 'glasses',
+    top: '#1e1e24',
+    topKind: 'jumper',
+    trim: '#c8282a',
+    legs: '#2a2a30',
+    shoes: '#18181c',
+  },
   // Fionnuala from Galway, in Brighton: a maroon cardigan and a sash from a 1994 hen party.
   fionnuala: {
     skin: '#f4d0b0',

@@ -868,17 +868,17 @@ export function Story() {
       ]);
       return;
     }
-    const settled = settleBattle(game, state, result, fought, trainer !== null, trainer?.id);
+    const pounds = outsideOf(mapById(game.map)).uk;
+    const prize =
+      result === 'win' && trainer
+        ? `You got ${pounds ? '£' : '€'}${trainer.prize} for winning!`
+        : undefined;
+    const settled = settleBattle(game, state, result, fought, trainer !== null, trainer?.id, prize);
     let g = settled.state;
     // Scripts ask whether a particular Ranemon was befriended, such as the legend.
     if (result === 'caught') g = setFlag(g, `caught:${fight.teams[1][0].creature.id}`);
-    const steps: Run[] = [];
-    if (result === 'win' && trainer) {
-      g = { ...g, money: g.money + trainer.prize };
-      const pounds = outsideOf(mapById(game.map)).uk;
-      steps.push({ do: 'say', text: `You got ${pounds ? '£' : '€'}${trainer.prize} for winning!` });
-    }
-    steps.push(...settled.lines.map((text) => ({ do: 'say' as const, text })));
+    if (result === 'win' && trainer) g = { ...g, money: g.money + trainer.prize };
+    const steps: Run[] = settled.lines.map((text) => ({ do: 'say' as const, text }));
     if (result === 'win' && trainer && !hasFlag(g, beatFlag(trainer.id))) {
       g = setFlag(g, beatFlag(trainer.id));
       steps.push({ do: 'say', text: trainer.after }, ...(trainer.reward ?? []));
@@ -1186,7 +1186,7 @@ export function Story() {
         {line && (
           <button
             type="button"
-            className="dialog absolute inset-x-0 bottom-0 z-10 min-h-[38%] px-3 py-2 text-left text-[13px] leading-[1.8]"
+            className="dialog absolute inset-x-0 bottom-0 z-10 min-h-[38%] whitespace-pre-line px-3 py-2 text-left text-[13px] leading-[1.8]"
             onClick={advance}
             data-sound="none"
             data-testid="story-text"

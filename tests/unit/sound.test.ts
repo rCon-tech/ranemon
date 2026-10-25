@@ -115,6 +115,9 @@ describe('sound cues', () => {
   it('knows the story lines worth a jingle', () => {
     expect(lineCues('You got a Blue Ghost!')).toEqual([{ jingle: 'item' }]);
     expect(lineCues('Conemon grew to Lv12!')).toEqual([{ jingle: 'level' }]);
+    expect(lineCues('You got €90 for winning!\nConemon grew to Lv12 and learned Fry Up!')).toEqual([
+      { jingle: 'level' },
+    ]);
     expect(lineCues('Your Ranemon are fighting fit again!')).toEqual([{ jingle: 'heal' }]);
     expect(lineCues('Gotcha! Conemon finished the pint and joined you!')).toEqual([
       { jingle: 'caught' },

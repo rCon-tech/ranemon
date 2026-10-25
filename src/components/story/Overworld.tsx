@@ -29,7 +29,7 @@ import {
   type Style,
 } from './people';
 import { drawLamp, facadesOf, lampsOf } from './facades';
-import { DOOR_LABEL, INK, LIGHT, TILE } from './pixels';
+import { doorLabels, INK, LIGHT, TILE } from './pixels';
 import { paintFacade, paintRoom } from './brands';
 import {
   balloonsAt,
@@ -402,7 +402,7 @@ export function Overworld(props: Props) {
       c.textBaseline = 'middle';
       // And a company's own sign over its landmark door, such as the HQs in Silicon Docks.
       const signs = [
-        ...Object.entries(DOOR_LABEL).flatMap(([door, label]) =>
+        ...Object.entries(doorLabels(map)).flatMap(([door, label]) =>
           find(map, door).map((d) => ({ d, label, colour: SIGN_COLOUR[door] })),
         ),
         ...find(map, 'L').flatMap((d, i) => {

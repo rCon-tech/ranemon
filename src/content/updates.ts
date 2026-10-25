@@ -29,6 +29,14 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'Straight to the point',
+    notes: [
+      'After a battle, the prize money, EXP, new levels and new moves all come in one box now, a line each, instead of a box for every one of them.',
+      'Waking up in the pub after a loss is one box too. Evolutions still get their own moment.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Down in one',
     notes: [
       'When a wild Ranemon takes to you, you can see it drink the pint now: it flies in, goes down a sip at a time, and the last of it is knocked back in one before it joins you.',
