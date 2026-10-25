@@ -9,4 +9,13 @@ export const INK = '#283038';
 export const LIGHT = '#ffffff';
 
 /** What each door's building says over it. */
-export const DOOR_LABEL: Record<string, string> = { P: 'McGRATTANS', M: 'VAPES', G: 'GYM' };
+const DOOR_LABEL: Record<string, string> = { P: 'McGRATTANS', M: 'VAPES', G: 'GYM' };
+
+/** In Britain the pub is a W.B Yates and the shop a Tesco Express (content/story/interiors.ts). */
+const UK_DOOR_LABEL: Record<string, string> = { P: 'W.B YATES', M: 'TESCO EXPRESS' };
+
+/** The doors' signs on a map, as `DOOR_LABEL` but with Britain's own pubs and shops. */
+export const doorLabels = (map: { uk?: boolean; yates?: unknown }): Record<string, string> => ({
+  ...DOOR_LABEL,
+  ...(map.uk ? UK_DOOR_LABEL : map.yates ? { P: UK_DOOR_LABEL.P } : {}),
+});

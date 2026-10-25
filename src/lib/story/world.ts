@@ -134,6 +134,7 @@ export type Look =
   | 'kelly'
   | 'mick'
   | 'grainne'
+  | 'aoife'
   | 'fionnuala'
   | 'thatcher'
   | 'royalguard'
