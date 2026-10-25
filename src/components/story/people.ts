@@ -904,8 +904,8 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#18181c',
     moustache: '#4a3020',
   },
-  // Liam Neeson, behind the bar of every W.B Yates: very tall, grey and very serious, in a black
-  // shirt with the sleeves rolled up.
+  // Liam Neeson, once behind the bar of every W.B Yates, now up Big Ben: very tall, grey and very
+  // serious, in a black shirt with the sleeves rolled up.
   neeson: {
     skin: '#ecc09a',
     hair: '#8a8a90',
@@ -916,6 +916,19 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2a2a32',
     shoes: '#18181c',
     tall: true,
+  },
+  // Florence Pugh, pulling pints in W.B Yates as Dua Lipa does in McGrattans: a blonde bob, gold
+  // hoops, and a pink top, after the pink dress.
+  pugh: {
+    skin: '#f6d0b0',
+    hair: '#e0bc70',
+    hairStyle: 'bob',
+    top: '#e8609a',
+    topKind: 'shirt',
+    trim: '#f8a8c8',
+    legs: '#202028',
+    shoes: '#141418',
+    earrings: '#f0c040',
   },
   // UK Border Force: a navy uniform, a peaked cap and a lanyard.
   border: {

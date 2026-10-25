@@ -106,7 +106,7 @@ const TAKEOVER: Step[] = [
     'Michael D lands on the lawn in the Air Corps helicopter, dogs and all, and hands the Irish Crown Jewels to Próvaí. “Back to Dublin Castle, where they belong. And this time, lock the door.”',
   ),
   ...said(
-    'The State Dining Room is W.B Yates, Buckingham Palace now, run by Bridie. Liam Neeson pulls the pints. Charles is collecting glasses in an apron. He is not good at it.',
+    'The State Dining Room is W.B Yates, Buckingham Palace now, run by Bridie. Florence Pugh pulls the pints. Charles is collecting glasses in an apron. He is not good at it.',
   ),
   ...said('THE END. Go raibh maith agaibh. (Free the lads: done.)'),
 ];

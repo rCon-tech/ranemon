@@ -1,6 +1,7 @@
 import { CARL_PUB } from './ball';
 import { ELVIS_PUB } from './elvis';
 import { keeperOf } from './keepers';
+import { PUGH_TALK } from './neeson';
 import { sibealInPub } from './sibeal';
 import { DOORS, find, type GameMap, type Npc, type Step } from '@/lib/story/world';
 
@@ -142,14 +143,14 @@ const placesFor = (rows: string[], n: number) =>
   rows.map((r) => r.replace(/[1-9]/g, (d) => (Number(d) <= n ? d : 'F')));
 
 /**
- * A pub in Britain: a W.B Yates, with Liam Neeson behind the bar and its own owner and regulars
- * (`yates` on the town's map). In London that's Donal from Cork, with Próvaí in the back.
+ * A pub in Britain: a W.B Yates, with Florence Pugh behind the bar (neeson.ts) and its own owner
+ * and regulars (`yates` on the town's map). In London that's Donal from Cork, with Próvaí in the back.
  */
 function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'inside'>): GameMap {
   const town = outside.name.split(',')[0];
   const yates = outside.yates;
   const npcs: Npc[] = [
-    { look: 'neeson', face: 'down', talk: [{ do: 'pub' }] },
+    { look: 'pugh', face: 'down', talk: PUGH_TALK },
     ...(yates
       ? [
           yates.owner,

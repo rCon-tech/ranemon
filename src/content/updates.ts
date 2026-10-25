@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'New face behind the bar',
+    notes: [
+      'There’s someone new pulling pints in every W.B Yates, and she has a line of her own every time she heals your party.',
+      'The last barman didn’t take it well. Once you’ve won a few jerseys in England, ask behind the bar about him. Find him, beat him, and his look is yours to wear.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Play with no signal',
     notes: [
       'Once you’ve opened Ranemon, the whole game stays on your phone, so Story mode, Battle mode and the Ranedex all work on the train, on a plane or anywhere with no signal.',

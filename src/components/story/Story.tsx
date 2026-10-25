@@ -116,7 +116,8 @@ import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
 import { hasUkForm, UK } from '@/lib/battle/uk';
-import { NEESON_LINES, UK_LEVEL } from '@/content/story/london';
+import { UK_LEVEL } from '@/content/story/london';
+import { PUGH_LINES } from '@/content/story/neeson';
 import { UK_STARTER } from '@/content/story/kneecap';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
@@ -469,9 +470,9 @@ export function Story() {
             break;
           case 'pub': {
             g = { ...healParty(g), pub: { map: g.map, x: g.x, y: g.y } };
-            // In Britain it's Liam Neeson behind the bar of W.B Yates.
+            // In Britain it's Florence Pugh behind the bar of W.B Yates.
             const pubOutside = outsideOf(mapById(g.map));
-            const lines = pubOutside.uk || pubOutside.yates ? NEESON_LINES : DUA_LINES;
+            const lines = pubOutside.uk || pubOutside.yates ? PUGH_LINES : DUA_LINES;
             q.unshift(
               { do: 'say', text: lines[g.steps % lines.length] },
               { do: 'say', text: 'Your Ranemon are fighting fit again!' },

@@ -18,6 +18,7 @@ import { FIXTURE_LIST, PL_FLAGS } from './premier';
 import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
 import { COLLISONS, SEVEN, SILICON_SEVEN, SILICON_START } from './silicon';
 import { SIDEMEN_ARRIVED, SIDEMEN_DONE, SIDEMEN_SIX, SIDEMEN_START, SIX } from './sidemen';
+import { NEESON_DONE, NEESON_DOUBLE, NEESON_START } from './neeson';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 
@@ -345,6 +346,26 @@ export const MISSIONS: Mission[] = [
         until: SIDEMEN_DONE,
         todo: 'All six are beaten. Jamie Elliott is waiting on the pitch.',
         where: 'Wembley Stadium, London',
+      },
+    ],
+  },
+  {
+    id: 'neeson',
+    name: 'A Very Particular Set of Skills',
+    about:
+      'Florence Pugh has Liam Neeson’s old job behind the bar of W.B Yates. He hasn’t taken it well, and he’s gone up Big Ben to look for whoever’s to blame.',
+    start: NEESON_START,
+    done: NEESON_DONE,
+    steps: [
+      {
+        until: beatFlag(NEESON_DOUBLE),
+        todo: 'Climb the Elizabeth Tower. Somebody who looks a lot like Liam Neeson is on the way up.',
+        where: 'Big Ben, London',
+      },
+      {
+        until: NEESON_DONE,
+        todo: 'Liam Neeson is at the top, looking out over London. Talk him down. With a battle.',
+        where: 'Big Ben, London',
       },
     ],
   },

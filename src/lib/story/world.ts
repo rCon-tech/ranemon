@@ -112,6 +112,7 @@ export type Look =
   | 'provai'
   | 'bus'
   | 'neeson'
+  | 'pugh'
   | 'border'
   | 'crew'
   | 'stag'
