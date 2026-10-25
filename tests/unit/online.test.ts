@@ -311,6 +311,18 @@ describe('the Online Champion', () => {
     expect(r.body.you).not.toHaveProperty('champion');
   });
 
+  it('starts with Ollie, when the server has his save', async () => {
+    const w = world({ ...saves(), ollie: LATE });
+    expect((await champion(w)).champion).toMatchObject({ id: 'ollie', name: 'Ollie' });
+    const room = await w.call({ op: 'create', name: 'Ollie', pin: '1234', rules: RULES_VERSION });
+    expect(room.body.you).toMatchObject({ champion: true, skin: CHAMPION_SKIN });
+    // Two others battling leave him the crown.
+    expect((await fight(w, 'Rich', 'Con', 'Con')).won).not.toHaveProperty('crown');
+    const { won } = await fight(w, 'Rich', 'Ollie', 'Ollie');
+    expect(won.crown).toEqual({ holder: 'Rich', change: 'took' });
+    expect((await champion(w)).champion).toMatchObject({ id: 'rich', from: 'Ollie' });
+  });
+
   it('isn’t there on a server without the crown', async () => {
     const w = world(saves(), false);
     expect(await champion(w)).toEqual({ champion: null });

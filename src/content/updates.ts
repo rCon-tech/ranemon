@@ -14,7 +14,7 @@ export const UPDATES: Update[] = [
     date: '2026-10-25',
     title: 'The Online Champion',
     notes: [
-      'There’s a crown up for grabs in friend battles, and only one trainer can hold it at a time. Nobody has it yet: win a friend battle to claim it.',
+      'There’s a crown up for grabs in friend battles, and only one trainer can hold it at a time. Ollie wears it for now. Beat him to take it.',
       'Beat the Online Champion and the crown is yours, along with the Champion’s skin, the grandest look in the game. Lose a friend battle while you hold it and it goes to whoever beat you.',
       'FRIEND BATTLE shows who holds the crown, and the Champion is crowned in the room, in battle and on their Trainer Card.',
     ],

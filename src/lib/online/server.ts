@@ -170,9 +170,21 @@ function readSkin(raw: string | null): string | undefined {
   }
 }
 
+/**
+ * The first Champion, who holds the crown before anyone has won it from them, if the save server
+ * has a save under their name. Without one, the crown waits for the first friend battle anyone
+ * wins.
+ */
+export const FIRST_CHAMPION = 'Ollie';
+
 async function readCrown(ctx: BattleContext): Promise<{ champ: Champion | null; version: number }> {
-  const got = ctx.crown && (await ctx.crown.get());
-  if (!got) return { champ: null, version: 0 };
+  if (!ctx.crown) return { champ: null, version: 0 };
+  const got = await ctx.crown.get();
+  if (!got) {
+    const id = trainerId(FIRST_CHAMPION);
+    const first: Champion = { id, name: FIRST_CHAMPION, since: 0, defences: 0, battle: 'first' };
+    return { champ: (await ctx.save(id)) ? first : null, version: 0 };
+  }
   try {
     return { champ: JSON.parse(got.doc) as Champion, version: got.version };
   } catch {
