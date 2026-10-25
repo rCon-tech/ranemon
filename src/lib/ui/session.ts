@@ -241,7 +241,7 @@ export function sips(chance: number, random: () => number): number {
   return n;
 }
 
-const PUSHED_AWAY = [
+export const PUSHED_AWAY = [
   'Oh no! It pushed the pint away!',
   'Aww! It only took one sip!',
   'Argh! It nearly finished it!',
@@ -384,6 +384,7 @@ function throwPint(s: Session, a: Extract<SessionAction, { type: 'pint' }>): Ses
   const lines: QueueItem[] = [say(`You threw a ${a.pint.name}!`)];
   for (let i = 1; i <= n; i++) lines.push(say(['Sip…', ...Array(i - 1).fill('sip…')].join(' ')));
   if (n === 3) {
+    lines.push(say(`${target.creature.name} tipped it back… glug, glug, glug!`));
     lines.push(say(`Gotcha! ${target.creature.name} finished the pint and joined you!`));
     if (target.creature.shiny) {
       lines.push(
