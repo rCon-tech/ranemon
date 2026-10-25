@@ -14,7 +14,6 @@ import {
   KX_DEPARTURES,
   legendId,
   nextClub,
-  objectiveAt,
   objectiveText,
 } from '@/content/story/premier';
 import { find, slot } from '@/lib/story/world';
@@ -183,18 +182,6 @@ describe('where to go next', () => {
       map: 'manchester',
     });
     expect(nextClub(new Set([...won(11), CHAMPION]))).toBeNull();
-  });
-
-  it('puts the marker on King’s Cross, the right guard, then the right turnstiles', () => {
-    expect(objectiveAt(LONDON, start)).toEqual({ ...find(LONDON, 'L')[0], on: 'door' });
-    const kx = mapById(KINGS_CROSS_ID);
-    expect(objectiveAt(kx, won(2))).toEqual({ x: 5, y: 3, on: 'person' });
-    const falmer = mapById('falmer');
-    const door = objectiveAt(falmer, start)!;
-    expect(falmer.rows[door.y][door.x]).toBe('L');
-    // In the wrong town, it's the guard who takes you back.
-    expect(objectiveAt(mapById('leeds'), start)).toMatchObject({ on: 'person' });
-    expect(objectiveAt(LONDON, new Set())).toBeNull();
   });
 
   it('draws every ground as its club’s stadium, over its own door', () => {

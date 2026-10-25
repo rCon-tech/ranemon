@@ -176,7 +176,6 @@ Twelve grounds, played in the order below: **from the smallest club to the bigge
 **Finding your way** (Rich's ask: it should be obvious where to go next):
 
 - A gold line along the bottom of the map in Britain says the next match: `NEXT 3/12: Villa at Villa Park · Platform 3`.
-- A bobbing **NEXT** marker sits over King's Cross's door in London, over the right guard on the King's Cross concourse, and over the right ground's turnstiles in its town. In a town without your next match, it sits over the guard who takes you back.
 - **King's Cross** has seven platforms, numbered in the order you first need them, each guard standing under their own panel of the departures board: the platform number, where it goes and the crest of every club it's for (greyed once you've the jersey), with your next train lit up. The ticket office by the door opens the same board as a list to pick from. The guards say the platform, the train and the clubs before you get on, and every guard home tells you your next match.
 - START → MISSIONS says which club you're on (3 of 12), its ground and its platform.
 

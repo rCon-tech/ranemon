@@ -1,7 +1,6 @@
 import { interiorId } from './interiors';
 import { CHAMPION, FIXTURES, RAILCARD } from './kneecap';
 import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
-import { find, slot } from '@/lib/story/world';
 import type {
   ClubId,
   GameMap,
@@ -1498,33 +1497,4 @@ export function objectiveText(flags: ReadonlySet<string>): string | null {
   const next = nextClub(flags);
   if (!next) return null;
   return `NEXT ${next.n}/${CLUBS.length}: ${SHORT[next.id]} at ${next.ground} · Platform ${next.platform}`;
-}
-
-/**
- * Where the marker for the next match goes on a map, if anywhere: King's Cross's door in London,
- * the guard on the right platform at King's Cross, the ground's turnstiles in its town, or the
- * guard home from any other town on the way.
- */
-export function objectiveAt(
-  map: GameMap,
-  flags: ReadonlySet<string>,
-): { x: number; y: number; on: 'door' | 'person' } | null {
-  const next = nextClub(flags);
-  if (!next) return null;
-  if (map.id === 'london') {
-    const door = find(map, 'L')[0];
-    return door ? { ...door, on: 'door' } : null;
-  }
-  if (map.id === KINGS_CROSS_ID) {
-    const guard = find(map, slot(next.platform - 1))[0];
-    return guard ? { ...guard, on: 'person' } : null;
-  }
-  if (!PL_MAPS.some((m) => m.id === map.id)) return null;
-  const ground = map.scenery?.find((s) => s.kind === 'stadium' && s.club === next.id);
-  if (ground) {
-    const x = [...map.rows[ground.y1]].findIndex((t, x) => t === 'L' && x >= ground.x0);
-    return { x, y: ground.y1, on: 'door' };
-  }
-  const guard = find(map, slot(0))[0];
-  return guard ? { ...guard, on: 'person' } : null;
 }
