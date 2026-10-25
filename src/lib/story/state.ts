@@ -1,16 +1,19 @@
 import { mapById, outsideOf } from '@/content/story/maps';
 import { breakRun } from '@/content/story/galway';
 import type { BattleState } from '../battle/engine';
+import { moveById } from '../battle/moves';
 import type { Result } from '../ui/session';
 import type { ItemId } from './items';
 import {
   afterBattle,
   capLine,
   cappedLine,
+  evolutionIn,
   expYield,
   gainExp,
   gainedLine,
   heal,
+  learnedOf,
   makeMember,
   PARTY_SIZE,
   nameOf,
@@ -190,8 +193,6 @@ export const canFight = (s: StoryState) => s.party.some((m) => m.hp > 0);
 /** The member who walks behind you: the first one still standing. */
 export const follower = (s: StoryState) => s.party.find((m) => m.hp > 0) ?? null;
 
-const GREW = / grew to Lv\d+!$/;
-
 /** Names as a list: “Carlmon, Enda and Jammon”. */
 const listOf = (names: string[]) =>
   names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
@@ -209,11 +210,40 @@ export function expLine(gains: { name: string; amount: number }[]): string {
 }
 
 /**
+ * A Ranemon's level-up from a battle, however many levels it went, with every move it learnt on
+ * the way: “Carlmon grew to Lv13 and learned Pint Throw!”.
+ */
+function grewLine(before: Member, after: Member): string {
+  const known = learnedOf(before);
+  const learnt = learnedOf(after).filter((id) => !known.includes(id));
+  const grew = `${nameOf(before)} grew to Lv${after.level}`;
+  if (!learnt.length) return `${grew}!`;
+  const names = learnt.map((id) => moveById(id).name);
+  const benched = learnt.filter((id) => !after.moves.includes(id));
+  const swap = benched.length ? ` Swap ${benched.length > 1 ? 'them' : 'it'} in from PARTY.` : '';
+  const list = listOf(names);
+  // Some moves bring their own “!”, like Fore!
+  return `${grew} and learned ${list}${/[!?]$/.test(list) ? '' : '!'}${swap}`;
+}
+
+/** Rows a text box shows at once; a longer results box carries on into another. */
+export const BOX_ROWS = 6;
+
+/** Rows of a results box, a line each, split into boxes of `BOX_ROWS`. */
+function boxesOf(rows: string[]): string[] {
+  const boxes: string[] = [];
+  for (let i = 0; i < rows.length; i += BOX_ROWS)
+    boxes.push(rows.slice(i, i + BOX_ROWS).join('\n'));
+  return boxes;
+}
+
+/**
  * What a finished battle leaves behind: HP, PP and status copied back, EXP for every foe that
  * fainted, and the catch or the blackout. The Ranemon that fought a foe share its EXP. The rest
  * of the party still standing get nothing, half with The Round, or the same as a fighter with
  * Exp Share on. Nobody grows past the level cap; beating the gym leader who sets it lifts it for
- * that battle's EXP too.
+ * that battle's EXP too. It's said in as few boxes as it takes: one results box, starting with
+ * `opener` (the prize money) if there is one, then a pair for each evolution.
  */
 export function settleBattle(
   s: StoryState,
@@ -222,8 +252,11 @@ export function settleBattle(
   fought: number[],
   trainer: boolean,
   trainerId?: string,
+  opener?: string,
 ): { state: StoryState; lines: string[] } {
-  const lines: string[] = [];
+  // The results box: what was won, a row each, then any evolutions and what else is said.
+  const summary = opener ? [opener] : [];
+  const after: string[] = [];
   const cap = levelCap(result === 'win' && trainerId ? setFlag(s, beatFlag(trainerId)) : s);
   let party = s.party.map((m, i) => afterBattle(m, battle.teams[0].battlers[i]));
 
@@ -250,7 +283,7 @@ export function settleBattle(
     const gains: { name: string; amount: number }[] = [];
     const levels: string[] = [];
     const capped: string[] = [];
-    const rest: string[] = [];
+    const evolutions: string[] = [];
     earned.forEach((amount, i) => {
       if (!amount) return;
       const before = party[i];
@@ -258,19 +291,17 @@ export function settleBattle(
       const { member, lines: more } = gainExp(before, amount, party, cap);
       party = party.map((m, j) => (j === i ? member : m));
       if (more[0] === gained) gains.push({ name: nameOf(before), amount });
-      // Only the level it ends on, however many it went up.
-      const grew = more.filter((l) => GREW.test(l));
-      if (grew.length) levels.push(grew[grew.length - 1]);
+      if (member.level > before.level) levels.push(grewLine(before, member));
       const atCap = (l: string) => l === capLine(before, cap) || l === capLine(member, cap);
       if (more.some(atCap)) capped.push(nameOf(member));
-      rest.push(...more.filter((l) => l !== gained && !GREW.test(l) && !atCap(l)));
+      evolutions.push(...more.filter((l) => evolutionIn(l)));
     });
-    // One box for everyone's EXP, one for everyone's new level and one for everyone at the
-    // level cap; what they learnt and their evolutions still get a box each.
-    if (gains.length) lines.push(expLine(gains));
-    if (levels.length) lines.push(levels.join(' '));
-    lines.push(...rest);
-    if (capped.length) lines.push(cappedLine(listOf(capped), cap));
+    // Everyone's EXP, new levels, new moves and the level cap all go in the one results box;
+    // only an evolution, with its scene, gets boxes of its own.
+    if (gains.length) summary.push(expLine(gains));
+    summary.push(...levels);
+    if (capped.length) summary.push(cappedLine(listOf(capped), cap));
+    after.push(...evolutions);
   }
 
   let state: StoryState = { ...s, party };
@@ -283,7 +314,7 @@ export function settleBattle(
       ...(foe.creature.variant ? { variant: foe.creature.variant } : {}),
     });
     state = joined.state;
-    if (joined.line) lines.push(joined.line);
+    if (joined.line) summary.push(joined.line);
   }
   if (result === 'loss' || result === 'draw') {
     const tab = Math.floor(state.money / 2);
@@ -292,14 +323,14 @@ export function settleBattle(
     const town = outside.name.split(',')[0];
     // In England the pubs are W.B Yates, and in the expansion the tab is in pounds.
     const money = outside.uk ? `£${tab}` : `€${tab}`;
-    lines.push(
+    summary.push(
       'You’re out of Ranemon that can fight!',
       outside.uk || outside.yates
         ? `You come round in W.B Yates, ${town}, with a bar tab of ${money}. Liam Neeson is standing over you. He says nothing.`
         : `You come round in McGrattans, ${town}, with a bar tab of ${money}.`,
     );
   }
-  return { state, lines };
+  return { state, lines: [...boxesOf(summary), ...after] };
 }
 
 /**
