@@ -5,6 +5,8 @@ import {
   applyUpdate,
   isOnline,
   onOnlineChange,
+  offlineStatus,
+  onOfflineStatus,
   onUpdateReady,
   registerOffline,
   updateReady,
@@ -37,5 +39,22 @@ export function UpdateButton() {
     >
       NEW VERSION · TAP TO UPDATE
     </button>
+  );
+}
+
+/**
+ * On the title screen: how much of the game is on the phone, so players know when it's safe to
+ * go offline. Shown only in builds that play offline, once the service worker has said.
+ */
+export function OfflineReady() {
+  const status = useSyncExternalStore(onOfflineStatus, offlineStatus, () => null);
+  if (!status) return null;
+  const ready = status.done >= status.total;
+  return (
+    <p className="text-[11px]" data-testid="offline-status" data-ready={ready}>
+      {ready
+        ? '✓ READY TO PLAY OFFLINE'
+        : `GETTING READY FOR OFFLINE… ${Math.floor((100 * status.done) / status.total)}%`}
+    </p>
   );
 }

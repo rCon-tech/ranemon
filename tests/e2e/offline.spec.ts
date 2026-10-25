@@ -18,13 +18,11 @@ test('offline: once loaded, the game plays with no connection', async ({ page, c
   await page.goto(GAME);
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
 
-  // The service worker keeps every file of the build before it takes over.
-  const files = await page.evaluate(async () => {
-    await navigator.serviceWorker.ready;
-    const name = (await caches.keys()).find((k) => k.startsWith('ranemon-'))!;
-    return (await (await caches.open(name)).keys()).length;
-  });
-  expect(files).toBeGreaterThan(500);
+  // The title says when the whole game is on the phone.
+  const ready = page.getByTestId('offline-status');
+  await expect(ready).toHaveText(/GETTING READY FOR OFFLINE|READY TO PLAY OFFLINE/);
+  await expect(ready).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await expect(ready).toHaveText('✓ READY TO PLAY OFFLINE');
 
   await context.setOffline(true);
   await page.reload();
@@ -53,6 +51,32 @@ test('offline: once loaded, the game plays with no connection', async ({ page, c
   for (let i = 0; i < 6; i++) await roster.nth(i).click();
   await page.getByRole('button', { name: /BATTLE!/ }).click();
   await expect(page.getByRole('button', { name: 'FIGHT' })).toBeVisible({ timeout: 15_000 });
+});
+
+test('offline: the game opens offline even if the pictures were cut off, and finishes later', async ({
+  page,
+  context,
+}) => {
+  test.slow();
+  await unlock(page);
+  // A patchy connection: no pictures get through on the first visit.
+  await context.route('**/ranemon/sprites/**', (route) => route.abort('connectionreset'));
+  await page.goto(GAME);
+  await expect(page.getByTestId('offline-status')).toHaveAttribute('data-ready', 'false');
+
+  // The game itself is in, so it still opens with no connection.
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'PRESS START' })).toBeVisible();
+
+  // Back online, the next visit picks up the pictures where it stopped.
+  await context.setOffline(false);
+  await context.unroute('**/ranemon/sprites/**');
+  await page.reload();
+  await expect(page.getByTestId('offline-status')).toHaveAttribute('data-ready', 'true', {
+    timeout: 30_000,
+  });
 });
 
 test('offline: a new version downloads, then waits for a tap on the title screen', async ({

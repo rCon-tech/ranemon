@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react';
 import { LATEST, SEEN_KEY } from '@/content/updates';
 import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
-import { UpdateButton, useOnline } from './Offline';
+import { OfflineReady, UpdateButton, useOnline } from './Offline';
 import { SoundButton } from './Sound';
 
 /** Whether there's an update you haven't looked at yet. Never on the server render. */
@@ -81,6 +81,7 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
           </button>
         )}
         <UpdateButton />
+        <OfflineReady />
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
           <Link href="/guide" className="underline underline-offset-4">
             HOW TO PLAY
