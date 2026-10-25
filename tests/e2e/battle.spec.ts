@@ -40,6 +40,89 @@ test('the game asks for the password once per browser', async ({ page }) => {
   await expect(page.getByText('PRESS START')).toBeVisible();
 });
 
+test('battle mode: London and evolved rosters, and a pick’s look, item and moves', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'PRESS START' }).click();
+  // Britain's Ranemon stay a surprise until a story save has been there.
+  const rosters = page.getByRole('group', { name: 'Roster' });
+  await expect(rosters.getByRole('button', { name: '🔒 ???' })).toHaveCount(2);
+  await page.getByRole('region', { name: 'Your roster' }).getByRole('button').first().click();
+  await page.getByTestId('team-pick').first().click();
+  await expect(
+    page.getByRole('group', { name: 'Look' }).getByRole('button', { name: /UK/ }),
+  ).toHaveCount(0);
+
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'ranemon.story.v1:abroad',
+      JSON.stringify({
+        version: 1,
+        map: 'clare',
+        x: 5,
+        y: 5,
+        face: 'down',
+        party: [],
+        box: [],
+        bag: {},
+        money: 0,
+        flags: ['starter'],
+        seen: [],
+        caught: [],
+        ukSeen: ['carlmon'],
+        pub: { map: 'clare', x: 5, y: 5 },
+        uid: 1,
+        steps: 0,
+      }),
+    ),
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'PRESS START' }).click();
+  const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
+  await page.getByRole('group', { name: 'Roster' }).getByRole('button', { name: 'LONDON' }).click();
+  await expect(roster.first()).toContainText('Golpeak');
+  await page
+    .getByRole('group', { name: 'Roster' })
+    .getByRole('button', { name: 'EVERYONE' })
+    .click();
+  await page.getByRole('group', { name: 'Forms' }).getByRole('button', { name: 'EVOLVED' }).click();
+  await expect(roster.first()).toContainText('Carlizard');
+  await expect(roster.last()).toContainText('Aerodactivist');
+
+  // Killemon's line: Killigatr or Cholokill.
+  await roster.filter({ hasText: 'Killigatr' }).click();
+  await page.getByTestId('team-pick').first().click();
+  const editor = page.getByTestId('pick-editor');
+  await editor
+    .getByRole('group', { name: 'Form' })
+    .getByRole('button', { name: /Cholokill/ })
+    .click();
+  await expect(page.getByTestId('team-pick').first()).toContainText('Cholokill');
+  await editor.getByRole('group', { name: 'Look' }).getByRole('button', { name: /UK/ }).click();
+  await expect(editor.getByRole('img', { name: 'Cholokill' }).first()).toHaveAttribute(
+    'src',
+    /drawn\/cholokill/,
+  );
+  await editor
+    .getByRole('group', { name: 'Held item' })
+    .getByRole('button', { name: /Xanax/ })
+    .click();
+  await expect(page.getByTestId('team-pick').first()).toContainText('Holds Xanax');
+  // Swap a move for a spare one.
+  const cards = editor.getByTestId('move-card');
+  const before = await cards.nth(1).innerText();
+  await cards.nth(1).click();
+  await cards.nth(4).click();
+  await expect(cards.nth(1)).not.toHaveText(before);
+
+  for (let i = 0; i < 6; i++) await roster.nth(i).click();
+  await page.getByRole('button', { name: /BATTLE!/ }).click();
+  await expect(page.getByRole('button', { name: 'FIGHT' })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('info-you')).toContainText('Cholokill');
+});
+
 test('pick 6 of the 20, then a full 6v6 battle against the CPU', async ({ page }) => {
   await unlock(page);
   await page.goto('/');

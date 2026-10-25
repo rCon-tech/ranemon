@@ -7,6 +7,7 @@ import { BattleScreen, type BagEntry, type Scene } from '@/components/BattleScre
 import { Sprite } from '@/components/Sprite';
 import { SpeedButton } from '@/components/SpeedButton';
 import { useView, ViewButton } from '@/components/ViewButton';
+import { useChampion } from '@/components/Champion';
 import { play, SoundButton, useMusic } from '@/components/Sound';
 import { areaSong, battleSong, lineCues, partySong } from '@/lib/sound/cues';
 import { playSfx } from '@/lib/sound/engine';
@@ -291,6 +292,9 @@ export function Story() {
   const name = typed ?? remembered ?? '';
   /** The trainer playing: whose save every change goes to. */
   const player = useRef('');
+  // The Online Champion, from the save server: whoever holds the crown wears the Champion's skin.
+  const { champ } = useChampion(SAVE_API);
+  const champion = !!game && !!champ && champ.id === playerId(player.current);
   const [pin, setPin] = useState('');
   const [title, setTitle] = useState<{
     busy: boolean;
@@ -1152,7 +1156,7 @@ export function Story() {
           dog={dog}
           frozen={busy}
           bike={hasFlag(game, LIMEPASS) ? 'lime' : hasFlag(game, 'bike') ? 'nelly' : null}
-          look={lookOf(game)}
+          look={lookOf(game, champion)}
           exclaim={exclaim}
           faces={faces}
           flight={flight}
@@ -1314,12 +1318,15 @@ export function Story() {
           />
         )}
         {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={dexNav} />}
-        {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
+        {overlay === 'card' && (
+          <JerseysPanel game={game} champion={champion} onClose={closeOverlay} />
+        )}
         {overlay === 'skins' && (
           <SkinsPanel
             game={game}
+            champion={champion}
             onWear={(id) => {
-              const g = wearSkin(game, id);
+              const g = wearSkin(game, id, champion);
               persist(g);
               setGame(g);
             }}

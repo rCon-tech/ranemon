@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { battleCall } from '../src/lib/online/server';
-import { handle, type RoomStore, type SaveRow, type SaveStore } from './handler';
+import { handle, type CrownStore, type RoomStore, type SaveRow, type SaveStore } from './handler';
 
 /**
  * The save server on this machine, keeping everything in memory, for trying online saves and
@@ -30,6 +30,16 @@ const rooms: RoomStore = {
   },
 };
 
+let champion: { doc: string; version: number } | null = null;
+const crown: CrownStore = {
+  get: async () => champion,
+  put: async (doc, version) => {
+    if ((champion?.version ?? 0) !== version) return false;
+    champion = { doc, version: version + 1 };
+    return true;
+  },
+};
+
 createServer(async (req, res) => {
   const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk as Buffer);
@@ -41,7 +51,7 @@ createServer(async (req, res) => {
       body,
     }),
     saves,
-    { origins, battles: { rooms, call: battleCall } },
+    { origins, battles: { rooms, call: battleCall, crown } },
   );
   reply.headers.forEach((value, key) => res.setHeader(key, value));
   res.writeHead(reply.status);

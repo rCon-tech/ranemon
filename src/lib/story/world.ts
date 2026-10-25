@@ -172,7 +172,8 @@ export type Look =
   | 'behzinga'
   | 'vikkstar'
   | 'tbj'
-  | 'jamie';
+  | 'jamie'
+  | 'champion';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk

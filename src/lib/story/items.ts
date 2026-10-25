@@ -329,14 +329,16 @@ export const canUseOn = (item: Item, m: Member, cap?: number) =>
   );
 
 /** What a member's held item does in battle: its stat multipliers, if it's of the right line (or any). */
-export function heldBoost(m: Member): Partial<Record<Stat, number>> | undefined {
+export function heldBoost(
+  m: Pick<Member, 'species' | 'held'>,
+): Partial<Record<Stat, number>> | undefined {
   const use = m.held && BY_ID.get(m.held)?.use;
   if (!use || use.kind !== 'hold' || (use.line && lineOf(m.species) !== use.line)) return undefined;
   return { [use.stat]: use.factor };
 }
 
 /** Whether a member's held item keeps it chill, so it can't be Flustered: Xanax. */
-export function heldCalm(m: Member): boolean {
+export function heldCalm(m: Pick<Member, 'species' | 'held'>): boolean {
   const use = m.held && BY_ID.get(m.held)?.use;
   return (
     !!use && use.kind === 'hold' && !!use.calm && (!use.line || lineOf(m.species) === use.line)

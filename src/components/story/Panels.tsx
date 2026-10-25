@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DexEntry } from '@/components/DexEntry';
+import { MoveCard } from '@/components/MoveCard';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
-import { TYPE_LABEL } from '@/lib/battle/types';
 import { DEX as IRISH_DEX } from '@/lib/battle/evolutions';
 import { ROSTER } from '@/lib/battle/roster';
 import { UK, UK_ENTRIES } from '@/lib/battle/uk';
@@ -28,7 +28,7 @@ import {
   statsOf,
   type Member,
 } from '@/lib/story/party';
-import { storyKnowledge, strongAgainst } from '@/lib/story/dex';
+import { storyKnowledge } from '@/lib/story/dex';
 import { hasUkDex, ukKnowledge, UK_DEX } from '@/lib/story/ukdex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
@@ -38,8 +38,7 @@ import { COUNTIES, mapById } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
-import type { Look } from '@/lib/story/world';
-import { paintPerson, PERSON_H, PERSON_W, STYLES } from './people';
+import { Portrait } from './Portrait';
 
 /** The level cap, as the PARTY and BAG panels say it. Nothing once there's no cap. */
 function CapNote({ cap }: { cap: LevelCap }) {
@@ -251,62 +250,6 @@ export function PartyPanel({
         </div>
       ))}
     </Panel>
-  );
-}
-
-const CATEGORY = { physical: 'PHYS', spirit: 'SPIR', status: 'STATUS' } as const;
-
-/** One move on the MOVES screen: name, type, power, accuracy and PP at a glance. */
-function MoveCard({
-  id,
-  pp,
-  stab,
-  picked,
-  disabled,
-  onClick,
-}: {
-  id: string;
-  /** PP left, for a move in one of the 4 slots. */
-  pp?: number;
-  /** The move shares a type with the Ranemon, so it hits harder. */
-  stab: boolean;
-  picked: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  const move = moveById(id);
-  const strong = strongAgainst(move);
-  return (
-    <button
-      type="button"
-      className="pixel-btn flex flex-col gap-0.5 px-2 py-1.5 text-[10px]"
-      aria-pressed={picked}
-      disabled={disabled}
-      onClick={onClick}
-      data-testid="move-card"
-    >
-      <span className="flex items-center justify-between gap-1 text-[11px]">
-        <span className="truncate">
-          {move.signature ? '★ ' : ''}
-          {move.name}
-        </span>
-        {move.type && <TypeBadge type={move.type} />}
-      </span>
-      <span className="flex justify-between gap-1 text-[9px]">
-        <span>
-          {CATEGORY[move.category]} · POW {move.power || '—'} · ACC{' '}
-          {move.accuracy === null ? '—' : `${move.accuracy}%`}
-        </span>
-        <span className="shrink-0">PP {pp === undefined ? move.pp : `${pp}/${move.pp}`}</span>
-      </span>
-      {(stab || strong.length > 0) && (
-        <span className="text-[9px] opacity-80">
-          {stab && move.power > 0 ? 'Same type: hits harder. ' : ''}
-          {strong.length > 0 && `Strong vs ${strong.map((t) => TYPE_LABEL[t]).join(', ')}`}
-        </span>
-      )}
-      {picked && <span className="text-[9px] leading-relaxed">{move.flavour}</span>}
-    </button>
   );
 }
 
@@ -740,13 +683,30 @@ export function RanedexPanel({
   );
 }
 
-export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+export function JerseysPanel({
+  game,
+  champion = false,
+  onClose,
+}: {
+  game: StoryState;
+  /** They hold the Online Champion's crown. */
+  champion?: boolean;
+  onClose: () => void;
+}) {
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
+      {champion && (
+        <p
+          className="rounded-lg border-2 border-gold bg-[#2a1450] px-2 py-1 text-center text-[11px] font-bold text-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]"
+          data-testid="card-champion"
+        >
+          ♛ ONLINE CHAMPION ♛
+        </p>
+      )}
       <div className="flex items-center gap-3">
         <Portrait
-          look={lookOf(game)}
-          className="h-[72px] w-12 rounded-lg border-2 border-frame bg-mist"
+          look={lookOf(game, champion)}
+          className={`h-[72px] w-12 rounded-lg border-2 bg-mist ${champion ? 'border-gold' : 'border-frame'}`}
         />
         <p className="text-[11px] leading-relaxed">
           Money €{game.money}
@@ -778,73 +738,39 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
   );
 }
 
-/** Someone as they walk the overworld, facing you: a dark silhouette while `locked`. */
-function Portrait({
-  look,
-  locked = false,
-  className,
-}: {
-  look: Look | 'player';
-  locked?: boolean;
-  className?: string;
-}) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const c = ref.current?.getContext('2d');
-    if (!c) return;
-    c.clearRect(0, 0, PERSON_W, PERSON_H);
-    c.globalCompositeOperation = 'source-over';
-    c.drawImage(paintPerson(STYLES[look], 'down', 0), 0, 0);
-    if (locked) {
-      c.globalCompositeOperation = 'source-in';
-      c.fillStyle = '#1c2026';
-      c.fillRect(0, 0, PERSON_W, PERSON_H);
-      c.globalCompositeOperation = 'source-over';
-    }
-  }, [look, locked]);
-  return (
-    <canvas
-      ref={ref}
-      width={PERSON_W}
-      height={PERSON_H}
-      className={className}
-      style={{ imageRendering: 'pixelated' }}
-      data-look={locked ? undefined : look}
-      aria-hidden="true"
-    />
-  );
-}
-
 /**
  * Skins: everyone you've beaten or done a side quest for, to walk around as. Locked ones are
  * silhouettes with a hint. The look shows on the map and the Trainer Card, in 2D.
  */
 export function SkinsPanel({
   game,
+  champion = false,
   onWear,
   onClose,
 }: {
   game: StoryState;
+  /** They hold the Online Champion's crown, so its skin is theirs while they keep it. */
+  champion?: boolean;
   onWear: (id: string) => void;
   onClose: () => void;
 }) {
-  const wearing = lookOf(game);
-  const have = SKINS.filter((k) => hasSkin(game, k)).length;
+  const wearing = lookOf(game, champion);
+  const have = SKINS.filter((k) => hasSkin(game, k, champion)).length;
   return (
     <Panel title="SKINS" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
         Beat someone, or finish their side quest, to walk around as them. {have}/{SKINS.length}{' '}
-        unlocked.
+        unlocked. The Online Champion’s skin is worn only by whoever holds the crown.
       </p>
       <div className="grid grid-cols-3 gap-1.5">
         {SKINS.map((k) => {
-          const open = hasSkin(game, k);
+          const open = hasSkin(game, k, champion);
           return (
             <button
               key={k.id}
               type="button"
               data-testid={`skin-${k.id}`}
-              className="pixel-btn flex flex-col items-center gap-1 px-1 py-1.5"
+              className={`pixel-btn flex flex-col items-center gap-1 px-1 py-1.5 ${k.online ? 'border-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]' : ''}`}
               disabled={!open}
               aria-pressed={open ? wearing === k.id : undefined}
               aria-label={open ? k.name : `Locked. ${k.hint}`}
@@ -854,9 +780,10 @@ export function SkinsPanel({
                 onWear(k.id);
               }}
             >
-              <Portrait look={k.id} locked={!open} className="h-12 w-8" />
+              {/* The Champion's skin is on show to everyone: it's worth winning. */}
+              <Portrait look={k.id} locked={!open && !k.online} className="h-12 w-8" />
               <span className="text-center text-[8px] leading-tight">
-                {open ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
+                {open || k.online ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
               </span>
               {!open && <span className="text-center text-[7px] leading-tight">{k.hint}</span>}
               {open && wearing === k.id && <span className="text-[7px]">WEARING</span>}

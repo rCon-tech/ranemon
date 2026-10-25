@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import type { RoomStore, SaveRow, SaveStore } from './handler.js';
+import type { CrownStore, RoomStore, SaveRow, SaveStore } from './handler.js';
 
 /** The tables, made on first use, so setting up needs no SQL. */
 const SCHEMA = [
@@ -21,6 +21,12 @@ const SCHEMA = [
     code TEXT PRIMARY KEY,       -- a friend battle's room code, like BOKA-42
     doc TEXT NOT NULL,           -- the room and its battle, as JSON
     version INTEGER NOT NULL,    -- bumped on each write, so two calls at once can't overwrite each other
+    updated BIGINT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS crown (
+    id TEXT PRIMARY KEY,         -- always 'online': there is one Online Champion
+    doc TEXT NOT NULL,           -- who holds it, as JSON
+    version INTEGER NOT NULL,    -- bumped on each write, so two battles ending at once can't both take it
     updated BIGINT NOT NULL
   )`,
 ];
@@ -67,6 +73,32 @@ export function neonRooms(url: string): RoomStore {
          ON CONFLICT (code) DO NOTHING RETURNING code`,
         [code, doc, now],
       );
+      return rows.length > 0;
+    },
+  };
+}
+
+/** The Online Champion, in the same database, as one row. */
+export function neonCrown(url: string): CrownStore {
+  const q = query(url);
+  return {
+    get: async () => {
+      const [r] = await q(`SELECT doc, version FROM crown WHERE id = 'online'`, []);
+      return r ? { doc: String(r.doc), version: Number(r.version) } : null;
+    },
+    put: async (doc, version, now) => {
+      const rows =
+        version > 0
+          ? await q(
+              `UPDATE crown SET doc = $1, version = version + 1, updated = $3
+               WHERE id = 'online' AND version = $2 RETURNING id`,
+              [doc, version, now],
+            )
+          : await q(
+              `INSERT INTO crown (id, doc, version, updated) VALUES ('online', $1, 1, $2)
+               ON CONFLICT (id) DO NOTHING RETURNING id`,
+              [doc, now],
+            );
       return rows.length > 0;
     },
   };
