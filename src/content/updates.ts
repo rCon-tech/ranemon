@@ -20,6 +20,17 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'Play with no signal',
+    notes: [
+      'Once you’ve opened Ranemon, the whole game stays on your phone, so Story mode, Battle mode and the Ranedex all work on the train, on a plane or anywhere with no signal.',
+      'Add it to your home screen to play it like an app. On an iPhone, tap Share, then Add to Home Screen. On Android, tap Install when your browser offers it.',
+      'With no connection, CONTINUE plays the save on your phone straight away, and it backs up online by itself once you’re connected again. Friend battles still need a connection.',
+      'If you play the same name on two devices without a connection, neither save writes over the other. Next time, the game shows you both and you pick which to keep. The other is kept in BACKUPS AND SAVE CODES.',
+      'When there’s a new version, the title screen says so. Tap to update, whenever suits you.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'A tidier bag',
     notes: [
       'The BAG has pockets now: FOOD, PINTS, VAPES, SPECIAL and KEY, with how many things are in each. Tap a thing to read what it does, and tap it again (or USE) to use it.',

@@ -1,4 +1,5 @@
 import type { BattleState } from '../battle/engine';
+import { updateNow } from '../offline';
 import type { Choice, QueueItem } from '../ui/session';
 import { RULES_VERSION, type ChampionView, type LevelRule, type RoomView } from './rules';
 
@@ -18,7 +19,7 @@ export class LinkError extends Error {
 }
 
 const WORDS: Record<string, string> = {
-  update: 'You and the save server are on different versions of the game. Reload the page.',
+  update: 'You and the save server are on different versions of the game. Updating…',
   'wrong PIN': 'That PIN doesn’t match the name’s online save.',
   locked: 'Too many wrong PINs for that name. Try again in 15 minutes.',
   'no save': 'That name has no online save yet. Play Story mode with your PIN first.',
@@ -50,6 +51,8 @@ async function post(base: string, body: object): Promise<RoomView & { token?: st
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const error = String(data.error ?? res.status);
+    // This phone is on an older version than the server: fetch the new one and reload into it.
+    if (error === 'update' && typeof window !== 'undefined') void updateNow();
     if (error === 'team') throw new LinkError(`Your team can’t battle: ${data.why}`, error);
     throw new LinkError(WORDS[error] ?? `The save server said no (${error}).`, error);
   }

@@ -5,6 +5,7 @@ import { useSyncExternalStore } from 'react';
 import { LATEST, SEEN_KEY } from '@/content/updates';
 import { asset } from '@/lib/asset';
 import type { BattleRecord } from '@/lib/record';
+import { UpdateButton, useOnline } from './Offline';
 import { SoundButton } from './Sound';
 
 /** Whether there's an update you haven't looked at yet. Never on the server render. */
@@ -25,6 +26,7 @@ function useHasNew(): boolean {
 /** The title: the black-and-white split of the 5th generation's box art, with a gold logo. */
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
   const fresh = useHasNew();
+  const online = useOnline();
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-10 overflow-hidden px-4 py-12 text-center">
       <div
@@ -62,9 +64,23 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
           STORY MODE
         </Link>
-        <Link href="/friends" className="pixel-btn menu-item text-[14px]" data-cmd="party">
-          FRIEND BATTLE
-        </Link>
+        {online ? (
+          <Link href="/friends" className="pixel-btn menu-item text-[14px]" data-cmd="party">
+            FRIEND BATTLE
+          </Link>
+        ) : (
+          // Friend battles are played on the save server, so they need a connection.
+          <button
+            type="button"
+            disabled
+            className="pixel-btn menu-item text-[14px] opacity-60"
+            data-cmd="party"
+            data-testid="friends-offline"
+          >
+            FRIEND BATTLE · NEEDS A CONNECTION
+          </button>
+        )}
+        <UpdateButton />
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
           <Link href="/guide" className="underline underline-offset-4">
             HOW TO PLAY

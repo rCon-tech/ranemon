@@ -11,7 +11,8 @@ const nextConfig: NextConfig = {
     basePath: pagesBasePath,
     trailingSlash: true,
     images: { unoptimized: true },
-    env: { NEXT_PUBLIC_BASE_PATH: pagesBasePath },
+    // NEXT_PUBLIC_OFFLINE: this build has a service worker (scripts/offline/), so it plays offline.
+    env: { NEXT_PUBLIC_BASE_PATH: pagesBasePath, NEXT_PUBLIC_OFFLINE: '1' },
   }),
 };
 

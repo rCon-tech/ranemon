@@ -5,6 +5,7 @@ const eslintConfig = [
   {
     ignores: [
       '.next/**',
+      'out/**',
       'node_modules/**',
       'save-api/node_modules/**',
       'save-api/gen/*.js',

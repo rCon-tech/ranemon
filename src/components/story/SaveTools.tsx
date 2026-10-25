@@ -16,6 +16,7 @@ const WHY: Record<Backup['why'], string> = {
   update: 'Before an update',
   restore: 'Before a restore',
   import: 'Before an import',
+  clash: 'The save you didn’t pick',
 };
 
 const when = (at: number) =>

@@ -4,11 +4,22 @@
  * kept, and five wrong PINs lock a name for 15 minutes, so a 4-digit PIN can't be guessed by
  * trying them all.
  *
- *   POST /api/load {id, pin}       → {raw} (null if the name has no save yet), 401 wrong PIN,
- *                                    429 locked
- *   POST /api/save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the
+ *   POST /api/load {id, pin}       → {raw, rev} (raw null if the name has no save yet), 401
+ *                                    wrong PIN, 429 locked. With `newDevice: true` it also hands
+ *                                    back a `device` token, which works in place of the PIN from
+ *                                    then on, so a phone can back up a save made offline without
+ *                                    asking for the PIN again.
+ *   POST /api/load {id, device}    → the same, with a device token instead of the PIN
+ *   POST /api/save {id, pin, raw, base}
+ *                                  → {ok, rev}; the first save of a name sets its PIN, and
+ *                                    `device` works in place of the PIN. `base` is the `rev` the
+ *                                    phone's save follows on from: if another device has saved
+ *                                    since, it's 409 {error: 'conflict', raw, rev} with the
+ *                                    server's save, and nothing is written. Without `base` (older
+ *                                    builds of the game) it's 409 if the
  *                                    server already has a newer save (from another device),
- *                                    which it keeps.
+ *                                    which it keeps, or one in a newer schema ({error:
+ *                                    'update'}) from a newer build of the game.
  *   POST /api/battle {op, ...}     → live friend battles and the Online Champion, run by
  *                                    `src/lib/online/server.ts`
  *
@@ -23,6 +34,8 @@ export interface SaveRow {
   hash: string;
   prev_raw: string | null;
   prev_at: number | null;
+  /** Counts the writes, so a phone can tell whether another device has saved since it last did. */
+  rev?: number;
 }
 
 export interface SaveStore {
@@ -31,6 +44,9 @@ export interface SaveStore {
   fails(id: string): Promise<{ count: number; until: number } | null>;
   setFails(id: string, count: number, until: number): Promise<void>;
   clearFails(id: string): Promise<void>;
+  /** The name a device token (by its hash) was handed out for, if the store keeps them. */
+  device?(hash: string): Promise<string | null>;
+  addDevice?(hash: string, id: string, now: number): Promise<void>;
 }
 
 /** A friend battle room as the battle logic stores it (`RoomStore` in `src/lib/online/server.ts`). */
@@ -127,6 +143,13 @@ async function checkPin(
 
 const randomBytes = (n: number) => crypto.getRandomValues(new Uint8Array(n));
 
+const DEVICE = /^[A-Za-z0-9_-]{32}$/;
+
+/** Only a hash of each device token is kept, like the PIN. */
+async function hashDevice(token: string): Promise<string> {
+  return b64(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)));
+}
+
 /** Compares in the same time whatever the strings, so timing can't give a hash away. */
 function same(a: string, b: string): boolean {
   let diff = a.length ^ b.length;
@@ -135,13 +158,17 @@ function same(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** The save's own timestamp, or null if `raw` isn't a Ranemon save. */
-function savedAtOf(raw: unknown): number | null {
+/** The save's own timestamp and schema, or null if `raw` isn't a Ranemon save. */
+function saveInfo(raw: unknown): { savedAt: number; schema: number } | null {
   if (typeof raw !== 'string' || raw.length > MAX_SAVE_BYTES) return null;
   try {
     const d = JSON.parse(raw);
     if (d?.version !== 1 || !Array.isArray(d.party)) return null;
-    return typeof d.savedAt === 'number' ? d.savedAt : 0;
+    return {
+      savedAt: typeof d.savedAt === 'number' ? d.savedAt : 0,
+      // Saves from before schemas are 1, as in the game.
+      schema: typeof d.schema === 'number' ? d.schema : 1,
+    };
   } catch {
     return null;
   }
@@ -189,55 +216,96 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
   if (req.method !== 'POST' || (path !== '/load' && path !== '/save'))
     return reply(404, { error: 'not found' });
 
-  let body: { id?: unknown; pin?: unknown; raw?: unknown };
+  let body: {
+    id?: unknown;
+    pin?: unknown;
+    device?: unknown;
+    newDevice?: unknown;
+    raw?: unknown;
+    base?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
     return reply(400, { error: 'bad request' });
   }
-  const { id, pin } = body;
-  if (typeof id !== 'string' || !ID.test(id) || typeof pin !== 'string' || !PIN.test(pin))
+  const { id, pin, device } = body;
+  const byDevice = typeof device === 'string' && pin === undefined;
+  if (
+    typeof id !== 'string' ||
+    !ID.test(id) ||
+    (byDevice ? !DEVICE.test(device) : typeof pin !== 'string' || !PIN.test(pin))
+  )
     return reply(400, { error: 'bad name or PIN' });
 
-  const fails = await store.fails(id);
-  if (fails && fails.count >= MAX_FAILS && fails.until > now())
-    return reply(429, { error: 'locked' });
-
   const row = await store.get(id);
-  if (row && !same(await hashPin(pin, row.salt), row.hash)) {
-    const count = fails && fails.until > now() ? fails.count + 1 : 1;
-    await store.setFails(id, count, now() + LOCK_MS);
-    return reply(401, { error: 'wrong PIN' });
+  if (byDevice) {
+    // A device token stands in for a PIN that has already opened the name on this phone.
+    const owner = row && store.device ? await store.device(await hashDevice(device)) : null;
+    if (owner !== id) return reply(401, { error: 'wrong PIN' });
+  } else {
+    const fails = await store.fails(id);
+    if (fails && fails.count >= MAX_FAILS && fails.until > now())
+      return reply(429, { error: 'locked' });
+    if (row && !same(await hashPin(pin as string, row.salt), row.hash)) {
+      const count = fails && fails.until > now() ? fails.count + 1 : 1;
+      await store.setFails(id, count, now() + LOCK_MS);
+      return reply(401, { error: 'wrong PIN' });
+    }
+    if (fails) await store.clearFails(id);
   }
-  if (fails) await store.clearFails(id);
 
-  if (path === '/load') return reply(200, { raw: row?.raw ?? null });
+  if (path === '/load') {
+    let token: string | undefined;
+    if (row && !byDevice && body.newDevice === true && store.addDevice) {
+      token = b64(randomBytes(24)).replace(/\+/g, '-').replace(/\//g, '_');
+      await store.addDevice(await hashDevice(token), id, now());
+    }
+    return reply(200, {
+      raw: row?.raw ?? null,
+      ...(row && { rev: row.rev ?? 0 }),
+      ...(token && { device: token }),
+    });
+  }
 
-  const savedAt = savedAtOf(body.raw);
-  if (savedAt === null) return reply(400, { error: 'not a save' });
+  const info = saveInfo(body.raw);
+  if (info === null) return reply(400, { error: 'not a save' });
+  const { savedAt } = info;
   const raw = body.raw as string;
   if (!row) {
+    // A new name's first save sets its PIN, so it needs one.
+    if (byDevice) return reply(401, { error: 'wrong PIN' });
     const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
     await store.put({
       id,
       raw,
       saved_at: savedAt,
       salt,
-      hash: await hashPin(pin, salt),
+      hash: await hashPin(pin as string, salt),
       prev_raw: null,
       prev_at: null,
+      rev: 1,
     });
-    return reply(200, { ok: true });
+    return reply(200, { ok: true, rev: 1 });
   }
-  if (row.saved_at > savedAt) return reply(409, { error: 'newer save kept', kept: row.saved_at });
+  const rev = row.rev ?? 0;
+  if (typeof body.base === 'number') {
+    // Another device has saved since this phone last did: send its save back, write nothing.
+    if (body.base !== rev) return reply(409, { error: 'conflict', raw: row.raw, rev });
+  } else if (row.saved_at > savedAt)
+    return reply(409, { error: 'newer save kept', kept: row.saved_at });
+  // An older build of the game (one cached for offline play) mustn't write over a save a newer
+  // build has already converted: it would come back stamped with the older schema.
+  if (info.schema < (saveInfo(row.raw)?.schema ?? 1)) return reply(409, { error: 'update' });
   const keepPrev = !row.prev_at || now() - row.prev_at >= PREV_EVERY_MS;
   await store.put({
     ...row,
     raw,
     saved_at: savedAt,
+    rev: rev + 1,
     ...(keepPrev && { prev_raw: row.raw, prev_at: now() }),
   });
-  return reply(200, { ok: true });
+  return reply(200, { ok: true, rev: rev + 1 });
 }
 
 /**

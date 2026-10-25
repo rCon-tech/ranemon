@@ -5,8 +5,11 @@ locked with a PIN of 4 to 8 numbers, chosen with the name's first online save.
 
 The save server is `save-api/`: two Vercel functions (`api/load.ts`, `api/save.ts`) and a Neon
 Postgres database, both on their free plans. The server keeps only a salted PBKDF2 hash of each
-PIN, and locks a name for 15 minutes after 5 wrong PINs. It refuses a save older than the one it
-has, so an old device can't overwrite a newer game, and it keeps the save from up to an hour
+PIN, and locks a name for 15 minutes after 5 wrong PINs. It counts each name's writes (`rev`) and
+refuses a save that doesn't follow on from the one it has, so an old device can't overwrite a
+newer game (the game then asks the player which save to keep). The first time a PIN opens a name,
+the phone is given a device token (only a hash is kept, in a `devices` table) so a save made
+offline can go up later without the PIN. It keeps the save from up to an hour
 before in `prev_raw`, to restore by hand. It makes its own tables on first use. The game writes at
 most once every 15 seconds while someone plays.
 
