@@ -19,7 +19,7 @@ import { ROSTER } from '../battle/roster';
 import { SECOND_SPECIAL_LEVEL, secondSpecialOf } from '../battle/second-specials';
 import { variantForm } from '../battle/variants';
 import { hasUkForm, UK } from '../battle/uk';
-import { heldBoost, type ItemId } from './items';
+import { heldBoost, heldCalm, type ItemId } from './items';
 import type { LevelCap } from './levels';
 import { LEARNSETS, MOVE_SLOTS, SPORT_LEVELS } from './learnsets';
 import { SHINY_STAR, shinyForm } from './shiny';
@@ -221,6 +221,7 @@ export function toEntrant(m: Member): Entrant {
     pp: m.pp,
     status: m.status,
     ...(held && { held }),
+    ...(heldCalm(m) && { calm: true }),
   };
 }
 

@@ -4,7 +4,7 @@ import { speciesById } from '@/lib/story/party';
 import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
-import { PEAR_REWARD } from './greystones';
+import { BHAV_AFTER, BHAV_BEFORE, BHAV_REWARD, BHAV_TRAINER, PEAR_REWARD } from './greystones';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
@@ -410,6 +410,22 @@ const T: Trainer[] = [
     before: 'STEVE: Bring it on! It’s leg day!',
     after: 'STEVE: Wow. Fair play to you. We’ll have to start doing two sea swims a day.',
     reward: PEAR_REWARD,
+  },
+
+  // ---------- Dr Bhav, in the Happy Pear: hates Ranemon, until she loses ----------
+  {
+    id: BHAV_TRAINER,
+    name: 'Dr Bhav',
+    team: [
+      ['gibbsmon', 50],
+      ['lorcamon', 51],
+      ['owemon', 53],
+    ],
+    ai: 'hard',
+    prize: 2400,
+    before: BHAV_BEFORE,
+    after: BHAV_AFTER,
+    reward: BHAV_REWARD,
   },
 
   // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------

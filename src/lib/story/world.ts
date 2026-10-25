@@ -84,6 +84,7 @@ export type Look =
   | 'stead'
   | 'cramps'
   | 'pear'
+  | 'bhav'
   | 'cyclist'
   | 'clerk'
   | 'mescal'

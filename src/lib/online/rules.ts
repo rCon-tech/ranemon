@@ -17,7 +17,7 @@ import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
 import { TYPES, typeMultiplier } from '../battle/types';
 import { variantOf } from '../battle/variants';
-import { heldBoost, ITEMS } from '../story/items';
+import { heldBoost, heldCalm, ITEMS } from '../story/items';
 import { BOSS, creatureOf, movesAt, PARTY_SIZE, speciesById, type Member } from '../story/party';
 import type { QueueItem } from '../ui/session';
 
@@ -168,6 +168,7 @@ export function entrantsOf(team: Member[], rule: LevelRule): Entrant[] {
       creature: creatureOf(m),
       level: ruleLevel(rule, m.level),
       ...(held && { held }),
+      ...(heldCalm(m) && { calm: true }),
     };
   });
 }
