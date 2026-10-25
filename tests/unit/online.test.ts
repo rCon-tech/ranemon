@@ -10,6 +10,7 @@ import {
   eventFor,
   HIDDEN,
   RULES_VERSION,
+  skinOf,
   stateFor,
   trainerId,
   validateTeam,
@@ -76,6 +77,32 @@ describe('online teams', () => {
     expect(levels('cap50')).toEqual([12, 50]);
     expect(levels('caught')).toEqual([12, 55]);
     expect(entrantsOf(team, 'flat50')[0]).not.toHaveProperty('hp');
+  });
+
+  it('takes the newest Ranemon and items from Story mode', () => {
+    const uk = { ...makeMember('carlmon', 34, 1, 'uk'), held: 'xanax' as const };
+    const cholo = { ...makeMember('killemon', 40, 2), species: 'cholokill' };
+    cholo.moves = cholo.moves.map((id) => (id === 'this-ones-for-africa' ? 'whabam' : id));
+    cholo.learned = [...cholo.moves];
+    const london = { ...makeMember('oystermon', 40, 3), held: 'friendship-bracelet' as const };
+    const team = [uk, cholo, london, makeMember('wickmon', 20, 4)];
+    const checked = validateTeam(team);
+    expect(checked).toHaveProperty('team');
+    const entrants = entrantsOf((checked as { team: Member[] }).team, 'flat50');
+    expect(entrants[0]).toMatchObject({ calm: true, held: { spirit: 1.2 } });
+    expect(entrants[0].creature.sprite).toBe('/sprites/drawn/carlizard.png');
+    expect(entrants[1].creature.id).toBe('cholokill');
+    expect(entrants[2]).toMatchObject({ held: { defense: 1.2 } });
+    expect(entrants[2].creature.id).toBe('crowdbat');
+  });
+
+  it('reads the skin a save is wearing, only when it’s been unlocked', () => {
+    expect(skinOf({ skin: 'bhav', skins: ['bhav'] })).toBe('bhav');
+    expect(skinOf({ skin: 'bhav', skins: [] })).toBeUndefined();
+    expect(skinOf({ skin: 'bhav' })).toBeUndefined();
+    expect(skinOf({ skin: '<script>', skins: ['<script>'] })).toBeUndefined();
+    expect(skinOf({ skins: ['bhav'] })).toBeUndefined();
+    expect(skinOf(null)).toBeUndefined();
   });
 
   it('has a rules version both sides can compare', () => {
@@ -194,6 +221,20 @@ describe('friend battles on the save server', () => {
       expect(view.state!.rng).toBe(0);
     }
     expect(first.body.foe).toMatchObject({ name: 'Con', ready: true, size: 6 });
+  });
+
+  it('shows each trainer in their Story mode skin', async () => {
+    const dressed = JSON.stringify({ ...JSON.parse(LATE), skin: 'bhav', skins: ['bhav'] });
+    const w = world({ rich: dressed, con: LATE });
+    const a = await w.call({ op: 'create', name: 'Rich', pin: '1234', rules: RULES_VERSION });
+    expect(a.body.you.skin).toBe('bhav');
+    const code = a.body.code;
+    const b = await w.call({ op: 'join', name: 'Con', pin: '1234', rules: RULES_VERSION, code });
+    expect(b.body.foe).toMatchObject({ name: 'Rich', skin: 'bhav' });
+    // Wearing the usual look sends nothing, so an older phone sees what it always did.
+    expect(b.body.you).not.toHaveProperty('skin');
+    const poll = await w.call({ op: 'poll', code, token: a.body.token });
+    expect(poll.body.foe).not.toHaveProperty('skin');
   });
 
   it('turns away a team its save couldn’t have', async () => {

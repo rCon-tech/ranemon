@@ -5,22 +5,27 @@ import Link from 'next/link';
 import { asset } from '@/lib/asset';
 import type { BattleState } from '@/lib/battle/engine';
 import { createRoom, joinRoom, LinkError, RoomLink } from '@/lib/online/link';
+import { moveById } from '@/lib/battle/moves';
 import {
   entrantsOf,
   LEVEL_RULES,
+  skinOf,
   trainerId,
   validateTeam,
   type LevelRule,
   type RoomView,
 } from '@/lib/online/rules';
 import { isPin } from '@/lib/story/cloud';
+import { itemById } from '@/lib/story/items';
 import type { Member } from '@/lib/story/party';
 import { remoteSaves } from '@/lib/story/remote';
 import { PLAYER_KEY } from '@/lib/story/state';
 import type { QueueItem, Result } from '@/lib/ui/session';
 import { BattleScreen, type RemoteBattle } from './BattleScreen';
 import { SoundButton, useMusic } from './Sound';
+import { MoveCard } from './MoveCard';
 import { Sprite } from './Sprite';
+import { isLook, Portrait } from './story/Portrait';
 
 /** The save server's address, when this build has one (see `save-api/`). */
 function saveApi(): string | undefined {
@@ -109,21 +114,58 @@ const RESULT_TEXT: Record<Result, string> = {
   fled: 'The battle ended.',
 };
 
-/** Your team as it would fight under a rule, for the lobby. */
+/**
+ * Your team as it would fight under a rule, for the lobby. Tap a Ranemon for its moves, with
+ * their types and power, and what it's holding.
+ */
 function TeamRow({ team, rule }: { team: Member[]; rule: LevelRule }) {
+  const [open, setOpen] = useState<number | null>(null);
   const entrants = entrantsOf(team, rule);
+  const shown = open === null ? null : { m: team[open], e: entrants[open] };
   return (
-    <div className="flex flex-wrap justify-center gap-2" data-testid="friend-team">
-      {entrants.map((e, i) => (
-        <span key={i} className="flex w-14 flex-col items-center gap-0.5">
-          <span className="h-12 w-12">
-            <Sprite creature={e.creature} />
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap justify-center gap-2" data-testid="friend-team">
+        {entrants.map((e, i) => (
+          <button
+            key={i}
+            type="button"
+            className="flex w-14 flex-col items-center gap-0.5"
+            aria-expanded={open === i}
+            onClick={() => setOpen(open === i ? null : i)}
+          >
+            <span className="h-12 w-12">
+              <Sprite creature={e.creature} />
+            </span>
+            <span className="text-[9px] leading-tight">{e.creature.name}</span>
+            <span className="text-[9px] opacity-75">Lv{e.level}</span>
+          </button>
+        ))}
+      </div>
+      {shown && (
+        <div className="flex flex-col gap-1 text-left text-[10px]" data-testid="friend-moves">
+          <span>
+            {shown.e.creature.name}
+            {shown.m.held ? ` · holds ${itemById(shown.m.held).name}` : ''}
           </span>
-          <span className="text-[9px] leading-tight">{e.creature.name}</span>
-          <span className="text-[9px] opacity-75">Lv{e.level}</span>
-        </span>
-      ))}
+          {shown.m.moves.map((id) => {
+            const t = moveById(id).type;
+            return (
+              <MoveCard key={id} id={id} stab={t !== null && shown.e.creature.types.includes(t)} />
+            );
+          })}
+        </div>
+      )}
     </div>
+  );
+}
+
+/** A trainer in the room, dressed in their Story mode skin. */
+function Trainer({ name, skin }: { name: string; skin?: string }) {
+  return (
+    <span className="flex w-20 flex-col items-center gap-1" data-testid="room-trainer">
+      <Portrait look={isLook(skin) ? skin : 'player'} className="h-12 w-8" />
+      <span className="max-w-full truncate text-[10px]">{name}</span>
+    </span>
   );
 }
 
@@ -138,6 +180,7 @@ export function FriendBattle() {
   const [typedName, setName] = useState<string | null>(null);
   const [pin, setPin] = useState('');
   const [team, setTeam] = useState<Member[] | null>(null);
+  const [skin, setSkin] = useState<string | undefined>(undefined);
   const [rule, setRule] = useState<LevelRule>('flat50');
   const [typedCode, setCode] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -220,12 +263,14 @@ export function FriendBattle() {
         setNote('That name has no online save yet. Play Story mode with your PIN first.');
         return;
       }
-      const checked = validateTeam(JSON.parse(raw).party);
+      const save = JSON.parse(raw);
+      const checked = validateTeam(save.party);
       if ('error' in checked) {
         setNote(`Your team can’t battle: ${checked.error}`);
         return;
       }
       setTeam(checked.team);
+      setSkin(skinOf(save));
       try {
         localStorage.setItem(PLAYER_KEY, name.trim());
       } catch {
@@ -356,6 +401,15 @@ export function FriendBattle() {
         >
           {view?.code ?? '…'}
         </p>
+        <div className="flex items-end justify-center gap-3">
+          <Trainer name={view?.you.name ?? name.trim()} skin={view?.you.skin ?? skin} />
+          <span className="pb-5 text-[12px]">VS</span>
+          {foe ? (
+            <Trainer name={foe.name} skin={foe.skin} />
+          ) : (
+            <span className="w-20 pb-5 text-[10px] opacity-60">???</span>
+          )}
+        </div>
         <p className="text-[11px]">
           {LEVEL_RULES.find((r) => r.id === view?.rule)?.label} ·{' '}
           {LEVEL_RULES.find((r) => r.id === view?.rule)?.about}
@@ -417,6 +471,9 @@ export function FriendBattle() {
   if (screen.kind === 'home' && team)
     return shell(
       <div className="flex w-full max-w-[300px] flex-col gap-3">
+        <div className="flex items-center justify-center gap-2">
+          <Trainer name={name.trim()} skin={skin} />
+        </div>
         <p className="text-[12px]">{name.trim()}’s team</p>
         <TeamRow team={team} rule={rule} />
         <div className="flex flex-col gap-1 text-left text-[12px]">

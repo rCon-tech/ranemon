@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Battle mode catches up',
+    notes: [
+      'Battle mode has a ROSTER switch: the lads, London’s own Ranemon, or everyone together. Your rival picks from the same roster.',
+      'Switch FORMS to EVOLVED to battle with everyone fully evolved. Where a Ranemon can evolve more than one way, you pick which.',
+      'Tap a Ranemon on YOUR TEAM to pick its look (the drawn UK look included), something for it to hold and its moves, with each move’s type and power.',
+      'In a friend battle, both trainers show up in the room in their skins, and tapping a Ranemon in your team shows its moves and what it’s holding.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Not a fan',
     notes: [
       'Somebody in a café in Greystones thinks Ranemon are stupid, and is telling everyone. Maybe a battle will change their mind.',
