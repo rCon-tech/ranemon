@@ -8,13 +8,21 @@ import { PEAR_TRAINERS } from '@/content/story/greystones';
 import { MAPS } from '@/content/story/maps';
 import { PALACE_TRAINERS } from '@/content/story/palace';
 import { PREMIER_TRAINERS } from '@/content/story/premier';
+import { SIDEMEN_TRAINERS, WEMBLEY_TRAINERS } from '@/content/story/sidemen';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
 import { LONDON } from '@/lib/battle/london';
 import { variantsOf } from '@/lib/battle/variants';
 import { ITEMS } from '@/lib/story/items';
 import { KEY_ITEMS } from '@/lib/story/keys';
-import { devSave, isDevName, LONDON_TO_PLAY, recruits, storyFlags } from '@/lib/story/devsave';
+import {
+  devSave,
+  isDevName,
+  LONDON_TO_PLAY,
+  recruits,
+  SIDEMEN_TO_PLAY,
+  storyFlags,
+} from '@/lib/story/devsave';
 import { ELVIS, NORM } from '@/lib/story/norm';
 import { exportCode, importCode, parseSave } from '@/lib/story/save';
 import { beatFlag } from '@/lib/story/state';
@@ -72,6 +80,7 @@ describe('the developer save', () => {
           BRIGHTON_DONE,
           TECHNO_DONE,
           ...london,
+          ...SIDEMEN_TO_PLAY,
           COLLINS_HEARD,
           CHAMPION_OF_IRELAND,
         ].includes(f) && !f.startsWith('galway:won:'),
@@ -96,6 +105,7 @@ describe('the developer save', () => {
       COLLINS,
       ...PREMIER_TRAINERS.map((t) => t.id),
       ...PALACE_TRAINERS.map((t) => t.id),
+      ...[...SIDEMEN_TRAINERS, ...WEMBLEY_TRAINERS].map((t) => t.id),
     ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);

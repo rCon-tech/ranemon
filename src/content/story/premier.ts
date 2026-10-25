@@ -1,5 +1,6 @@
 import { interiorId } from './interiors';
 import { CHAMPION, RAILCARD } from './kneecap';
+import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
 import type { GameMap, Look, Npc, Step, Trainer, Wild, Yates } from '@/lib/story/world';
 
 /**
@@ -626,12 +627,17 @@ export const KINGS_CROSS_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
     'WODDDDDDDDOW',
     'WF1F2F3F4F5W',
     'WFFFFFFFFFFW',
-    'WUUFF6F7FUUW',
-    'WFFFFFFFFFFW',
+    'WUUFF6F78UUW',
+    'WF9FFFFFFFFW',
     'WNFFFF@FFFNW',
     'WWWWWWEWWWWW',
   ],
-  npcs: LINES.map((l) => ({ look: 'conductor' as const, face: 'down' as const, talk: ticket(l) })),
+  npcs: [
+    ...LINES.map((l) => ({ look: 'conductor' as const, face: 'down' as const, talk: ticket(l) })),
+    // The Metropolitan line to Wembley Park, and Jamie Elliott once you've the Brighton jersey.
+    METROPOLITAN,
+    JAMIE_AT_KINGS_CROSS,
+  ],
   things: {
     D: `DEPARTURES. ${LINES.map((l) => `${l.to}${l.railcard ? ' (Railcard holders)' : ''}`).join(', ')}. Every one delayed.`,
     U: 'A bench. A man on it is reading the Racing Post upside down. He’s asleep.',

@@ -23,6 +23,14 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'A man short',
+    notes: [
+      'Somebody at King’s Cross is looking for one more player for a big charity match, once you’ve won a few jerseys in England. Six famous faces stand in your way, and someone more famous after them.',
+      'Each of them has a Ranemon of their own, never seen in the wild, with a page in the UK Ranedex.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'The Online Champion',
     notes: [
       'There’s a crown up for grabs in friend battles, and only one trainer can hold it at a time. Ollie wears it for now. Beat him to take it.',

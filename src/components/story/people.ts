@@ -12,7 +12,18 @@ import { INK } from './pixels';
 export const PERSON_W = 64;
 export const PERSON_H = 96;
 
-type Hair = 'short' | 'spiky' | 'long' | 'balding' | 'slick' | 'bun' | 'bouffant' | 'bob' | 'none';
+type Hair =
+  | 'short'
+  | 'spiky'
+  | 'long'
+  | 'balding'
+  | 'slick'
+  | 'bun'
+  | 'bouffant'
+  | 'bob'
+  | 'none'
+  /** Pushed right back off the forehead, with height on top and no fringe. */
+  | 'swept';
 type Hat = 'cap' | 'flat' | 'garda' | 'mortar' | 'beanie' | 'fila' | 'crown' | 'beret';
 type Top =
   'jacket' | 'suit' | 'hivis' | 'gown' | 'jumper' | 'shirt' | 'waistcoat' | 'coat' | 'agbada';
@@ -1596,6 +1607,92 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#3a3a44',
     shoes: '#2a1a12',
   },
+  // KSI of the Sidemen: a Prime-blue jacket with white trim, white trainers.
+  ksi: {
+    skin: '#7a4a2a',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    top: '#3ab0e8',
+    topKind: 'jacket',
+    trim: '#f4f4f4',
+    legs: '#1a1a24',
+    shoes: '#f4f4f4',
+  },
+  // Miniminter: tall, in a white Sidemen FC shirt with a red collar.
+  miniminter: {
+    skin: '#f8d8b8',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#d02a2a',
+    legs: '#1a1a24',
+    shoes: '#f4f4f4',
+    tall: true,
+  },
+  // Zerkaa: a shaved head, a beard and a black jumper with a red collar.
+  zerkaa: {
+    skin: '#f8d8b8',
+    hair: '#f8d8b8',
+    hairStyle: 'none',
+    beard: '#5a3a20',
+    top: '#2a2a30',
+    topKind: 'jumper',
+    trim: '#d02a2a',
+    legs: '#2c3c64',
+    shoes: '#18181c',
+  },
+  // Behzinga: a beard and a red gym vest, in gym shorts.
+  behzinga: {
+    skin: '#f8d8b8',
+    hair: '#2a1a12',
+    hairStyle: 'short',
+    beard: '#2a1a12',
+    top: '#c03a2a',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    vest: true,
+    legs: '#f8d8b8',
+    shorts: '#1a1a24',
+    shoes: '#f4f4f4',
+  },
+  // Vikkstar123: a gaming headset and a purple hoodie.
+  vikkstar: {
+    skin: '#b07a50',
+    hair: '#18181c',
+    hairStyle: 'short',
+    headphones: '#2a2a30',
+    top: '#7a4ad0',
+    topKind: 'jacket',
+    trim: '#e0d8f8',
+    legs: '#1a1a24',
+    shoes: '#18181c',
+  },
+  // TBJ: a short beard and a bright orange shirt.
+  tbj: {
+    skin: '#6a3e22',
+    hair: '#18181c',
+    hairStyle: 'short',
+    beard: '#18181c',
+    top: '#f0a030',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#2c3c64',
+    shoes: '#f4f4f4',
+  },
+  // Jamie Elliott, leader of the Sidemen: light brown hair pushed right back, clean shaven, and
+  // a black T-shirt with a green and blue logo on the chest.
+  jamie: {
+    skin: '#f6d6be',
+    hair: '#8a6a4a',
+    hairStyle: 'swept',
+    top: '#18181c',
+    topKind: 'shirt',
+    trim: '#2a2a30',
+    badges: ['#5ab870', '#5a9ad8'],
+    legs: '#2a2a38',
+    shoes: '#f4f4f4',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */
@@ -2390,10 +2487,17 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     // Hair over the top: a fringe with strands and a shine.
     if (!bald) {
       const fringe =
-        s.hairStyle === 'slick' || s.hairStyle === 'bouffant' ? 4 : s.hairStyle === 'bob' ? 9 : 7;
+        s.hairStyle === 'slick' || s.hairStyle === 'bouffant' || s.hairStyle === 'swept'
+          ? 4
+          : s.hairStyle === 'bob'
+            ? 9
+            : 7;
       round(c, 16, 3 + y, 32, 12, 8, s.hair);
       for (let x = 18; x < 47; x++) {
-        const drop = s.hairStyle === 'slick' ? 0 : s.hairStyle === 'bob' ? 0 : (x * 7) % 4;
+        const drop =
+          s.hairStyle === 'slick' || s.hairStyle === 'swept' || s.hairStyle === 'bob'
+            ? 0
+            : (x * 7) % 4;
         px(c, x, 10 + y, 1, fringe - 4 + drop, s.hair);
       }
       for (let x = 20; x < 45; x += 4) px(c, x, 6 + y, 1, fringe, hairDark);
@@ -2416,6 +2520,12 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
           px(c, x + 1, 1 + y, 2, 3, hairLight);
         }
       if (s.hairStyle === 'bun') round(c, 26, 0 + y, 12, 9, 5, s.hair);
+      if (s.hairStyle === 'swept') {
+        // Height on top, combed straight back: the forehead stays clear.
+        round(c, 17, 0 + y, 30, 10, 6, s.hair);
+        for (let x = 21; x < 44; x += 4) px(c, x, 1 + y, 1, 7, hairDark);
+        round(c, 22, 1 + y, 14, 2, 1, hairLight);
+      }
       if (s.hairStyle === 'bouffant') {
         round(c, 13, 0 + y, 38, 14, 7, s.hair);
         round(c, 18, 2 + y, 22, 4, 2, hairLight);
@@ -2471,7 +2581,10 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     if (!bald) {
       round(c, 20, 3 + y, 28, 14, 8, s.hair);
       px(c, 36, 12 + y, 10, 12, s.hair);
-      for (let x = 20; x < 32; x++) px(c, x, 11 + y, 1, 2 + ((x * 7) % 4), s.hair);
+      if (s.hairStyle !== 'swept')
+        for (let x = 20; x < 32; x++) px(c, x, 11 + y, 1, 2 + ((x * 7) % 4), s.hair);
+      // Swept back: height over the crown, and nothing down over the brow.
+      else round(c, 22, 1 + y, 26, 10, 6, s.hair);
       for (let x = 24; x < 46; x += 4) px(c, x, 6 + y, 1, 10, hairDark);
       round(c, 22, 4 + y, 12, 3, 1, hairLight);
       if (s.hairStyle === 'long') px(c, 38, 14 + y, 10, 26, s.hair);

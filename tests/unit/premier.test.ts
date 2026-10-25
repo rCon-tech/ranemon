@@ -13,6 +13,7 @@ import {
   PREMIER_TRAINERS,
   legendId,
 } from '@/content/story/premier';
+import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from '@/content/story/sidemen';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import { LONDON_LINES } from '@/lib/battle/london';
 import { hasUkForm } from '@/lib/battle/uk';
@@ -98,16 +99,18 @@ describe('the Premier League', () => {
 
 describe('King’s Cross', () => {
   const room = mapById(KINGS_CROSS_ID);
+  // The Metropolitan line and Jamie Elliott are the Sidemen's (sidemen.test.ts).
+  const platforms = room.npcs.filter((n) => n !== METROPOLITAN && n !== JAMIE_AT_KINGS_CROSS);
 
   it('runs a train to every town, and the Tube, from its own platform', () => {
-    const towns = room.npcs.map((n) =>
+    const towns = platforms.map((n) =>
       play(n.talk!, new Set([RAILCARD])).find((l) => l.startsWith('TRAVEL')),
     );
     expect(towns.map((t) => t?.split(' ')[1]).sort()).toEqual(PL_MAPS.map((m) => m.id).sort());
   });
 
   it('only runs the far trains once you have Ian Wright’s Railcard', () => {
-    const shut = room.npcs.filter(
+    const shut = platforms.filter(
       (n) => !play(n.talk!, new Set()).some((l) => l.startsWith('TRAVEL')),
     );
     expect(

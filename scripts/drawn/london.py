@@ -533,6 +533,148 @@ add("aerodactivist", "Aerodactivist", "brains", 3,
 
 BATCH_1 = list(LOOKS)
 
+# --- The Sidemen (content/story/sidemen.ts): a line of two each, evolving at Lv30 -----------
+
+PRIME = (58, 176, 232)
+RED = (200, 40, 44)
+
+# KSI: Ksimon > Primape (Mankey > Primeape). A Prime-blue hoodie and his gloves up.
+add("ksimon", "Ksimon", "hype", 1,
+    Look(skin=SKIN_DEEP, hair="short", hair_colour=(24, 22, 22), eyes="open", mouth="grin",
+         inner=solid(PRIME), neck="hood", neck_colour=(40, 140, 200), trousers=(36, 36, 44),
+         shoes=(246, 246, 246), pose="guard", gloves=RED))
+
+
+def primape(f, look, stage, view):
+    # Primeape's pig ears and a shaggy ruff, in the colour of a bottle of Prime.
+    ears(f, view, stage, (226, 200, 160), (240, 150, 140), tall=8, wide=16)
+    collar_fluff(f, view, stage, (226, 200, 160))
+    if stage == "paint" and view == "front":
+        d = ImageDraw.Draw(f)
+        d.rectangle([CX - 9, 70, CX + 9, 75], fill=(250, 214, 70), outline=(60, 50, 30))
+        d.rectangle([CX - 3, 69, CX + 3, 76], fill=(220, 60, 60), outline=(60, 50, 30))
+
+
+evolve("primape", "Primape", "hype", 2, "ksimon", primape, neck="crew", sleeves="short",
+       inner=stripes(PRIME, (40, 140, 200), 8, 2), mouth="laugh", build=1.1)
+
+# Miniminter: Minimon > Mintair (Dratini > Dragonair). A white Sidemen FC shirt and a pad.
+add("minimon", "Minimon", "chill", 1,
+    Look(skin=SKIN_PALE, hair="swept", hair_colour=(110, 76, 44), eyes="happy", mouth="laugh",
+         inner=solid(WHITE), sleeves="short", neck="collar", neck_colour=RED,
+         trousers=(36, 36, 44), shoes=(246, 246, 246), pose="hold", props=("phone",),
+         build=0.95))
+
+
+def mintair(f, look, stage, view):
+    # Dragonair's little white wings over the ears, its crystal and its long tail.
+    if stage == "head":
+        c = CX if view == "front" else BX
+        top = 10 if view == "front" else 14
+        side = [(c - 22, top + 6), (c - 34, top - 4), (c - 24, top + 12)]
+        f.part(poly(*side) | poly(*mirror(side, view)), ramp((246, 246, 250)))
+    tail(f, view, stage, (90, 150, 230), (90, 150, 230), 5)
+    if stage == "paint":
+        gem(f, view, (80, 160, 240), 60)
+
+
+evolve("mintair", "Mintair", "chill", 2, "minimon", mintair, inner=solid((90, 150, 230)),
+       neck_colour=(246, 246, 250), props=(), pose="hips", eyes="open")
+
+# Zerkaa: Zerkmon > Zerkazam (Abra > Alakazam). Bald, a beard, a blazer and a clipboard card.
+add("zerkmon", "Zerkmon", "brains", 1,
+    Look(skin=SKIN_PALE, hair="bald", face_hair="beard", face_hair_colour=(96, 64, 40),
+         eyes="lids", mouth="smile", inner=solid((40, 40, 50)), outer="blazer",
+         outer_paint=solid((52, 52, 64)), neck="crew", trousers=(44, 44, 56), pose="hold",
+         props=("card",)))
+
+
+def zerkazam(f, look, stage, view):
+    # Alakazam's tall pointed ears and a spoon in each hand.
+    ears(f, view, stage, (230, 190, 70), (200, 150, 50), tall=20, wide=8)
+    if stage == "front" and view == "front":
+        for x in (18, 78):
+            f.part(rect(x - 1, 58, x + 1, 74), ramp((200, 200, 210)))
+            f.part(ellipse(x - 4, 50, x + 4, 60), ramp((210, 210, 220)))
+
+
+evolve("zerkazam", "Zerkazam", "brains", 2, "zerkmon", zerkazam, face_hair="bigmoustache",
+       outer_paint=solid((150, 110, 40)), inner=solid((230, 190, 70)), props=(), pose="both")
+
+# Behzinga: Behzmon > Behzchamp (Machop > Machamp). A gym vest, the beard, arms up.
+add("behzmon", "Behzmon", "brawn", 1,
+    Look(skin=SKIN_PALE, hair="short", hair_colour=(40, 28, 22), face_hair="beard",
+         face_hair_colour=(40, 28, 22), eyes="open", mouth="laugh", inner=solid(RED),
+         sleeves="short", neck="crew", trousers=(30, 30, 38), shoes=(246, 246, 246),
+         pose="raise", build=1.05))
+
+
+def behzchamp(f, look, stage, view):
+    # Machamp's ridged crest and its champion's belt, in gold.
+    if stage == "head":
+        c = CX if view == "front" else BX
+        top = 2 if view == "front" else 6
+        for dx in (-8, 0, 8):
+            f.part(poly((c + dx - 3, top + 6), (c + dx, top - 6), (c + dx + 3, top + 6)),
+                   ramp((150, 160, 180)))
+    if stage == "paint" and view == "front":
+        d = ImageDraw.Draw(f)
+        d.rectangle([CX - 14, 78, CX + 14, 82], fill=(230, 190, 60), outline=(90, 70, 20))
+        d.ellipse([CX - 5, 76, CX + 5, 84], fill=(250, 220, 90), outline=(90, 70, 20))
+
+
+evolve("behzchamp", "Behzchamp", "brawn", 2, "behzmon", behzchamp, inner=solid((40, 40, 48)),
+       pose="hips", mouth="grin", build=1.2)
+
+# Vikkstar123: Vikkmon > Vikstarmie (Staryu > Starmie). A gaming headset and a purple hoodie.
+add("vikkmon", "Vikkmon", "chaos", 1,
+    Look(skin=SKIN_BROWN, hair="short", hair_colour=(24, 22, 22), eyes="lids", mouth="smirk",
+         hat="headphones", hat_colour=(40, 40, 48), inner=solid((122, 74, 208)), neck="hood",
+         neck_colour=(96, 56, 170), trousers=(36, 36, 44), pose="hold", props=("phone",)))
+
+
+def vikstarmie(f, look, stage, view):
+    # Starmie: a purple star behind it, and its red gem in the middle.
+    if stage == "behind":
+        import math
+        c = CX if view == "front" else BX
+        cy = 50
+        pts = []
+        for i in range(10):
+            a = math.radians(-90 + i * 36)
+            r = 46 if i % 2 == 0 else 22
+            pts.append((int(c + r * math.cos(a)), int(cy + r * math.sin(a))))
+        f.part(poly(*pts), ramp((130, 90, 190)))
+    if stage == "paint":
+        gem(f, view, (230, 50, 80), 66)
+
+
+evolve("vikstarmie", "Vikstarmie", "chaos", 2, "vikkmon", vikstarmie,
+       inner=solid((80, 60, 150)), neck_colour=(230, 200, 90), props=(), pose="raise")
+
+# TBJ: Tobimon > Tobitic (Togepi > Togetic). A big laugh and an orange shirt.
+add("tobimon", "Tobimon", "charm", 1,
+    Look(skin=SKIN_DEEP, hair="short", hair_colour=(24, 22, 22), face_hair="stubble",
+         face_hair_colour=(24, 22, 22), eyes="happy", mouth="laugh", inner=solid((240, 160, 48)),
+         outer="open", outer_paint=solid((246, 242, 232)), neck="collar", trousers=(50, 50, 60),
+         pose="both"))
+
+
+def tobitic(f, look, stage, view):
+    # Togetic's little white wings, and the red and blue triangles of its shell.
+    wings(f, view, stage, (250, 250, 250), (230, 230, 240), span=0.7, low=4)
+    if stage == "paint" and view == "front":
+        d = ImageDraw.Draw(f)
+        for x, col in ((CX - 9, (220, 60, 60)), (CX + 3, (60, 110, 220))):
+            d.polygon([(x, 74), (x + 6, 74), (x + 3, 68)], fill=col, outline=(40, 40, 48))
+
+
+evolve("tobitic", "Tobitic", "charm", 2, "tobimon", tobitic, outer_paint=solid((250, 250, 250)),
+       inner=solid((250, 250, 250)), mouth="grin", pose="raise")
+
+SIDEMEN = [id for id in LOOKS if id not in BATCH_1]
+SIDEMEN_LINES = [SIDEMEN[i:i + 2] for i in range(0, len(SIDEMEN), 2)]
+
 # How big each stage stands in its box: a first stage is small, a final form fills it.
 SCALE = {1: 0.8, 2: 0.9, 3: 1.0}
 
@@ -619,6 +761,8 @@ def main(ids):
     if set(ids) >= set(BATCH_1):
         sheet(LINES).save(OUT / "batch-1.png")
         sheet(LINES, show_back=False).save(OUT / "batch-1-fronts.png")
+    if set(ids) >= set(SIDEMEN):
+        sheet(SIDEMEN_LINES).save(OUT / "sidemen.png")
 
 
 if __name__ == "__main__":

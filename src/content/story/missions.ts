@@ -17,6 +17,7 @@ import {
 import { FIXTURE_LIST, PL_FLAGS } from './premier';
 import { CHAMPION_OF_IRELAND, COLLINS_HEARD } from './galway';
 import { COLLISONS, SEVEN, SILICON_SEVEN, SILICON_START } from './silicon';
+import { SIDEMEN_ARRIVED, SIDEMEN_DONE, SIDEMEN_SIX, SIDEMEN_START, SIX } from './sidemen';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 
@@ -318,6 +319,32 @@ export const MISSIONS: Mission[] = [
         until: beatFlag(COLLISONS),
         todo: 'Stripe’s door is open. Two lads from Tipperary are waiting inside.',
         where: 'Stripe, Silicon Docks, Dublin',
+      },
+    ],
+  },
+  {
+    id: 'sidemen',
+    name: 'The Eighth Sideman',
+    about:
+      'Jamie Elliott’s Sidemen are a man short for the Charity Match at Wembley. Beat all six of the lads, then him, and the spot is yours.',
+    start: SIDEMEN_START,
+    done: SIDEMEN_DONE,
+    steps: [
+      {
+        until: SIDEMEN_ARRIVED,
+        todo: 'Get the Metropolitan line to Wembley Park. The guard is at the end of the platforms.',
+        where: 'King’s Cross, London',
+      },
+      {
+        until: SIDEMEN_SIX,
+        todo: 'Beat KSI, Miniminter, Zerkaa, Behzinga, Vikkstar123 and TBJ, in any order. Each is filming behind a door with a sign over it.',
+        where: 'Wembley Park, London',
+        count: SIX.map(beatFlag),
+      },
+      {
+        until: SIDEMEN_DONE,
+        todo: 'All six are beaten. Jamie Elliott is waiting on the pitch.',
+        where: 'Wembley Stadium, London',
       },
     ],
   },
