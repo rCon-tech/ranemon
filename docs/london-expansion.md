@@ -443,7 +443,7 @@ The expansion adds one main mission and a handful of side missions to START → 
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Dublin Airport    | Bus stop, check-in, security, gate                                                                                                                 |
 | London Stansted   | Arrivals, the border queue, the Stansted Express                                                                                                   |
-| London            | The hub: King's Cross, the Tube, W.B Yates, Vapes & More, parks, Buckingham Palace                                                                |
+| London            | The hub: King's Cross, the Tube, W.B Yates, Vapes & More, parks, Buckingham Palace                                                                 |
 | Tube grounds (4)  | Tottenham, Selhurst Park, Stamford Bridge, the Emirates                                                                                            |
 | Manchester        | Old Trafford and the Etihad                                                                                                                        |
 | Leeds             | Elland Road                                                                                                                                        |
