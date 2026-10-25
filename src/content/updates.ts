@@ -20,6 +20,15 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'The UK Ranedex',
+    notes: [
+      'Britain has a Ranedex of its own now: open the Ranedex and tap UK. It has every one of the lads drawn, their evolved forms too, and all of London’s own.',
+      'UK Ranemon evolve now, at Lv30 like at home, into drawn versions of their evolved forms.',
+      'Only the ones you meet over there count in it. Ireland’s Ranedex hasn’t changed.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Pick your moves',
     notes: [
       'Open a Ranemon in PARTY and every move shows its type and power, so you can see what you are working with.',

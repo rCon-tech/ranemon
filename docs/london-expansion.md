@@ -492,7 +492,7 @@ The story uses the first option in each until Rich says otherwise.
 What the build does differently from the story above, so far:
 
 - **Levels.** Everything in Britain starts again from Lv 5 (see open question 3). The legends' teams keep the shape in the table but at lower levels: aces 10, 14, 17, 20, 23, 26, 29, 32, 35, 38, 42 and 46. Trainers in Britain don't scale up to your party once you're Champion of Ireland.
-- **UK Ranemon don't evolve,** so they keep their drawn sprites.
+- **UK Ranemon evolve** at Lv30 into their drawn evolved forms (PR #59's art), and have a UK Ranedex of their own, apart from Ireland's (`src/lib/story/ukdex.ts`).
 - **The Amex** is reached by train to Falmer, a small new map with Enda on it, rather than through the Brighton map from the Irish story.
 - **The Tube** is one small map off King's Cross with the four London grounds on it.
 - **Key items.** Fergie's Hairdryer, Bielsa's Bucket and the replica Europa League trophy are keepsakes for now, with no effect. Ian Wright's Railcard opens the trains to Falmer, Birmingham and Newcastle. The Rest Day, Proper Studs, Captain's Armband and Va-Va-Voom are swapped for existing items (full Irish, Monster, cups of tea).

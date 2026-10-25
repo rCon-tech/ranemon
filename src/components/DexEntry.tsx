@@ -58,12 +58,17 @@ export function DexEntry({
 }) {
   const view = useView();
   const caught = know.caught(c.id);
-  const looks = looksOf(c, know.shiny(c.id));
+  const looks = looksOf(c, know.shiny(c.id), !!know.form);
   const shown = looks[look % looks.length];
   const total = STAT_KEYS.reduce((sum, k) => sum + c.base[k], 0);
   const { weak, resists } = matchups(c.types);
-  const line = evolutionLine(c.id);
-  const places = know.visited && habitats(c.id);
+  const evolution = evolutionLine(c.id);
+  const as = know.form ?? ((f: Creature) => f);
+  const line = {
+    first: as(evolution.first),
+    branches: evolution.branches.map((b) => ({ ...b, creature: as(b.creature) })),
+  };
+  const places = know.visited && habitats(c.id).filter((p) => know.where?.(p.map) ?? true);
   return (
     <article className="flex flex-col gap-3" data-testid="dex-entry" data-id={c.id}>
       <div className="flex items-end justify-between">

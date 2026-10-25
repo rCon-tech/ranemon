@@ -7,7 +7,6 @@ import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
 import { TYPE_LABEL } from '@/lib/battle/types';
 import { DEX as IRISH_DEX } from '@/lib/battle/evolutions';
-import { LONDON } from '@/lib/battle/london';
 import { ROSTER } from '@/lib/battle/roster';
 import { UK, UK_ENTRIES } from '@/lib/battle/uk';
 import { variantForm } from '@/lib/battle/variants';
@@ -30,6 +29,7 @@ import {
   type Member,
 } from '@/lib/story/party';
 import { storyKnowledge, strongAgainst } from '@/lib/story/dex';
+import { hasUkDex, ukKnowledge, UK_DEX } from '@/lib/story/ukdex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
@@ -588,27 +588,26 @@ export function RanedexPanel({
   onClose: () => void;
   navRef?: React.RefObject<DexNav | null>;
 }) {
-  // Ireland's Ranedex, or London's once you've seen a London Ranemon (docs/london-ranedex.md).
-  const london = LONDON.some((c) => game.seen.includes(c.id));
-  const [region, setRegion] = useState<'ireland' | 'london'>('ireland');
-  const dex = region === 'london' && london ? LONDON : IRISH_DEX;
+  // Ireland's Ranedex, or the UK's once you've met a Ranemon over there (`ukdex.ts`).
+  const uk = hasUkDex(game);
+  const [region, setRegion] = useState<'ireland' | 'uk'>('ireland');
+  const inUk = region === 'uk' && uk;
+  const dex = inUk ? UK_DEX : IRISH_DEX;
   const [cursor, setCursor] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const [look, setLook] = useState(0);
   const box = useRef<HTMLDivElement>(null);
-  const know = storyKnowledge(game);
+  const know = inUk ? ukKnowledge(game) : storyKnowledge(game);
   // Species you have a shiny of right now, in the party or the Group Chat.
   const shinies = new Set(
     [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
   );
-  const pick = (r: 'ireland' | 'london') => {
+  const pick = (r: 'ireland' | 'uk') => {
     playSfx('blip');
     setRegion(r);
     setCursor(0);
   };
-  // Petchemon is not in the Ranedex, so he is left out of the counts.
-  const inDex = (id: string) => dex.some((c) => c.id === id);
-  const seen = (i: number) => game.seen.includes(dex[i].id);
+  const seen = (i: number) => know.seen(dex[i].id);
 
   const show = (i: number) => {
     setCursor(i);
@@ -672,7 +671,7 @@ export function RanedexPanel({
   if (open !== null) {
     const c = dex[open];
     return (
-      <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={() => setOpen(null)}>
+      <Panel title={inUk ? 'UK RANEDEX' : 'RANEDEX'} onClose={() => setOpen(null)}>
         <div ref={box}>
           <DexEntry
             creature={c}
@@ -689,30 +688,30 @@ export function RanedexPanel({
   }
 
   return (
-    <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={onClose}>
-      {london && (
+    <Panel title={inUk ? 'UK RANEDEX' : 'RANEDEX'} onClose={onClose}>
+      {uk && (
         <div className="flex gap-1" aria-label="Ranedex">
-          {(['ireland', 'london'] as const).map((r) => (
+          {(['ireland', 'uk'] as const).map((r) => (
             <button
               key={r}
               type="button"
               className="pixel-btn px-2 py-0.5 text-[10px]"
-              aria-pressed={(dex === LONDON) === (r === 'london')}
+              aria-pressed={inUk === (r === 'uk')}
               onClick={() => pick(r)}
             >
-              {r === 'london' ? 'LONDON' : 'IRELAND'}
+              {r === 'uk' ? 'UK' : 'IRELAND'}
             </button>
           ))}
         </div>
       )}
       <p className="text-[11px]">
-        Seen {game.seen.filter(inDex).length} · Befriended {game.caught.filter(inDex).length} /{' '}
-        {dex.length}
+        Seen {dex.filter((c) => know.seen(c.id)).length} · Befriended{' '}
+        {dex.filter((c) => know.caught(c.id)).length} / {dex.length}
         {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
       <div ref={box} className="grid grid-cols-4 gap-1.5">
         {dex.map((c, i) => {
-          const seen = game.seen.includes(c.id);
+          const seen = know.seen(c.id);
           const shiny = shinies.has(c.id);
           return (
             <button
@@ -731,7 +730,7 @@ export function RanedexPanel({
               <span className="text-[8px]">
                 {shiny && <span className="shiny-name">★</span>}
                 {seen ? c.name : '?????'}
-                {game.caught.includes(c.id) ? ' ●' : ''}
+                {know.caught(c.id) ? ' ●' : ''}
               </span>
             </button>
           );
