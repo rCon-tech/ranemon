@@ -50,36 +50,54 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
           Your friends. Their moves.
         </p>
       </div>
-      <button
-        type="button"
-        className="blink relative text-[22px] font-bold text-paper [text-shadow:2px_2px_0_#000]"
-        onClick={onStart}
-      >
-        PRESS START
-      </button>
+      <div className="relative flex w-full max-w-[320px] flex-col items-stretch gap-3">
+        {/* Story mode is the game; everything else is on the side. */}
+        <Link
+          href="/story"
+          className="pixel-btn flex flex-col items-center gap-1 py-4 text-center"
+          data-cmd="fight"
+        >
+          <span className="text-[26px] font-bold leading-none">STORY MODE</span>
+          <span aria-hidden className="blink text-[12px]">
+            ▶ PRESS START
+          </span>
+        </Link>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            className="pixel-btn flex flex-col items-center justify-center text-center text-[13px]"
+            data-cmd="run"
+            onClick={onStart}
+          >
+            BATTLE MODE
+          </button>
+          {online ? (
+            <Link
+              href="/friends"
+              className="pixel-btn flex flex-col items-center justify-center text-center text-[13px]"
+              data-cmd="party"
+            >
+              FRIEND BATTLE
+            </Link>
+          ) : (
+            // Friend battles are played on the save server, so they need a connection.
+            <button
+              type="button"
+              disabled
+              className="pixel-btn flex flex-col items-center justify-center text-center text-[13px] opacity-60"
+              data-cmd="party"
+              data-testid="friends-offline"
+            >
+              FRIEND BATTLE
+              <span className="block text-[10px]">NEEDS A CONNECTION</span>
+            </button>
+          )}
+        </div>
+      </div>
       <div className="relative flex flex-col items-center gap-4 text-[14px] text-[#c8d4e0]">
         <p>
           Record: {record.wins}W · {record.losses}L
         </p>
-        <Link href="/story" className="pixel-btn menu-item text-[16px]" data-cmd="fight">
-          STORY MODE
-        </Link>
-        {online ? (
-          <Link href="/friends" className="pixel-btn menu-item text-[14px]" data-cmd="party">
-            FRIEND BATTLE
-          </Link>
-        ) : (
-          // Friend battles are played on the save server, so they need a connection.
-          <button
-            type="button"
-            disabled
-            className="pixel-btn menu-item text-[14px] opacity-60"
-            data-cmd="party"
-            data-testid="friends-offline"
-          >
-            FRIEND BATTLE · NEEDS A CONNECTION
-          </button>
-        )}
         <UpdateButton />
         <OfflineReady />
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">

@@ -46,7 +46,7 @@ test('offline: once loaded, the game plays with no connection', async ({ page, c
 
   // Battle mode, through to a battle, from in-app links.
   await page.goto(GAME);
-  await page.getByRole('button', { name: 'PRESS START' }).click();
+  await page.getByRole('button', { name: 'BATTLE MODE' }).click();
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
   for (let i = 0; i < 6; i++) await roster.nth(i).click();
   await page.getByRole('button', { name: /BATTLE!/ }).click();
@@ -68,7 +68,7 @@ test('offline: the game opens offline even if the pictures were cut off, and fin
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'PRESS START' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'BATTLE MODE' })).toBeVisible();
 
   // Back online, the next visit picks up the pictures where it stopped.
   await context.setOffline(false);
