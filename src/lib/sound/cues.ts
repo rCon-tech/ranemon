@@ -100,6 +100,9 @@ export function lineCues(text: string): Cue[] {
   if (/^Gotcha!/.test(text)) return [{ jingle: 'caught' }];
   if (/^You threw a /.test(text)) return [{ sfx: 'throw' }];
   if (/^Sip…/.test(text)) return [{ sfx: 'sip' }];
+  if (/glug, glug, glug!$/.test(text)) {
+    return [0.45, 0.75, 1.05].map((delay) => ({ sfx: 'sip' as const, delay }));
+  }
   if (/^(Oh no|Aww|Argh)!/.test(text)) return [{ sfx: 'fail' }];
   if (/^Got away safely/.test(text)) return [{ sfx: 'run' }];
   if (/^Can’t escape/.test(text)) return [{ sfx: 'fail' }];

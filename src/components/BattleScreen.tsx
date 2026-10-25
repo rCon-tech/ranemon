@@ -42,6 +42,7 @@ const Backdrop3D = dynamic(() => import('./Backdrop3D'), { ssr: false, loading: 
 import { TypedText } from './TypedText';
 import { Sprite } from './Sprite';
 import { ShinyCelebration, ShinySparkle } from './ShinySparkle';
+import { PintDrink, pintStage } from './PintDrink';
 
 /** One kind of item in the story bag, as the battle screen shows it. */
 export interface BagEntry {
@@ -271,6 +272,7 @@ export function BattleScreen({
   };
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
+  const pint = session.foe.kind === 'wild' ? pintStage(message) : null;
   // The side an attack has just missed, which dodges it while the miss plays.
   const missing = session.last?.kind === 'miss' ? session.last : null;
   const dodging: Side | null = missing ? (missing.side === 0 ? 1 : 0) : null;
@@ -300,12 +302,21 @@ export function BattleScreen({
                   key={`hit-${hits[1]}`}
                   className={hits[1] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
-                  <div className={dodging === 1 ? 'anim-dodge-foe h-full w-full' : 'h-full w-full'}>
+                  <div
+                    className={
+                      dodging === 1
+                        ? 'anim-dodge-foe h-full w-full'
+                        : pint?.kind === 'downed'
+                          ? 'anim-chug h-full w-full'
+                          : 'h-full w-full'
+                    }
+                  >
                     <Sprite creature={foe.creature} solid={look === '3d'} />
                   </div>
                 </div>
               </div>
               {foe.creature.shiny && <ShinySparkle />}
+              {pint && <PintDrink stage={pint} />}
             </div>
           ) : (
             foe.hp === 0 &&

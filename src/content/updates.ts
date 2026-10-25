@@ -11,6 +11,14 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-25',
+    title: 'Down in one',
+    notes: [
+      'When a wild Ranemon takes to you, you can see it drink the pint now: it flies in, goes down a sip at a time, and the last of it is knocked back in one before it joins you.',
+      'Nothing else changes: the same pints work just as well as before.',
+    ],
+  },
+  {
     date: '2026-10-24',
     title: 'Silicon Docks',
     notes: [

@@ -1153,6 +1153,209 @@ button {
   }
 }
 
+/* A pint for a wild Ranemon: thrown in, sipped a quarter at a time, then knocked back in one. */
+.pint-glass {
+  position: absolute;
+  left: -4%;
+  bottom: 4%;
+  width: 26%;
+  overflow: visible;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.3));
+}
+.pint-stout {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--level));
+}
+.pint-head {
+  transform: translateY(calc((1 - var(--level)) * 22px));
+  opacity: calc(var(--level) * 8);
+}
+.pint-thrown {
+  animation: pint-throw 0.55s cubic-bezier(0.3, 0.6, 0.5, 1) both;
+}
+@keyframes pint-throw {
+  from {
+    transform: translate(-380%, 300%) rotate(-540deg) scale(1.5);
+  }
+  80% {
+    transform: translate(0, -20%) rotate(0deg);
+  }
+}
+.pint-sip {
+  animation: pint-sip 0.7s steps(6) both;
+}
+.pint-sip .pint-stout {
+  animation: pint-sip-stout 0.4s ease-out 0.2s both;
+}
+.pint-sip .pint-head {
+  animation: pint-sip-head 0.4s ease-out 0.2s both;
+}
+@keyframes pint-sip {
+  35%,
+  65% {
+    transform: translate(60%, -40%) rotate(40deg);
+  }
+}
+@keyframes pint-sip-stout {
+  from {
+    transform: scaleY(calc(var(--level) + 0.25));
+  }
+}
+@keyframes pint-sip-head {
+  from {
+    transform: translateY(calc((0.75 - var(--level)) * 22px));
+  }
+}
+/* The last of it in one go: up to its mouth, tipped right over, and drained. */
+.pint-downed {
+  animation: pint-chug 1.6s ease-in-out both;
+}
+.pint-downed .pint-stout {
+  animation: pint-drain 0.9s ease-in 0.45s both;
+}
+.pint-downed .pint-head {
+  animation: pint-drain-head 0.9s ease-in 0.45s both;
+}
+@keyframes pint-chug {
+  0% {
+    transform: none;
+  }
+  25% {
+    transform: translate(70%, -50%) rotate(30deg);
+  }
+  40%,
+  85% {
+    transform: translate(75%, -62%) rotate(105deg);
+  }
+  100% {
+    transform: translate(70%, -50%) rotate(20deg);
+  }
+}
+@keyframes pint-drain {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(0);
+  }
+}
+@keyframes pint-drain-head {
+  from {
+    transform: translateY(16.5px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(22px);
+    opacity: 0;
+  }
+}
+.anim-chug {
+  transform-origin: 50% 100%;
+  animation: chug 1.6s ease-in-out both;
+}
+@keyframes chug {
+  30%,
+  85% {
+    transform: rotate(-9deg) translateX(-3%);
+  }
+}
+.pint-empty {
+  transform: translate(70%, -50%) rotate(20deg);
+  animation: pint-set-down 0.4s steps(4) both;
+}
+@keyframes pint-set-down {
+  to {
+    transform: none;
+  }
+}
+.pint-pushed {
+  animation: pint-push 0.6s ease-in 0.2s both;
+}
+@keyframes pint-push {
+  to {
+    transform: translate(-160%, 30%) rotate(-85deg);
+    opacity: 0;
+  }
+}
+.pint-glug,
+.pint-heart {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #f3e3bf;
+  text-shadow:
+    1px 0 #1d2433,
+    -1px 0 #1d2433,
+    0 1px #1d2433,
+    0 -1px #1d2433;
+  animation: pint-pop 0.5s steps(3) both;
+}
+.pint-glug-0 {
+  left: 10%;
+  top: 2%;
+  animation-delay: 0.5s;
+}
+.pint-glug-1 {
+  left: 36%;
+  top: -10%;
+  animation-delay: 0.8s;
+}
+.pint-glug-2 {
+  left: 62%;
+  top: -2%;
+  animation-delay: 1.1s;
+}
+.pint-heart {
+  font-size: 14px;
+  color: #ff5a7a;
+  animation: pint-heart 1s ease-out both;
+}
+.pint-heart-0 {
+  left: 28%;
+  top: 10%;
+}
+.pint-heart-1 {
+  left: 50%;
+  top: 0;
+  animation-delay: 0.2s;
+}
+.pint-heart-2 {
+  left: 70%;
+  top: 12%;
+  animation-delay: 0.4s;
+}
+@keyframes pint-pop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+@keyframes pint-heart {
+  from {
+    transform: translateY(40%) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-60%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pint-glass,
+  .pint-glass *,
+  .anim-chug,
+  .pint-glug,
+  .pint-heart {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+}
+
 /* How a move's type does against the foe: green for super effective, red for weak. */
 .matchup {
   display: inline-block;
