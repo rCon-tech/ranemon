@@ -11,7 +11,7 @@ import {
   SPARKS,
   type Bulb,
 } from './partyfx';
-import { DOOR_LABEL, INK, LIGHT } from './pixels';
+import { doorLabels, INK, LIGHT } from './pixels';
 import {
   CAR_COLOURS,
   carColour,
@@ -274,7 +274,7 @@ export function buildLevel(map: GameMap, gymRoofs: Set<string>): Level {
   }
 
   // ---------- shop signs over the doors ----------
-  for (const [door, label] of Object.entries(DOOR_LABEL)) {
+  for (const [door, label] of Object.entries(doorLabels(map))) {
     for (const d of find(map, door)) group.add(sign(label, door, d.x, d.y, own));
   }
 
