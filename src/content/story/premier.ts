@@ -1433,6 +1433,7 @@ export const PL_FLAGS = CLUBS.map((c) => plFlag(c.id));
 
 /** The legends, in order, with where they are: for the mission list. */
 export const FIXTURE_LIST = CLUBS.map((c) => ({
+  id: c.id,
   club: c.club,
   ground: c.ground,
   legend: c.legend,
