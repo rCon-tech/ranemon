@@ -14,6 +14,7 @@ import { PREMIER_TRAINERS } from './premier';
 import { GALWAY_TRAINERS } from './galway';
 import { SILICON_TRAINERS } from './silicon';
 import { SIDEMEN_TRAINERS, WEMBLEY_TRAINERS } from './sidemen';
+import { NEESON_TRAINERS } from './neeson';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -812,6 +813,7 @@ const T: Trainer[] = [
   ...SILICON_TRAINERS,
   ...SIDEMEN_TRAINERS,
   ...WEMBLEY_TRAINERS,
+  ...NEESON_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {

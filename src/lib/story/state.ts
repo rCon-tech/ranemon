@@ -349,7 +349,7 @@ export function settleBattle(
     summary.push(
       'You’re out of Ranemon that can fight!',
       outside.uk || outside.yates
-        ? `You come round in W.B Yates, ${town}, with a bar tab of ${money}. Liam Neeson is standing over you. He says nothing.`
+        ? `You come round in W.B Yates, ${town}, with a bar tab of ${money}. Florence Pugh is standing over you with a bowl of stew.`
         : `You come round in McGrattans, ${town}, with a bar tab of ${money}.`,
     );
   }

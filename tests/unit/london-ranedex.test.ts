@@ -192,8 +192,9 @@ describe('Shoreditch & Hackney', () => {
 
     const pub = mapById(interiorId('shoreditch', 'P', 0));
     expect(pub.name).toBe('W.B Yates, Shoreditch & Hackney');
-    const [neeson, owner] = pub.npcs;
-    expect(neeson.talk).toEqual([{ do: 'pub' }]);
+    const [pugh, owner] = pub.npcs;
+    expect(pugh.look).toBe('pugh');
+    expect(pugh.talk![0]).toEqual({ do: 'pub' });
     expect(owner.look).toBe('aoife');
     // She sends you on: to Próvaí, then King's Cross, then the palace.
     const said = JSON.stringify(owner.talk);

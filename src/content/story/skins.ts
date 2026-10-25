@@ -11,6 +11,7 @@ import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
 import { COLLISONS } from './silicon';
 import { JAMIE } from './sidemen';
+import { NEESON_TRAINER } from './neeson';
 import { NORM_RETURNED } from './sibeal';
 import { ELVIS_RETURNED } from '@/lib/story/norm';
 import { CHAMPION_SKIN } from '@/lib/online/rules';
@@ -400,6 +401,12 @@ export const SKINS: Skin[] = [
     name: 'Jamie Elliott',
     unlock: beat(JAMIE),
     hint: 'Beat all six Sidemen at Wembley Park, London, then their leader on the pitch.',
+  },
+  {
+    id: 'neeson',
+    name: 'Liam Neeson',
+    unlock: beat(NEESON_TRAINER),
+    hint: 'Somebody left W.B Yates with a very particular set of skills. Find him, and beat him.',
   },
 ];
 

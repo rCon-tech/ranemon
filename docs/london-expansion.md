@@ -51,7 +51,7 @@ The other two members of Kneecap. Off-screen hostages for most of the story, see
 ### New in London
 
 - **Sgt. Pemberton, UK Border Force**, who explains the rules nobody has read.
-- **Liam Neeson**, the barman in every W.B Yates. Very serious. He heals your party as if he's rescuing a hostage (see **The W.B Yates pubs**).
+- **Florence Pugh**, behind the bar in every W.B Yates, as Dua Lipa is in every McGrattans. She heals your party (see **The W.B Yates pubs**). Liam Neeson had the job first; he's now a side quest up Big Ben.
 - **Donal**, who runs W.B Yates London: a Corkman who's been here since 1987 and still says he's going home next year. Each W.B Yates is run by a different Irish family living in England.
 - **The 12 club legends** (see the Premier League table).
 - **The Royal Family**: Prince Edward, Princess Anne, Prince William, Prince Andrew, Zombie Queen Elizabeth, King Charles, and Queen Camilla at his side (she doesn't fight). Prince Harry has left a note.
@@ -108,10 +108,9 @@ The Stansted Express drops you at Liverpool Street, the first London map. Próva
 > **PRÓVAÍ:** They took the Ranemon off you? Ah, they did the same to me. Even took my decks.
 > **PRÓVAÍ:** Don't worry. I've a friend. Over here the pubs are all called W.B Yates. Every one of them run by the Irish in England. They're a home away from home.
 
-Behind the bar, Liam Neeson is polishing a glass. He doesn't look up.
+Behind the bar, Florence Pugh is stirring a pot of stew between pints.
 
-> **LIAM NEESON:** I don't know who you are. I don't know what you want. If you're looking for a pint, I can tell you it takes 119.5 seconds.
-> **LIAM NEESON:** I have a very particular set of skills. Skills I have acquired over a very long career. Pouring is one of them.
+> **FLORENCE PUGH:** Hiya! Sit yourself down there and I'll sort your lot out. Little women, little men, little Ranemon, all welcome.
 
 The back room of W.B Yates London. 20 pints of Guinness on a long table, one per Ranemon, like Michael D's kitchen. They are poured badly.
 
@@ -371,7 +370,7 @@ The ending plays as one long party, the palace's `after` form, which stays for g
 - The ballroom becomes a céilí. Bridie, the chef from Tuam and the gardener from Ballyfermot lead the dancing.
 - Ollie's parents walk in with your **whole Irish party and Group Chat**, which rejoin you (the UK starter and your UK catches stay too). Your old follower runs straight to you.
 - Michael D lands on the palace lawn in the Irish Air Corps helicopter, with his dogs, and hands the Irish Crown Jewels to Próvaí "to bring home to Dublin Castle, where they belong. And this time, lock the door."
-- The State Dining Room is now **W.B Yates, Buckingham Palace**, run by Bridie. Liam Neeson and Dua Lipa pull the pints side by side; he's not impressed by her pouring. Charles works behind the bar in an apron. He is not good at it.
+- The State Dining Room is now **W.B Yates, Buckingham Palace**, run by Bridie. Florence Pugh pulls the pints. Charles works behind the bar in an apron. He is not good at it.
 - The cameos dance in the crowd: Enda (best friends with Camilla now), Kill and Stead (see Side quests), Carl Ryan with Elvis selling Blue Ghosts from his sports bag, the 12 legends (Roy Keane still not clapping), Paul Mescal crying ("These are happy tears. I think."), and Alex Simonin in the corner, in pink: "How do we always end up here?"
 
 Credits roll over a Tube-map-style map of the whole expansion, station by station, with your party.
@@ -421,6 +420,7 @@ Each is optional and stands alone, so any can be cut.
 5. **Paul Mescal in the West End (London).** He's in a play near Leicester Square and is, of course, crying at the stage door. Battle him (Normal AI, three UK forms at Lv 46). Beat him and he says "Look over there!" and runs off into the theatre.
 6. **The Shoreditch crypto bro (London).** A trainer who offers to "tokenise" your starter. Beat him and he pays you in a coin that's worth nothing by the time you get to the Tesco Express. Funny once, and the cheapest one to cut.
 7. **The Sidemen (Wembley Park), as built.** Not in the original plan: Rich asked for it on 25 October 2026. Jamie Elliott, who runs the Sidemen, waits at King's Cross from the Brighton jersey on; beat KSI, Miniminter, Zerkaa, Behzinga, Vikkstar123 and TBJ round Wembley Park (Metropolitan line from King's Cross), each with a drawn Ranemon of their own, then Jamie on the Wembley pitch with all six. See `src/content/story/sidemen.ts`.
+8. **A Very Particular Set of Skills (Big Ben), as built.** Not in the original plan: Rich asked for it on 25 October 2026. Florence Pugh takes over the bar of every W.B Yates from Liam Neeson. From the Crystal Palace jersey on, she asks you (once, after a heal) to go after him: he's at the top of the Elizabeth Tower, Big Ben's room on the London map, looking out over London for whoever took his bar. His stunt double (who looks just like him) battles you on the way up, Lv22 to 23; Liam won't turn round until you've beaten him. Liam is a hard battle, Lv24 to 27. Beat him and he admits it was him all along (no small talk, and behind a bar that's the whole job): 3 Well-Settled Pints, a Blue Ghost and the Liam Neeson skin. It's on the Missions list as A Very Particular Set of Skills. In the simulator a party at his level wins about 8 times in 10 (`tests/sim/neeson.test.ts`). The tower room is in London, so it's 2D only. See `src/content/story/neeson.ts`.
 
 ## Running threads
 
@@ -459,12 +459,12 @@ Each new map, room and battle is drawn flat with the 3D look picked, as Ghent an
 
 In England the pubs aren't McGrattans: they're **W.B Yates**, every one run by Irish people who live in England. Each does what McGrattans does at home (free heals, the Group Chat on the wall), but no two are alike: each has its own owner, its own look and something of its own to find.
 
-**Liam Neeson** works the bar in every one of them. Nobody asks how. ("I commute.") He is completely serious about everything, and heals your party as if he's getting it back from kidnappers.
+**Florence Pugh** works the bar in every one of them, as Dua Lipa does in every McGrattans at home. Nobody asks how. She heals your party with a line of her own each visit (`PUGH_LINES` in `src/content/story/neeson.ts`), and after a blackout you come round to her standing over you with a bowl of stew.
 
-> **LIAM NEESON:** _(on a heal)_ Your Ranemon were taken from you. I found them. I healed them. Don't thank me. Thank the stout.
-> **LIAM NEESON:** _(after you black out)_ Someone did this to your Ranemon. I will look for them. I will find them. And I will beat them in a Ranemon battle.
-> **LIAM NEESON:** _(if you talk to him twice)_ I'm from Ballymena. We don't do small talk.
-> **LIAM NEESON:** _(if you try to throw a pint)_ That pint has done nothing to you.
+> **FLORENCE PUGH:** _(on a heal)_ Don't worry, darling. They're all healed. That one's a film, by the way. Don't watch it.
+> **FLORENCE PUGH:** _(on a heal)_ Bit of a Midsommar crowd in tonight. Don't drink anything with flowers in it. Your Ranemon are grand.
+
+**Liam Neeson** had the job first. Once you've the Crystal Palace jersey, Florence asks you to go after him: he's gone up Big Ben, convinced someone took his bar (see **A Very Particular Set of Skills**, under the build order).
 
 | Town              | Run by                                               | What makes it different                                                                                                                |
 | ----------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |

@@ -13,14 +13,8 @@ import {
   THATCHER_OUT,
   UK_STARTER,
 } from '@/content/story/kneecap';
-import {
-  ARRIVALS_ID,
-  FLIGHT,
-  LONDON,
-  NEESON_LINES,
-  TERMINAL_ID,
-  UK_TRAINERS,
-} from '@/content/story/london';
+import { ARRIVALS_ID, FLIGHT, LONDON, TERMINAL_ID, UK_TRAINERS } from '@/content/story/london';
+import { PUGH_LINES, PUGH_TALK } from '@/content/story/neeson';
 import { MAPS, mapById } from '@/content/story/maps';
 import { STATION_ARRIVE, STATION_ID, departureTo, ticket } from '@/content/story/station';
 import { teamOf, trainerById } from '@/content/story/trainers';
@@ -233,17 +227,18 @@ describe('Britain', () => {
     for (const m of [...uk, mapById('airport')]) expect(m.flat, m.id).toBe(true);
   });
 
-  it('has W.B Yates for a pub, with Liam Neeson on the bar, and a Tesco Express', () => {
+  it('has W.B Yates for a pub, with Florence Pugh on the bar, and a Tesco Express', () => {
     const pub = mapById(interiorId('london', 'P', 0));
     expect(pub.name).toBe('W.B Yates, London');
-    const [neeson, owner, provai, thatcher] = pub.npcs;
-    expect(neeson.look).toBe('neeson');
-    expect(neeson.talk).toEqual([{ do: 'pub' }]);
+    const [pugh, owner, provai, thatcher] = pub.npcs;
+    expect(pugh.look).toBe('pugh');
+    expect(pugh.talk).toBe(PUGH_TALK);
+    expect(pugh.talk![0]).toEqual({ do: 'pub' });
     expect(owner.look).toBe('donal');
     expect(provai.look).toBe('provai');
     expect(thatcher.look).toBe('thatcher');
     expect(npcsOf(pub)).toHaveLength(4);
-    expect(NEESON_LINES.length).toBeGreaterThan(3);
+    expect(PUGH_LINES.length).toBeGreaterThan(3);
     expect(mapById(interiorId('london', 'M', 0)).name).toBe('Tesco Express, London');
   });
 

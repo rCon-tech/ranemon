@@ -8,6 +8,8 @@ import {
   THATCHER_OUT,
   UK_STARTER,
 } from './kneecap';
+import { keeperOf } from './keepers';
+import { bigBenRoom } from './neeson';
 import { FORECOURT } from './palace';
 import { KINGS_CROSS_ROOM } from './premier';
 import { OVERGROUND, SHOREDITCH_TRAINERS } from './shoreditch';
@@ -615,15 +617,6 @@ const PROVAI_OUTSIDE: Npc = {
   ],
 };
 
-/** Liam Neeson's lines when he heals your party in a W.B Yates. */
-export const NEESON_LINES = [
-  'LIAM NEESON: Your Ranemon were taken from you. I found them. I healed them. Don’t thank me. Thank the stout.',
-  'LIAM NEESON: I have a very particular set of skills. Skills I have acquired over a very long career. Pouring is one of them.',
-  'LIAM NEESON: I don’t know who you are. I don’t know what you want. But your Ranemon are fighting fit.',
-  'LIAM NEESON: (He looks at your Ranemon for a long time.) They’ll live. They’ll do more than live.',
-  'LIAM NEESON: I’m from Ballymena. We don’t do small talk. Your Ranemon are healed.',
-];
-
 /** London's W.B Yates: Donal from Cork runs it, and Próvaí is in the back with the pints. */
 const LONDON_YATES: Yates = {
   owner: {
@@ -636,7 +629,7 @@ const LONDON_YATES: Yates = {
       },
       {
         do: 'say',
-        text: 'DONAL: Liam’s on the bar. Don’t make small talk with him. He doesn’t do small talk. Trad session every night at nine.',
+        text: 'DONAL: Florence is on the bar now. Liam had it for years. He didn’t do small talk. She does nothing but. Trad session every night at nine.',
       },
     ],
   },
@@ -784,7 +777,12 @@ export const LONDON: GameMap = {
       },
     ],
   ],
-  landmarkRooms: { 0: KINGS_CROSS_ROOM, 2: FORECOURT },
+  landmarkRooms: {
+    0: KINGS_CROSS_ROOM,
+    // Liam Neeson's side quest, once Florence has asked you (neeson.ts).
+    1: bigBenRoom(keeperOf('london', 'Big Ben')),
+    2: FORECOURT,
+  },
   landmarkLocks: {
     0: {
       flag: FIXTURES,
