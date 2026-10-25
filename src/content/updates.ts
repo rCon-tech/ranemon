@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'The UK Ranedex',
+    notes: [
+      'Britain has a Ranedex of its own now: open the Ranedex and tap UK. It has every one of the lads drawn, their evolved forms too, and all of London’s own.',
+      'UK Ranemon evolve now, at Lv30 like at home, into drawn versions of their evolved forms.',
+      'Only the ones you meet over there count in it. Ireland’s Ranedex hasn’t changed.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'A fresh pint over the sea',
     notes: [
       'Across the Irish Sea the pint by a wild Ranemon’s name starts fresh: it only shows for ones you’ve befriended over there.',

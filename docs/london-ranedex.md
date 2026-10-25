@@ -8,7 +8,7 @@ A plan only, written 24 October 2026. Nothing here is built yet. It turns Rich's
 - **94 of the 99 characters are in.** 5 are cut, and 19 lines merge two or more characters, as evolutions or as a joke in the Ranedex entry (below).
 - **Three new types: Posh, Graft and Arty**, making nine. The chart stays fair: every type hits 3 types for double, is resisted by 3, is weak to 3 and resists 3.
 - **Names follow the lads' pattern.** Each base form is one London word plus _-mon_ (Oystermon, Oatmon). Each evolution blends that word with a Gen 1 or 2 Pokémon, and a whole line keeps to one Pokémon family, like Carlizard, Lorchu and Robinsey do.
-- **UK Ranemon get evolutions.** The 20 lads' UK forms still don't evolve (that stays as it is). The new London Ranemon evolve at their own levels, from Lv12 to Lv55, instead of everyone at Lv30.
+- **UK Ranemon get evolutions.** The 20 lads' UK forms evolve at Lv30 into their drawn evolved forms, as at home. The new London Ranemon evolve at their own levels, from Lv12 to Lv55, instead of everyone at Lv30.
 - **All drawn, no photos**, with the pixel-art body kit from the drawn Ranemon (PR #59's branch), 96 px, with a back view, shiny and follower each.
 - **Eleven London areas**, opened as you collect jerseys, with wild levels running from Lv3 at Liverpool Street to Lv48 in the City before the palace, and Lv50 to 70 after the credits.
 - **Built in six batches** of about 25 to 35 species, each its own PR, with a sprite sheet for Rich to approve before any code goes in.
@@ -120,7 +120,7 @@ Every name is checked against every Ranemon that exists today, and all 151 are d
 
 ## Evolutions
 
-Today every Ranemon evolves once, at Lv30, into a form with a 460 stat budget, and the UK forms of the lads don't evolve at all. The lads stay that way. The London Ranemon change it:
+Today every Ranemon evolves once, at Lv30, into a form with a 460 stat budget, and the lads' UK forms do the same into their drawn evolved forms. The London Ranemon change it:
 
 - **Three-stage lines** (13): evolve twice, early lines at about Lv14 to 20 and Lv30 to 36, late lines later.
 - **Two-stage lines** (45): evolve once, anywhere from Lv22 to Lv46. A line found late evolves late, so its base form is still out in the grass where it lives.
