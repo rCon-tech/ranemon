@@ -3,7 +3,7 @@ import type { ItemId } from '@/lib/story/items';
 import type { GameMap, Look, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
 /**
- * The Sidemen, a side quest in Britain. Once you've won the Brighton jersey, Jamie Elliott, who
+ * The Sidemen, a side quest in Britain. Once you've won the Newcastle jersey, Jamie Elliott, who
  * runs the Sidemen, is at King's Cross: the Charity Match at Wembley is a man short, and the spot
  * goes to whoever beats all six of the lads and then him. The Metropolitan line from King's Cross
  * runs to Wembley Park, where each of the six is filming somewhere of their own with a Ranemon
@@ -26,8 +26,11 @@ export const SIDEMEN_SIX = 'sidemen:six';
 /** Jamie Elliott beaten: you're the eighth Sideman. */
 export const SIDEMEN_DONE = 'sidemen:done';
 
-/** Jamie only turns up at King's Cross once you've the Brighton jersey (premier.ts's `plFlag`). */
-export const SIDEMEN_GATE = 'pl:brighton';
+/**
+ * Jamie only turns up at King's Cross once you've the sixth jersey, Newcastle's (premier.ts's
+ * `plFlag`), halfway up the table.
+ */
+export const SIDEMEN_GATE = 'pl:newcastle';
 
 export const WEMBLEY_ID = 'wembley';
 
@@ -601,7 +604,7 @@ export const METROPOLITAN: Npc = {
   ],
 };
 
-/** Jamie Elliott at King's Cross, from the Brighton jersey on, until you've beaten him. */
+/** Jamie Elliott at King's Cross, from the Newcastle jersey on, until you've beaten him. */
 export const JAMIE_AT_KINGS_CROSS: Npc = {
   look: 'jamie',
   face: 'right',

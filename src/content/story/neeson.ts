@@ -4,8 +4,8 @@ import type { GameMap, Npc, Step, Trainer } from '@/lib/story/world';
  * Florence Pugh, behind the bar of every W.B Yates, as Dua Lipa is in every McGrattans: she
  * heals your party (`{ do: 'pub' }`) with a line of her own each visit (`PUGH_LINES`).
  *
- * She has Liam Neeson's old job, and a side quest in Britain comes of it. Once you've the Crystal
- * Palace jersey, she asks you to go after him: he's up Big Ben, at the top of the Elizabeth Tower,
+ * She has Liam Neeson's old job, and a side quest in Britain comes of it. Once you've the Leeds
+ * jersey, she asks you to go after him: he's up Big Ben, at the top of the Elizabeth Tower,
  * looking out over London for whoever took his bar. His stunt double is on the stairs. Beat the
  * double, then him, for a few settled pints, a Blue Ghost and his skin (skins.ts).
  *
@@ -18,8 +18,8 @@ export const NEESON_START = 'neeson:start';
 /** Liam Neeson beaten. */
 export const NEESON_DONE = 'neeson:done';
 
-/** Florence only asks once you've the Crystal Palace jersey (premier.ts's `plFlag`). */
-export const NEESON_GATE = 'pl:palace';
+/** Florence only asks once you've the fifth jersey, Leeds's (premier.ts's `plFlag`). */
+export const NEESON_GATE = 'pl:leeds';
 
 export const NEESON_DOUBLE = 'neeson-double';
 export const NEESON_TRAINER = 'neeson';
@@ -36,7 +36,7 @@ export const PUGH_LINES = [
   'FLORENCE PUGH: Black Widow taught me how to fall off things. Pulling pints I taught myself. Go on, they’re healed.',
 ];
 
-/** What Florence asks of you, the first time you're in once you've the Palace jersey. */
+/** What Florence asks of you, the first time you're in once you've the Leeds jersey. */
 const FLORENCE_ASKS: Step[] = [
   { do: 'flag', flag: NEESON_START },
   {

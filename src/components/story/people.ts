@@ -1134,10 +1134,10 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#f4f4f4',
     shoes: '#18181c',
   },
-  // Sergio Agüero: City sky blue.
+  // Sergio Agüero: City sky blue, and his hair bleached white.
   aguero: {
     skin: '#d8a07a',
-    hair: '#1a1a1a',
+    hair: '#f2f0ea',
     hairStyle: 'short',
     top: '#6cabdd',
     topKind: 'shirt',

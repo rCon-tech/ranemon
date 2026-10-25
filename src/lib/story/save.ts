@@ -1,9 +1,19 @@
 import { mapById, mapFor } from '@/content/story/maps';
 import { earned, SKINS } from '@/content/story/skins';
+import { CHAMPION } from '@/content/story/kneecap';
+import { legendId, plFlag } from '@/content/story/premier';
 import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
-import { newGame, playerId, SAVE_KEY, saveKey, START_MONEY, type StoryState } from './state';
+import {
+  beatFlag,
+  newGame,
+  playerId,
+  SAVE_KEY,
+  saveKey,
+  START_MONEY,
+  type StoryState,
+} from './state';
 import { doorStep, find, marker, type Dir } from './world';
 
 /**
@@ -15,7 +25,7 @@ import { doorStep, find, marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 5;
+export const SCHEMA = 6;
 
 type Raw = Record<string, unknown>;
 
@@ -53,7 +63,18 @@ const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     pub: isObject(d.pub) ? { ...d.pub, ...renamedRoom(d.pub) } : d.pub,
     schema: 5,
   }),
+  // The Premier League now runs from the smallest club to the biggest, so Manchester United, who
+  // came first, are last and make you Champion. Anyone partway through with Roy Keane beaten
+  // plays him again at the end, as the final; every other jersey is kept.
+  5: (d) => ({ ...d, flags: replayKeane(strings(d.flags)), schema: 6 }),
 };
+
+/** Roy Keane's jersey and win, taken off a save that's partway through the Premier League. */
+export function replayKeane(flags: string[]): string[] {
+  const jersey = plFlag('united');
+  if (flags.includes(CHAMPION) || !flags.includes(jersey)) return flags;
+  return flags.filter((f) => f !== jersey && f !== beatFlag(legendId('united')));
+}
 
 /**
  * The rooms whose ids moved when new doors came before them: the GPO, Supermac's and The Temple

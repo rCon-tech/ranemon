@@ -532,6 +532,14 @@ const LADS_STORY: Step[] = [
     do: 'say',
     text: 'PRÓVAÍ: So. You’re going to win the Premier League. Twelve clubs, twelve legends, twelve jerseys. Trains go from King’s Cross.',
   },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Start small and work up. Brighton first, at the Amex: platform 1. Biggest club last, and that’s Manchester United. Every ground’s shut till you’ve beaten the one before it.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Lost? The board at King’s Cross lights up your next train, and there’s a NEXT sign over where you’re going. Can’t miss it.',
+  },
   { do: 'flag', flag: FIXTURES },
   {
     do: 'say',

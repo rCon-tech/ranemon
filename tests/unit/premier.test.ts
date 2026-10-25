@@ -11,9 +11,16 @@ import {
   PL_MAPS,
   PL_TRAINERS,
   PREMIER_TRAINERS,
+  KX_DEPARTURES,
   legendId,
+  nextClub,
+  objectiveAt,
+  objectiveText,
 } from '@/content/story/premier';
-import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from '@/content/story/sidemen';
+import { find, slot } from '@/lib/story/world';
+import { FIXTURES } from '@/content/story/kneecap';
+import { migrate, replayKeane } from '@/lib/story/save';
+import { METROPOLITAN } from '@/content/story/sidemen';
 import { teamOf, trainerById } from '@/content/story/trainers';
 import { LONDON_LINES } from '@/lib/battle/london';
 import { hasUkForm } from '@/lib/battle/uk';
@@ -40,20 +47,20 @@ describe('a new story line in Britain', () => {
 });
 
 describe('the Premier League', () => {
-  it('has twelve legends, played in order, each a little harder', () => {
+  it('has twelve legends, smallest club to biggest, each a little harder', () => {
     expect(FIXTURE_LIST.map((f) => f.legend)).toEqual([
-      'Roy Keane',
-      'Marcelo Bielsa',
-      'Duncan Ferguson',
-      'Robbie Keane',
-      'Ian Wright',
       'Glenn Murray',
+      'Ian Wright',
       'Paul McGrath',
+      'Duncan Ferguson',
+      'Marcelo Bielsa',
       'Alan Shearer',
-      'John Terry',
-      'Steven Gerrard',
-      'Thierry Henry',
+      'Robbie Keane',
       'Sergio Agüero',
+      'John Terry',
+      'Thierry Henry',
+      'Steven Gerrard',
+      'Roy Keane',
     ]);
     const aces = PL_TRAINERS.map((t) => Math.max(...t.team.map(([, l]) => l)));
     for (let i = 1; i < aces.length; i++) expect(aces[i]).toBeGreaterThan(aces[i - 1]);
@@ -86,7 +93,8 @@ describe('the Premier League', () => {
     }
   });
 
-  it('makes you Champion at the Etihad, which opens the palace', () => {
+  it('makes you Champion at Old Trafford, which opens the palace', () => {
+    expect(PL_TRAINERS.at(-1)!.name).toBe('Roy Keane');
     const flags = new Set<string>();
     const said = play(PL_TRAINERS.at(-1)!.reward!, flags);
     expect(flags.has(CHAMPION)).toBe(true);
@@ -100,7 +108,30 @@ describe('the Premier League', () => {
 describe('King’s Cross', () => {
   const room = mapById(KINGS_CROSS_ID);
   // The Metropolitan line and Jamie Elliott are the Sidemen's (sidemen.test.ts).
-  const platforms = room.npcs.filter((n) => n !== METROPOLITAN && n !== JAMIE_AT_KINGS_CROSS);
+  const platforms = room.npcs.filter((n) => n.look === 'conductor' && n !== METROPOLITAN);
+
+  it('numbers its platforms in the order you first need them, each saying where it goes', () => {
+    expect(KX_DEPARTURES.map((d) => d.map)).toEqual([
+      'falmer',
+      'tube',
+      'birmingham',
+      'liverpool',
+      'leeds',
+      'newcastle',
+      'manchester',
+    ]);
+    for (const [i, n] of platforms.entries()) {
+      const ask = n.talk![0];
+      expect(ask.do === 'ask' && ask.text, `platform ${i + 1}`).toContain(`Platform ${i + 1}.`);
+      // Standing under its own part of the board.
+      expect(find(room, slot(i))[0]).toEqual({ x: 2 * i + 1, y: 3 });
+    }
+    // The ticket office opens the board as a list to pick from.
+    const clerk = room.npcs.find((n) => n.look === 'clerk')!;
+    expect(clerk.talk!.some((s) => s.do === 'departures' && s.station === 'kings-cross')).toBe(
+      true,
+    );
+  });
 
   it('runs a train to every town, and the Tube, from its own platform', () => {
     const towns = platforms.map((n) =>
@@ -115,7 +146,7 @@ describe('King’s Cross', () => {
     );
     expect(
       shut.map((n) => play(n.talk!, new Set([RAILCARD])).find((l) => l.startsWith('TRAVEL'))),
-    ).toEqual(['TRAVEL falmer', 'TRAVEL birmingham', 'TRAVEL newcastle']);
+    ).toEqual(['TRAVEL birmingham', 'TRAVEL newcastle']);
     const wright = trainerById(legendId('palace'));
     const flags = new Set<string>();
     play(wright.reward!, flags);
@@ -134,5 +165,74 @@ describe('King’s Cross', () => {
     expect(new Set(owners).size).toBe(owners.length);
     for (const m of PL_MAPS.filter((m) => m.yates))
       expect(mapById(interiorId(m.id, 'P', 0)).name).toBe(`W.B Yates, ${m.name.split(',')[0]}`);
+  });
+});
+
+describe('where to go next', () => {
+  const start = new Set([FIXTURES]);
+  const won = (n: number) => new Set([FIXTURES, ...PL_FLAGS.slice(0, n)]);
+
+  it('says the next club, its ground and its platform, from Brighton up to United', () => {
+    expect(nextClub(new Set())).toBeNull();
+    expect(nextClub(start)).toMatchObject({ n: 1, club: 'Brighton & Hove Albion', platform: 1 });
+    expect(objectiveText(start)).toBe('NEXT 1/12: Brighton at The Amex · Platform 1');
+    expect(nextClub(won(2))).toMatchObject({ club: 'Aston Villa', platform: 3, to: 'Birmingham' });
+    expect(nextClub(won(11))).toMatchObject({
+      n: 12,
+      club: 'Manchester United',
+      map: 'manchester',
+    });
+    expect(nextClub(new Set([...won(11), CHAMPION]))).toBeNull();
+  });
+
+  it('puts the marker on King’s Cross, the right guard, then the right turnstiles', () => {
+    expect(objectiveAt(LONDON, start)).toEqual({ ...find(LONDON, 'L')[0], on: 'door' });
+    const kx = mapById(KINGS_CROSS_ID);
+    expect(objectiveAt(kx, won(2))).toEqual({ x: 5, y: 3, on: 'person' });
+    const falmer = mapById('falmer');
+    const door = objectiveAt(falmer, start)!;
+    expect(falmer.rows[door.y][door.x]).toBe('L');
+    // In the wrong town, it's the guard who takes you back.
+    expect(objectiveAt(mapById('leeds'), start)).toMatchObject({ on: 'person' });
+    expect(objectiveAt(LONDON, new Set())).toBeNull();
+  });
+
+  it('draws every ground as its club’s stadium, over its own door', () => {
+    for (const m of PL_MAPS) {
+      const grounds = (m.scenery ?? []).filter((s) => s.kind === 'stadium');
+      expect(grounds.length, m.id).toBe(m.landmarks?.length);
+      for (const s of grounds) {
+        expect(m.rows[s.y1].slice(s.x0, s.x1 + 1), m.id).toContain('L');
+        // Nothing tall grows through the roof.
+        expect(m.rows[0].slice(s.x0, s.x1 + 1)).not.toContain('T');
+      }
+    }
+  });
+
+  it('gives a save partway through the old order Roy Keane again, as the final', () => {
+    const partway = ['london:fixtures', 'pl:united', 'beat:pl-united', 'pl:leeds'];
+    expect(replayKeane(partway)).toEqual(['london:fixtures', 'pl:leeds']);
+    const done = [...PL_FLAGS, CHAMPION];
+    expect(replayKeane(done)).toEqual(done);
+    const s = migrate({
+      version: 1,
+      schema: 5,
+      map: 'manchester',
+      x: 5,
+      y: 3,
+      face: 'down',
+      party: [],
+      box: [],
+      bag: {},
+      money: 0,
+      flags: partway,
+      seen: [],
+      caught: [],
+      pub: { map: 'manchester', x: 5, y: 3 },
+      uid: 1,
+      steps: 0,
+    })!;
+    expect(s.flags).not.toContain('pl:united');
+    expect(s.flags).toContain('pl:leeds');
   });
 });

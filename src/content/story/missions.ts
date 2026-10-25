@@ -271,8 +271,8 @@ export const MISSIONS: Mission[] = [
       ...FIXTURE_LIST.map((f, i) => ({
         // The last one makes you Champion.
         until: i === FIXTURE_LIST.length - 1 ? CHAMPION : f.flag,
-        todo: `Beat ${f.legend} for the ${f.club} jersey.`,
-        where: f.ground,
+        todo: `Beat ${f.legend} for the ${f.club} jersey. Club ${i + 1} of ${FIXTURE_LIST.length}, smallest to biggest.`,
+        where: `${f.ground}: King’s Cross, platform ${f.platform} (${f.to})`,
         count: PL_FLAGS,
       })),
       {

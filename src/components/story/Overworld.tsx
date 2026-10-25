@@ -32,6 +32,15 @@ import { drawLamp, facadesOf, lampsOf } from './facades';
 import { doorLabels, INK, LIGHT, TILE } from './pixels';
 import { paintFacade, paintRoom } from './brands';
 import {
+  paintCentreSpot,
+  paintCityRoom,
+  paintKxBoard,
+  paintObjective,
+  paintScenery,
+  paintStandBanner,
+} from './england';
+import { KINGS_CROSS_ID, KX_DEPARTURES, nextClub, objectiveAt } from '@/content/story/premier';
+import {
   balloonsAt,
   bulbsOf,
   CONFETTI_COLOURS,
@@ -396,6 +405,31 @@ export function Overworld(props: Props) {
         paintFacade(c, brand, sx(0), sy(0), x0, y0, x1, d.y);
       });
 
+      // The Premier League towns: their grounds and landmarks, a ground's crest on its pitch,
+      // and the departures board at King's Cross with your next train lit up.
+      if (map.scenery) {
+        const doorOf = (s: { x0: number; y1: number }) =>
+          [...map.rows[s.y1]].findIndex((t, tx) => t === 'L' && tx >= s.x0);
+        paintScenery(c, map.scenery, sx(0), sy(0), doorOf, now);
+      }
+      if (map.crest) {
+        // The centre circle off to the left, clear of the legend, and a banner on the far stand.
+        paintCentreSpot(c, map.crest, sx(3 * TILE), sy(3 * TILE));
+        paintStandBanner(c, map.crest, sx(6 * TILE), sy(1.5 * TILE));
+        if (map.crest === 'city')
+          paintCityRoom(c, sx(0), sy(0), map.rows[0].length, map.rows.length, now);
+      }
+      if (map.id === KINGS_CROSS_ID) {
+        const next = nextClub(p.flags);
+        const board = KX_DEPARTURES.map((d) => ({
+          platform: d.platform,
+          to: d.to,
+          next: next?.map === d.map,
+          clubs: d.clubs.map((k) => ({ id: k.id, won: p.flags.has(k.flag) })),
+        }));
+        paintKxBoard(c, board, sx(0), sy(0), now);
+      }
+
       // Shop signs over the doors, in the door's own colour.
       c.font = '700 7px "Pixelify Sans", sans-serif';
       c.textAlign = 'center';
@@ -730,6 +764,13 @@ export function Overworld(props: Props) {
       }
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
+
+      // Where to go for your next match in the Premier League, bobbing over the door or the guard.
+      const goal = objectiveAt(map, p.flags);
+      if (goal) {
+        const gy = goal.on === 'door' ? (goal.y + 1) * TILE : goal.y * TILE - 10;
+        paintObjective(c, sx(goal.x * TILE + 8), sy(gy), goal.on, now);
+      }
 
       // A party's fairy lights, strung over everyone's heads.
       const bulbs = map.party ? bulbsAt(map) : [];

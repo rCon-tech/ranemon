@@ -53,9 +53,9 @@ describe('Florence Pugh in W.B Yates', () => {
     for (const line of PUGH_LINES) expect(line.startsWith('FLORENCE PUGH: ')).toBe(true);
   });
 
-  it('only heals until you have the Crystal Palace jersey', () => {
-    expect(NEESON_GATE).toBe(`pl:${'palace'}`);
-    expect(trainerById(legendId('palace'))).toBeDefined();
+  it('only heals until you have the Leeds jersey, the fifth', () => {
+    expect(NEESON_GATE).toBe(`pl:${'leeds'}`);
+    expect(trainerById(legendId('leeds'))).toBeDefined();
     const flags = new Set<string>();
     expect(play(PUGH_TALK, flags)).toEqual(['HEAL']);
     expect(flags.has(NEESON_START)).toBe(false);
@@ -85,8 +85,8 @@ describe('Liam Neeson, up Big Ben', () => {
     expect(liam.readyIf).toBe(beatFlag(NEESON_DOUBLE));
   });
 
-  it('is a hard UK battle, a few levels over the Palace jersey, after an easier one', () => {
-    const palace = Math.max(...trainerById(legendId('palace')).team.map(([, l]) => l));
+  it('is a hard UK battle, a few levels over the Leeds jersey, after an easier one', () => {
+    const palace = Math.max(...trainerById(legendId('leeds')).team.map(([, l]) => l));
     const sidemen = Math.min(...trainerById('sidemen-ksi').team.map(([, l]) => l));
     const him = trainerById(NEESON_TRAINER);
     const dbl = trainerById(NEESON_DOUBLE);
