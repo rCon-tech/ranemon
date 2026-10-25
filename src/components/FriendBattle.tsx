@@ -16,7 +16,7 @@ import {
   type LevelRule,
   type RoomView,
 } from '@/lib/online/rules';
-import { isPin } from '@/lib/story/cloud';
+import { flushOnline, isPin } from '@/lib/story/cloud';
 import { itemById } from '@/lib/story/items';
 import type { Member } from '@/lib/story/party';
 import { remoteSaves } from '@/lib/story/remote';
@@ -283,7 +283,10 @@ export function FriendBattle() {
     setBusy(true);
     setNote(null);
     try {
-      const raw = await remoteSaves(SAVE_API!).load(trainerId(name), pin);
+      // A story save still waiting to go up goes first, so the team is the latest one.
+      await flushOnline();
+      const got = await remoteSaves(SAVE_API!).load(trainerId(name), pin);
+      const raw = typeof got === 'string' ? got : got?.raw;
       if (!raw) {
         setNote('That name has no online save yet. Play Story mode with your PIN first.');
         return;

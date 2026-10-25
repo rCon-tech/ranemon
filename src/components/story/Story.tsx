@@ -24,6 +24,7 @@ import { formAt } from '@/lib/battle/evolutions';
 import { LEGEND } from '@/lib/battle/legend';
 import type { BattleState, Entrant } from '@/lib/battle/engine';
 import {
+  choose,
   cloudNeedsPin,
   flushOnline,
   hasCloudSaves,
@@ -31,9 +32,12 @@ import {
   loadOnline,
   saveOnline,
   setCloudSaves,
+  settle,
+  readSync,
+  unsynced,
 } from '@/lib/story/cloud';
 import { remoteSaves } from '@/lib/story/remote';
-import { replace } from '@/lib/story/save';
+import { describe, keepCopy, replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
 import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
@@ -64,9 +68,9 @@ import {
   load,
   makeLead,
   toggleExpShare,
-  newer,
   newGame,
   parseSave,
+  saveKey,
   PLAYER_KEY,
   playerId,
   recruit,
@@ -310,6 +314,13 @@ export function Story() {
   });
   /** The title screen's backups and save codes, with the trainer's save as it stands. */
   const [tools, setTools] = useState<{ current: StoryState | null } | null>(null);
+  /** This browser's save and the online one have each moved on: the trainer picks one. */
+  const [clash, setClash] = useState<{
+    local: StoryState;
+    online: StoryState;
+    onlineRaw: string;
+    rev: number | undefined;
+  } | null>(null);
   const [queue, setQueue] = useState<Run[]>([]);
   /** The line in the text box: `n` restarts the typing, `full` skips to the end of it. */
   const [line, setLine] = useState<{ text: string; n: number; full?: boolean } | null>(null);
@@ -369,11 +380,17 @@ export function Story() {
     if (raw) saveOnline(player.current, raw);
   }, []);
 
-  // Don't lose the last online save when the tab goes away.
+  // Don't lose the last online save when the tab goes away, and send up a save made offline as
+  // soon as the connection comes back.
   useEffect(() => {
-    const hide = () => document.visibilityState === 'hidden' && flushOnline();
+    const hide = () => document.visibilityState === 'hidden' && void flushOnline();
+    const back = () => void flushOnline();
     document.addEventListener('visibilitychange', hide);
-    return () => document.removeEventListener('visibilitychange', hide);
+    window.addEventListener('online', back);
+    return () => {
+      document.removeEventListener('visibilitychange', hide);
+      window.removeEventListener('online', back);
+    };
   }, []);
 
   /** Runs script steps until one needs the player: a line of text, a battle or a menu. */
@@ -912,8 +929,9 @@ export function Story() {
   if (remembered === undefined) return <div className="flex-1" />;
 
   /**
-   * Finds the trainer's save: the newer of this browser's and the online one. `blocked` says why
-   * the online one couldn't be opened, if it couldn't.
+   * Finds the trainer's save: this browser's or the online one, whichever carries on from the
+   * other (`choose`). `blocked` says why the online one couldn't be opened, if it couldn't, and
+   * `clash` holds both when each has moved on without the other.
    */
   async function findSave(trainer: string) {
     const local = load(storage(), trainer);
@@ -927,7 +945,22 @@ export function Story() {
             : 'Couldn’t reach online saves just now.';
       return { save: local, blocked, offline: online.error === 'offline' };
     }
-    return { save: newer(local, parseSave(online.raw)), blocked: null, offline: false };
+    const remote = parseSave(online.raw);
+    const pick = choose(local, remote, online.rev, readSync(trainer));
+    if (pick === 'ask' && local && remote)
+      return {
+        save: local,
+        blocked: null,
+        offline: false,
+        clash: { local, online: remote, onlineRaw: online.raw!, rev: online.rev },
+      };
+    return {
+      save: pick === 'online' ? remote : local,
+      // The online save is carried on from: later saves here follow on from it.
+      adopt: pick === 'online' ? online.rev : undefined,
+      blocked: null,
+      offline: false,
+    };
   }
 
   function begin(trainer: string, g: StoryState, fresh: boolean) {
@@ -948,8 +981,14 @@ export function Story() {
       if (local) return begin(name, local, false);
     }
     setTitle({ busy: true, note: null, replace: false });
-    const { save: found, blocked, offline } = await findSave(name);
-    if (blocked)
+    const { save: found, blocked, offline, clash, adopt } = await findSave(name);
+    // With no connection, play this browser's save straight away. It's saved here as usual, and
+    // goes up online once the connection is back.
+    if (clash) {
+      setTitle({ busy: false, note: null, replace: false });
+      setClash(clash);
+    } else if (blocked && offline && found) begin(name, found, false);
+    else if (blocked)
       setTitle({
         busy: false,
         note: found
@@ -958,7 +997,10 @@ export function Story() {
         replace: false,
         localOnly: !!found,
       });
-    else if (found) begin(name, found, false);
+    else if (found) {
+      if (adopt !== undefined) settle(name, adopt);
+      begin(name, found, false);
+    }
     // The developer save starts with everything unlocked.
     else if (await isDevName(name)) begin(name, devSave(), false);
     else
@@ -973,11 +1015,19 @@ export function Story() {
     if (!title.replace) {
       setTitle({ busy: true, note: null, replace: false });
       const { save: found, blocked, offline } = await findSave(name);
-      if (blocked) {
-        // Offline, a new game could later replace an online save it couldn't see.
+      if (blocked && offline && !found) {
+        // Offline, a new game could later replace an online save it couldn't see, so ask first.
         setTitle({
           busy: false,
-          note: `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
+          note: `${blocked} If “${name.trim()}” already has a save on another device, a new game here could replace it. Tap NEW GAME again to start anyway.`,
+          replace: true,
+        });
+        return;
+      }
+      if (blocked && !offline) {
+        setTitle({
+          busy: false,
+          note: `${blocked} Check it, or pick another name.`,
           replace: false,
         });
         return;
@@ -1016,6 +1066,65 @@ export function Story() {
         }}
         onClose={() => setTools(null)}
       />
+    );
+  }
+
+  if (!game && clash) {
+    const when = (s: StoryState) =>
+      s.savedAt
+        ? new Date(s.savedAt).toLocaleString(undefined, {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : 'a while ago';
+    const keep = (which: 'local' | 'online') => {
+      // The other one is kept as a copy in BACKUPS AND SAVE CODES, so nothing is lost.
+      const chosen = which === 'local' ? clash.local : clash.online;
+      const other =
+        which === 'local' ? clash.onlineRaw : JSON.stringify({ ...clash.local, version: 1 });
+      keepCopy(storage(), name, other, 'clash');
+      settle(name, clash.rev);
+      setClash(null);
+      begin(name, chosen, false);
+    };
+    return (
+      <div
+        className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12 text-center text-ink"
+        data-testid="save-clash"
+      >
+        <h2 className="text-[20px] font-bold">TWO SAVES</h2>
+        <p className="max-w-[300px] text-[11px] leading-relaxed text-frame">
+          “{name.trim()}” was played on this device and somewhere else since they last matched. Pick
+          the one to carry on with. The other is kept in BACKUPS AND SAVE CODES.
+        </p>
+        {(
+          [
+            ['local', 'ON THIS DEVICE', clash.local],
+            ['online', 'ONLINE', clash.online],
+          ] as const
+        ).map(([which, label, s]) => (
+          <button
+            key={which}
+            type="button"
+            className="dialog flex w-full max-w-[300px] flex-col gap-1 px-3 py-2 text-left"
+            onClick={() => keep(which)}
+            data-testid={`keep-${which}`}
+          >
+            <span className="text-[12px] font-bold">{label}</span>
+            <span className="text-[11px]">{describe(s)}</span>
+            <span className="text-[10px] text-frame">Saved {when(s)}</span>
+          </button>
+        ))}
+        <button
+          type="button"
+          className="text-[11px] text-frame underline underline-offset-4"
+          onClick={() => setClash(null)}
+        >
+          BACK
+        </button>
+      </div>
     );
   }
 
@@ -1100,6 +1209,9 @@ export function Story() {
             {title.busy
               ? 'Looking for your save…'
               : (title.note ??
+                (unsynced(name, parseSave(storage()?.getItem(saveKey(name))))
+                  ? 'This save has progress that isn’t online yet. It goes up next time you play with a connection.'
+                  : undefined) ??
                 (needsPin
                   ? 'Your save follows this name and PIN, so you can carry on from any device. A new name’s PIN is set by its first save.'
                   : hasCloudSaves()

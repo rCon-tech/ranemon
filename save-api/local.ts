@@ -13,12 +13,15 @@ const origins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:3000').split('
 
 const rows = new Map<string, SaveRow>();
 const fails = new Map<string, { count: number; until: number }>();
+const devices = new Map<string, string>();
 const saves: SaveStore = {
   get: async (id) => rows.get(id) ?? null,
   put: async (r) => void rows.set(r.id, r),
   fails: async (id) => fails.get(id) ?? null,
   setFails: async (id, count, until) => void fails.set(id, { count, until }),
   clearFails: async (id) => void fails.delete(id),
+  device: async (hash) => devices.get(hash) ?? null,
+  addDevice: async (hash, id) => void devices.set(hash, id),
 };
 const battles = new Map<string, { doc: string; version: number }>();
 const rooms: RoomStore = {
