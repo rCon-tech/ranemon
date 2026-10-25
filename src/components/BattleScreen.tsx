@@ -50,6 +50,8 @@ export interface BagEntry {
   name: string;
   count: number;
   use: ItemUse;
+  /** What it does, shown under its name. */
+  about?: string;
 }
 
 /** What story mode adds to a battle: the bag, catching, and EXP bars. */
@@ -95,6 +97,14 @@ interface Props {
 
 /** Items only used from the bag outside battle: a Blue Ghost, or one that sets off an evolution. */
 const OUTSIDE_BATTLE: ItemUse['kind'][] = ['level', 'evolve', 'hold'];
+
+/** The battle BAG's pockets, in order: pints first against a wild Ranemon, last against a trainer. */
+function battlePockets(wild: boolean) {
+  const food = { label: 'FOOD', kinds: ['heal'] as ItemUse['kind'][] };
+  const pints = { label: 'PINTS', kinds: ['pint'] as ItemUse['kind'][] };
+  const vapes = { label: 'VAPES', kinds: ['vape'] as ItemUse['kind'][] };
+  return wild ? [pints, food, vapes] : [food, vapes, pints];
+}
 
 const CATEGORY_LABEL: Record<Move['category'], string> = {
   physical: 'Physical',
@@ -448,19 +458,35 @@ export function BattleScreen({
         {mode === 'bag' && (
           <div className="flex flex-col gap-2" role="group" aria-label="Bag">
             {!bagPick &&
-              (story?.bag ?? [])
-                .filter((e) => e.count > 0 && !OUTSIDE_BATTLE.includes(e.use.kind))
-                .map((e) => (
-                  <button
-                    key={e.id}
-                    type="button"
-                    className="pixel-btn menu-item flex justify-between text-[13px]"
-                    onClick={() => pickEntry(e)}
-                  >
-                    <span>{e.name}</span>
-                    <span>×{e.count}</span>
-                  </button>
-                ))}
+              battlePockets(session.foe.kind === 'wild').map((p) => {
+                const entries = (story?.bag ?? []).filter(
+                  (e) => e.count > 0 && p.kinds.includes(e.use.kind),
+                );
+                if (!entries.length) return null;
+                return (
+                  <div key={p.label} className="flex flex-col gap-1.5">
+                    <h3 className="text-[10px] font-bold text-ink">{p.label}</h3>
+                    {entries.map((e) => (
+                      <button
+                        key={e.id}
+                        type="button"
+                        className="pixel-btn menu-item flex flex-col gap-0.5 text-[13px]"
+                        onClick={() => pickEntry(e)}
+                      >
+                        <span className="flex justify-between">
+                          <span>{e.name}</span>
+                          <span>×{e.count}</span>
+                        </span>
+                        {e.about && (
+                          <span className="text-left text-[9px] leading-snug opacity-75">
+                            {e.about}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
             {bagPick &&
               state.teams[0].battlers.map((b, i) => {
                 if (b.left) return null;
