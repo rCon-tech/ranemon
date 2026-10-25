@@ -109,9 +109,10 @@ describe('level cap', () => {
     const won = structuredClone(state);
     won.teams[1].battlers[0].hp = 0;
     const { lines } = settleBattle(s, won, 'win', [0], false);
-    expect(lines[0]).toMatch(/^Olliemon gained \d+ EXP!$/);
-    expect(lines.at(-1)).toBe('Carlmon and Olliemon can’t grow past Lv11 until you beat Nóra.');
-    expect(lines.filter((l) => l.includes('can’t grow past'))).toHaveLength(1);
+    const rows = lines[0].split('\n');
+    expect(rows[0]).toMatch(/^Olliemon gained \d+ EXP!$/);
+    expect(rows.at(-1)).toBe('Carlmon and Olliemon can’t grow past Lv11 until you beat Nóra.');
+    expect(rows.filter((l) => l.includes('can’t grow past'))).toHaveLength(1);
   });
 
   it('never takes levels off a Ranemon already past it', () => {

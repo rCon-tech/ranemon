@@ -18,6 +18,7 @@ import {
 } from '@/lib/story/party';
 import {
   load,
+  BOX_ROWS,
   expLine,
   newer,
   newGame,
@@ -254,7 +255,7 @@ describe('story state', () => {
     expect(gain({ ...s, flags: ['round'] })).toEqual([full, Math.floor(full / 2), 0]);
   });
 
-  it('says everyone’s EXP in one box, and everyone’s new level in one more', () => {
+  it('says everyone’s EXP and new levels in one results box, prize first', () => {
     let s = recruit(newGame(), 'carlmon', 5).state;
     s = recruit(s, 'enda', 5).state;
     s = recruit(s, 'jammon', 8).state;
@@ -266,17 +267,53 @@ describe('story state', () => {
     const { state } = startBattle([s.party.map(toEntrant), foes], 1);
     const won = structuredClone(state);
     for (const b of won.teams[1].battlers) b.hp = 0;
-    const { lines } = settleBattle(s, won, 'win', [0], true);
+    const { lines } = settleBattle(s, won, 'win', [0], true, undefined, 'You got €90 for winning!');
     const each = 2 * expYield(9, true);
-    expect(lines[0]).toBe(
+    expect(lines).toHaveLength(1);
+    const [prize, exp, ...levels] = lines[0].split('\n');
+    expect(prize).toBe('You got €90 for winning!');
+    expect(exp).toBe(
       `${s.party
         .map((m) => creatureOf(m).name)
         .join(', ')
         .replace(/, (?=[^,]*$)/, ' and ')} gained ${each} EXP each!`,
     );
-    expect(lines.filter((l) => / gained \d+ EXP/.test(l))).toHaveLength(1);
-    expect(lines[1]).toMatch(/^\S+ grew to Lv\d+! \S+ grew to Lv\d+! \S+ grew to Lv\d+!$/);
-    expect(lines.filter((l) => /grew to/.test(l))).toHaveLength(1);
+    expect(levels).toHaveLength(3);
+    for (const row of levels) expect(row).toMatch(/^\S+ grew to Lv\d+( and learned .+)?!/);
+  });
+
+  it('folds the moves a Ranemon learns into its level-up, and keeps evolutions for after', () => {
+    const s = recruit(newGame(), 'carlmon', 29).state;
+    const foe = creatureById('enda');
+    const { state } = startBattle([s.party.map(toEntrant), [{ creature: foe, level: 99 }]], 1);
+    const won = structuredClone(state);
+    won.teams[1].battlers[0].hp = 0;
+    const { lines } = settleBattle({ ...s, flags: ['champion'] }, won, 'win', [0], true);
+    const rows = lines[0].split('\n');
+    expect(rows[0]).toMatch(/^Carlmon gained \d+ EXP!$/);
+    expect(rows[1]).toMatch(/^Carlmon grew to Lv\d+( and learned .+)?!/);
+    expect(lines.slice(1)).toEqual([
+      'What? Carlmon is evolving!',
+      expect.stringMatching(/^Carlmon evolved into \S+!$/),
+    ]);
+  });
+
+  it('carries a long results box on into a second', () => {
+    let s = newGame();
+    for (const id of ['carlmon', 'enda', 'jammon', 'olliemon', 'conemon', 'carlmon'])
+      s = recruit(s, id, 5).state;
+    s = toggleExpShare(s);
+    const { state } = startBattle(
+      [s.party.map(toEntrant), [{ creature: creatureById('enda'), level: 9 }]],
+      1,
+    );
+    const won = structuredClone(state);
+    won.teams[1].battlers[0].hp = 0;
+    const { lines } = settleBattle(s, won, 'win', [0], true);
+    const rows = lines.flatMap((l) => l.split('\n'));
+    expect(rows.filter((r) => /grew to/.test(r))).toHaveLength(6);
+    expect(lines).toHaveLength(Math.ceil(rows.length / BOX_ROWS));
+    for (const box of lines) expect(box.split('\n').length).toBeLessThanOrEqual(BOX_ROWS);
   });
 
   it('groups EXP by amount when the party earns different shares', () => {

@@ -91,8 +91,9 @@ export function battleCues(
 
 /** Sounds for a line of text, in battle or out: items, levels, the pub, pints and the dogs. */
 export function lineCues(text: string): Cue[] {
+  // A results box can hold the prize too, but a level-up is the bigger news.
+  if (/ grew to Lv\d+\b/.test(text)) return [{ jingle: 'level' }];
   if (/^You got /.test(text)) return [{ jingle: 'item' }];
-  if (/ grew to Lv\d+!$/.test(text)) return [{ jingle: 'level' }];
   if (/ learned .+!/.test(text)) return [{ sfx: 'stat-up' }];
   if (/ is evolving!$/.test(text)) return [{ sfx: 'evolving' }];
   if (/ evolved into .+!$/.test(text)) return [{ jingle: 'evolved' }];
