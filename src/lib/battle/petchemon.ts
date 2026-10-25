@@ -3,7 +3,7 @@ import type { Move } from './moves';
 
 /**
  * Petchemon, B&S's own Ranemon. Only B&S have him: he's never wild, never on another trainer's
- * team and never caught, so he isn't in the Ranedex either.
+ * team and never caught. He's yours for beating them, and that fills in his Ranedex page.
  */
 export const PETCHEMON: Creature = {
   id: 'petchemon',
