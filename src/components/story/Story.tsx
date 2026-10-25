@@ -51,6 +51,7 @@ import {
 } from '@/lib/story/party';
 import {
   beatFlag,
+  befriend,
   canFight,
   caughtBefore,
   follower,
@@ -1265,13 +1266,11 @@ export function Story() {
               } else if (item.use.kind === 'evolve') {
                 const r = itemEvolve(m, id);
                 const into = r.member.species;
-                g = {
-                  ...g,
-                  party: g.party.map((x, j) => (j === i ? r.member : x)),
-                  // Its new form goes in the Ranedex as befriended.
-                  seen: g.seen.includes(into) ? g.seen : [...g.seen, into],
-                  caught: g.caught.includes(into) ? g.caught : [...g.caught, into],
-                };
+                // Its new form goes in the Ranedex as befriended.
+                g = befriend(
+                  see({ ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) }, into),
+                  into,
+                );
                 lines = [`${name} put on the ${item.name}!`, ...r.lines];
               } else {
                 const healed = applyItem(item, m);
