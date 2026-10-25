@@ -1,8 +1,16 @@
-import { databaseUrl, handle, type BattleCall, type RoomStore, type SaveStore } from './handler.js';
-import { neonRooms, neonStore } from './store.js';
+import {
+  databaseUrl,
+  handle,
+  type BattleCall,
+  type CrownStore,
+  type RoomStore,
+  type SaveStore,
+} from './handler.js';
+import { neonCrown, neonRooms, neonStore } from './store.js';
 
 let store: SaveStore | null = null;
 let rooms: RoomStore | null = null;
+let crown: CrownStore | null = null;
 
 const origins = () =>
   (process.env.ALLOWED_ORIGINS ?? 'https://rcon-tech.github.io').split(',').map((o) => o.trim());
@@ -17,9 +25,10 @@ export async function serve(req: Request, battles?: BattleCall): Promise<Respons
     if (!url) throw new Error('no database connected');
     store ??= neonStore(url);
     rooms ??= neonRooms(url);
+    crown ??= neonCrown(url);
     return await handle(req, store, {
       origins: origins(),
-      ...(battles && { battles: { rooms, call: battles } }),
+      ...(battles && { battles: { rooms, call: battles, crown } }),
     });
   } catch (e) {
     console.error(e);

@@ -204,7 +204,7 @@ export function devSave(): StoryState {
     steps: 0,
     expShare: true,
     // Every skin, even those of the bosses left to play.
-    skins: SKINS.filter((k) => k.id !== DEFAULT_SKIN).map((k) => k.id),
+    skins: SKINS.filter((k) => k.id !== DEFAULT_SKIN && !k.online).map((k) => k.id),
     schema: SCHEMA,
   };
 }

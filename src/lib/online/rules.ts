@@ -161,6 +161,12 @@ export function validateTeam(party: unknown): { team: Member[] } | { error: stri
 }
 
 /**
+ * The Online Champion's skin (`champion` in `content/story/skins.ts`). Only the trainer holding
+ * the crown on the save server wears it; no save can unlock it.
+ */
+export const CHAMPION_SKIN = 'champion';
+
+/**
  * The skin a save is wearing, if it's one the save has unlocked: only its id, since the save
  * server can't load the skins (they pull in the maps). Undefined is the usual look.
  */
@@ -271,6 +277,21 @@ export interface PlayerView {
    * from before skins leave it out, and a phone that can't draw it shows the usual look.
    */
   skin?: string;
+  /** They hold the Online Champion's crown. Servers from before the crown leave it out. */
+  champion?: true;
+}
+
+/** The Online Champion as anyone can see them (`{op: 'champion'}`). */
+export interface ChampionView {
+  /** The trainer name as saves are filed under it (`trainerId`). */
+  id: string;
+  name: string;
+  /** When they took the crown. */
+  since: number;
+  /** Battles won while holding it. */
+  defences: number;
+  /** Who they took it from; missing for the first Champion. */
+  from?: string;
 }
 
 /** What every battle call answers with: where the room is up to, from this player's side. */
@@ -288,6 +309,11 @@ export interface RoomView {
   state: BattleState | null;
   /** Why the battle ended, once it has. */
   why?: 'battle' | 'forfeit' | 'timeout';
+  /**
+   * What the battle did to the Online Champion's crown, once it's over: the winner `claimed` it
+   * from nobody, `took` it from the Champion, or the Champion `kept` it. Missing if neither held it.
+   */
+  crown?: { holder: string; change: 'claimed' | 'took' | 'kept' };
 }
 
 /**
