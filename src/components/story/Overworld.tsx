@@ -33,6 +33,7 @@ import { doorLabels, INK, LIGHT, TILE } from './pixels';
 import { paintFacade, paintRoom } from './brands';
 import {
   paintCentreSpot,
+  paintCityRoom,
   paintKxBoard,
   paintObjective,
   paintScenery,
@@ -415,6 +416,8 @@ export function Overworld(props: Props) {
         // The centre circle off to the left, clear of the legend, and a banner on the far stand.
         paintCentreSpot(c, map.crest, sx(3 * TILE), sy(3 * TILE));
         paintStandBanner(c, map.crest, sx(6 * TILE), sy(1.5 * TILE));
+        if (map.crest === 'city')
+          paintCityRoom(c, sx(0), sy(0), map.rows[0].length, map.rows.length, now);
       }
       if (map.id === KINGS_CROSS_ID) {
         const next = nextClub(p.flags);

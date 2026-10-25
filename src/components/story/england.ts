@@ -289,45 +289,13 @@ function paintStadium(
     // The money: two pumpjacks nodding by the stand, oil barrels stacked along the front,
     // sacks of cash, gold bars and bundles of notes at the turnstiles, a slick of oil on the
     // pavement, and notes drifting down off the roof. And the charge sheet, for everyone to see.
-    for (const [px, phase] of [
-      [left + 18, 0],
-      [left + w - 22, 1.7],
-    ]) {
-      rect(c, px - 1, body + 6, 2, bodyH - 6, '#2a2a2a');
-      c.save();
-      c.translate(px, body + 7);
-      c.rotate(Math.sin(now / 600 + phase) * 0.25);
-      rect(c, -9, -1.5, 18, 3, '#3a3a3a');
-      rect(c, 8, -3, 3, 6, '#3a3a3a');
-      c.restore();
-    }
+    pumpjack(c, left + 18, body + 7, bodyH - 6, now, 0);
+    pumpjack(c, left + w - 22, body + 7, bodyH - 6, now, 1.7);
     const base = top + h;
-    c.fillStyle = 'rgb(10 10 14 / 0.55)';
-    c.beginPath();
-    c.ellipse(left + w / 2, base - 0.5, w / 2 - 6, 1.6, 0, 0, Math.PI * 2);
-    c.fill();
-    const barrel = (bx: number, by: number) => {
-      rect(c, bx, by, 4.5, 6, '#1a1a1a');
-      rect(c, bx, by + 1, 4.5, 1, '#f2b705');
-      rect(c, bx, by + 4, 4.5, 1, '#f2b705');
-      rect(c, bx + 0.5, by + 0.5, 1, 5, 'rgb(255 255 255 / 0.2)');
-    };
+    oilSlick(c, left + w / 2, base - 0.5, w / 2 - 6);
     // A pyramid of barrels each side of the door.
-    for (const [x0, n] of [
-      [left + 24, 7],
-      [left + 84, 7],
-    ]) {
-      for (let row = 0; row < 3; row++)
-        for (let i = 0; i < n - row * 2; i++) barrel(x0 + row * 2.5 + i * 5, base - 7 - row * 6);
-    }
-    const sack = (bx: number, by: number) => {
-      c.fillStyle = '#c8a860';
-      c.beginPath();
-      c.ellipse(bx, by, 3, 3.5, 0, 0, Math.PI * 2);
-      c.fill();
-      rect(c, bx - 1, by - 4.5, 2, 1.5, '#8a6a30');
-      text(c, '£', bx, by + 0.5, 4, '#2a6a2a');
-    };
+    barrels(c, left + 24, base, 7);
+    barrels(c, left + 84, base, 7);
     for (const [bx, by] of [
       [left + 4, base - 3.5],
       [left + 9, base - 3.5],
@@ -338,30 +306,11 @@ function paintStadium(
       [door - 4, base - 3.5],
       [door + TILE + 4, base - 3.5],
     ])
-      sack(bx, by);
+      cashSack(c, bx, by);
     // Gold bars and bundles of notes on top of the barrels.
-    for (const gx of [left + 30, left + 90]) {
-      rect(c, gx, base - 22, 5, 2.5, '#f4c430');
-      rect(c, gx + 6, base - 22, 5, 2.5, '#f4c430');
-      rect(c, gx + 3, base - 24.5, 5, 2.5, '#e0b020');
-    }
-    for (const nx of [left + 44, left + 104]) {
-      for (let i = 0; i < 3; i++) {
-        rect(c, nx, base - 21 - i * 2, 7, 1.8, '#7ab060');
-        rect(c, nx + 3, base - 21 - i * 2, 1, 1.8, '#f2f0ea');
-      }
-    }
-    // Notes fluttering down off the roof.
-    for (let i = 0; i < 14; i++) {
-      const fall = ((now / 30 + i * 37) % (h + 10)) - 10;
-      const nx = left + ((i * 53) % w) + Math.sin(now / 300 + i) * 3;
-      c.save();
-      c.translate(nx, top + fall);
-      c.rotate(Math.sin(now / 200 + i) * 0.6);
-      rect(c, -2, -1, 4, 2, '#7ab060');
-      rect(c, -0.5, -1, 1, 2, '#f2f0ea');
-      c.restore();
-    }
+    for (const gx of [left + 30, left + 90]) goldBars(c, gx, base - 22);
+    for (const nx of [left + 44, left + 104]) notes(c, nx, base - 21);
+    fallingNotes(c, left, top, w, h, now, 14);
     rect(c, left + 39, body + 12, 21, 12, '#fffdf0');
     rect(c, left + 39, body + 12, 21, 2, '#c8102e');
     text(c, '115 CHARGES', left + 49.5, body + 16.5, 3, '#c8102e', 20);
@@ -742,6 +691,118 @@ function paintLandmark(
       break;
     }
   }
+}
+
+// ---------- the money at the Etihad ----------
+
+/** A pumpjack, nodding away: its post from (x, y) down `h`, and the beam on top. */
+function pumpjack(c: Ctx, x: number, y: number, h: number, now: number, phase: number) {
+  rect(c, x - 1, y - 1, 2, h, '#2a2a2a');
+  c.save();
+  c.translate(x, y);
+  c.rotate(Math.sin(now / 600 + phase) * 0.25);
+  rect(c, -9, -1.5, 18, 3, '#3a3a3a');
+  rect(c, 8, -3, 3, 6, '#3a3a3a');
+  c.restore();
+}
+
+/** A black slick of oil, centred on (x, y). */
+function oilSlick(c: Ctx, x: number, y: number, r: number) {
+  c.fillStyle = 'rgb(10 10 14 / 0.55)';
+  c.beginPath();
+  c.ellipse(x, y, r, 1.6, 0, 0, Math.PI * 2);
+  c.fill();
+}
+
+/** One oil barrel, its top left at (x, y). */
+function oilBarrel(c: Ctx, x: number, y: number) {
+  rect(c, x, y, 4.5, 6, '#1a1a1a');
+  rect(c, x, y + 1, 4.5, 1, '#f2b705');
+  rect(c, x, y + 4, 4.5, 1, '#f2b705');
+  rect(c, x + 0.5, y + 0.5, 1, 5, 'rgb(255 255 255 / 0.2)');
+}
+
+/** A pyramid of barrels three high, `n` along the bottom, standing on `base`. */
+function barrels(c: Ctx, x: number, base: number, n: number) {
+  for (let row = 0; row < 3; row++)
+    for (let i = 0; i < n - row * 2; i++) oilBarrel(c, x + row * 2.5 + i * 5, base - 7 - row * 6);
+}
+
+/** A sack of cash with a £ on it, centred on (x, y). */
+function cashSack(c: Ctx, x: number, y: number) {
+  c.fillStyle = '#c8a860';
+  c.beginPath();
+  c.ellipse(x, y, 3, 3.5, 0, 0, Math.PI * 2);
+  c.fill();
+  rect(c, x - 1, y - 4.5, 2, 1.5, '#8a6a30');
+  text(c, '£', x, y + 0.5, 4, '#2a6a2a');
+}
+
+/** Three gold bars, stacked. */
+function goldBars(c: Ctx, x: number, y: number) {
+  rect(c, x, y, 5, 2.5, '#f4c430');
+  rect(c, x + 6, y, 5, 2.5, '#f4c430');
+  rect(c, x + 3, y - 2.5, 5, 2.5, '#e0b020');
+}
+
+/** A bundle of notes, three high. */
+function notes(c: Ctx, x: number, y: number) {
+  for (let i = 0; i < 3; i++) {
+    rect(c, x, y - i * 2, 7, 1.8, '#7ab060');
+    rect(c, x + 3, y - i * 2, 1, 1.8, '#f2f0ea');
+  }
+}
+
+/** `n` notes fluttering down through a stretch `w` by `h` from (left, top). */
+function fallingNotes(
+  c: Ctx,
+  left: number,
+  top: number,
+  w: number,
+  h: number,
+  now: number,
+  n: number,
+) {
+  for (let i = 0; i < n; i++) {
+    const fall = ((now / 30 + i * 37) % (h + 10)) - 10;
+    const nx = left + ((i * 53) % w) + Math.sin(now / 300 + i) * 3;
+    c.save();
+    c.translate(nx, top + fall);
+    c.rotate(Math.sin(now / 200 + i) * 0.6);
+    rect(c, -2, -1, 4, 2, '#7ab060');
+    rect(c, -0.5, -1, 1, 2, '#f2f0ea');
+    c.restore();
+  }
+}
+
+/**
+ * Inside the Etihad (the ground's room, offset by (ox, oy)): a pumpjack on the pitch over a slick
+ * of oil, barrels piled on the seats, cash and gold along the touchline, and notes coming down
+ * over everyone.
+ */
+export function paintCityRoom(
+  c: Ctx,
+  ox: number,
+  oy: number,
+  cols: number,
+  rows: number,
+  now: number,
+) {
+  oilSlick(c, ox + 150, oy + 62, 14);
+  pumpjack(c, ox + 150, oy + 44, 18, now, 0.6);
+  pumpjack(c, ox + 26, oy + 44, 18, now, 2.1);
+  // Barrels on the lower stands, either side of the way in.
+  barrels(c, ox + 18, oy + 112, 9);
+  barrels(c, ox + 130, oy + 112, 9);
+  // Cash and gold along the touchline, clear of the legend and the centre circle.
+  for (const x of [70, 78, 86, 120, 128, 136]) cashSack(c, ox + x, oy + 60);
+  goldBars(c, ox + 72, oy + 54);
+  goldBars(c, ox + 122, oy + 54);
+  notes(c, ox + 166, oy + 60);
+  notes(c, ox + 4, oy + 60);
+  // The far stand stuffed with notes, either side of the banner.
+  for (let x = 20; x < cols * TILE - 20; x += 12) if (x < 60 || x > 130) notes(c, ox + x, oy + 28);
+  fallingNotes(c, ox, oy, cols * TILE, rows * TILE, now, 24);
 }
 
 /** A Tube roundel on a post, with its station's name: for the grounds round London. */
