@@ -285,6 +285,56 @@ export function priceOf(id: ItemId, stall?: Stall | null): number {
   return itemById(id).price ?? Infinity;
 }
 
+/** The bag's pockets, in the order the BAG shows them. Key items have their own, from `keys.ts`. */
+export type Pocket = 'food' | 'pints' | 'vapes' | 'special';
+
+export const POCKETS: { id: Pocket; label: string; about: string }[] = [
+  { id: 'food', label: 'FOOD', about: 'Heals and cures. Use it any time.' },
+  { id: 'pints', label: 'PINTS', about: 'Throw one in a wild battle to befriend a Ranemon.' },
+  {
+    id: 'vapes',
+    label: 'VAPES',
+    about: 'Raises a stat of the Ranemon that’s out, in battle only.',
+  },
+  { id: 'special', label: 'SPECIAL', about: 'Level-ups, evolution items and things to hold.' },
+];
+
+export function pocketOf(item: Item): Pocket {
+  switch (item.use.kind) {
+    case 'heal':
+      return 'food';
+    case 'pint':
+      return 'pints';
+    case 'vape':
+      return 'vapes';
+    default:
+      return 'special';
+  }
+}
+
+/** Where an item can be used, as the bag says it. */
+export function whereToUse(item: Item): string {
+  switch (item.use.kind) {
+    case 'pint':
+      return 'Use it in a wild battle.';
+    case 'vape':
+      return 'Use it in a battle.';
+    case 'heal':
+      return 'Use it in or out of battle.';
+    default:
+      return 'Use it outside battle.';
+  }
+}
+
+/**
+ * What a shop gives you for one: half what Vapes sells it for. Null when Vapes doesn't sell it,
+ * since those are one of a kind (an evolution item you find once, a reward) and can't be got back.
+ */
+export function sellPrice(id: ItemId): number | null {
+  const price = itemById(id).price;
+  return price === null ? null : Math.floor(price / 2);
+}
+
 /** What an item needs to know about a Ranemon, in or out of battle. */
 export interface Target {
   hp: number;

@@ -3,7 +3,7 @@ import { breakRun } from '@/content/story/galway';
 import type { BattleState } from '../battle/engine';
 import { moveById } from '../battle/moves';
 import type { Result } from '../ui/session';
-import type { ItemId } from './items';
+import { sellPrice, type ItemId } from './items';
 import {
   afterBattle,
   capLine,
@@ -132,12 +132,20 @@ export function give(s: StoryState, item: ItemId, count = 1): StoryState {
   return { ...s, bag: { ...s.bag, [item]: (s.bag[item] ?? 0) + count } };
 }
 
-export function take(s: StoryState, item: ItemId): StoryState {
-  const left = (s.bag[item] ?? 0) - 1;
+export function take(s: StoryState, item: ItemId, count = 1): StoryState {
+  const left = (s.bag[item] ?? 0) - count;
   const bag = { ...s.bag };
   if (left > 0) bag[item] = left;
   else delete bag[item];
   return { ...s, bag };
+}
+
+/** Sells some of an item to a shop, for `sellPrice` each. Only as many as you have, and never one of a kind. */
+export function sell(s: StoryState, item: ItemId, count: number): StoryState {
+  const each = sellPrice(item);
+  const n = Math.min(Math.floor(count), s.bag[item] ?? 0);
+  if (each === null || n <= 0) return s;
+  return { ...take(s, item, n), money: s.money + each * n };
 }
 
 /** Gives a member an item to hold, handing back whatever it held before. */

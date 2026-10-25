@@ -20,6 +20,17 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'A tidier bag',
+    notes: [
+      'The BAG has pockets now: FOOD, PINTS, VAPES, SPECIAL and KEY, with how many things are in each. Tap a thing to read what it does, and tap it again (or USE) to use it.',
+      'Food stays open after you use it, so you can feed your whole party one after the other.',
+      'In battle the BAG is split into pockets too, with what each thing does under its name.',
+      'Every shop buys things back now. Pick SELL, choose how many, and the shop pays half what it charges. Key items and one-of-a-kind finds can’t be sold.',
+      'The D-pad and keyboard work in the BAG and the shops: left and right change pocket, up and down pick a thing, A uses it and B goes back.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'A man short',
     notes: [
       'Somebody at King’s Cross is looking for one more player for a big charity match, once you’ve won a few jerseys in England. Six famous faces stand in your way, and someone more famous after them.',
