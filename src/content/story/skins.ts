@@ -10,6 +10,7 @@ import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
 import { COLLISONS } from './silicon';
+import { JAMIE } from './sidemen';
 import { NORM_RETURNED } from './sibeal';
 import { ELVIS_RETURNED } from '@/lib/story/norm';
 
@@ -344,6 +345,48 @@ export const SKINS: Skin[] = [
     name: 'John Collison',
     unlock: beat(COLLISONS),
     hint: 'Beat every CEO in Silicon Docks, Dublin. Two more are waiting at the end.',
+  },
+  {
+    id: 'ksi',
+    name: 'KSI',
+    unlock: beat('sidemen-ksi'),
+    hint: 'Beat the Sideman in the boxing ring at Wembley Park, London.',
+  },
+  {
+    id: 'miniminter',
+    name: 'Miniminter',
+    unlock: beat('sidemen-miniminter'),
+    hint: 'Beat the Sideman in the Sidemen FC clubhouse at Wembley Park, London.',
+  },
+  {
+    id: 'zerkaa',
+    name: 'Zerkaa',
+    unlock: beat('sidemen-zerkaa'),
+    hint: 'Beat the Sideman in the clothes shop at Wembley Park, London.',
+  },
+  {
+    id: 'behzinga',
+    name: 'Behzinga',
+    unlock: beat('sidemen-behzinga'),
+    hint: 'Beat the Sideman in the gym at Wembley Park, London.',
+  },
+  {
+    id: 'vikkstar',
+    name: 'Vikkstar123',
+    unlock: beat('sidemen-vikkstar'),
+    hint: 'Beat the Sideman in the Gaming House at Wembley Park, London.',
+  },
+  {
+    id: 'tbj',
+    name: 'TBJ',
+    unlock: beat('sidemen-tbj'),
+    hint: 'Beat the Sideman in Sides at Wembley Park, London.',
+  },
+  {
+    id: 'jamie',
+    name: 'Jamie Elliott',
+    unlock: beat(JAMIE),
+    hint: 'Beat all six Sidemen at Wembley Park, London, then their leader on the pitch.',
   },
 ];
 

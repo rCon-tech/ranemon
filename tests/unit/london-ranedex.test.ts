@@ -11,7 +11,13 @@ import { trainerById } from '@/content/story/trainers';
 import { STAT_KEYS, validateCreature } from '@/lib/battle/creature';
 import { playTurn, startBattle } from '@/lib/battle/engine';
 import { DEX, evolutionOf, formAt, formById, lineOf, reachedAt } from '@/lib/battle/evolutions';
-import { LONDON, LONDON_BUDGETS, LONDON_ITEM_EVOLUTIONS, LONDON_LINES } from '@/lib/battle/london';
+import {
+  LONDON,
+  LONDON_BUDGETS,
+  LONDON_ITEM_EVOLUTIONS,
+  LONDON_LINES,
+  SIDEMEN,
+} from '@/lib/battle/london';
 import { moveById } from '@/lib/battle/moves';
 import { ROSTER } from '@/lib/battle/roster';
 import { hasUkForm } from '@/lib/battle/uk';
@@ -31,7 +37,9 @@ const PUBLIC = join(__dirname, '../../public');
 
 describe('the London Ranedex, batch 1', () => {
   it('has 36 Ranemon, each with its own id and name', () => {
-    expect(LONDON).toHaveLength(36);
+    // London's own, then the Sidemen's six lines of two (sidemen.test.ts).
+    expect(LONDON).toHaveLength(36 + SIDEMEN.length);
+    expect(SIDEMEN).toHaveLength(12);
     const all = [...DEX, ...LONDON];
     expect(new Set(all.map((c) => c.id)).size).toBe(all.length);
     expect(new Set(all.map((c) => c.name)).size).toBe(all.length);

@@ -24,6 +24,7 @@ import { CRAMPS_ARRIVE } from './cramps';
 import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
+import { WEMBLEY } from './sidemen';
 import { palaceRooms } from './palace';
 import { PL_MAPS } from './premier';
 import { SHOREDITCH } from './shoreditch';
@@ -1533,6 +1534,7 @@ export const MAPS: GameMap[] = [
   ...PL_MAPS,
   SHOREDITCH,
   GALWAY,
+  WEMBLEY,
 ];
 
 /** The rooms behind every door. */

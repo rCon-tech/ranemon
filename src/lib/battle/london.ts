@@ -359,6 +359,151 @@ const LINES: Line[] = [
   },
 ];
 
+/**
+ * The Sidemen (content/story/sidemen.ts): six YouTubers, a Ranemon each, met only on their own
+ * teams and Jamie Elliott's, and one of them yours for beating him. Each is a line of two that
+ * evolves at Lv30, like the lads, after the London lines in the UK Ranedex.
+ */
+const SIDEMEN_LINES: Line[] = [
+  {
+    shape: stats(85, 110, 70, 85, 100),
+    budgets: TWO,
+    colour: '#3ab0e8',
+    moves: ['thick-of-it', 'gym-bro-punch', 'mosh-pit', 'flex'],
+    stages: [
+      {
+        id: 'ksimon',
+        name: 'Ksimon',
+        types: ['hype'],
+        entry:
+          'Boxes on a Saturday, drops a single on the Sunday and sells you a drink on the Monday. Has never once been told no.',
+      },
+      {
+        id: 'primape',
+        name: 'Primape',
+        types: ['hype', 'brawn'],
+        level: 30,
+        entry:
+          'Evolved the night it headlined Wembley. Its gloves glow the blue of a bottle of Prime, and it will not stop talking about the Thick of It.',
+      },
+    ],
+  },
+  {
+    shape: stats(100, 90, 85, 75, 80),
+    budgets: TWO,
+    colour: '#5ac8a0',
+    moves: ['pack-opening', 'cold-shoulder', 'dazzling-smile', 'power-nap'],
+    stages: [
+      {
+        id: 'minimon',
+        name: 'Minimon',
+        types: ['chill'],
+        entry:
+          'Has opened forty thousand packs and never got the one it wanted. Laughs at its own goals louder than anyone in the room.',
+      },
+      {
+        id: 'mintair',
+        name: 'Mintair',
+        types: ['chill', 'charm'],
+        level: 30,
+        entry:
+          'Grew long and calm after years of being the butt of every joke. The orb at its neck holds every bad pack it ever opened.',
+      },
+    ],
+  },
+  {
+    shape: stats(90, 60, 85, 115, 75),
+    budgets: TWO,
+    colour: '#3a3a4a',
+    moves: ['business-plan', 'well-actually', 'trust-fund', 'calculated-hit'],
+    stages: [
+      {
+        id: 'zerkmon',
+        name: 'Zerkmon',
+        types: ['brains'],
+        entry:
+          'The organised one. Has a spreadsheet for the group chat, and a spreadsheet for the spreadsheets.',
+      },
+      {
+        id: 'zerkazam',
+        name: 'Zerkazam',
+        types: ['brains', 'posh'],
+        level: 30,
+        entry:
+          'Its brain grew so big running the business that it bends spoons to relax. Still the first one in bed.',
+      },
+    ],
+  },
+  {
+    shape: stats(105, 115, 85, 55, 80),
+    budgets: TWO,
+    colour: '#c03a2a',
+    moves: ['transformation', 'gym-bro-punch', 'double-shift', 'headlock'],
+    stages: [
+      {
+        id: 'behzmon',
+        name: 'Behzmon',
+        types: ['brawn'],
+        entry: 'Loud from the second it wakes up. Will tell you its 5k time before its name.',
+      },
+      {
+        id: 'behzchamp',
+        name: 'Behzchamp',
+        types: ['brawn', 'graft'],
+        level: 30,
+        entry:
+          'Grew two more arms in the gym: two to lift with, and two to hug with. Cries at every charity match, win or lose.',
+      },
+    ],
+  },
+  {
+    shape: stats(80, 100, 70, 90, 110),
+    budgets: TWO,
+    colour: '#7a4ad0',
+    moves: ['hot-drop', 'shopping-trolley', 'installation', 'prank-call'],
+    stages: [
+      {
+        id: 'vikkmon',
+        name: 'Vikkmon',
+        types: ['chaos'],
+        entry:
+          'Drops in at nine every night and doesn’t come out till the circle closes. Has built the whole of London in Minecraft, Tube and all.',
+      },
+      {
+        id: 'vikstarmie',
+        name: 'Vikstarmie',
+        types: ['chaos', 'arty'],
+        level: 30,
+        entry:
+          'The gem in its middle flashes the colour of the closing circle. Makes dance tracks between games, and games between those.',
+      },
+    ],
+  },
+  {
+    shape: stats(100, 70, 80, 105, 85),
+    budgets: TWO,
+    colour: '#f0a030',
+    moves: ['sidemen-tinder', 'dazzling-smile', 'group-chat-spam', 'smooth-talk'],
+    stages: [
+      {
+        id: 'tobimon',
+        name: 'Tobimon',
+        types: ['charm'],
+        entry:
+          'Laughs so loud the whole street joins in. Has hosted every dating show going, and never been picked on one.',
+      },
+      {
+        id: 'tobitic',
+        name: 'Tobitic',
+        types: ['charm', 'hype'],
+        level: 30,
+        entry:
+          'Floats a few inches off the ground on good vibes alone. Its wings came in the day it got the first rose.',
+      },
+    ],
+  },
+];
+
 /** Wickmon's branches: one for each item it can be given. */
 const BRANCHES: (Stage & { item: string; signature: string; base: BaseStats; colour: string })[] = [
   {
@@ -426,12 +571,14 @@ const form = (line: Line, s: Stage, i: number): Creature => ({
 
 /** Each London form's stat budget, by id. */
 export const LONDON_BUDGETS = new Map<string, number>([
-  ...LINES.flatMap((l) => l.stages.map((s, i) => [s.id, l.budgets[i]] as [string, number])),
+  ...[...LINES, ...SIDEMEN_LINES].flatMap((l) =>
+    l.stages.map((s, i) => [s.id, l.budgets[i]] as [string, number]),
+  ),
   ...BRANCHES.map((b) => [b.id, 460] as [string, number]),
 ]);
 
 /** The step from one London stage to the next, by level. */
-export const LONDON_EVOLUTIONS = LINES.flatMap((l) =>
+export const LONDON_EVOLUTIONS = [...LINES, ...SIDEMEN_LINES].flatMap((l) =>
   l.stages.slice(1).map((s, i) => ({
     from: l.stages[i].id,
     id: s.id,
@@ -453,7 +600,15 @@ export const LONDON_ITEM_EVOLUTIONS = BRANCHES.map((b) => ({
 
 const wickmon = LINES.find((l) => l.stages[0].id === 'wickmon')!;
 
-/** Every London form, in London Ranedex order: each line, then Wickmon's branches after it. */
+/** The Sidemen's forms, base then evolved, line by line. */
+export const SIDEMEN: Creature[] = SIDEMEN_LINES.flatMap((l) =>
+  l.stages.map((s, i) => form(l, s, i)),
+);
+
+/**
+ * Every London form, in London Ranedex order: each line, then Wickmon's branches after it, then
+ * the Sidemen.
+ */
 export const LONDON: Creature[] = LINES.flatMap((l) => {
   const forms = l.stages.map((s, i) => form(l, s, i));
   if (l !== wickmon) return forms;
@@ -466,7 +621,7 @@ export const LONDON: Creature[] = LINES.flatMap((l) => {
       moves: [b.signature, ...l.moves.slice(1)],
     })),
   ];
-});
+}).concat(SIDEMEN);
 
 /** The London lines' first forms. */
 export const LONDON_LINES = LINES.map((l) => l.stages[0].id);

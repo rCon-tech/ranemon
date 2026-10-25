@@ -1571,6 +1571,90 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#3a3a44',
     shoes: '#2a1a12',
   },
+  // KSI of the Sidemen: a Prime-blue jacket with white trim, white trainers.
+  ksi: {
+    skin: '#7a4a2a',
+    hair: '#1a1a1a',
+    hairStyle: 'short',
+    top: '#3ab0e8',
+    topKind: 'jacket',
+    trim: '#f4f4f4',
+    legs: '#1a1a24',
+    shoes: '#f4f4f4',
+  },
+  // Miniminter: tall, in a white Sidemen FC shirt with a red collar.
+  miniminter: {
+    skin: '#f8d8b8',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#d02a2a',
+    legs: '#1a1a24',
+    shoes: '#f4f4f4',
+    tall: true,
+  },
+  // Zerkaa: a shaved head, a beard and a black jumper with a red collar.
+  zerkaa: {
+    skin: '#f8d8b8',
+    hair: '#f8d8b8',
+    hairStyle: 'none',
+    beard: '#5a3a20',
+    top: '#2a2a30',
+    topKind: 'jumper',
+    trim: '#d02a2a',
+    legs: '#2c3c64',
+    shoes: '#18181c',
+  },
+  // Behzinga: a beard and a red gym vest, in gym shorts.
+  behzinga: {
+    skin: '#f8d8b8',
+    hair: '#2a1a12',
+    hairStyle: 'short',
+    beard: '#2a1a12',
+    top: '#c03a2a',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    vest: true,
+    legs: '#f8d8b8',
+    shorts: '#1a1a24',
+    shoes: '#f4f4f4',
+  },
+  // Vikkstar123: a gaming headset and a purple hoodie.
+  vikkstar: {
+    skin: '#b07a50',
+    hair: '#18181c',
+    hairStyle: 'short',
+    headphones: '#2a2a30',
+    top: '#7a4ad0',
+    topKind: 'jacket',
+    trim: '#e0d8f8',
+    legs: '#1a1a24',
+    shoes: '#18181c',
+  },
+  // TBJ: a short beard and a bright orange shirt.
+  tbj: {
+    skin: '#6a3e22',
+    hair: '#18181c',
+    hairStyle: 'short',
+    beard: '#18181c',
+    top: '#f0a030',
+    topKind: 'shirt',
+    trim: '#f4f4f4',
+    legs: '#2c3c64',
+    shoes: '#f4f4f4',
+  },
+  // Jamie Elliott, leader of the Sidemen: a black Sidemen jacket with a red zip.
+  jamie: {
+    skin: '#f8d8b8',
+    hair: '#7a5a3a',
+    hairStyle: 'short',
+    top: '#18181c',
+    topKind: 'jacket',
+    trim: '#d02a2a',
+    legs: '#2a2a38',
+    shoes: '#f4f4f4',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */

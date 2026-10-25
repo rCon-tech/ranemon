@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'A man short',
+    notes: [
+      'Somebody at King’s Cross is looking for one more player for a big charity match, once you’ve won a few jerseys in England. Six famous faces stand in your way, and someone more famous after them.',
+      'Each of them has a Ranemon of their own, never seen in the wild, with a page in the UK Ranedex.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'A missing Ranedex page',
     notes: [
       'One Ranemon you’re given late in the story never had a page in the Ranedex. It has one now, with its types, entry, stats and moves, and if you have it already its page is filled in.',
