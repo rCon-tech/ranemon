@@ -5,13 +5,14 @@ import { CHAMPION_OF_IRELAND, wonFlag } from './galway';
 import { TECHNO_DONE } from './cramps';
 import { BRIGHTON_DONE } from './enda';
 import { ARCADE_KING } from './brighton';
-import { BEAT_PEARS } from './greystones';
+import { BEAT_PEARS, BHAV_TRAINER } from './greystones';
 import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
 import { COLLISONS } from './silicon';
 import { NORM_RETURNED } from './sibeal';
 import { ELVIS_RETURNED } from '@/lib/story/norm';
+import { CHAMPION_SKIN } from '@/lib/online/rules';
 
 /**
  * Skins: the characters you can walk around as. Beat someone in the story, or finish their side
@@ -31,6 +32,11 @@ export interface Skin {
   unlock: string[];
   /** Said on the Skins screen while it's locked. */
   hint: string;
+  /**
+   * Not kept in any save: worn only while the save server says you hold the Online Champion's
+   * crown, and gone the moment someone beats you for it.
+   */
+  online?: boolean;
 }
 
 export const DEFAULT_SKIN = 'player';
@@ -61,6 +67,13 @@ export function wearing(look: Look): string[] {
 
 export const SKINS: Skin[] = [
   { id: 'player', name: 'You', unlock: [], hint: '' },
+  {
+    id: CHAMPION_SKIN,
+    name: 'Online Champion',
+    unlock: [],
+    hint: 'Beat the Online Champion in a friend battle. Only one trainer can wear it.',
+    online: true,
+  },
   // ---------- the main story ----------
   {
     id: 'rival',
@@ -151,6 +164,12 @@ export const SKINS: Skin[] = [
   },
   { id: 'kill', name: 'Kill', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
   { id: 'stead', name: 'Stead', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
+  {
+    id: 'bhav',
+    name: 'Dr Bhav',
+    unlock: beat(BHAV_TRAINER),
+    hint: 'Prove a Ranemon hater in Greystones wrong.',
+  },
   {
     id: 'cyclist',
     name: 'Cyclist',
@@ -347,13 +366,17 @@ export const skinById = (id: string): Skin | undefined => BY_ID.get(id);
 
 /** Whether a skin's flags are all set, whether or not the save has it yet. */
 export function earned(s: Pick<StoryState, 'flags'>, skin: Skin): boolean {
+  if (skin.online) return false;
   const flags = new Set(s.flags);
   return skin.unlock.every((f) => flags.has(f));
 }
 
-/** Whether a save has a skin to wear. */
-export const hasSkin = (s: Pick<StoryState, 'skins'>, skin: Skin) =>
-  skin.id === DEFAULT_SKIN || !!s.skins?.includes(skin.id);
+/**
+ * Whether a save has a skin to wear. The Online Champion's is never in a save: it's there only
+ * while `champion` (the save server says this trainer holds the crown).
+ */
+export const hasSkin = (s: Pick<StoryState, 'skins'>, skin: Skin, champion = false) =>
+  skin.online ? champion : skin.id === DEFAULT_SKIN || !!s.skins?.includes(skin.id);
 
 /** Skins the save has earned but not been given yet. */
 export const newSkins = (s: Pick<StoryState, 'flags' | 'skins'>): Skin[] =>
@@ -372,9 +395,9 @@ export function unlockSkins(s: StoryState): { state: StoryState; lines: string[]
 }
 
 /** Wears a skin the save has, or goes back to the usual look. */
-export function wearSkin(s: StoryState, id: string): StoryState {
+export function wearSkin(s: StoryState, id: string, champion = false): StoryState {
   const skin = skinById(id);
-  if (!skin || !hasSkin(s, skin)) return s;
+  if (!skin || !hasSkin(s, skin, champion)) return s;
   if (skin.id === DEFAULT_SKIN) {
     const rest = { ...s };
     delete rest.skin;
@@ -383,8 +406,12 @@ export function wearSkin(s: StoryState, id: string): StoryState {
   return { ...s, skin: skin.id };
 }
 
-/** The look the player is drawn in: their skin, or the usual one if this build doesn't know it. */
-export function lookOf(s: Pick<StoryState, 'skin' | 'skins'>): Look | 'player' {
+/**
+ * The look the player is drawn in: their skin, or the usual one if this build doesn't know it.
+ * A Champion who loses the crown goes back to the usual look, though the save still says
+ * they're wearing it, so it comes back if they win it again.
+ */
+export function lookOf(s: Pick<StoryState, 'skin' | 'skins'>, champion = false): Look | 'player' {
   const skin = s.skin ? skinById(s.skin) : undefined;
-  return skin && hasSkin(s, skin) ? skin.id : DEFAULT_SKIN;
+  return skin && hasSkin(s, skin, champion) ? skin.id : DEFAULT_SKIN;
 }

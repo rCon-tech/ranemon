@@ -23,6 +23,58 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-25',
+    title: 'The Online Champion',
+    notes: [
+      'There’s a crown up for grabs in friend battles, and only one trainer can hold it at a time. Ollie wears it for now. Beat him to take it.',
+      'Beat the Online Champion and the crown is yours, along with the Champion’s skin, the grandest look in the game. Lose a friend battle while you hold it and it goes to whoever beat you.',
+      'FRIEND BATTLE shows who holds the crown, and the Champion is crowned in the room, in battle and on their Trainer Card.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'Battle mode catches up',
+    notes: [
+      'Battle mode has a ROSTER switch, with more Ranemon to battle with as you get further in Story mode. Your rival picks from the same roster.',
+      'Switch FORMS to EVOLVED to battle with everyone fully evolved. Where a Ranemon can evolve more than one way, you pick which.',
+      'Tap a Ranemon on YOUR TEAM to pick its look, something for it to hold and its moves, with each move’s type and power.',
+      'In a friend battle, both trainers show up in the room in their skins, and tapping a Ranemon in your team shows its moves and what it’s holding.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'A missing Ranedex page',
+    notes: [
+      'One Ranemon you’re given late in the story never had a page in the Ranedex. It has one now, with its types, entry, stats and moves, and if you have it already its page is filled in.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'Not a fan',
+    notes: [
+      'Somebody in a café in Greystones thinks Ranemon are stupid, and is telling everyone. Maybe a battle will change their mind.',
+      'Change it and there’s a new skin to earn, and a new item for a Ranemon to hold that keeps it chill.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'The UK Ranedex',
+    notes: [
+      'Britain has a Ranedex of its own now: open the Ranedex and tap UK. It has every one of the lads drawn, their evolved forms too, and all of London’s own.',
+      'UK Ranemon evolve now, at Lv30 like at home, into drawn versions of their evolved forms.',
+      'Only the ones you meet over there count in it. Ireland’s Ranedex hasn’t changed.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'Pick your moves',
+    notes: [
+      'Open a Ranemon in PARTY and every move shows its type and power, so you can see what you are working with.',
+      'Tap MOVES (or CHANGE MOVES when it has spare ones) for a full screen of its moves: type, power, accuracy, PP and what each one is strong against.',
+      'Tap a move it knows and a spare move to swap them. Swapped-out moves stay learnt, so you can always swap them back.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Straight to the point',
     notes: [
       'After a battle, the prize money, EXP, new levels and new moves all come in one box now, a line each, instead of a box for every one of them.',
@@ -35,6 +87,14 @@ export const UPDATES: Update[] = [
     notes: [
       'When a wild Ranemon takes to you, you can see it drink the pint now: it flies in, goes down a sip at a time, and the last of it is knocked back in one before it joins you.',
       'Nothing else changes: the same pints work just as well as before.',
+    ],
+  },
+  {
+    date: '2026-10-25',
+    title: 'A fresh pint over the sea',
+    notes: [
+      'Across the Irish Sea the pint by a wild Ranemon’s name starts fresh: it only shows for ones you’ve befriended over there.',
+      'Your Ranedex keeps every one you’ve befriended, and back home the pint is as it was.',
     ],
   },
   {

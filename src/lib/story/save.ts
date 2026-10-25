@@ -135,6 +135,8 @@ function repair(d: Raw): Raw {
     flags: strings(d.flags),
     seen: strings(d.seen),
     caught: strings(d.caught),
+    ...(d.ukCaught !== undefined && { ukCaught: strings(d.ukCaught) }),
+    ...(d.ukSeen !== undefined && { ukSeen: strings(d.ukSeen) }),
     pub: validPlace(d.pub) ?? start.pub,
     // The Ranemon left on the other side of the Irish Sea, read the same way as the party.
     ...(isObject(d.away) && {

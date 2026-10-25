@@ -25,6 +25,8 @@ export interface Battler {
   left?: boolean;
   /** The turn it was last switched in on, so the CPU doesn't swap it straight back out. */
   cameIn?: number;
+  /** Holding something that keeps it chill, like Xanax: it can't be Flustered. */
+  calm?: boolean;
 }
 
 export interface Team {
@@ -67,6 +69,8 @@ export interface Entrant {
    * last the whole battle, switching out included.
    */
   held?: Partial<Record<Stat, number>>;
+  /** Its held item keeps it chill, like Xanax: it can't be Flustered. */
+  calm?: boolean;
 }
 
 export type BattleEvent =
@@ -126,6 +130,7 @@ function makeBattler(entry: Creature | Entrant): Battler {
     stages: { attack: 0, defense: 0, spirit: 0, speed: 0 },
     mods: { ...NO_MODS },
     pp: e.pp ? [...e.pp] : e.creature.moves.map((id) => moveById(id).pp),
+    ...(e.calm && { calm: true }),
   };
 }
 
@@ -380,7 +385,7 @@ class Turn {
         if (foe.hp === 0) break;
         const isStatusMove = move.category === 'status';
         if (!isStatusMove && !this.rng.chance(effect.chance)) break;
-        if (foe.status !== null) {
+        if (foe.status !== null || (foe.calm && effect.status === 'flustered')) {
           if (isStatusMove) this.events.push({ kind: 'status-failed', side: foeSide });
           break;
         }

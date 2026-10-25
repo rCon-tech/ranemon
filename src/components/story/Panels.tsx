@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { DexEntry } from '@/components/DexEntry';
+import { MoveCard } from '@/components/MoveCard';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
 import { DEX as IRISH_DEX } from '@/lib/battle/evolutions';
-import { LONDON } from '@/lib/battle/london';
 import { ROSTER } from '@/lib/battle/roster';
 import { UK, UK_ENTRIES } from '@/lib/battle/uk';
 import { variantForm } from '@/lib/battle/variants';
@@ -32,7 +32,9 @@ import {
   creatureOf,
   expProgress,
   learnedOf,
+  learnset,
   movesAt,
+  nameOf,
   PARTY_SIZE,
   speciesById,
   START_LEVEL,
@@ -40,6 +42,7 @@ import {
   type Member,
 } from '@/lib/story/party';
 import { storyKnowledge } from '@/lib/story/dex';
+import { hasUkDex, ukKnowledge, UK_DEX } from '@/lib/story/ukdex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
@@ -48,8 +51,7 @@ import { COUNTIES, mapById } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
-import type { Look } from '@/lib/story/world';
-import { paintPerson, PERSON_H, PERSON_W, STYLES } from './people';
+import { Portrait } from './Portrait';
 
 /** The level cap, as the PARTY and BAG panels say it. Nothing once there's no cap. */
 function CapNote({ cap }: { cap: LevelCap }) {
@@ -170,8 +172,16 @@ export function PartyPanel({
   onClose: () => void;
 }) {
   const [open, setOpen] = useState<number | null>(null);
-  /** The move slot picked to swap out, on the open member. */
-  const [slot, setSlot] = useState<number | null>(null);
+  /** The member whose MOVES screen is showing. */
+  const [moves, setMoves] = useState<number | null>(null);
+  if (moves !== null && game.party[moves])
+    return (
+      <MovesPanel
+        m={game.party[moves]}
+        onSwap={(slot, move) => onSwap(moves, slot, move)}
+        onClose={() => setMoves(null)}
+      />
+    );
   return (
     <Panel title="PARTY" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
@@ -180,14 +190,7 @@ export function PartyPanel({
       <CapNote cap={levelCap(game)} />
       {game.party.map((m, i) => (
         <div key={m.uid} className="flex flex-col gap-1">
-          <MemberRow
-            m={m}
-            onClick={() => {
-              setOpen(open === i ? null : i);
-              setSlot(null);
-            }}
-            pressed={open === i}
-          />
+          <MemberRow m={m} onClick={() => setOpen(open === i ? null : i)} pressed={open === i} />
           {open === i && (
             <div className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist p-2 text-[10px]">
               {m.shiny && (
@@ -200,68 +203,37 @@ export function PartyPanel({
                   <TypeBadge key={t} type={t} />
                 ))}
               </span>
-              {m.moves.map((id, j) => {
-                const spare = learnedOf(m).length > m.moves.length;
-                const row = (
-                  <>
-                    <span>
-                      {moveById(id).signature ? '* ' : ''}
-                      {moveById(id).name}
+              <div className="flex flex-col gap-0.5" data-testid="party-moves">
+                {m.moves.map((id, j) => {
+                  const move = moveById(id);
+                  return (
+                    <span key={id} className="flex items-center justify-between gap-1 px-1">
+                      <span className="truncate">
+                        {move.signature ? '★ ' : ''}
+                        {move.name}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-[9px]">
+                        {move.type && <TypeBadge type={move.type} />}
+                        <span className="w-9 text-right">
+                          {move.power ? `POW${move.power}` : '—'}
+                        </span>
+                        <span className="w-11 text-right">
+                          PP {m.pp[j]}/{move.pp}
+                        </span>
+                      </span>
                     </span>
-                    <span>
-                      PP {m.pp[j]}/{moveById(id).pp}
-                    </span>
-                  </>
-                );
-                return spare ? (
-                  <button
-                    key={id}
-                    type="button"
-                    className={`flex justify-between rounded px-1 text-left ${slot === j ? 'bg-accent2 text-paper' : ''}`}
-                    onClick={() => setSlot(slot === j ? null : j)}
-                    aria-pressed={slot === j}
-                  >
-                    {row}
-                  </button>
-                ) : (
-                  <span key={id} className="flex justify-between px-1">
-                    {row}
-                  </span>
-                );
-              })}
-              {learnedOf(m).length > m.moves.length && (
-                <div className="mt-1 flex flex-col gap-1" data-testid="spare-moves">
-                  <span className="text-[9px] opacity-70">
-                    {slot === null
-                      ? 'Tap a move above, then one of these to swap it in.'
-                      : `Swap out ${moveById(m.moves[slot]).name} for:`}
-                  </span>
-                  {learnedOf(m)
-                    .filter((id) => !m.moves.includes(id))
-                    .map((id) => {
-                      const move = moveById(id);
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          className="pixel-btn flex justify-between px-1.5 py-1 text-left text-[10px]"
-                          disabled={slot === null}
-                          onClick={() => {
-                            if (slot === null) return;
-                            onSwap(i, slot, id);
-                            setSlot(null);
-                          }}
-                        >
-                          <span>{move.name}</span>
-                          <span className="opacity-70">
-                            {move.type?.toUpperCase()} ·{' '}
-                            {move.power ? `POW ${move.power}` : 'STATUS'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                className="pixel-btn menu-item mt-1 text-[11px]"
+                onClick={() => setMoves(i)}
+              >
+                {learnedOf(m).length > m.moves.length
+                  ? `CHANGE MOVES (${learnedOf(m).length - m.moves.length} SPARE)`
+                  : 'MOVES'}
+              </button>
               {m.held && (
                 <div className="mt-1 flex items-center justify-between gap-2" data-testid="held">
                   <span>HOLDING: {itemById(m.held).name}</span>
@@ -290,6 +262,103 @@ export function PartyPanel({
           )}
         </div>
       ))}
+    </Panel>
+  );
+}
+
+/**
+ * A member's moves screen, from PARTY: the 4 it fights with and the spare moves it has learnt,
+ * each with its type, power and accuracy. Tap one of each to swap them.
+ */
+export function MovesPanel({
+  m,
+  onSwap,
+  onClose,
+}: {
+  m: Member;
+  /** Puts a learnt move into one of the 4 slots. */
+  onSwap: (slot: number, move: string) => void;
+  onClose: () => void;
+}) {
+  /** The move tapped first, either one in a slot or a spare. */
+  const [pick, setPick] = useState<{ slot: number } | { spare: string } | null>(null);
+  const [said, setSaid] = useState<string | null>(null);
+  const species = speciesById(m.species);
+  const spares = learnedOf(m).filter((id) => !m.moves.includes(id));
+  const next = learnset(species).find((l) => l.level > m.level && !learnedOf(m).includes(l.move));
+  const stab = (id: string) => {
+    const t = moveById(id).type;
+    return t !== null && species.types.includes(t);
+  };
+  const swap = (slot: number, spare: string) => {
+    setSaid(
+      `${nameOf(m)} swapped out ${moveById(m.moves[slot]).name} for ${moveById(spare).name}.`,
+    );
+    onSwap(slot, spare);
+    setPick(null);
+  };
+  const prompt =
+    spares.length === 0
+      ? 'No spare moves yet. New ones are learnt by levelling up.'
+      : pick === null
+        ? 'Tap a move it knows, then a spare move to swap them.'
+        : 'slot' in pick
+          ? `Swap out ${moveById(m.moves[pick.slot]).name} for which spare move?`
+          : `Swap in ${moveById(pick.spare).name} for which move?`;
+  return (
+    <Panel title="MOVES" onClose={onClose}>
+      <div className="flex items-center gap-2">
+        <span className="h-10 w-10 shrink-0">
+          <Sprite creature={creatureOf(m)} />
+        </span>
+        <span className="flex flex-col gap-1 text-[11px]">
+          <span>
+            {nameOf(m)} Lv{m.level}
+          </span>
+          <span className="flex gap-1">
+            {species.types.map((t) => (
+              <TypeBadge key={t} type={t} />
+            ))}
+          </span>
+        </span>
+      </div>
+      <p className="text-[10px] leading-relaxed" data-testid="moves-prompt">
+        {said ?? prompt}
+      </p>
+      <h3 className="text-[11px] font-bold">FIGHTS WITH</h3>
+      {m.moves.map((id, j) => (
+        <MoveCard
+          key={id}
+          id={id}
+          pp={m.pp[j]}
+          stab={stab(id)}
+          picked={pick !== null && 'slot' in pick && pick.slot === j}
+          onClick={() => {
+            setSaid(null);
+            if (pick && 'spare' in pick) swap(j, pick.spare);
+            else setPick(pick && 'slot' in pick && pick.slot === j ? null : { slot: j });
+          }}
+        />
+      ))}
+      <h3 className="mt-1 text-[11px] font-bold">SPARE MOVES</h3>
+      {spares.length === 0 && <p className="text-[10px] opacity-70">None yet.</p>}
+      {spares.map((id) => (
+        <MoveCard
+          key={id}
+          id={id}
+          stab={stab(id)}
+          picked={pick !== null && 'spare' in pick && pick.spare === id}
+          onClick={() => {
+            setSaid(null);
+            if (pick && 'slot' in pick) swap(pick.slot, id);
+            else setPick(pick && 'spare' in pick && pick.spare === id ? null : { spare: id });
+          }}
+        />
+      ))}
+      {next && <p className="text-[10px] opacity-70">Learns a new move at Lv{next.level}.</p>}
+      <p className="text-[9px] leading-relaxed opacity-70">
+        Swapped-out moves stay learnt, so you can swap them back any time.
+      </p>
     </Panel>
   );
 }
@@ -909,27 +978,26 @@ export function RanedexPanel({
   onClose: () => void;
   navRef?: React.RefObject<MenuNav | null>;
 }) {
-  // Ireland's Ranedex, or London's once you've seen a London Ranemon (docs/london-ranedex.md).
-  const london = LONDON.some((c) => game.seen.includes(c.id));
-  const [region, setRegion] = useState<'ireland' | 'london'>('ireland');
-  const dex = region === 'london' && london ? LONDON : IRISH_DEX;
+  // Ireland's Ranedex, or the UK's once you've met a Ranemon over there (`ukdex.ts`).
+  const uk = hasUkDex(game);
+  const [region, setRegion] = useState<'ireland' | 'uk'>('ireland');
+  const inUk = region === 'uk' && uk;
+  const dex = inUk ? UK_DEX : IRISH_DEX;
   const [cursor, setCursor] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const [look, setLook] = useState(0);
   const box = useRef<HTMLDivElement>(null);
-  const know = storyKnowledge(game);
+  const know = inUk ? ukKnowledge(game) : storyKnowledge(game);
   // Species you have a shiny of right now, in the party or the Group Chat.
   const shinies = new Set(
     [...game.party, ...game.box].filter((m) => m.shiny).map((m) => m.species),
   );
-  const pick = (r: 'ireland' | 'london') => {
+  const pick = (r: 'ireland' | 'uk') => {
     playSfx('blip');
     setRegion(r);
     setCursor(0);
   };
-  // Petchemon is not in the Ranedex, so he is left out of the counts.
-  const inDex = (id: string) => dex.some((c) => c.id === id);
-  const seen = (i: number) => game.seen.includes(dex[i].id);
+  const seen = (i: number) => know.seen(dex[i].id);
 
   const show = (i: number) => {
     setCursor(i);
@@ -993,7 +1061,7 @@ export function RanedexPanel({
   if (open !== null) {
     const c = dex[open];
     return (
-      <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={() => setOpen(null)}>
+      <Panel title={inUk ? 'UK RANEDEX' : 'RANEDEX'} onClose={() => setOpen(null)}>
         <div ref={box}>
           <DexEntry
             creature={c}
@@ -1010,30 +1078,30 @@ export function RanedexPanel({
   }
 
   return (
-    <Panel title={dex === LONDON ? 'LONDON RANEDEX' : 'RANEDEX'} onClose={onClose}>
-      {london && (
+    <Panel title={inUk ? 'UK RANEDEX' : 'RANEDEX'} onClose={onClose}>
+      {uk && (
         <div className="flex gap-1" aria-label="Ranedex">
-          {(['ireland', 'london'] as const).map((r) => (
+          {(['ireland', 'uk'] as const).map((r) => (
             <button
               key={r}
               type="button"
               className="pixel-btn px-2 py-0.5 text-[10px]"
-              aria-pressed={(dex === LONDON) === (r === 'london')}
+              aria-pressed={inUk === (r === 'uk')}
               onClick={() => pick(r)}
             >
-              {r === 'london' ? 'LONDON' : 'IRELAND'}
+              {r === 'uk' ? 'UK' : 'IRELAND'}
             </button>
           ))}
         </div>
       )}
       <p className="text-[11px]">
-        Seen {game.seen.filter(inDex).length} · Befriended {game.caught.filter(inDex).length} /{' '}
-        {dex.length}
+        Seen {dex.filter((c) => know.seen(c.id)).length} · Befriended{' '}
+        {dex.filter((c) => know.caught(c.id)).length} / {dex.length}
         {shinies.size > 0 && <span className="shiny-name"> · ★ Shiny {shinies.size}</span>}
       </p>
       <div ref={box} className="grid grid-cols-4 gap-1.5">
         {dex.map((c, i) => {
-          const seen = game.seen.includes(c.id);
+          const seen = know.seen(c.id);
           const shiny = shinies.has(c.id);
           return (
             <button
@@ -1052,7 +1120,7 @@ export function RanedexPanel({
               <span className="text-[8px]">
                 {shiny && <span className="shiny-name">★</span>}
                 {seen ? c.name : '?????'}
-                {game.caught.includes(c.id) ? ' ●' : ''}
+                {know.caught(c.id) ? ' ●' : ''}
               </span>
             </button>
           );
@@ -1062,13 +1130,30 @@ export function RanedexPanel({
   );
 }
 
-export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+export function JerseysPanel({
+  game,
+  champion = false,
+  onClose,
+}: {
+  game: StoryState;
+  /** They hold the Online Champion's crown. */
+  champion?: boolean;
+  onClose: () => void;
+}) {
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
+      {champion && (
+        <p
+          className="rounded-lg border-2 border-gold bg-[#2a1450] px-2 py-1 text-center text-[11px] font-bold text-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]"
+          data-testid="card-champion"
+        >
+          ♛ ONLINE CHAMPION ♛
+        </p>
+      )}
       <div className="flex items-center gap-3">
         <Portrait
-          look={lookOf(game)}
-          className="h-[72px] w-12 rounded-lg border-2 border-frame bg-mist"
+          look={lookOf(game, champion)}
+          className={`h-[72px] w-12 rounded-lg border-2 bg-mist ${champion ? 'border-gold' : 'border-frame'}`}
         />
         <p className="text-[11px] leading-relaxed">
           Money €{game.money}
@@ -1100,73 +1185,39 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
   );
 }
 
-/** Someone as they walk the overworld, facing you: a dark silhouette while `locked`. */
-function Portrait({
-  look,
-  locked = false,
-  className,
-}: {
-  look: Look | 'player';
-  locked?: boolean;
-  className?: string;
-}) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const c = ref.current?.getContext('2d');
-    if (!c) return;
-    c.clearRect(0, 0, PERSON_W, PERSON_H);
-    c.globalCompositeOperation = 'source-over';
-    c.drawImage(paintPerson(STYLES[look], 'down', 0), 0, 0);
-    if (locked) {
-      c.globalCompositeOperation = 'source-in';
-      c.fillStyle = '#1c2026';
-      c.fillRect(0, 0, PERSON_W, PERSON_H);
-      c.globalCompositeOperation = 'source-over';
-    }
-  }, [look, locked]);
-  return (
-    <canvas
-      ref={ref}
-      width={PERSON_W}
-      height={PERSON_H}
-      className={className}
-      style={{ imageRendering: 'pixelated' }}
-      data-look={locked ? undefined : look}
-      aria-hidden="true"
-    />
-  );
-}
-
 /**
  * Skins: everyone you've beaten or done a side quest for, to walk around as. Locked ones are
  * silhouettes with a hint. The look shows on the map and the Trainer Card, in 2D.
  */
 export function SkinsPanel({
   game,
+  champion = false,
   onWear,
   onClose,
 }: {
   game: StoryState;
+  /** They hold the Online Champion's crown, so its skin is theirs while they keep it. */
+  champion?: boolean;
   onWear: (id: string) => void;
   onClose: () => void;
 }) {
-  const wearing = lookOf(game);
-  const have = SKINS.filter((k) => hasSkin(game, k)).length;
+  const wearing = lookOf(game, champion);
+  const have = SKINS.filter((k) => hasSkin(game, k, champion)).length;
   return (
     <Panel title="SKINS" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
         Beat someone, or finish their side quest, to walk around as them. {have}/{SKINS.length}{' '}
-        unlocked.
+        unlocked. The Online Champion’s skin is worn only by whoever holds the crown.
       </p>
       <div className="grid grid-cols-3 gap-1.5">
         {SKINS.map((k) => {
-          const open = hasSkin(game, k);
+          const open = hasSkin(game, k, champion);
           return (
             <button
               key={k.id}
               type="button"
               data-testid={`skin-${k.id}`}
-              className="pixel-btn flex flex-col items-center gap-1 px-1 py-1.5"
+              className={`pixel-btn flex flex-col items-center gap-1 px-1 py-1.5 ${k.online ? 'border-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]' : ''}`}
               disabled={!open}
               aria-pressed={open ? wearing === k.id : undefined}
               aria-label={open ? k.name : `Locked. ${k.hint}`}
@@ -1176,9 +1227,10 @@ export function SkinsPanel({
                 onWear(k.id);
               }}
             >
-              <Portrait look={k.id} locked={!open} className="h-12 w-8" />
+              {/* The Champion's skin is on show to everyone: it's worth winning. */}
+              <Portrait look={k.id} locked={!open && !k.online} className="h-12 w-8" />
               <span className="text-center text-[8px] leading-tight">
-                {open ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
+                {open || k.online ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
               </span>
               {!open && <span className="text-center text-[7px] leading-tight">{k.hint}</span>}
               {open && wearing === k.id && <span className="text-[7px]">WEARING</span>}

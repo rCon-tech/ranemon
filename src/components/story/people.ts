@@ -29,7 +29,8 @@ export interface Style {
   legs: string;
   shoes: string;
   tie?: string;
-  glasses?: 'glasses' | 'shades';
+  /** `round`: little round shades with gold rims, lenses with a blue sheen. */
+  glasses?: 'glasses' | 'shades' | 'round';
   bag?: string;
   /** Carried at the side, on the arm. */
   handbag?: string;
@@ -90,6 +91,16 @@ export interface Style {
   plasticBag?: string;
   /** A leather strap across the chest from the shoulder, like an officer's Sam Browne belt. */
   strap?: string;
+  /**
+   * A long spaghetti-strap dress in this colour: bare shoulders and arms, two thin straps, and a
+   * floaty skirt down to the ankles over the shoes. `top` should match it; `legs` is the skin.
+   */
+  maxi?: string;
+  /**
+   * A royal cape in this colour from the shoulders to the calves, edged in ermine, with a gold
+   * chain across the chest and gold embroidery down the back.
+   */
+  cape?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -533,6 +544,21 @@ export const STYLES: Record<Look | 'player', Style> = {
     shoes: '#f06a30',
   },
   // A cyclist in Greystones: head to toe in lycra, shades, and a bike worth more than a car.
+  // Dr Bhav, in Greystones: long dark hair, round gold-rimmed shades, a burgundy spaghetti-strap
+  // maxi dress, gold bangles and earrings, and gold platform sandals.
+  bhav: {
+    skin: '#c48a62',
+    hair: '#16121a',
+    hairStyle: 'long',
+    top: '#7a1c2c',
+    topKind: 'shirt',
+    trim: '#7a1c2c',
+    legs: '#c48a62',
+    shoes: '#d8b048',
+    glasses: 'round',
+    earrings: '#e0b848',
+    maxi: '#7a1c2c',
+  },
   cyclist: {
     skin: '#f0c8a0',
     hair: '#6a4a2a',
@@ -1538,6 +1564,26 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2c3c64',
     shoes: '#2a1a12',
   },
+  // The Online Champion, worn only by whoever holds the crown: a jewelled gold crown, a crimson
+  // cape edged in ermine, a royal purple coat with gold frogging, a gold sash hung with medals,
+  // and a sceptre topped with a crystal orb.
+  champion: {
+    skin: SKIN,
+    hair: '#3a2416',
+    hairStyle: 'short',
+    hat: { kind: 'crown', colour: '#ffd23a', trim: '#e0204a' },
+    top: '#4a1e8a',
+    topKind: 'coat',
+    trim: '#ffd23a',
+    legs: '#f4f0e8',
+    shoes: '#1a1020',
+    strap: '#ffd23a',
+    badges: ['#e0204a', '#3ac0f0', '#ffd23a'],
+    stick: '#e8b830',
+    stickTop: '#b8ecff',
+    cape: '#b0142e',
+    tall: true,
+  },
   // John Collison, his brother: glasses, a navy jumper and a purple collar.
   jcollison: {
     skin: '#f8d8b8',
@@ -1715,6 +1761,13 @@ function legsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     shaded(c, 18, top - 2, 28, 15, 3, s.skirt);
     for (const x of [24, 32, 40]) px(c, x, top + 3, 1, 9, shade(s.skirt, 0.75));
   }
+  if (s.maxi) {
+    // Down to the ankles and flaring a little, with soft folds and a frayed hem.
+    shaded(c, 18, top - 2, 28, 13, 3, s.maxi);
+    shaded(c, 16, top + 9, 32, 12, 3, s.maxi);
+    for (const x of [22, 27, 32, 37, 42]) px(c, x, top + 3, 1, 17, shade(s.maxi, 0.72));
+    for (let x = 16; x < 48; x += 2) px(c, x, top + 20, 1, 1, shade(s.maxi, 0.6));
+  }
   if (s.shorts) {
     // Barely past the hips: a split up the middle and a pale hem.
     shaded(c, 20, top - 1, 25, 7, 2, s.shorts);
@@ -1751,6 +1804,11 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
     shaded(c, 21, top - 2, 22, 15, 3, s.skirt);
     px(c, 30, top + 2, 1, 10, shade(s.skirt, 0.75));
   }
+  if (s.maxi) {
+    shaded(c, 21, top - 2, 22, 13, 3, s.maxi);
+    shaded(c, 19 - Math.abs(swing) / 2, top + 9, 26 + Math.abs(swing), 12, 3, s.maxi);
+    for (const x of [26, 33, 39]) px(c, x, top + 3, 1, 17, shade(s.maxi, 0.72));
+  }
   if (s.shorts) {
     shaded(c, 22, top - 1, 20, 7, 2, s.shorts);
     px(c, 22, top + 5, 20, 1, shade(s.shorts, 1.6));
@@ -1758,6 +1816,91 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
 }
 
 // ---------- the body ----------
+
+const ERMINE = '#f6f2ea';
+const GOLD = '#ffd23a';
+
+/** An ermine band: white fur with the black tail tips spotted along it. */
+function ermine(c: Ctx, x: number, y: number, w: number, h: number) {
+  px(c, x, y, w, h, ERMINE);
+  px(c, x, y + h - 1, w, 1, shade(ERMINE, 0.86));
+  for (let i = 2; i < w - 1; i += 5) px(c, x + i, y + (i % 2 ? 1 : Math.max(0, h - 3)), 1, 2, INK);
+}
+
+/** The cape behind someone, seen from the front: it shows past the arms to either side. */
+function capeBehind(c: Ctx, s: Style, p: Pose) {
+  const y0 = 36 + p.lift;
+  const cape = s.cape!;
+  shaded(c, 6, y0, 52, 50 - p.lift, 5, shade(cape, 0.82), 0.15, 0.2);
+  for (const x of [9, 54]) px(c, x, y0 + 8, 1, 38, shade(cape, 0.6));
+  ermine(c, 6, y0 + 46 - p.lift, 8, 4);
+  ermine(c, 50, y0 + 46 - p.lift, 8, 4);
+}
+
+/** The cape over someone's back, with gold embroidery, an ermine hem and a mantle. */
+function capeBack(c: Ctx, s: Style, p: Pose) {
+  const y0 = 35 + p.lift;
+  const cape = s.cape!;
+  const h = 51 - p.lift;
+  shaded(c, 8, y0, 48, h, 6, cape, 0.2, 0.25);
+  // Folds falling from the shoulders.
+  for (const x of [16, 25, 39, 48]) px(c, x, y0 + 10, 1, h - 16, shade(cape, 0.68));
+  for (const x of [20, 44]) px(c, x, y0 + 12, 1, h - 20, shade(cape, 1.18));
+  // A gold border and a crown worked in gold thread in the middle.
+  px(c, 10, y0 + h - 7, 44, 1, GOLD);
+  for (const x of [11, 52]) px(c, x, y0 + 8, 1, h - 15, GOLD);
+  const cx = 32;
+  const cy = y0 + 22;
+  px(c, cx - 6, cy + 4, 13, 3, GOLD);
+  for (const [dx, t] of [
+    [-6, 4],
+    [-1, 7],
+    [4, 4],
+  ] as const)
+    px(c, cx + dx, cy + 4 - t, 3, t, GOLD);
+  px(c, cx, cy - 4, 1, 1, '#e0204a');
+  px(c, cx - 5, cy + 5, 1, 1, '#3ac0f0');
+  px(c, cx + 5, cy + 5, 1, 1, '#3ac0f0');
+  for (const [x, y] of [
+    [18, 34],
+    [46, 34],
+    [24, 44],
+    [40, 44],
+  ])
+    px(c, x, y0 + y - 12, 2, 2, shade(GOLD, 0.85));
+  ermine(c, 8, y0 + h - 5, 48, 5);
+  // The ermine mantle over the shoulders.
+  round(c, 14, y0 - 1, 36, 9, 4, ERMINE);
+  for (let x = 17; x < 48; x += 5) px(c, x, y0 + 3, 1, 2, INK);
+}
+
+/** The cape seen from the side, hanging behind the back. */
+function capeSide(c: Ctx, s: Style, p: Pose) {
+  const y0 = 36 + p.lift;
+  const cape = s.cape!;
+  // It trails a little the other way to the stride.
+  const sway = Math.abs(p.stride);
+  shaded(c, 33, y0, 17 + sway, 50 - p.lift, 5, cape, 0.15, 0.3);
+  px(c, 41, y0 + 8, 1, 36, shade(cape, 0.68));
+  px(c, 46 + sway, y0 + 6, 1, 38, GOLD);
+  ermine(c, 33, y0 + 46 - p.lift, 17 + sway, 4);
+}
+
+/** The ermine mantle across the shoulders, and the gold chain that holds the cape on. */
+function capeFront(c: Ctx, p: Pose) {
+  const y0 = 36 + p.lift;
+  ermine(c, 16, y0, 8, 5);
+  ermine(c, 40, y0, 8, 5);
+  for (let i = 0; i <= 16; i++) {
+    const x = 24 + i;
+    const y = y0 + 3 + Math.sin((i / 16) * Math.PI) * 3;
+    px(c, x, y, 1, 1, i % 2 ? GOLD : shade(GOLD, 0.7));
+  }
+  round(c, 22, y0 + 1, 4, 4, 1, GOLD);
+  round(c, 38, y0 + 1, 4, 4, 1, GOLD);
+  px(c, 23, y0 + 2, 1, 1, '#e0204a');
+  px(c, 39, y0 + 2, 1, 1, '#e0204a');
+}
 
 const LONG = new Set<Top>(['gown', 'agbada', 'coat']);
 
@@ -1813,6 +1956,19 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
   if (s.hearts && back) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (back && s.strap) for (let i = 0; i < 26; i++) px(c, 44 - i * 0.95, y0 + 1 + i, 3, 2, s.strap);
+  if (s.maxi) {
+    // Bare shoulders above the bodice, a lace edge along it, and the two straps.
+    px(c, 17, y0, 30, 6, s.skin);
+    px(c, 17, y0, 30, 1, shade(s.skin, 0.84));
+    for (let x = 17; x < 47; x += 2) px(c, x, y0 + 6, 1, 1, shade(s.maxi, 0.6));
+    for (const x of [23, 40]) px(c, x, y0, 1, 6, shade(s.maxi, 0.8));
+    if (!back) {
+      // Gathered across the bust, and pleats down to the waist.
+      px(c, 19, y0 + 7, 26, 2, shade(s.maxi, 1.15));
+      for (const x of [25, 32, 39]) px(c, x, y0 + 10, 1, h - 12, darker);
+    }
+    return;
+  }
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
@@ -1972,6 +2128,11 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       round(c, x - 2, ay + 3, 11, 8, 4, s.skin);
       px(c, x + (x < 32 ? 1 : 3), ay + 5, 4, 2, shade(s.skin, 1.12));
       px(c, x, ay + 12, 7, 1, shade(s.skin, 0.82));
+    } else if (s.maxi) {
+      // Bare arms, a bangle on the wrist.
+      shaded(c, x, ay, 7, 22, 3, s.skin, 0.3, 0.3);
+      px(c, x + 1, ay + 11, 5, 1, shade(s.skin, 0.86));
+      px(c, x, ay + 19, 7, 1, '#e0b848');
     } else {
       shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
       // An elbow fold and a cuff.
@@ -2041,9 +2202,15 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     c.restore();
   }
   if (s.bag) shaded(c, 38, y0 + 4, 10, 22, 4, s.bag, 0.3, 0.3);
-  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, s.vest ? shade(s.skin, 0.8) : far, 0.1, 0.4);
+  const bare = s.vest || s.maxi;
+  shaded(c, 29 + swing, y0 + 1, 7, 22, 3, bare ? shade(s.skin, 0.8) : far, 0.1, 0.4);
   shaded(c, 21, y0, 22, h, 5, s.top, 0.3, 0.25);
   px(c, 21, y0 + h - 1, 22, 1, shade(s.top, 0.6));
+  if (s.maxi) {
+    px(c, 21, y0, 22, 6, s.skin);
+    px(c, 31, y0, 1, 6, shade(s.maxi, 0.8));
+    for (let x = 21; x < 43; x += 2) px(c, x, y0 + 6, 1, 1, shade(s.maxi, 0.6));
+  }
   if (s.topKind === 'hivis') {
     px(c, 21, y0 + 11, 22, 3, s.trim);
     px(c, 21, y0 + 19, 22, 3, s.trim);
@@ -2066,7 +2233,8 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     round(c, 27, y0 + 14, 7, 7, 3, s.emblem);
     round(c, 28, y0 + 15, 5, 5, 2, shade(s.top, 1.15));
   }
-  if (!long && s.topKind !== 'jumper') px(c, 21, y0 + h - 2, 22, 2, shade(s.shorts ?? s.legs, 0.6));
+  if (!long && !s.maxi && s.topKind !== 'jumper')
+    px(c, 21, y0 + h - 2, 22, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.beads) for (let i = 0; i < 9; i++) px(c, 20 + i * 0.4, y0 + 2 + i * 3, 3, 3, s.beads);
   if (s.pearls) for (let i = 0; i < 5; i++) px(c, 20 + i, y0 + 2 + i * 0.6, 2, 2, '#f8f4ec');
   // The near arm, in front.
@@ -2076,6 +2244,9 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     shaded(c, ax - 1, y0 + 1, 10, 22, 4, s.skin, 0.35, 0.3);
     round(c, ax - 2, y0 + 3, 12, 8, 4, s.skin);
     px(c, ax, y0 + 12, 8, 1, shade(s.skin, 0.82));
+  } else if (s.maxi) {
+    shaded(c, ax, y0 + 1, 8, 22, 3, s.skin, 0.35, 0.3);
+    px(c, ax, y0 + 19, 8, 1, '#e0b848');
   } else {
     shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
     px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
@@ -2197,6 +2368,15 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
       px(c, 22, 20 + y, 3, 1, '#5a6a8a');
       px(c, 35, 20 + y, 3, 1, '#5a6a8a');
     }
+    if (s.glasses === 'round') {
+      for (const gx of [20, 33]) {
+        round(c, gx, 18 + y, 11, 9, 4, '#c8a040');
+        round(c, gx + 1, 19 + y, 9, 7, 3, '#141822');
+        px(c, gx + 2, 20 + y, 3, 1, '#6a88c0');
+        px(c, gx + 6, 23 + y, 2, 1, '#3a4a78');
+      }
+      px(c, 31, 20 + y, 2, 1, '#c8a040');
+    }
     if (s.glasses === 'glasses') {
       for (const gx of [21, 33]) {
         px(c, gx, 18 + y, 10, 1, INK);
@@ -2275,6 +2455,12 @@ function head(c: Ctx, s: Style, side: Side, p: Pose) {
     if (s.moustache) px(c, 17, 28 + y, 7, 2, s.moustache);
     if (s.nosering) px(c, 16, 26 + y, 1, 2, '#c8ccd4');
     if (s.glasses === 'shades') round(c, 17, 19 + y, 12, 7, 2, '#141418');
+    if (s.glasses === 'round') {
+      round(c, 17, 18 + y, 10, 9, 4, '#c8a040');
+      round(c, 18, 19 + y, 8, 7, 3, '#141822');
+      px(c, 19, 20 + y, 3, 1, '#6a88c0');
+      px(c, 27, 21 + y, 9, 1, '#c8a040');
+    }
     if (s.glasses === 'glasses') {
       px(c, 18, 18 + y, 10, 1, INK);
       px(c, 18, 26 + y, 10, 1, INK);
@@ -2525,14 +2711,20 @@ export function paintPerson(
   const side: Side = dir === 'right' ? 'left' : dir;
   const p = poseOf(frame);
   if (side === 'left') {
+    if (s.cape) capeSide(c, s, p);
     legsSide(c, s, p);
     bodySide(c, s, p);
   } else {
     const back = side === 'up';
+    if (!back && s.cape) capeBehind(c, s, p);
     if (!back && s.guitar) torsoFront(c, { ...s, guitar: undefined }, p, true);
     legsFront(c, s, p, back);
     torsoFront(c, s, p, back);
     armsFront(c, s, p, back);
+    if (s.cape) {
+      if (back) capeBack(c, s, p);
+      else capeFront(c, p);
+    }
   }
   if (!headless) head(c, s, side, p);
   outline(c);

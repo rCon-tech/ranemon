@@ -47,14 +47,14 @@ describe('Paulimon, Skehemon, Vinnimon and Crampemon', () => {
 });
 
 describe('Petchemon', () => {
-  it('is only on B&S’s teams, and never in the Ranedex', () => {
+  it('is only on B&S’s teams, never wild, and in the Ranedex', () => {
     const p = speciesById('petchemon');
     expect(moveById(p.moves[0]).signature).toBe('petchemon');
     const has = TRAINERS.filter((t) => t.team.some(([s]) => s === 'petchemon')).map((t) => t.id);
     expect(has).toEqual(['bns', 'bns-rematch']);
     for (const m of MAPS)
       expect(m.wild?.table.some(([s]) => s === 'petchemon') ?? false).toBe(false);
-    expect(DEX.some((d) => d.id === 'petchemon')).toBe(false);
+    expect(DEX.some((d) => d.id === 'petchemon')).toBe(true);
   });
 
   it('is yours for beating B&S, and only for that', () => {

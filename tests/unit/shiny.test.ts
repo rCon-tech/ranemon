@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DEX } from '@/lib/battle/evolutions';
+import { PETCHEMON } from '@/lib/battle/petchemon';
 import { startBattle } from '@/lib/battle/engine';
 import { creatureById } from '@/lib/battle/roster';
 import { describeEvent } from '@/lib/ui/playback';
@@ -65,7 +66,8 @@ describe('shiny Ranemon', () => {
   });
 
   it('have a golden sprite, and a golden head for following you, for every Ranemon', () => {
-    for (const c of DEX) {
+    // Bar Petchemon: he's only ever given, never wild, so never shiny.
+    for (const c of DEX.filter((d) => d.id !== PETCHEMON.id)) {
       const sprite = shinySprite(c.sprite!);
       expect(existsSync(`public${sprite}`), sprite).toBe(true);
       expect(existsSync(`public${sprite.replace(/\/([^/]+)$/, '/mini/$1')}`), sprite).toBe(true);

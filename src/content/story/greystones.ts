@@ -1,5 +1,6 @@
 import { homeward } from './station';
 import type { GameMap, Npc, Step } from '@/lib/story/world';
+import { KEEPERS } from './keepers';
 import { WICKLOW_HOUSES, WICKLOW_LANDMARKS, WICKLOW_NPCS, WICKLOW_SIGNS } from './legends';
 
 /**
@@ -7,6 +8,8 @@ import { WICKLOW_HOUSES, WICKLOW_LANDMARKS, WICKLOW_NPCS, WICKLOW_SIGNS } from '
  * with the slate roofs, palm trees, yachts and jeeps to prove it. Kill, Stead and Cramps live
  * here, and all three say the town is under the terrible rule of the Happy Pear Twins, who are
  * down on the beach after their sea swim. Beat both twins, back to back, for the Vegan Stone.
+ * And in the Happy Pear sits Dr Bhav, who thinks Ranemon are the stupidest thing she's ever heard
+ * of. Beat her and she admits she was wrong, gives you Xanax, and her look is yours.
  */
 
 /** Set once anyone in Greystones has told you about the twins: then you can find them. */
@@ -167,6 +170,96 @@ export const PEAR_REWARD: Step[] = [
   },
 ];
 
+/** Dr Bhav, at a table in the Happy Pear. */
+export const BHAV_TRAINER = 'greystones-bhav';
+export const BEAT_BHAV = `beat:${BHAV_TRAINER}`;
+
+export const BHAV_BEFORE = 'DR BHAV: I’ll have this done before my oat latte goes cold.';
+export const BHAV_AFTER = 'DR BHAV: …No. No, no, no. That was… actually amazing?';
+
+/** What beating her gives you: an apology, and Xanax. Her skin comes with the win. */
+export const BHAV_REWARD: Step[] = [
+  { do: 'say', text: 'DR BHAV: Okay. Okay. I’ll say it. I’m a big idiot. Ranemon is AMAZING.' },
+  {
+    do: 'say',
+    text: 'DR BHAV: Did you see the way it dodged? I need one. I need six. Where do you get the pints?',
+  },
+  {
+    do: 'say',
+    text: 'DR BHAV: Here, you’ve earned this. I’m writing you a prescription. It’s for your Ranemon, not for you.',
+  },
+  { do: 'give', item: 'xanax' },
+  {
+    do: 'say',
+    text: 'Give the Xanax to any Ranemon to hold, from the BAG: it stays chill. Spirit up 20% in every battle, and nothing can Fluster it.',
+  },
+];
+
+const BHAV: Npc = {
+  look: 'bhav',
+  face: 'down',
+  talk: [
+    {
+      do: 'if',
+      flag: BEAT_BHAV,
+      then: [
+        {
+          do: 'say',
+          text: 'DR BHAV: I’ve befriended four already. I named them all after consultants I can’t stand. Best thing that ever happened to me.',
+        },
+      ],
+      else: [
+        {
+          do: 'say',
+          text: 'DR BHAV: (She lowers her sunglasses.) Oh, great. Another one. Let me guess: you’re here about your little Ranemon.',
+        },
+        {
+          do: 'say',
+          text: 'DR BHAV: I’m a doctor. Seven years of medical school. And the whole country has lost its mind over pocket creatures that drink pints of Guinness.',
+        },
+        {
+          do: 'say',
+          text: 'DR BHAV: The battles are stupid. The Ranedex is stupid. Michael D Higgins handing them out to children is a public health emergency.',
+        },
+        {
+          do: 'ask',
+          text: 'Battle Dr Bhav and prove her wrong?',
+          yes: [
+            {
+              do: 'say',
+              text: 'DR BHAV: Fine. One battle. When you lose, you put the pints down and go and touch some grass. Doctor’s orders.',
+            },
+            { do: 'battle', trainer: BHAV_TRAINER },
+          ],
+          no: [{ do: 'say', text: 'DR BHAV: That’s what I thought. Ranemon. Honestly.' }],
+        },
+      ],
+    },
+  ],
+};
+
+/** The Happy Pear's own room: the café, with the twins' cousin at the counter and Dr Bhav at a table. */
+const HAPPY_PEAR_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name'> & Partial<GameMap> = {
+  name: 'The Happy Pear',
+  rows: [
+    'WWWWWWWWWW',
+    'WOWWOOWWOW',
+    'WFFF1FFFNW',
+    'WCCCCCFFFW',
+    'WFFFFFFFFW',
+    'WUUFF2UUFW',
+    'WUUFFFUUFW',
+    'WNFF@FFFNW',
+    'WWWWEWWWWW',
+  ],
+  npcs: [KEEPERS.greystones['The Happy Pear'], BHAV],
+  things: {
+    U: 'A table with a green smoothie on it, and a wheatgrass shot nobody has touched.',
+    N: 'A very healthy plant. It looks like it does sea swims.',
+    C: 'The counter: sourdough, granola and a jar of something called “activated almonds”.',
+  },
+};
+
 const DART_DRIVER: Npc = { look: 'dart', face: 'down', talk: homeward('greystones') };
 
 export const GREYSTONES: GameMap = {
@@ -274,6 +367,17 @@ export const GREYSTONES: GameMap = {
       },
       {
         do: 'if',
+        flag: BEAT_BHAV,
+        then: [],
+        else: [
+          {
+            do: 'say',
+            text: 'Someone at a table in round sunglasses is telling the whole café that Ranemon are stupid.',
+          },
+        ],
+      },
+      {
+        do: 'if',
         flag: BEAT_PEARS,
         then: [
           {
@@ -292,4 +396,5 @@ export const GREYSTONES: GameMap = {
     ],
     ...WICKLOW_LANDMARKS,
   ],
+  landmarkRooms: { 0: HAPPY_PEAR_ROOM },
 };

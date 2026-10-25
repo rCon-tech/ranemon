@@ -134,7 +134,7 @@ describe('the border', () => {
     expect(over.party).toEqual([]);
     expect(over.box).toEqual([]);
     expect(over.pub.map).toBe(ARRIVALS_ID);
-    const uk = { ...over, party: [makeMember('simomon', 38, 3, UK)] };
+    const uk = { ...over, party: [makeMember('simomon', 28, 3, UK)] };
     const home = crossBorder(uk, { map: 'airport', x: 3, y: 6 });
     expect(home.party.map((m) => m.species)).toEqual(['carlmon']);
     expect(home.box.map((m) => m.species)).toEqual(['jammon']);
@@ -163,7 +163,8 @@ describe('UK Ranemon', () => {
       expect(existsSync(`public/sprites/drawn/mini/${r.id}.png`), r.id).toBe(true);
       expect(existsSync(`public/sprites/shiny/drawn/mini/${r.id}.png`), r.id).toBe(true);
     }
-    expect(Object.keys(UK_ENTRIES)).toHaveLength(ROSTER.length);
+    // The lads, their evolutions and Cholokill.
+    expect(Object.keys(UK_ENTRIES)).toHaveLength(ROSTER.length * 2 + 1);
   });
 
   it('is the same Ranemon underneath: name, types and stats', () => {
@@ -181,20 +182,33 @@ describe('UK Ranemon', () => {
     }
   });
 
-  it('stays the way it’s drawn: a UK Ranemon doesn’t evolve', () => {
+  it('evolves into its drawn evolved form, and stays a UK Ranemon', () => {
     const m = makeMember('carlmon', 50, 1, UK);
-    expect(m.species).toBe('carlmon');
+    expect(m.species).toBe('carlizard');
     expect(m.variant).toBe(UK);
-    expect(makeMember('carlmon', 50, 1).species).toBe('carlizard');
-    const caught = recruit(newGame(), 'simomon', 40, { variant: UK }).state.party[0];
+    expect(makeMember('carlmon', 50, 1).variant).toBeUndefined();
+    const caught = recruit(newGame(), 'simomon', 25, { variant: UK }).state.party[0];
     expect(caught.species).toBe('simomon');
     const grown = gainExp(caught, 10_000_000).member;
-    expect(grown.species).toBe('simomon');
-    expect(grown.level).toBeGreaterThan(40);
+    expect(grown.species).toBe('weezimo');
+    expect(grown.variant).toBe(UK);
+    expect(variantForm(speciesById(grown.species), grown.variant).sprite).toBe(
+      '/sprites/drawn/weezimo.png',
+    );
   });
 
-  it('has no drawn form for an evolution or a legend yet: they keep their photos', () => {
-    expect(variantOf('carlizard', UK)).toBeUndefined();
+  it('has a drawn form for every evolution, and none for a legend yet', () => {
+    for (const id of ['carlizard', 'conix', 'crampsb2bthilomon', 'cholokill']) {
+      const sprite = variantOf(id, UK)?.sprite;
+      expect(sprite, id).toBe(`/sprites/drawn/${id}.png`);
+      for (const file of [
+        `public${sprite}`,
+        `public/sprites/shiny/drawn/${id}.png`,
+        `public/sprites/drawn/mini/${id}.png`,
+        `public/sprites/shiny/drawn/mini/${id}.png`,
+      ])
+        expect(existsSync(file), file).toBe(true);
+    }
     expect(variantOf('tobymon', UK)).toBeUndefined();
   });
 });

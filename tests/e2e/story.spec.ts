@@ -1555,6 +1555,79 @@ test('story mode: MISSIONS on the START menu shows what you have open, and what 
   await expect(page.getByTestId('missions-empty')).toBeVisible();
 });
 
+test('story mode: PARTY shows move types, and MOVES swaps a spare move in', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:moves')) return;
+    localStorage.setItem(
+      'ranemon.story.v1:moves',
+      JSON.stringify({
+        version: 1,
+        schema: 3,
+        map: 'clare',
+        x: 3,
+        y: 3,
+        face: 'down',
+        party: [
+          {
+            uid: 1,
+            species: 'clefenda',
+            level: 30,
+            exp: 27000,
+            hp: 108,
+            pp: [10, 10, 5, 10],
+            status: null,
+            moves: ['fierce-friendship', 'top-bins', 'heartbreaker', 'the-dive'],
+            learned: [
+              'prank-call',
+              'fierce-friendship',
+              'nutmeg',
+              'cold-shoulder',
+              'top-bins',
+              'heartbreaker',
+              'the-dive',
+            ],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter'],
+        seen: [],
+        caught: [],
+        pub: { map: 'clare', x: 3, y: 3 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Moves');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'PARTY' }).click();
+  await page.getByRole('button', { name: /Clefenda/ }).click();
+
+  // Each move in the party view wears its type.
+  await expect(page.getByTestId('party-moves').locator('.type-badge')).toHaveCount(4);
+  await page.getByRole('button', { name: 'CHANGE MOVES (3 SPARE)' }).click();
+
+  const cards = page.getByTestId('move-card');
+  await expect(cards).toHaveCount(7);
+  await expect(cards.filter({ hasText: 'Top Bins' })).toContainText('POW');
+  await cards.filter({ hasText: 'Nutmeg' }).click();
+  await expect(page.getByTestId('moves-prompt')).toContainText('Swap in Nutmeg for which move?');
+  await cards.filter({ hasText: 'Top Bins' }).click();
+  await expect(page.getByTestId('moves-prompt')).toContainText('swapped out Top Bins for Nutmeg');
+
+  const save = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:moves')!),
+  );
+  expect(save.party[0].moves).toEqual(['fierce-friendship', 'nutmeg', 'heartbreaker', 'the-dive']);
+  expect(save.party[0].learned).toContain('top-bins');
+});
+
 test('story mode: the bag has pockets, food can be used again and again, and Vapes buys things back', async ({
   page,
 }) => {

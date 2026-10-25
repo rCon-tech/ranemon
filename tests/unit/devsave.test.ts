@@ -39,7 +39,7 @@ describe('the developer save', () => {
     const all = [...g.party, ...g.box];
     const usual = all.filter((m) => !m.variant).map((m) => m.species);
     const dex = [...DEX, ...LONDON].map((c) => c.id);
-    expect(usual.sort()).toEqual([...dex, ...recruits()].sort());
+    expect(usual.sort()).toEqual([...new Set([...dex, ...recruits()])].sort());
     // Petchemon is never caught, only given by B&S, so he comes in as theirs.
     expect(recruits()).toContain('petchemon');
     expect(usual).toContain('petchemon');

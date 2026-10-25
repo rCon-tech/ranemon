@@ -30,7 +30,8 @@ export type ItemId =
   | 'espresso-tamper'
   | 'afterparty-wristband'
   | 'spareroom-listing'
-  | 'hardware-wallet';
+  | 'hardware-wallet'
+  | 'xanax';
 
 export type ItemUse =
   | { kind: 'pint'; pint: Pint }
@@ -44,8 +45,9 @@ export type ItemUse =
   /**
    * Given to a Ranemon to hold, outside battle: one of `line` only, or any Ranemon if there's no
    * line. While it holds it, a stat is multiplied in every battle. Taken back from PARTY.
+   * `calm` keeps it chill as well: it can't be Flustered.
    */
-  | { kind: 'hold'; line?: string; stat: Stat; factor: number };
+  | { kind: 'hold'; line?: string; stat: Stat; factor: number; calm?: true };
 
 export interface Item {
   id: ItemId;
@@ -214,6 +216,15 @@ export const ITEMS: Item[] = [
     from: 99,
     use: { kind: 'hold', stat: 'defense', factor: 1.2 },
   },
+  {
+    id: 'xanax',
+    name: 'Xanax',
+    about:
+      'From Dr Bhav in Greystones, for proving her wrong. Give it to any Ranemon to hold and it stays chill: Spirit up 20% in every battle, and nothing can Fluster it.',
+    price: null,
+    from: 99,
+    use: { kind: 'hold', stat: 'spirit', factor: 1.2, calm: true },
+  },
   // Wickmon's branches (docs/london-ranedex.md): each is found once, in Shoreditch & Hackney.
   {
     id: 'disposable-vape',
@@ -368,10 +379,20 @@ export const canUseOn = (item: Item, m: Member, cap?: number) =>
   );
 
 /** What a member's held item does in battle: its stat multipliers, if it's of the right line (or any). */
-export function heldBoost(m: Member): Partial<Record<Stat, number>> | undefined {
+export function heldBoost(
+  m: Pick<Member, 'species' | 'held'>,
+): Partial<Record<Stat, number>> | undefined {
   const use = m.held && BY_ID.get(m.held)?.use;
   if (!use || use.kind !== 'hold' || (use.line && lineOf(m.species) !== use.line)) return undefined;
   return { [use.stat]: use.factor };
+}
+
+/** Whether a member's held item keeps it chill, so it can't be Flustered: Xanax. */
+export function heldCalm(m: Pick<Member, 'species' | 'held'>): boolean {
+  const use = m.held && BY_ID.get(m.held)?.use;
+  return (
+    !!use && use.kind === 'hold' && !!use.calm && (!use.line || lineOf(m.species) === use.line)
+  );
 }
 
 /** Applies a healing item outside battle. */
