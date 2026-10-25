@@ -1453,7 +1453,7 @@ button {
 .gb-lcd {
   border-radius: 6px;
   background:
-    linear-gradient(transparent 82%, #58c048 82% 86%, #3c9a34 86%),
+    linear-gradient(transparent 74%, #58c048 74% 78%, #3c9a34 78%),
     linear-gradient(#7cc8ff, #d6f0ff 70%);
   box-shadow: inset 0 0 12px rgb(0 0 40 / 0.25);
 }
@@ -1480,4 +1480,42 @@ button {
   box-shadow: 0 3px 0 #1a1440;
   color: #8e8ea0;
   font-size: 11px;
+}
+
+/* A Ranemon walking along the grass, left to right, with a bob in each step. */
+.gb-walker {
+  position: absolute;
+  bottom: 0;
+  left: -48px;
+  width: 44px;
+  animation: gb-walk 9s linear infinite;
+}
+.gb-walker img {
+  display: block;
+  animation: gb-step 0.5s steps(1) infinite;
+}
+@keyframes gb-walk {
+  to {
+    left: calc(100% + 8px);
+  }
+}
+@keyframes gb-step {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-walker,
+  .gb-walker img {
+    animation: none;
+  }
+  .gb-walker:nth-child(1) {
+    left: 12%;
+  }
+  .gb-walker:nth-child(2) {
+    left: 42%;
+  }
+  .gb-walker:nth-child(3) {
+    left: 72%;
+  }
 }

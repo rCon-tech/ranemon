@@ -23,6 +23,9 @@ function useHasNew(): boolean {
   );
 }
 
+/** Who walks across the title screen's grass: the lads you meet first, so no spoilers. */
+const WALKERS = ['carlmon', 'enda', 'hugomon'];
+
 /** The title: a modern handheld, with the logo on its colour screen and the menu below. */
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
   const fresh = useHasNew();
@@ -34,7 +37,16 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
         <p aria-hidden className="gb-power">
           POWER
         </p>
-        <div className="gb-lcd flex flex-col items-center gap-3 px-3 pb-8 pt-5">
+        <div className="gb-lcd relative flex flex-col items-center gap-3 overflow-hidden px-3 pb-16 pt-5">
+          {/* A few of the lads out for a walk along the grass. */}
+          <div aria-hidden className="absolute inset-x-0 bottom-1 h-12">
+            {WALKERS.map((id, i) => (
+              <span key={id} className="gb-walker" style={{ animationDelay: `${-i * 3}s` }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={asset(`/sprites/bw/${id}.png`)} alt="" width={44} height={44} />
+              </span>
+            ))}
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset('/logo.png')}
