@@ -38,6 +38,11 @@ export interface StoryState {
   flags: string[];
   seen: string[];
   caught: string[];
+  /**
+   * Kinds befriended in Britain. The pint by a wild Ranemon's name starts fresh over the sea,
+   * so there it counts only these; `caught` (the Ranedex) still has everything.
+   */
+  ukCaught?: string[];
   /** Where you wake up after a blackout: the last pub you visited. */
   pub: { map: string; x: number; y: number };
   /** The next member uid. */
@@ -154,9 +159,23 @@ export function see(s: StoryState, species: string): StoryState {
   return s.seen.includes(species) ? s : { ...s, seen: [...s.seen, species] };
 }
 
-/** Whether a wild Ranemon's kind has been befriended before, for the pint by its name in battle. */
+/** Whether you're in Britain, outdoors or in somewhere there. */
+export const inBritain = (s: StoryState) => !!outsideOf(mapById(s.map)).uk;
+
+/**
+ * Whether a wild Ranemon's kind has been befriended before, for the pint by its name in battle.
+ * In Britain only the ones befriended there count.
+ */
 export function caughtBefore(s: StoryState, species: string): boolean {
-  return s.caught.includes(species);
+  return (inBritain(s) ? (s.ukCaught ?? []) : s.caught).includes(species);
+}
+
+/** Marks a kind as befriended: in the Ranedex, and for the pint in Britain if you're there. */
+export function befriend(s: StoryState, species: string): StoryState {
+  const caught = s.caught.includes(species) ? s.caught : [...s.caught, species];
+  const uk = s.ukCaught ?? [];
+  if (!inBritain(s) || uk.includes(species)) return { ...s, caught };
+  return { ...s, caught, ukCaught: [...uk, species] };
 }
 
 /** Adds a new friend to the party, or to the Group Chat when the party is full. */
@@ -172,8 +191,7 @@ export function recruit(
     ...from,
     uid: s.uid,
   };
-  const caught = s.caught.includes(member.species) ? s.caught : [...s.caught, member.species];
-  const next = { ...see(s, member.species), uid: s.uid + 1, caught };
+  const next = { ...befriend(see(s, member.species), member.species), uid: s.uid + 1 };
   if (s.party.length < PARTY_SIZE) {
     return { state: { ...next, party: [...s.party, member] }, line: null };
   }
