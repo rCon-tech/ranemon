@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { DEX, formById } from '@/lib/battle/evolutions';
+import { INTERIORS, MAPS } from '@/content/story/maps';
+import { TRAINERS } from '@/content/story/trainers';
+import { DEX, EVOLVED, formById, ITEM_EVOLVED } from '@/lib/battle/evolutions';
+import { LEGEND } from '@/lib/battle/legend';
+import { LONDON } from '@/lib/battle/london';
 import { PETCHEMON } from '@/lib/battle/petchemon';
+import { ROSTER } from '@/lib/battle/roster';
 import { secondSpecialOf, SECOND_SPECIAL_LEVEL } from '@/lib/battle/second-specials';
+import { TYPES } from '@/lib/battle/types';
 import {
   dexMoves,
   evolutionLine,
@@ -12,13 +18,53 @@ import {
   storyKnowledge,
   strongAgainst,
 } from '@/lib/story/dex';
+import { recruits } from '@/lib/story/devsave';
 import { makeMember } from '@/lib/story/party';
-import { newGame } from '@/lib/story/state';
+import { newGame, recruit } from '@/lib/story/state';
+import { UK_DEX } from '@/lib/story/ukdex';
 import { moveById } from '@/lib/battle/moves';
 
 describe('Ranedex pages', () => {
-  it('Petchemon still has no page', () => {
-    expect(DEX.some((c) => c.id === PETCHEMON.id)).toBe(false);
+  it('gives Petchemon a page, between the lads and the legend', () => {
+    expect(DEX.map((c) => c.id).slice(-2)).toEqual([PETCHEMON.id, LEGEND.id]);
+    expect(evolutionLine(PETCHEMON.id)).toEqual({ first: PETCHEMON, branches: [] });
+    expect(habitats(PETCHEMON.id)).toEqual([]);
+    // Beating B&S befriends him, so his page is filled in.
+    const game = recruit(newGame(), PETCHEMON.id, 55).state;
+    expect(storyKnowledge(game).caught(PETCHEMON.id)).toBe(true);
+  });
+
+  it('has a page, with types and an entry, for every Ranemon you can have', () => {
+    // Every kind that turns up in the grass, in a script's wild battle or as a gift, and every
+    // form any of them can become.
+    const met = new Set<string>([...recruits()]);
+    const walk = (v: unknown): void => {
+      if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === 'object') {
+        const o = v as Record<string, unknown>;
+        if (o.do === 'wild' && typeof o.species === 'string') met.add(o.species);
+        Object.values(o).forEach(walk);
+      }
+    };
+    walk([MAPS, INTERIORS, TRAINERS]);
+    for (const m of [...MAPS, ...INTERIORS]) for (const [s] of m.wild?.table ?? []) met.add(s);
+    for (const c of [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, ...LONDON]) met.add(c.id);
+
+    const pages = new Map([...DEX, ...UK_DEX].map((c) => [c.id, c]));
+    for (const id of met) {
+      const c = pages.get(id);
+      expect(c, `${id} has no Ranedex page`).toBeDefined();
+      expect(c!.types.length, `${id} has no type`).toBeGreaterThan(0);
+      expect(c!.types.length, id).toBeLessThanOrEqual(2);
+      expect(new Set(c!.types).size, id).toBe(c!.types.length);
+      for (const t of c!.types) expect(TYPES, id).toContain(t);
+      expect(c!.entry.trim(), `${id} has no Ranedex entry`).not.toBe('');
+    }
+    // Every page in either Ranedex, UK forms included, has them too.
+    for (const c of pages.values()) {
+      expect(c.types.length, c.id).toBeGreaterThan(0);
+      expect(c.entry?.trim(), c.id).toBeTruthy();
+    }
   });
 
   it('a story save knows only what it has come across', () => {

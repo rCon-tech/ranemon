@@ -12,6 +12,13 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'A missing Ranedex page',
+    notes: [
+      'One Ranemon you’re given late in the story never had a page in the Ranedex. It has one now, with its types, entry, stats and moves, and if you have it already its page is filled in.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Not a fan',
     notes: [
       'Somebody in a café in Greystones thinks Ranemon are stupid, and is telling everyone. Maybe a battle will change their mind.',

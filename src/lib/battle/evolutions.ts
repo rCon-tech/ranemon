@@ -1,6 +1,7 @@
 import { scaleStats, type BaseStats, type Creature } from './creature';
 import { LEGEND } from './legend';
 import { LONDON, LONDON_EVOLUTIONS, LONDON_ITEM_EVOLUTIONS } from './london';
+import { PETCHEMON } from './petchemon';
 import { ROSTER } from './roster';
 
 /**
@@ -252,7 +253,7 @@ export function formAt(species: string, level: number): string {
 }
 
 const FORMS = new Map(
-  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, LEGEND, ...LONDON].map((c) => [c.id, c]),
+  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, PETCHEMON, LEGEND, ...LONDON].map((c) => [c.id, c]),
 );
 
 /** Any Ranemon, base or evolved. */
@@ -267,12 +268,16 @@ export function sameStage(species: string, like: string): string {
   return lineOf(like) === like ? species : (evolutionOf(species)?.id ?? species);
 }
 
-/** The Ranedex order: each Ranemon followed by its evolutions, and the legend last. */
+/**
+ * The Ranedex order: each Ranemon followed by its evolutions, then Petchemon, who B&S give you,
+ * and the legend last.
+ */
 export const DEX: Creature[] = [
   ...ROSTER.flatMap((c) => {
     const evo = evolutionOf(c.id);
     const items = ITEM_EVOLUTIONS.filter((e) => e.from === c.id).map((e) => formById(e.id));
     return [c, ...(evo ? [formById(evo.id)] : []), ...items];
   }),
+  PETCHEMON,
   LEGEND,
 ];
