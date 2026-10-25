@@ -1762,3 +1762,81 @@ test('story mode: the bag has pockets, food can be used again and again, and Vap
   expect(saved.bag['spice-bag']).toBe(1);
   expect(saved.bag.pint).toBe(3);
 });
+
+test('story mode: the Trainer Card shows the UK jerseys next to the Irish ones', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:kits')) return;
+    // A save from before the UK jerseys were on the card: nothing in it changes.
+    localStorage.setItem(
+      'ranemon.story.v1:kits',
+      JSON.stringify({
+        version: 1,
+        map: 'london',
+        x: 10,
+        y: 10,
+        face: 'down',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 30,
+            exp: 27000,
+            hp: 100,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: [
+          'starter',
+          'jersey:clare',
+          'jersey:limerick',
+          'jersey:kilkenny',
+          'pl:brighton',
+          'pl:palace',
+          'pl:villa',
+          'pl:everton',
+          'pl:leeds',
+          'pl:newcastle',
+        ],
+        seen: [],
+        caught: [],
+        pub: { map: 'london', x: 10, y: 10 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Kits');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('overworld')).toBeVisible();
+  await page.getByRole('button', { name: 'START' }).click();
+  await page.getByRole('button', { name: 'JERSEYS' }).click();
+
+  await expect(page.getByTestId('tab-ireland')).toContainText('IRELAND 3/9');
+  await expect(page.getByTestId('tab-uk')).toContainText('UK 6/12');
+  const ireland = page.getByTestId('jerseys-ireland');
+  await expect(ireland.getByLabel('Clare jersey', { exact: true })).toBeVisible();
+  await expect(ireland.getByLabel('Kildare jersey not won')).toBeVisible();
+  await expect(page.getByTestId('jerseys-uk')).toHaveCount(0);
+
+  // The UK jerseys have a tab of their own, by tap or the D-pad.
+  await page.getByTestId('tab-uk').click();
+  const uk = page.getByTestId('jerseys-uk');
+  await expect(uk.getByLabel('Newcastle jersey', { exact: true })).toBeVisible();
+  await expect(uk.getByLabel('Man Utd jersey not won')).toBeVisible();
+  await expect(uk.locator('svg[data-jersey]')).toHaveCount(6);
+  await expect(page.getByTestId('jerseys-ireland')).toHaveCount(0);
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByTestId('tab-ireland')).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('tab-uk')).toHaveAttribute('aria-pressed', 'true');
+  if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/card.png` });
+});

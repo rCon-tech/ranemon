@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Your English jerseys on the Trainer Card',
+    notes: [
+      'JERSEYS now shows the jerseys you win in England as well as the county ones, split into Ireland and the UK, with how many of each you have.',
+      'Every club jersey is in its own home colours with the club’s crest on the chest. The ones still to win are grey until you get them.',
+      'Already have some? They’re on your card straight away.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Easier to find your way round England',
     notes: [
       'The football in England now runs from the smallest club to the biggest, so you always know who’s next and the biggest match is saved for last.',

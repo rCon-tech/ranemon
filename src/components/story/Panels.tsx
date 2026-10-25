@@ -48,9 +48,16 @@ import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById, outsideOf } from '@/content/story/maps';
-import { bandsOf, jerseyOf } from '@/content/story/jerseys';
+import {
+  bandsOf,
+  CLUB_SHORT,
+  clubJerseyOf,
+  columnsOf,
+  jerseyOf,
+  type JerseyKit,
+} from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
-import { KX_DEPARTURES, nextClub, type KxDeparture } from '@/content/story/premier';
+import { FIXTURE_LIST, KX_DEPARTURES, nextClub, type KxDeparture } from '@/content/story/premier';
 import { RAILCARD } from '@/content/story/kneecap';
 import { paintCrest } from './crests';
 import type { ClubId } from '@/lib/story/world';
@@ -1139,12 +1146,49 @@ export function JerseysPanel({
   game,
   champion = false,
   onClose,
+  navRef,
 }: {
   game: StoryState;
   /** They hold the Online Champion's crown. */
   champion?: boolean;
   onClose: () => void;
+  navRef?: React.RefObject<MenuNav | null>;
 }) {
+  const ireland = COUNTIES.map((id) => {
+    const county = id.charAt(0).toUpperCase() + id.slice(1);
+    return {
+      id,
+      label: county,
+      title: mapById(id).name.split(', ').at(-1)!.replace('Co. ', ''),
+      kit: jerseyOf(id),
+      won: hasFlag(game, `jersey:${id}`),
+    };
+  });
+  const uk = FIXTURE_LIST.map((f) => ({
+    id: `pl-${f.id}`,
+    label: CLUB_SHORT[f.id],
+    title: `${f.club}, ${f.ground}`,
+    kit: clubJerseyOf(f.id),
+    won: hasFlag(game, f.flag),
+    crest: f.id,
+  }));
+  const [tab, setTab] = useState<'ireland' | 'uk'>('ireland');
+  const switchTab = (t: 'ireland' | 'uk') => {
+    if (t === tab) return;
+    playSfx('select');
+    setTab(t);
+  };
+  const tally = (js: { won: boolean }[]) => `${js.filter((j) => j.won).length}/${js.length}`;
+
+  // Left and right on the D-pad flick between the tabs; B closes the card.
+  useMenuNav(navRef, {
+    dir: (dir) => {
+      if (dir === 'left' || dir === 'right') switchTab(tab === 'ireland' ? 'uk' : 'ireland');
+    },
+    a: () => {},
+    b: () => false,
+  });
+
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
       {champion && (
@@ -1168,25 +1212,57 @@ export function JerseysPanel({
           {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
         </p>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {COUNTIES.map((id) => {
-          const name = mapById(id).name.split(', ').at(-1)!.replace('Co. ', '');
-          const county = id.charAt(0).toUpperCase() + id.slice(1);
-          const won = hasFlag(game, `jersey:${id}`);
-          return (
-            <div
-              key={id}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 text-[8px] ${won ? 'border-gold' : 'border-frame'}`}
-              title={name}
-              aria-label={`${county} jersey${won ? '' : ' not won'}`}
-            >
-              <Jersey county={id} won={won} />
-              {county}
-            </div>
-          );
-        })}
-      </div>
+      <Tabs
+        label="Jerseys"
+        tabs={[
+          { id: 'ireland', label: `IRELAND ${tally(ireland)}` },
+          { id: 'uk', label: `UK ${tally(uk)}` },
+        ]}
+        value={tab}
+        onPick={switchTab}
+      />
+      {tab === 'ireland' ? (
+        <JerseyGroup testId="jerseys-ireland" columns="grid-cols-3" jerseys={ireland} />
+      ) : (
+        <JerseyGroup testId="jerseys-uk" columns="grid-cols-4" jerseys={uk} />
+      )}
     </Panel>
+  );
+}
+
+/** One country's jerseys on the Trainer Card. */
+function JerseyGroup({
+  testId,
+  columns,
+  jerseys,
+}: {
+  testId: string;
+  columns: string;
+  jerseys: {
+    id: string;
+    label: string;
+    title: string;
+    kit: JerseyKit;
+    won: boolean;
+    crest?: ClubId;
+  }[];
+}) {
+  return (
+    <section className="flex flex-col gap-1" data-testid={testId}>
+      <div className={`grid ${columns} gap-1.5`}>
+        {jerseys.map((j) => (
+          <div
+            key={j.id}
+            className={`flex flex-col items-center gap-1 rounded-lg border-2 bg-mist p-1 text-center text-[8px] leading-tight ${j.won ? 'border-gold' : 'border-frame'}`}
+            title={j.title}
+            aria-label={`${j.label} jersey${j.won ? '' : ' not won'}`}
+          >
+            <Jersey id={j.id} kit={j.kit} won={j.won} crest={j.crest} />
+            {j.label}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -1285,38 +1361,66 @@ export function MissionsPanel({ game, onClose }: { game: StoryState; onClose: ()
 
 const JERSEY = 'M5 0h6l5 3-2 4-2-1v8H4V6L2 7 0 3z';
 
-/** A county jersey: in its colours once won, a grey silhouette until then. */
-function Jersey({ county, won }: { county: string; won: boolean }) {
+/**
+ * A jersey: in its colours once won, a grey silhouette until then. A club jersey has its crest on
+ * the chest.
+ */
+function Jersey({
+  id,
+  kit,
+  won,
+  crest,
+}: {
+  id: string;
+  kit: JerseyKit;
+  won: boolean;
+  crest?: ClubId;
+}) {
   if (!won) {
     return (
-      <svg viewBox="0 0 16 14" className="h-6 w-7" shapeRendering="crispEdges" aria-hidden="true">
+      <svg viewBox="0 0 16 14" className="h-8 w-9" shapeRendering="crispEdges" aria-hidden="true">
         <path d={JERSEY} fill="var(--color-shell)" stroke="var(--color-frame)" strokeWidth="1" />
       </svg>
     );
   }
-  const kit = jerseyOf(county);
-  const clip = `jersey-${county}`;
+  const clip = `jersey-${id}`;
   return (
-    <svg
-      viewBox="-0.5 -0.5 17 15"
-      className="h-6 w-7"
-      shapeRendering="crispEdges"
-      aria-hidden="true"
-      data-jersey={county}
-    >
-      <clipPath id={clip}>
-        <path d={JERSEY} />
-      </clipPath>
-      <g clipPath={`url(#${clip})`}>
-        <path d={JERSEY} fill={kit.body} />
-        {bandsOf(kit).map(([y, h, colour]) => (
-          <rect key={y} x="0" y={y} width="16" height={h} fill={colour} />
-        ))}
-        {/* Collar and cuffs. */}
-        <path d="M6 0l2 2 2-2M0 3l2 4M16 3l-2 4" fill="none" stroke={kit.trim} strokeWidth="1.5" />
-      </g>
-      <path d={JERSEY} fill="none" stroke="var(--color-ink)" strokeWidth="1" />
-    </svg>
+    <span className="relative h-8 w-9">
+      <svg
+        viewBox="-0.5 -0.5 17 15"
+        className="h-8 w-9"
+        shapeRendering="crispEdges"
+        aria-hidden="true"
+        data-jersey={id}
+      >
+        <clipPath id={clip}>
+          <path d={JERSEY} />
+        </clipPath>
+        <g clipPath={`url(#${clip})`}>
+          <path d={JERSEY} fill={kit.body} />
+          {bandsOf(kit).map(([y, h, colour]) => (
+            <rect key={`b${y}`} x="0" y={y} width="16" height={h} fill={colour} />
+          ))}
+          {columnsOf(kit).map(([x, w, colour]) => (
+            <rect key={`c${x}`} x={x} y="0" width={w} height="14" fill={colour} />
+          ))}
+          {/* Collar and cuffs. */}
+          <path
+            d="M6 0l2 2 2-2M0 3l2 4M16 3l-2 4"
+            fill="none"
+            stroke={kit.trim}
+            strokeWidth="1.5"
+          />
+        </g>
+        <path d={JERSEY} fill="none" stroke="var(--color-ink)" strokeWidth="1" />
+      </svg>
+      {/* The crest over the heart, on the wearer's left. */}
+      {crest && (
+        <span className="absolute left-[19px] top-[9px]">
+          <Crest club={crest} size={7} />
+        </span>
+      )}
+    </span>
   );
 }
 
