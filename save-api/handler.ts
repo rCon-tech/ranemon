@@ -8,7 +8,8 @@
  *                                    429 locked
  *   POST /api/save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the
  *                                    server already has a newer save (from another device),
- *                                    which it keeps.
+ *                                    which it keeps, or one in a newer schema ({error:
+ *                                    'update'}) from a newer build of the game.
  *   POST /api/battle {op, ...}     → live friend battles and the Online Champion, run by
  *                                    `src/lib/online/server.ts`
  *
@@ -135,13 +136,17 @@ function same(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** The save's own timestamp, or null if `raw` isn't a Ranemon save. */
-function savedAtOf(raw: unknown): number | null {
+/** The save's own timestamp and schema, or null if `raw` isn't a Ranemon save. */
+function saveInfo(raw: unknown): { savedAt: number; schema: number } | null {
   if (typeof raw !== 'string' || raw.length > MAX_SAVE_BYTES) return null;
   try {
     const d = JSON.parse(raw);
     if (d?.version !== 1 || !Array.isArray(d.party)) return null;
-    return typeof d.savedAt === 'number' ? d.savedAt : 0;
+    return {
+      savedAt: typeof d.savedAt === 'number' ? d.savedAt : 0,
+      // Saves from before schemas are 1, as in the game.
+      schema: typeof d.schema === 'number' ? d.schema : 1,
+    };
   } catch {
     return null;
   }
@@ -213,8 +218,9 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
 
   if (path === '/load') return reply(200, { raw: row?.raw ?? null });
 
-  const savedAt = savedAtOf(body.raw);
-  if (savedAt === null) return reply(400, { error: 'not a save' });
+  const info = saveInfo(body.raw);
+  if (info === null) return reply(400, { error: 'not a save' });
+  const { savedAt } = info;
   const raw = body.raw as string;
   if (!row) {
     const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
@@ -230,6 +236,9 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
     return reply(200, { ok: true });
   }
   if (row.saved_at > savedAt) return reply(409, { error: 'newer save kept', kept: row.saved_at });
+  // An older build of the game (one cached for offline play) mustn't write over a save a newer
+  // build has already converted: it would come back stamped with the older schema.
+  if (info.schema < (saveInfo(row.raw)?.schema ?? 1)) return reply(409, { error: 'update' });
   const keepPrev = !row.prev_at || now() - row.prev_at >= PREV_EVERY_MS;
   await store.put({
     ...row,

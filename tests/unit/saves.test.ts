@@ -185,6 +185,13 @@ describe('converting older saves', () => {
     expect((s as unknown as { future: unknown }).future).toEqual({ x: 1 });
   });
 
+  it('keeps a newer build’s schema when an older build writes the save back', () => {
+    const newer = migrate({ ...JSON.parse(LATE), schema: SCHEMA + 1 })!;
+    const storage = memory();
+    expect(JSON.parse(save(storage, newer, 'rich')!).schema).toBe(SCHEMA + 1);
+    expect(JSON.parse(save(storage, newGame(), 'rich')!).schema).toBe(SCHEMA);
+  });
+
   it('turns away what is not a save', () => {
     expect(parseSave('{nope')).toBeNull();
     expect(parseSave('{"version":2,"party":[]}')).toBeNull();

@@ -52,6 +52,8 @@ const js = await build({
     'process.env.NODE_ENV': '"production"',
     'process.env.NEXT_PUBLIC_BASE_PATH': 'undefined',
     'process.env.NEXT_PUBLIC_SAVE_API': 'undefined',
+    // No service worker in the play link: claude.ai hosts it.
+    'process.env.NEXT_PUBLIC_OFFLINE': 'undefined',
   },
   plugins: [shims],
   logLevel: 'warning',

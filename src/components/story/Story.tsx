@@ -945,7 +945,9 @@ export function Story() {
     }
     setTitle({ busy: true, note: null, replace: false });
     const { save: found, blocked, offline } = await findSave(name);
-    if (blocked)
+    // With no connection, play this browser's save straight away. It's saved here as usual.
+    if (blocked && offline && found) begin(name, found, false);
+    else if (blocked)
       setTitle({
         busy: false,
         note: found
@@ -969,11 +971,19 @@ export function Story() {
     if (!title.replace) {
       setTitle({ busy: true, note: null, replace: false });
       const { save: found, blocked, offline } = await findSave(name);
-      if (blocked) {
-        // Offline, a new game could later replace an online save it couldn't see.
+      if (blocked && offline && !found) {
+        // Offline, a new game could later replace an online save it couldn't see, so ask first.
         setTitle({
           busy: false,
-          note: `${blocked} ${offline ? 'Try again in a minute.' : 'Check it, or pick another name.'}`,
+          note: `${blocked} If “${name.trim()}” already has a save on another device, a new game here could replace it. Tap NEW GAME again to start anyway.`,
+          replace: true,
+        });
+        return;
+      }
+      if (blocked && !offline) {
+        setTitle({
+          busy: false,
+          note: `${blocked} Check it, or pick another name.`,
           replace: false,
         });
         return;

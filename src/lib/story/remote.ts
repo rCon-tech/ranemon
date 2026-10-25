@@ -4,6 +4,9 @@ import { CloudError, type CloudSaves } from './cloud';
  * Online saves on the save server in `save-api/`, at `base` (NEXT_PUBLIC_SAVE_API). The server
  * keeps each name's save with a hash of its PIN; the PIN itself is only ever sent to it.
  */
+/** A weak signal counts as none after this long, so the title screen doesn't hang. */
+const TIMEOUT_MS = 8000;
+
 export function remoteSaves(base: string): CloudSaves {
   const url = base.replace(/\/+$/, '');
   async function call(path: string, body: object) {
@@ -11,6 +14,7 @@ export function remoteSaves(base: string): CloudSaves {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout?.(TIMEOUT_MS),
     });
     if (res.status === 401) throw new CloudError('pin');
     if (res.status === 429) throw new CloudError('locked');

@@ -217,6 +217,12 @@ function known(id: string) {
 export const schemaOf = (d: Raw) => num(d.schema, 1);
 
 /**
+ * The schema to write a save under: this build's, or the save's own if a newer build wrote it, so
+ * an older build (such as one cached for offline play) never stamps a newer save as older.
+ */
+const writeSchema = (s: StoryState) => Math.max(SCHEMA, schemaOf(s as unknown as Raw));
+
+/**
  * A save brought up to the current shape, or null if it isn't a save at all.
  */
 export function migrate(data: unknown): StoryState | null {
@@ -323,7 +329,7 @@ export function load(
 export function save(storage: Store | null, s: StoryState, name: string): string | null {
   try {
     const now = Date.now();
-    const raw = JSON.stringify({ ...s, schema: SCHEMA, savedAt: now });
+    const raw = JSON.stringify({ ...s, schema: writeSchema(s), savedAt: now });
     storage?.setItem(saveKey(name), raw);
     if (!storage) return null;
     const last = backups(storage, name).find((b) => b.why === 'auto');
@@ -363,7 +369,7 @@ function check(text: string): string {
 
 /** A save as text that can be copied to another device, or kept in a file. */
 export function exportCode(s: StoryState): string {
-  const json = JSON.stringify({ ...s, schema: SCHEMA });
+  const json = JSON.stringify({ ...s, schema: writeSchema(s) });
   const bytes = new TextEncoder().encode(json);
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);

@@ -72,6 +72,26 @@ describe('the save server', () => {
     expect(JSON.parse(s.rows.get('rich')!.raw).savedAt).toBe(200);
   });
 
+  it('keeps a save a newer build converted from an older build', async () => {
+    const s = server();
+    const schema = (raw: string, n: number) => JSON.stringify({ ...JSON.parse(raw), schema: n });
+    await s.call('/api/save', { id: 'rich', pin: '1234', raw: schema(at(LIVE, 100), 6) });
+    const old = await s.call('/api/save', {
+      id: 'rich',
+      pin: '1234',
+      raw: schema(at(LIVE, 200), 5),
+    });
+    expect(old.status).toBe(409);
+    expect(JSON.parse(s.rows.get('rich')!.raw).schema).toBe(6);
+    // The same build or a newer one carries on as usual.
+    const same = await s.call('/api/save', {
+      id: 'rich',
+      pin: '1234',
+      raw: schema(at(LIVE, 300), 6),
+    });
+    expect(same.status).toBe(200);
+  });
+
   it('keeps the save from up to an hour before', async () => {
     const s = server();
     await s.call('/api/save', { id: 'rich', pin: '1234', raw: at(LIVE, 1) });

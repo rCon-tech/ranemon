@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Gate } from '@/components/Gate';
+import { OfflineHooks } from '@/components/Offline';
 import { SoundHooks } from '@/components/Sound';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'Ranemon', template: '%s · Ranemon' },
   description: 'A battle game where your friends are the creatures.',
+  // Added to an iPhone's home screen, it opens full screen like an app.
+  appleWebApp: { capable: true, title: 'Ranemon', statusBarStyle: 'black' },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1c2026' };
@@ -13,18 +16,9 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1, them
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* Pixelify Sans (SIL Open Font Licence), loaded at runtime so builds don't need Google. */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"
-        />
-      </head>
       <body className="antialiased">
         <SoundHooks />
+        <OfflineHooks />
         <main className="screen mx-auto flex min-h-dvh w-full max-w-[480px] flex-col">
           <Gate>{children}</Gate>
         </main>
