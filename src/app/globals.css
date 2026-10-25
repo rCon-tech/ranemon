@@ -1403,43 +1403,37 @@ button {
   background: #c8443a;
 }
 
-/* ---------- the title screen: an old green-screen handheld ---------- */
+/* ---------- the title screen: a modern handheld in see-through indigo ---------- */
 
-/* The grey plastic body, with a speaker grille in the bottom corner. */
+/* The indigo plastic body, with a soft shine across the top. */
 .gb-body {
-  background: radial-gradient(circle at 30% 20%, #e4e2dc, #c6c4bd 70%);
-}
-.gb-body::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  bottom: 18px;
-  width: 130px;
-  height: 90px;
-  rotate: -30deg;
-  background: repeating-linear-gradient(transparent 0 9px, #8f8d98 9px 15px);
-  mask-image: radial-gradient(closest-side, black 70%, transparent 100%);
-  pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 20% 0%, rgb(255 255 255 / 0.18), transparent 60%),
+    radial-gradient(circle at 70% 90%, #2a1f6e, transparent 60%),
+    linear-gradient(160deg, #5a4bb4, #3a2d8c 60%, #2b2070);
 }
 
-/* The dark glass round the screen, with the classic sweep on its bottom-right corner. */
+/* The black glass round the screen, glossy and evenly rounded. */
 .gb-bezel {
-  background: linear-gradient(#5d6070, #4a4d5b);
-  border-radius: 10px 10px 44px 10px;
-  padding: 26px 26px 22px 40px;
+  background:
+    linear-gradient(155deg, rgb(255 255 255 / 0.16) 0 30%, transparent 30%),
+    linear-gradient(#1d1d26, #0d0d12);
+  border-radius: 22px;
+  padding: 18px 18px 18px 30px;
   box-shadow:
-    inset 0 2px 0 rgb(255 255 255 / 0.15),
-    0 3px 0 #9a9890;
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    0 6px 0 #241a5c,
+    0 10px 24px rgb(0 0 0 / 0.35);
 }
 
 /* The power light and its label, left of the screen. */
 .gb-power {
   position: absolute;
-  left: 7px;
+  left: 6px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 7px;
-  color: #b8bac4;
+  color: #8e8ea0;
   letter-spacing: 0.5px;
   writing-mode: vertical-rl;
   rotate: 180deg;
@@ -1451,21 +1445,39 @@ button {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #ff3838;
-  box-shadow: 0 0 6px #ff3838;
+  background: #4cff7a;
+  box-shadow: 0 0 6px #4cff7a;
 }
 
-/* The pea-green screen: four shades of green and a faint grid of pixels. */
+/* The backlit colour screen: blue sky down to a strip of grass. */
 .gb-lcd {
-  border-radius: 3px;
+  border-radius: 6px;
   background:
-    linear-gradient(rgb(15 56 15 / 0.07) 1px, transparent 1px) 0 0 / 4px 4px,
-    linear-gradient(90deg, rgb(15 56 15 / 0.07) 1px, transparent 1px) 0 0 / 4px 4px,
-    radial-gradient(circle at 50% 40%, #b4cc3c, #9bbc0f 75%);
-  box-shadow: inset 0 0 0 2px #306230;
+    linear-gradient(transparent 82%, #58c048 82% 86%, #3c9a34 86%),
+    linear-gradient(#7cc8ff, #d6f0ff 70%);
+  box-shadow: inset 0 0 12px rgb(0 0 40 / 0.25);
 }
 
-/* The logo, as the green screen would show it. */
-.gb-tint {
-  filter: grayscale(1) sepia(1) hue-rotate(40deg) saturate(2.2) brightness(0.85) contrast(1.2);
+/* A cross-shaped D-pad. */
+.gb-dpad {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  background:
+    linear-gradient(#26222e, #26222e) center / 18px 54px no-repeat,
+    linear-gradient(#26222e, #26222e) center / 54px 18px no-repeat;
+  filter: drop-shadow(0 3px 0 #1a1440);
+}
+
+/* The A and B buttons: round, dark and glossy. */
+.gb-ab {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #5a5668, #26222e 70%);
+  box-shadow: 0 3px 0 #1a1440;
+  color: #8e8ea0;
+  font-size: 11px;
 }

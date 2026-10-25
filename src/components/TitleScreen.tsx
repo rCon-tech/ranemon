@@ -23,33 +23,41 @@ function useHasNew(): boolean {
   );
 }
 
-/** The title: an old green-screen handheld, with the logo on its screen and the menu below. */
+/** The title: a modern handheld, with the logo on its colour screen and the menu below. */
 export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart: () => void }) {
   const fresh = useHasNew();
   const online = useOnline();
   return (
-    <div className="gb-body relative flex flex-1 flex-col items-center justify-center gap-8 overflow-hidden px-4 py-12 text-center">
+    <div className="gb-body relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 py-12 text-center">
       <SoundButton className="absolute right-2 top-2 z-10" />
       <div className="gb-bezel relative w-full max-w-[340px]">
         <p aria-hidden className="gb-power">
           POWER
         </p>
-        <div className="gb-lcd flex flex-col items-center gap-3 px-3 py-6">
+        <div className="gb-lcd flex flex-col items-center gap-3 px-3 pb-8 pt-5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset('/logo.png')}
             alt=""
             width={84}
             height={84}
-            className="gb-tint rounded-full border-4 border-[#0f380f] bg-paper [image-rendering:pixelated]"
+            className="rounded-full border-4 border-bezel bg-paper [image-rendering:pixelated]"
           />
-          <h1 className="text-[50px] font-bold leading-none tracking-wide text-[#0f380f] [text-shadow:3px_3px_0_#8bac0f]">
+          <h1 className="text-[50px] font-bold leading-none tracking-wide text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
             RANEMON
           </h1>
-          <p className="rounded-full bg-[#0f380f] px-3 py-1 text-[13px] text-[#c4d88a]">
+          <p className="rounded-full bg-bezel px-3 py-1 text-[13px] text-paper">
             Your friends. Their moves.
           </p>
         </div>
+      </div>
+      {/* The handheld's own controls, just for show. */}
+      <div aria-hidden className="relative flex w-full max-w-[300px] items-center justify-between">
+        <span className="gb-dpad" />
+        <span className="flex gap-3">
+          <span className="gb-ab mt-4">B</span>
+          <span className="gb-ab">A</span>
+        </span>
       </div>
       <div className="relative flex w-full max-w-[320px] flex-col items-stretch gap-3">
         {/* Story mode is the game; everything else is on the side. */}
@@ -95,7 +103,7 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
           )}
         </div>
       </div>
-      <div className="relative flex flex-col items-center gap-4 text-[14px] text-ink">
+      <div className="relative flex flex-col items-center gap-4 text-[14px] text-[#e6e2ff]">
         <p>
           Record: {record.wins}W · {record.losses}L
         </p>
