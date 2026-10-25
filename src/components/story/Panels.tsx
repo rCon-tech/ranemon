@@ -5,6 +5,7 @@ import { DexEntry } from '@/components/DexEntry';
 import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { moveById } from '@/lib/battle/moves';
+import { TYPE_LABEL } from '@/lib/battle/types';
 import { DEX as IRISH_DEX } from '@/lib/battle/evolutions';
 import { LONDON } from '@/lib/battle/london';
 import { ROSTER } from '@/lib/battle/roster';
@@ -19,14 +20,16 @@ import {
   creatureOf,
   expProgress,
   learnedOf,
+  learnset,
   movesAt,
+  nameOf,
   PARTY_SIZE,
   speciesById,
   START_LEVEL,
   statsOf,
   type Member,
 } from '@/lib/story/party';
-import { storyKnowledge } from '@/lib/story/dex';
+import { storyKnowledge, strongAgainst } from '@/lib/story/dex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
@@ -157,8 +160,16 @@ export function PartyPanel({
   onClose: () => void;
 }) {
   const [open, setOpen] = useState<number | null>(null);
-  /** The move slot picked to swap out, on the open member. */
-  const [slot, setSlot] = useState<number | null>(null);
+  /** The member whose MOVES screen is showing. */
+  const [moves, setMoves] = useState<number | null>(null);
+  if (moves !== null && game.party[moves])
+    return (
+      <MovesPanel
+        m={game.party[moves]}
+        onSwap={(slot, move) => onSwap(moves, slot, move)}
+        onClose={() => setMoves(null)}
+      />
+    );
   return (
     <Panel title="PARTY" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
@@ -167,14 +178,7 @@ export function PartyPanel({
       <CapNote cap={levelCap(game)} />
       {game.party.map((m, i) => (
         <div key={m.uid} className="flex flex-col gap-1">
-          <MemberRow
-            m={m}
-            onClick={() => {
-              setOpen(open === i ? null : i);
-              setSlot(null);
-            }}
-            pressed={open === i}
-          />
+          <MemberRow m={m} onClick={() => setOpen(open === i ? null : i)} pressed={open === i} />
           {open === i && (
             <div className="flex flex-col gap-1 rounded-lg border-2 border-frame bg-mist p-2 text-[10px]">
               {m.shiny && (
@@ -187,68 +191,37 @@ export function PartyPanel({
                   <TypeBadge key={t} type={t} />
                 ))}
               </span>
-              {m.moves.map((id, j) => {
-                const spare = learnedOf(m).length > m.moves.length;
-                const row = (
-                  <>
-                    <span>
-                      {moveById(id).signature ? '* ' : ''}
-                      {moveById(id).name}
+              <div className="flex flex-col gap-0.5" data-testid="party-moves">
+                {m.moves.map((id, j) => {
+                  const move = moveById(id);
+                  return (
+                    <span key={id} className="flex items-center justify-between gap-1 px-1">
+                      <span className="truncate">
+                        {move.signature ? '★ ' : ''}
+                        {move.name}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-[9px]">
+                        {move.type && <TypeBadge type={move.type} />}
+                        <span className="w-9 text-right">
+                          {move.power ? `POW${move.power}` : '—'}
+                        </span>
+                        <span className="w-11 text-right">
+                          PP {m.pp[j]}/{move.pp}
+                        </span>
+                      </span>
                     </span>
-                    <span>
-                      PP {m.pp[j]}/{moveById(id).pp}
-                    </span>
-                  </>
-                );
-                return spare ? (
-                  <button
-                    key={id}
-                    type="button"
-                    className={`flex justify-between rounded px-1 text-left ${slot === j ? 'bg-accent2 text-paper' : ''}`}
-                    onClick={() => setSlot(slot === j ? null : j)}
-                    aria-pressed={slot === j}
-                  >
-                    {row}
-                  </button>
-                ) : (
-                  <span key={id} className="flex justify-between px-1">
-                    {row}
-                  </span>
-                );
-              })}
-              {learnedOf(m).length > m.moves.length && (
-                <div className="mt-1 flex flex-col gap-1" data-testid="spare-moves">
-                  <span className="text-[9px] opacity-70">
-                    {slot === null
-                      ? 'Tap a move above, then one of these to swap it in.'
-                      : `Swap out ${moveById(m.moves[slot]).name} for:`}
-                  </span>
-                  {learnedOf(m)
-                    .filter((id) => !m.moves.includes(id))
-                    .map((id) => {
-                      const move = moveById(id);
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          className="pixel-btn flex justify-between px-1.5 py-1 text-left text-[10px]"
-                          disabled={slot === null}
-                          onClick={() => {
-                            if (slot === null) return;
-                            onSwap(i, slot, id);
-                            setSlot(null);
-                          }}
-                        >
-                          <span>{move.name}</span>
-                          <span className="opacity-70">
-                            {move.type?.toUpperCase()} ·{' '}
-                            {move.power ? `POW ${move.power}` : 'STATUS'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                className="pixel-btn menu-item mt-1 text-[11px]"
+                onClick={() => setMoves(i)}
+              >
+                {learnedOf(m).length > m.moves.length
+                  ? `CHANGE MOVES (${learnedOf(m).length - m.moves.length} SPARE)`
+                  : 'MOVES'}
+              </button>
               {m.held && (
                 <div className="mt-1 flex items-center justify-between gap-2" data-testid="held">
                   <span>HOLDING: {itemById(m.held).name}</span>
@@ -277,6 +250,159 @@ export function PartyPanel({
           )}
         </div>
       ))}
+    </Panel>
+  );
+}
+
+const CATEGORY = { physical: 'PHYS', spirit: 'SPIR', status: 'STATUS' } as const;
+
+/** One move on the MOVES screen: name, type, power, accuracy and PP at a glance. */
+function MoveCard({
+  id,
+  pp,
+  stab,
+  picked,
+  disabled,
+  onClick,
+}: {
+  id: string;
+  /** PP left, for a move in one of the 4 slots. */
+  pp?: number;
+  /** The move shares a type with the Ranemon, so it hits harder. */
+  stab: boolean;
+  picked: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const move = moveById(id);
+  const strong = strongAgainst(move);
+  return (
+    <button
+      type="button"
+      className="pixel-btn flex flex-col gap-0.5 px-2 py-1.5 text-[10px]"
+      aria-pressed={picked}
+      disabled={disabled}
+      onClick={onClick}
+      data-testid="move-card"
+    >
+      <span className="flex items-center justify-between gap-1 text-[11px]">
+        <span className="truncate">
+          {move.signature ? '★ ' : ''}
+          {move.name}
+        </span>
+        {move.type && <TypeBadge type={move.type} />}
+      </span>
+      <span className="flex justify-between gap-1 text-[9px]">
+        <span>
+          {CATEGORY[move.category]} · POW {move.power || '—'} · ACC{' '}
+          {move.accuracy === null ? '—' : `${move.accuracy}%`}
+        </span>
+        <span className="shrink-0">PP {pp === undefined ? move.pp : `${pp}/${move.pp}`}</span>
+      </span>
+      {(stab || strong.length > 0) && (
+        <span className="text-[9px] opacity-80">
+          {stab && move.power > 0 ? 'Same type: hits harder. ' : ''}
+          {strong.length > 0 && `Strong vs ${strong.map((t) => TYPE_LABEL[t]).join(', ')}`}
+        </span>
+      )}
+      {picked && <span className="text-[9px] leading-relaxed">{move.flavour}</span>}
+    </button>
+  );
+}
+
+/**
+ * A member's moves screen, from PARTY: the 4 it fights with and the spare moves it has learnt,
+ * each with its type, power and accuracy. Tap one of each to swap them.
+ */
+export function MovesPanel({
+  m,
+  onSwap,
+  onClose,
+}: {
+  m: Member;
+  /** Puts a learnt move into one of the 4 slots. */
+  onSwap: (slot: number, move: string) => void;
+  onClose: () => void;
+}) {
+  /** The move tapped first, either one in a slot or a spare. */
+  const [pick, setPick] = useState<{ slot: number } | { spare: string } | null>(null);
+  const [said, setSaid] = useState<string | null>(null);
+  const species = speciesById(m.species);
+  const spares = learnedOf(m).filter((id) => !m.moves.includes(id));
+  const next = learnset(species).find((l) => l.level > m.level && !learnedOf(m).includes(l.move));
+  const stab = (id: string) => {
+    const t = moveById(id).type;
+    return t !== null && species.types.includes(t);
+  };
+  const swap = (slot: number, spare: string) => {
+    setSaid(
+      `${nameOf(m)} swapped out ${moveById(m.moves[slot]).name} for ${moveById(spare).name}.`,
+    );
+    onSwap(slot, spare);
+    setPick(null);
+  };
+  const prompt =
+    spares.length === 0
+      ? 'No spare moves yet. New ones are learnt by levelling up.'
+      : pick === null
+        ? 'Tap a move it knows, then a spare move to swap them.'
+        : 'slot' in pick
+          ? `Swap out ${moveById(m.moves[pick.slot]).name} for which spare move?`
+          : `Swap in ${moveById(pick.spare).name} for which move?`;
+  return (
+    <Panel title="MOVES" onClose={onClose}>
+      <div className="flex items-center gap-2">
+        <span className="h-10 w-10 shrink-0">
+          <Sprite creature={creatureOf(m)} />
+        </span>
+        <span className="flex flex-col gap-1 text-[11px]">
+          <span>
+            {nameOf(m)} Lv{m.level}
+          </span>
+          <span className="flex gap-1">
+            {species.types.map((t) => (
+              <TypeBadge key={t} type={t} />
+            ))}
+          </span>
+        </span>
+      </div>
+      <p className="text-[10px] leading-relaxed" data-testid="moves-prompt">
+        {said ?? prompt}
+      </p>
+      <h3 className="text-[11px] font-bold">FIGHTS WITH</h3>
+      {m.moves.map((id, j) => (
+        <MoveCard
+          key={id}
+          id={id}
+          pp={m.pp[j]}
+          stab={stab(id)}
+          picked={pick !== null && 'slot' in pick && pick.slot === j}
+          onClick={() => {
+            setSaid(null);
+            if (pick && 'spare' in pick) swap(j, pick.spare);
+            else setPick(pick && 'slot' in pick && pick.slot === j ? null : { slot: j });
+          }}
+        />
+      ))}
+      <h3 className="mt-1 text-[11px] font-bold">SPARE MOVES</h3>
+      {spares.length === 0 && <p className="text-[10px] opacity-70">None yet.</p>}
+      {spares.map((id) => (
+        <MoveCard
+          key={id}
+          id={id}
+          stab={stab(id)}
+          picked={pick !== null && 'spare' in pick && pick.spare === id}
+          onClick={() => {
+            setSaid(null);
+            if (pick && 'slot' in pick) swap(pick.slot, id);
+            else setPick(pick && 'spare' in pick && pick.spare === id ? null : { spare: id });
+          }}
+        />
+      ))}
+      {next && <p className="text-[10px] opacity-70">Learns a new move at Lv{next.level}.</p>}
+      <p className="text-[9px] leading-relaxed opacity-70">
+        Swapped-out moves stay learnt, so you can swap them back any time.
+      </p>
     </Panel>
   );
 }

@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Pick your moves',
+    notes: [
+      'Open a Ranemon in PARTY and every move shows its type and power, so you can see what you are working with.',
+      'Tap MOVES (or CHANGE MOVES when it has spare ones) for a full screen of its moves: type, power, accuracy, PP and what each one is strong against.',
+      'Tap a move it knows and a spare move to swap them. Swapped-out moves stay learnt, so you can always swap them back.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Straight to the point',
     notes: [
       'After a battle, the prize money, EXP, new levels and new moves all come in one box now, a line each, instead of a box for every one of them.',
