@@ -1669,14 +1669,17 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2c3c64',
     shoes: '#f4f4f4',
   },
-  // Jamie Elliott, leader of the Sidemen: a black Sidemen jacket with a red zip.
+  // Jamie Elliott, leader of the Sidemen: light brown hair swept back, light stubble, and a
+  // black T-shirt with a green and blue logo on the chest.
   jamie: {
-    skin: '#f8d8b8',
-    hair: '#7a5a3a',
-    hairStyle: 'short',
+    skin: '#f6d6be',
+    hair: '#8a6a4a',
+    hairStyle: 'slick',
+    beard: '#dcbca2',
     top: '#18181c',
-    topKind: 'jacket',
-    trim: '#d02a2a',
+    topKind: 'shirt',
+    trim: '#2a2a30',
+    badges: ['#5ab870', '#5a9ad8'],
     legs: '#2a2a38',
     shoes: '#f4f4f4',
   },
