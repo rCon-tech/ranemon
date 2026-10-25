@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { mapById } from '@/content/story/maps';
+import { INTERIORS, MAPS, mapById, outsideOf } from '@/content/story/maps';
 import { interiorId } from '@/content/story/interiors';
 import { CHAMPION, FIXTURES } from '@/content/story/kneecap';
 import { SHOREDITCH } from '@/content/story/shoreditch';
@@ -202,10 +202,23 @@ describe('Shoreditch & Hackney', () => {
     expect(said).toContain('King’s Cross');
   });
 
-  it('labels the pubs and shops in Britain as W.B Yates and Tesco Express', () => {
-    expect(doorLabels(SHOREDITCH)).toMatchObject({ P: 'W.B YATES', M: 'TESCO EXPRESS' });
+  it('labels the pubs and shops in Britain as W.B Yates and Vapes & More', () => {
+    expect(doorLabels(SHOREDITCH)).toMatchObject({ P: 'W.B YATES', M: 'VAPES & MORE' });
     expect(doorLabels(mapById('london')).P).toBe('W.B YATES');
     expect(doorLabels(mapById('dublin'))).toMatchObject({ P: 'McGRATTANS', M: 'VAPES' });
+  });
+
+  it('has no McGrattans or Tesco Express left anywhere in England', () => {
+    const english = [...MAPS, ...INTERIORS].filter((m) => {
+      const outside = outsideOf(m);
+      return outside.uk || outside.yates;
+    });
+    expect(english.length).toBeGreaterThan(20);
+    for (const m of english) {
+      expect(JSON.stringify(m), m.id).not.toMatch(/McGrattan|Tesco Express/i);
+      const labels = doorLabels(outsideOf(m));
+      if (find(m, 'P').length) expect(labels.P, m.id).toBe('W.B YATES');
+    }
   });
 
   it('is mostly the lads at Lv5 to 12, with London’s own and Aerodactivist one time in a hundred', () => {

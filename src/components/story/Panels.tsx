@@ -47,7 +47,7 @@ import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
 import { hasFlag, type StoryState } from '@/lib/story/state';
-import { COUNTIES, mapById } from '@/content/story/maps';
+import { COUNTIES, mapById, outsideOf } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
@@ -760,7 +760,8 @@ export function ShopPanel({
     },
   });
 
-  const title = stall?.name ?? 'VAPES';
+  // In Britain the shop is a Vapes & More.
+  const title = stall?.name ?? (outsideOf(mapById(game.map)).uk ? 'VAPES & MORE' : 'VAPES');
 
   if (selling) {
     const item = itemById(selling);

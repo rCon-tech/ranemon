@@ -227,7 +227,7 @@ describe('Britain', () => {
     for (const m of [...uk, mapById('airport')]) expect(m.flat, m.id).toBe(true);
   });
 
-  it('has W.B Yates for a pub, with Florence Pugh on the bar, and a Tesco Express', () => {
+  it('has W.B Yates for a pub, with Florence Pugh on the bar, and a Vapes & More', () => {
     const pub = mapById(interiorId('london', 'P', 0));
     expect(pub.name).toBe('W.B Yates, London');
     const [pugh, owner, provai, thatcher] = pub.npcs;
@@ -239,7 +239,7 @@ describe('Britain', () => {
     expect(thatcher.look).toBe('thatcher');
     expect(npcsOf(pub)).toHaveLength(4);
     expect(PUGH_LINES.length).toBeGreaterThan(3);
-    expect(mapById(interiorId('london', 'M', 0)).name).toBe('Tesco Express, London');
+    expect(mapById(interiorId('london', 'M', 0)).name).toBe('Vapes & More, London');
   });
 
   it('gives you a UK Ranemon in W.B Yates, then Thatcher, then the story of the lads', () => {

@@ -354,7 +354,7 @@ export interface GameMap {
   party?: Party;
   /**
    * In Britain (the London expansion): wild Ranemon are UK forms, the pubs are W.B Yates and
-   * the shop is a Tesco Express, and the Limepass doesn't cross the sea.
+   * the shop is a Vapes & More, and the Limepass doesn't cross the sea.
    */
   uk?: boolean;
   /** This town's W.B Yates: who runs it and what's different about it. */

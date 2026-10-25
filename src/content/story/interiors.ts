@@ -215,7 +215,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
       if (outside.uk)
         return {
           ...base,
-          name: `Tesco Express, ${town}`,
+          name: `Vapes & More, ${town}`,
           rows: LAYOUTS.M,
           npcs: [
             {
@@ -224,7 +224,7 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
               talk: [
                 {
                   do: 'say',
-                  text: 'TESCO: Welcome to Tesco Express. Unexpected item in the bagging area. That’s just what I say now.',
+                  text: 'SHOPKEEPER: Welcome to Vapes & More. Unexpected item in the bagging area. That’s just what I say now.',
                 },
                 { do: 'shop' },
               ],

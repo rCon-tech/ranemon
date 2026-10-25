@@ -235,7 +235,7 @@ export const SHOREDITCH: GameMap = {
       'local',
       'up',
       'spareroom-listing',
-      'FLATMATE: (Pinning a listing to the Tesco Express noticeboard.) Box room in Hackney Wick, £1,100. Bills not included. Window not included. Take one, there’s loads.',
+      'FLATMATE: (Pinning a listing to the Vapes & More noticeboard.) Box room in Hackney Wick, £1,100. Bills not included. Window not included. Take one, there’s loads.',
       'FLATMATE: Nine people have come to see the room. One of them was a fox.',
     ),
     giver(

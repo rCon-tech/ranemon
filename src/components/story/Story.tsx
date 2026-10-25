@@ -209,6 +209,12 @@ const DUA_LINES = [
 ];
 
 const TOO_TIRED = 'Your Ranemon are too tired. Heal them in McGrattans first!';
+/** And in Britain, where the pub is a W.B Yates. */
+const TOO_TIRED_UK = 'Your Ranemon are too tired. Heal them in W.B Yates first!';
+const tooTired = (mapId: string) => {
+  const outside = outsideOf(mapById(mapId));
+  return outside.uk || outside.yates ? TOO_TIRED_UK : TOO_TIRED;
+};
 
 /** A wild Ranemon's look: a UK form in Britain, where every Ranemon is drawn, or any at home. */
 function wildLook(mapId: string, species: string): string | undefined {
@@ -528,7 +534,7 @@ export function Story() {
             // A battle from a script, such as a rematch, still needs someone able to fight.
             if (!canFight(g)) {
               q.length = 0;
-              q.unshift({ do: 'say', text: TOO_TIRED });
+              q.unshift({ do: 'say', text: tooTired(g.map) });
               break;
             }
             const t = trainerById(s.trainer);
@@ -698,7 +704,7 @@ export function Story() {
       const ready = !npc.item.readyIf || hasFlag(game, npc.item.readyIf);
       if (t && ready && !hasFlag(game, beatFlag(t))) {
         if (!canFight(game)) {
-          return run(game, [{ do: 'say', text: TOO_TIRED }]);
+          return run(game, [{ do: 'say', text: tooTired(game.map) }]);
         }
         return run(game, challenge(t));
       }
