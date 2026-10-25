@@ -286,32 +286,81 @@ function paintStadium(
       }
     }
     c.stroke();
-    // The money: oil barrels and sacks of cash piled at the turnstiles, a pumpjack nodding
-    // away by the stand, and the charge sheet pinned up for everyone to see.
-    const pump = left + 22;
-    rect(c, pump - 1, body + 6, 2, bodyH - 6, '#2a2a2a');
-    c.save();
-    c.translate(pump, body + 7);
-    c.rotate(Math.sin(now / 600) * 0.25);
-    rect(c, -9, -1.5, 18, 3, '#3a3a3a');
-    rect(c, 8, -3, 3, 6, '#3a3a3a');
-    c.restore();
-    for (const [bx, by] of [
-      [left + 30, 0],
-      [left + 35, 0],
-      [left + 32.5, -6],
+    // The money: two pumpjacks nodding by the stand, oil barrels stacked along the front,
+    // sacks of cash, gold bars and bundles of notes at the turnstiles, a slick of oil on the
+    // pavement, and notes drifting down off the roof. And the charge sheet, for everyone to see.
+    for (const [px, phase] of [
+      [left + 18, 0],
+      [left + w - 22, 1.7],
     ]) {
-      rect(c, bx, top + h - 7 + by, 4.5, 6, '#1a1a1a');
-      rect(c, bx, top + h - 6 + by, 4.5, 1, '#f2b705');
-      rect(c, bx, top + h - 3 + by, 4.5, 1, '#f2b705');
+      rect(c, px - 1, body + 6, 2, bodyH - 6, '#2a2a2a');
+      c.save();
+      c.translate(px, body + 7);
+      c.rotate(Math.sin(now / 600 + phase) * 0.25);
+      rect(c, -9, -1.5, 18, 3, '#3a3a3a');
+      rect(c, 8, -3, 3, 6, '#3a3a3a');
+      c.restore();
     }
-    for (const bx of [left + w - 34, left + w - 28]) {
+    const base = top + h;
+    c.fillStyle = 'rgb(10 10 14 / 0.55)';
+    c.beginPath();
+    c.ellipse(left + w / 2, base - 0.5, w / 2 - 6, 1.6, 0, 0, Math.PI * 2);
+    c.fill();
+    const barrel = (bx: number, by: number) => {
+      rect(c, bx, by, 4.5, 6, '#1a1a1a');
+      rect(c, bx, by + 1, 4.5, 1, '#f2b705');
+      rect(c, bx, by + 4, 4.5, 1, '#f2b705');
+      rect(c, bx + 0.5, by + 0.5, 1, 5, 'rgb(255 255 255 / 0.2)');
+    };
+    // A pyramid of barrels each side of the door.
+    for (const [x0, n] of [
+      [left + 24, 7],
+      [left + 84, 7],
+    ]) {
+      for (let row = 0; row < 3; row++)
+        for (let i = 0; i < n - row * 2; i++) barrel(x0 + row * 2.5 + i * 5, base - 7 - row * 6);
+    }
+    const sack = (bx: number, by: number) => {
       c.fillStyle = '#c8a860';
       c.beginPath();
-      c.ellipse(bx, top + h - 3.5, 3, 3.5, 0, 0, Math.PI * 2);
+      c.ellipse(bx, by, 3, 3.5, 0, 0, Math.PI * 2);
       c.fill();
-      rect(c, bx - 1, top + h - 8, 2, 1.5, '#8a6a30');
-      text(c, '£', bx, top + h - 3, 4, '#2a6a2a');
+      rect(c, bx - 1, by - 4.5, 2, 1.5, '#8a6a30');
+      text(c, '£', bx, by + 0.5, 4, '#2a6a2a');
+    };
+    for (const [bx, by] of [
+      [left + 4, base - 3.5],
+      [left + 9, base - 3.5],
+      [left + 6.5, base - 9],
+      [left + w - 4, base - 3.5],
+      [left + w - 9, base - 3.5],
+      [left + w - 6.5, base - 9],
+      [door - 4, base - 3.5],
+      [door + TILE + 4, base - 3.5],
+    ])
+      sack(bx, by);
+    // Gold bars and bundles of notes on top of the barrels.
+    for (const gx of [left + 30, left + 90]) {
+      rect(c, gx, base - 22, 5, 2.5, '#f4c430');
+      rect(c, gx + 6, base - 22, 5, 2.5, '#f4c430');
+      rect(c, gx + 3, base - 24.5, 5, 2.5, '#e0b020');
+    }
+    for (const nx of [left + 44, left + 104]) {
+      for (let i = 0; i < 3; i++) {
+        rect(c, nx, base - 21 - i * 2, 7, 1.8, '#7ab060');
+        rect(c, nx + 3, base - 21 - i * 2, 1, 1.8, '#f2f0ea');
+      }
+    }
+    // Notes fluttering down off the roof.
+    for (let i = 0; i < 14; i++) {
+      const fall = ((now / 30 + i * 37) % (h + 10)) - 10;
+      const nx = left + ((i * 53) % w) + Math.sin(now / 300 + i) * 3;
+      c.save();
+      c.translate(nx, top + fall);
+      c.rotate(Math.sin(now / 200 + i) * 0.6);
+      rect(c, -2, -1, 4, 2, '#7ab060');
+      rect(c, -0.5, -1, 1, 2, '#f2f0ea');
+      c.restore();
     }
     rect(c, left + 39, body + 12, 21, 12, '#fffdf0');
     rect(c, left + 39, body + 12, 21, 2, '#c8102e');
