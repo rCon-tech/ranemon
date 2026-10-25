@@ -26,6 +26,13 @@ export interface DexKnowledge {
   visited: ((map: string) => boolean) | null;
   /** Whether its shiny palette is shown. */
   shiny: (id: string) => boolean;
+  /** Which places "where it's found" lists, when it's only some (the UK Ranedex's are British). */
+  where?: (map: string) => boolean;
+  /**
+   * How every form on the page is shown, when not as itself: the UK Ranedex draws the lads in
+   * their UK forms, and has no other looks.
+   */
+  form?: (c: Creature) => Creature;
 }
 
 /** Battle mode's Ranedex: everything, with no story places. */
@@ -52,10 +59,17 @@ export function storyKnowledge(game: StoryState): DexKnowledge {
 }
 
 /** The pictures a page can flip through: each look, then each in its shiny palette. */
-export function looksOf(c: Creature, shiny: boolean): { label: string; creature: Creature }[] {
+export function looksOf(
+  c: Creature,
+  shiny: boolean,
+  only = false,
+): { label: string; creature: Creature }[] {
   const plain = [
-    { label: CLASSIC, creature: c },
-    ...variantsOf(c.id).map((v) => ({ label: v.label, creature: variantForm(c, v.id) })),
+    { label: only ? 'UK' : CLASSIC, creature: c },
+    ...(only ? [] : variantsOf(c.id)).map((v) => ({
+      label: v.label,
+      creature: variantForm(c, v.id),
+    })),
   ];
   if (!shiny) return plain;
   return [

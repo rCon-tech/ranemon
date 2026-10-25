@@ -636,9 +636,8 @@ export function Story() {
     ) {
       const wild = pickWild(map.wild, Math.random(), Math.random());
       const { level } = wild;
-      // In Britain every Ranemon is a drawn UK form, and those don't evolve.
-      const uk = !!outsideOf(map).uk && hasUkForm(wild.species);
-      const species = uk ? wild.species : formAt(wild.species, level);
+      // In Britain every Ranemon is a drawn UK form, evolved ones included.
+      const species = formAt(wild.species, level);
       const shiny = rollShiny(Math.random());
       const variant = wildLook(map.id, species);
       g = see(g, species);

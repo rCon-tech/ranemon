@@ -43,6 +43,8 @@ export interface StoryState {
    * so there it counts only these; `caught` (the Ranedex) still has everything.
    */
   ukCaught?: string[];
+  /** Kinds seen in Britain, for the UK Ranedex (`ukdex.ts`). */
+  ukSeen?: string[];
   /** Where you wake up after a blackout: the last pub you visited. */
   pub: { map: string; x: number; y: number };
   /** The next member uid. */
@@ -155,8 +157,12 @@ export function takeHeld(s: StoryState, member: number): StoryState {
   return { ...next, party: next.party.map((x, i) => (i === member ? rest : x)) };
 }
 
+/** Marks a kind as seen: in the Ranedex, and in the UK Ranedex too if you're in Britain. */
 export function see(s: StoryState, species: string): StoryState {
-  return s.seen.includes(species) ? s : { ...s, seen: [...s.seen, species] };
+  const seen = s.seen.includes(species) ? s.seen : [...s.seen, species];
+  const uk = s.ukSeen ?? [];
+  if (!inBritain(s) || uk.includes(species)) return seen === s.seen ? s : { ...s, seen };
+  return { ...s, seen, ukSeen: [...uk, species] };
 }
 
 /** Whether you're in Britain, outdoors or in somewhere there. */
@@ -185,7 +191,6 @@ export function recruit(
   level: number,
   from?: Partial<Member>,
 ): { state: StoryState; line: string | null } {
-  // A UK Ranemon stays the way it's drawn: it isn't made up evolved, whatever its level.
   const member: Member = {
     ...makeMember(species, level, s.uid, from?.variant),
     ...from,
