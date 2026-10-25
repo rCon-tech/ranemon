@@ -50,6 +50,10 @@ import { hasFlag, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById } from '@/content/story/maps';
 import { bandsOf, jerseyOf } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
+import { KX_DEPARTURES, nextClub, type KxDeparture } from '@/content/story/premier';
+import { RAILCARD } from '@/content/story/kneecap';
+import { paintCrest } from './crests';
+import type { ClubId } from '@/lib/story/world';
 import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
 import { Portrait } from './Portrait';
 
@@ -1452,6 +1456,89 @@ export function DeparturesPanel({
       </div>
       <p className="text-[9px] leading-relaxed">
         Pick a train and the clerk sells you a ticket. More lines are coming to Connolly soon.
+      </p>
+    </Panel>
+  );
+}
+
+/** A club's crest, drawn on a little canvas of its own. */
+function Crest({ club, size = 20, dim = false }: { club: ClubId; size?: number; dim?: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current?.getContext('2d');
+    if (!c) return;
+    c.clearRect(0, 0, size * 2, size * 2);
+    paintCrest(c, club, size, size, size * 2);
+  }, [club, size]);
+  return (
+    <canvas
+      ref={ref}
+      width={size * 2}
+      height={size * 2}
+      style={{ width: size, height: size, opacity: dim ? 0.35 : 1 }}
+      aria-hidden
+    />
+  );
+}
+
+/**
+ * The departures board at King's Cross: every platform, where it goes and which grounds it's
+ * for, each club's crest greyed out once you've its jersey, and your next match's train on top
+ * of the list in gold. Pick one to buy a ticket.
+ */
+export function KingsCrossPanel({
+  game,
+  onPick,
+  onClose,
+}: {
+  game: StoryState;
+  onPick: (d: KxDeparture) => void;
+  onClose: () => void;
+}) {
+  const flags = new Set(game.flags);
+  const next = nextClub(flags);
+  return (
+    <Panel title="KING’S CROSS DEPARTURES" onClose={onClose}>
+      {next && (
+        <p className="rounded bg-[#f8d030] px-2 py-1 text-[10px] leading-relaxed text-ink">
+          NEXT MATCH ({next.n} of 12): {next.club} at {next.ground}. Platform {next.platform},{' '}
+          {next.to}.
+        </p>
+      )}
+      <div className="flex flex-col gap-1.5 rounded bg-[#141418] p-2 font-mono text-[#f8b820]">
+        {KX_DEPARTURES.map((d) => {
+          const shut = d.railcard && !flags.has(RAILCARD);
+          const done = d.clubs.every((k) => flags.has(k.flag));
+          const isNext = next?.map === d.map;
+          const status = isNext ? 'NEXT MATCH' : done ? 'ALL WON' : shut ? 'RAILCARD' : 'ON TIME';
+          return (
+            <button
+              key={d.map}
+              type="button"
+              data-testid={`kx-${d.map}`}
+              className={`pixel-btn flex items-center gap-2 px-2 py-1.5 text-left ${isNext ? 'outline outline-2 outline-[#f8d030]' : ''}`}
+              onClick={() => onPick(d)}
+            >
+              <span className="w-5 text-center text-[13px] font-bold">{d.platform}</span>
+              <span className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[11px]">{d.to}</span>
+                <span className="text-[8px]">
+                  {d.clubs.map((k) => `${k.ground} (${k.club})`).join(', ')}
+                </span>
+              </span>
+              <span className="flex gap-0.5">
+                {d.clubs.map((k) => (
+                  <Crest key={k.id} club={k.id} size={16} dim={flags.has(k.flag)} />
+                ))}
+              </span>
+              <span className="w-12 text-right text-[8px]">{status}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[9px] leading-relaxed">
+        Play the clubs in order, smallest to biggest. Each ground’s turnstiles open once you’ve
+        beaten the club before it.
       </p>
     </Panel>
   );

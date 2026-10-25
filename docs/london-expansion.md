@@ -171,36 +171,49 @@ London is the hub, as Dublin is at home: a big scrolling 2D map with the Thames 
 
 ### Chapters 7 to 9: The Premier League
 
-Twelve grounds, played in the order below. The order ramps the difficulty and keeps the jokes landing: United are first because they're the easiest touch these days, and City are last because the league always goes to the final day.
+Twelve grounds, played in the order below: **from the smallest club to the biggest**, by a rough estimate of each club's fan base (supporter surveys and followers online). You start at the Amex and finish at Old Trafford, where Roy Keane, at the biggest club in the world, makes you Champion. The teams climb in the same steps whoever is in them, so the difficulty still ramps one ground at a time.
 
-The clubs are grouped into three runs, each ending with a call from Próvaí.
+**Finding your way** (Rich's ask: it should be obvious where to go next):
 
-**Run 1 (Chapter 7): the north, and the London grounds.** Man United, Leeds, Everton, Tottenham, Crystal Palace.
+- A gold line along the bottom of the map in Britain says the next match: `NEXT 3/12: Villa at Villa Park · Platform 3`.
+- A bobbing **NEXT** marker sits over King's Cross's door in London, over the right guard on the King's Cross concourse, and over the right ground's turnstiles in its town. In a town without your next match, it sits over the guard who takes you back.
+- **King's Cross** has seven platforms, numbered in the order you first need them, each guard standing under their own panel of the departures board: the platform number, where it goes and the crest of every club it's for (greyed once you've the jersey), with your next train lit up. The ticket office by the door opens the same board as a list to pick from. The guards say the platform, the train and the clubs before you get on, and every guard home tells you your next match.
+- START → MISSIONS says which club you're on (3 of 12), its ground and its platform.
 
-**Run 2 (Chapter 8): the south, the Midlands and the north-east.** Brighton, Aston Villa, Newcastle, Chelsea.
+| Platform | To         | Grounds                                                             |
+| -------- | ---------- | ------------------------------------------------------------------- |
+| 1        | Brighton   | The Amex (Falmer)                                                   |
+| 2        | The Tube   | Selhurst Park, Tottenham Hotspur Stadium, Stamford Bridge, Emirates |
+| 3        | Birmingham | Villa Park (needs Ian Wright's Railcard)                            |
+| 4        | Liverpool  | Bramley-Moore Dock, Anfield                                         |
+| 5        | Leeds      | Elland Road                                                         |
+| 6        | Newcastle  | St James' Park (needs the Railcard)                                 |
+| 7        | Manchester | The Etihad, Old Trafford                                            |
 
-**Run 3 (Chapter 9): the run-in.** Liverpool, Arsenal, then the final day at Man City.
+**Every town looks like itself** (`src/components/story/england.ts`, 2D only): each ground is drawn as a football stadium from the street, with its roof, floodlights, the crowd under the roof, the club's colours, its name in big letters and its crest over the turnstiles (`crests.ts`, all twelve drawn in the game's style), and inside, the crest on the pitch and on a banner along the far stand. Manchester has a red-brick mill with the worker bee and the Town Hall; Liverpool the Royal Liver Building with its Liver Birds and the Mersey ferry to Dublin; Leeds its Town Hall and the white rose of Yorkshire; Birmingham Selfridges in its silver discs, the Bullring bull and a canal; Newcastle the Tyne Bridge and the Angel of the North; Falmer the South Downs; and the Tube's grounds each have their station's roundel.
 
-Manchester and Liverpool each hold two grounds on one map. The second ground's turnstile is shut until its run ("Closed until later in the season, love").
+Saves from the old order (United first) carry on: schema 6 keeps every jersey won but takes Roy Keane's off anyone not yet Champion, so he's played again at the end as the final (`replayKeane` in `save.ts`).
 
 #### The table
 
-Levels are a suggestion, assuming the UK starter joins at Lv 38 and London's long grass is Lv 36 to 40. Each ace sits about 1.5 levels above the last, as at home.
+| #   | Club           | Ground                                     | Town          | Legend          | Team, ace level | Jersey and reward                                                |
+| --- | -------------- | ------------------------------------------ | ------------- | --------------- | --------------- | ---------------------------------------------------------------- |
+| 1   | Brighton       | The Amex                                   | Falmer        | Glenn Murray    | 3, ace 10       | Brighton jersey; a Perfect Pour                                  |
+| 2   | Crystal Palace | Selhurst Park                              | London (Tube) | Ian Wright      | 3, ace 14       | Palace jersey; Railcard (Birmingham, Newcastle)                  |
+| 3   | Aston Villa    | Villa Park                                 | Birmingham    | Paul McGrath    | 3, ace 17       | Villa jersey; Full Irish x3                                      |
+| 4   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Liverpool     | Duncan Ferguson | 4, ace 20       | Everton jersey; Blue Ghost x2                                    |
+| 5   | Leeds          | Elland Road                                | Leeds         | Marcelo Bielsa  | 4, ace 23       | Leeds jersey; The Bucket                                         |
+| 6   | Newcastle      | St James' Park                             | Newcastle     | Alan Shearer    | 4, ace 26       | Newcastle jersey; Mammy's Dinner x2                              |
+| 7   | Tottenham      | Tottenham Hotspur Stadium                  | London (Tube) | Robbie Keane    | 4, ace 29       | Spurs jersey; a replica Europa League trophy                     |
+| 8   | Man City       | The Etihad                                 | Manchester    | Sergio Agüero   | 5, ace 32       | City jersey                                                      |
+| 9   | Chelsea        | Stamford Bridge                            | London (Tube) | John Terry      | 5, ace 35       | Chelsea jersey; Cup of Tea x3                                    |
+| 10  | Arsenal        | The Emirates                               | London (Tube) | Thierry Henry   | 5, ace 38       | Arsenal jersey; Monster x3                                       |
+| 11  | Liverpool      | Anfield                                    | Liverpool     | Steven Gerrard  | 6, ace 42       | Liverpool jersey; Monster x3                                     |
+| 12  | Man United     | Old Trafford                               | Manchester    | Roy Keane       | 6, ace 46       | United jersey; Fergie's Hairdryer; the **Premier League trophy** |
 
-| #   | Club           | Ground                                     | Town          | Legend          | Type             | Team, ace level | Jersey and reward                                                 |
-| --- | -------------- | ------------------------------------------ | ------------- | --------------- | ---------------- | --------------- | ----------------------------------------------------------------- |
-| 1   | Man United     | Old Trafford                               | Manchester    | Roy Keane       | Brawn            | 3, ace 10       | United jersey; Fergie's Hairdryer (moves the Trafalgar pigeons)   |
-| 2   | Leeds          | Elland Road                                | Leeds         | Marcelo Bielsa  | Brains           | 3, ace 14       | Leeds jersey; The Bucket (see trainers' teams before battling)    |
-| 3   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Liverpool     | Duncan Ferguson | Brawn and Chaos  | 3, ace 17       | Everton jersey; Blue Ghost x2                                     |
-| 4   | Tottenham      | Tottenham Hotspur Stadium                  | London (Tube) | Robbie Keane    | Charm            | 4, ace 20       | Spurs jersey; a cheap replica Europa League trophy (sells for £1) |
-| 5   | Crystal Palace | Selhurst Park                              | London (Tube) | Ian Wright      | Hype             | 4, ace 23       | Palace jersey; Railcard (half-price trains, unlocks run 2)        |
-| 6   | Brighton       | The Amex                                   | Brighton      | Glenn Murray    | Chill            | 4, ace 26       | Brighton jersey; Enda's second Friendship Bracelet                |
-| 7   | Aston Villa    | Villa Park                                 | Birmingham    | Paul McGrath    | Chill and Brains | 4, ace 29       | Villa jersey; The Rest Day (heal the party once a day, anywhere)  |
-| 8   | Newcastle      | St James' Park                             | Newcastle     | Alan Shearer    | Brawn and Hype   | 5, ace 32       | Newcastle jersey; Mammy's Dinner x2                               |
-| 9   | Chelsea        | Stamford Bridge                            | London (Tube) | John Terry      | Charm and Brawn  | 5, ace 35       | Chelsea jersey; Captain's Armband (held: +20% Defense)            |
-| 10  | Liverpool      | Anfield                                    | Liverpool     | Steven Gerrard  | Hype             | 5, ace 38       | Liverpool jersey; Proper Studs (no slipping on wet tiles)         |
-| 11  | Arsenal        | The Emirates                               | London (Tube) | Thierry Henry   | Charm and Brains | 6, ace 42       | Arsenal jersey; Va-Va-Voom (held: +20% Speed)                     |
-| 12  | Man City       | The Etihad                                 | Manchester    | Sergio Agüero   | Chaos and Hype   | 6, ace 46       | City jersey; the **Premier League trophy**                        |
+Florence Pugh's ask after Liam Neeson comes with the fifth jersey (Leeds), and Jamie Elliott turns up at King's Cross with the sixth (Newcastle), at the same levels as before.
+
+The ground-by-ground notes below were written for the first order (United first) and keep their numbers; the dialogue in the game follows the new order.
 
 Every legend's team is made of UK-form lads. AI: legends 1 to 4 Normal, 5 to 12 Hard. Each pays the leader rate (ace level × £40).
 

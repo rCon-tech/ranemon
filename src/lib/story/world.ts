@@ -219,8 +219,11 @@ export type Step =
   | { do: 'reunite' }
   /** Vapes, or someone's own stall with its own prices. */
   | { do: 'shop'; stall?: Stall }
-  /** The departures board at Connolly Station: pick a train, and the ride runs next. */
-  | { do: 'departures' }
+  /**
+   * The departures board at Connolly Station, or at King's Cross in London: pick a train, and
+   * the ride runs next.
+   */
+  | { do: 'departures'; station?: 'kings-cross' }
   | { do: 'ending' };
 
 /** Someone selling a few things at their own prices, outside any shop. */
@@ -359,7 +362,54 @@ export interface GameMap {
   uk?: boolean;
   /** This town's W.B Yates: who runs it and what's different about it. */
   yates?: Yates;
+  /** Football grounds and landmarks drawn over the buildings (`england.ts`). */
+  scenery?: Scenery[];
+  /** A ground from inside: the club's crest on the centre spot of its pitch. */
+  crest?: ClubId;
 }
+
+/** The twelve Premier League clubs in the London expansion (content/story/premier.ts). */
+export type ClubId =
+  | 'brighton'
+  | 'palace'
+  | 'villa'
+  | 'everton'
+  | 'leeds'
+  | 'newcastle'
+  | 'spurs'
+  | 'city'
+  | 'chelsea'
+  | 'arsenal'
+  | 'liverpool'
+  | 'united';
+
+/** A town's landmark drawn over its buildings (components/story/england.ts). */
+export type LandmarkKind =
+  | 'manchester-town-hall'
+  | 'manchester-mill'
+  | 'liver-building'
+  | 'mersey'
+  | 'leeds-town-hall'
+  | 'yorkshire-rose'
+  | 'selfridges'
+  | 'canal'
+  | 'tyne-bridge'
+  | 'angel'
+  | 'south-downs'
+  | 'underground';
+
+/**
+ * Something big drawn over a stretch of buildings, from tile (x0, y0) to (x1, y1): a football
+ * ground (its door is the landmark door inside it) or a town's landmark. Drawing only.
+ */
+export type Scenery = { x0: number; x1: number; y0: number; y1: number } & (
+  | {
+      kind: 'stadium';
+      club: ClubId;
+      /** Its Tube station, for a ground in London. */ tube?: string;
+    }
+  | { kind: LandmarkKind }
+);
 
 /** The logos the overworld can draw (components/story/brands.ts). */
 export type Logo = 'google' | 'meta' | 'microsoft' | 'apple' | 'amazon' | 'tiktok' | 'x' | 'stripe';

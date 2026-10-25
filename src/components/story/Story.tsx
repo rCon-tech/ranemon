@@ -119,6 +119,7 @@ import { hasUkForm, UK } from '@/lib/battle/uk';
 import { UK_LEVEL } from '@/content/story/london';
 import { PUGH_LINES } from '@/content/story/neeson';
 import { UK_STARTER } from '@/content/story/kneecap';
+import { objectiveText, type KxDeparture } from '@/content/story/premier';
 import { Overworld, type Held, type Position } from './Overworld';
 import { TownMapPanel } from './TownMap';
 import { FLEE_MS, type Flight } from './walk';
@@ -133,6 +134,7 @@ import {
   BagPanel,
   Choice,
   DeparturesPanel,
+  KingsCrossPanel,
   EndingPanel,
   GroupChatPanel,
   JerseysPanel,
@@ -157,6 +159,7 @@ type Overlay =
   | 'bag'
   | 'shop'
   | 'departures'
+  | 'kx-departures'
   | 'chat'
   | 'dex'
   | 'card'
@@ -497,7 +500,15 @@ export function Story() {
             setLine(null);
             if (s.do === 'shop') setStall(s.stall ?? null);
             if (s.do === 'starter') setUkStarter(!!s.uk);
-            setOverlay(s.do === 'offer-chat' ? 'offer-chat' : s.do === 'shop' ? 'shop' : s.do);
+            setOverlay(
+              s.do === 'departures' && s.station === 'kings-cross'
+                ? 'kx-departures'
+                : s.do === 'offer-chat'
+                  ? 'offer-chat'
+                  : s.do === 'shop'
+                    ? 'shop'
+                    : s.do,
+            );
             return;
           case 'travel': {
             g = setFlag({ ...g, map: s.map, x: s.x, y: s.y, face: s.face }, `visited:${s.map}`);
@@ -1253,6 +1264,7 @@ export function Story() {
 
   const map = mapFor(game.map, game.flags);
   const flags = new Set(game.flags);
+  const objective = objectiveText(flags);
   const walker = follower(game);
   const dog = companionOf(flags);
   const ghosts = find(map, '*').filter((p) => !flags.has(ghostFlag(map.id, p.x, p.y)));
@@ -1295,6 +1307,14 @@ export function Story() {
         >
           {map.name} ▸
         </button>
+        {objective && map.uk && (
+          <div
+            className="pointer-events-none absolute bottom-1 left-1 max-w-[95%] rounded bg-[#f8d030]/90 px-1.5 text-[8px] leading-[1.6] text-ink"
+            data-testid="objective"
+          >
+            ⚽ {objective}
+          </div>
+        )}
         <div className="absolute right-1 top-1 flex gap-1">
           <SoundButton />
           <ViewButton />
@@ -1436,6 +1456,13 @@ export function Story() {
         )}
         {overlay === 'departures' && (
           <DeparturesPanel game={game} onPick={(d) => answer(ticket(d))} onClose={closeOverlay} />
+        )}
+        {overlay === 'kx-departures' && (
+          <KingsCrossPanel
+            game={game}
+            onPick={(d: KxDeparture) => answer(d.ride)}
+            onClose={closeOverlay}
+          />
         )}
         {overlay === 'chat' && (
           <GroupChatPanel
