@@ -9,7 +9,9 @@ import { ROSTER } from '@/lib/battle/roster';
 import { SECOND_SPECIALS } from '@/lib/battle/second-specials';
 import { UK } from '@/lib/battle/uk';
 import { movesAt } from '@/lib/story/party';
+import { newGame } from '@/lib/story/state';
 import {
+  britainUnlocked,
   creatureOfPick,
   entrantOfPick,
   holdItemsFor,
@@ -109,5 +111,25 @@ describe('the rival in battle mode', () => {
         const teams = [slots.slice(0, TEAM_SIZE).map((s) => entrantOfPick(newPick(s))), rival];
         expect(() => startBattle(teams as never, 1)).not.toThrow();
       }
+  });
+});
+
+describe('Britain in battle mode', () => {
+  const storage = (entries: Record<string, string>) => ({
+    length: Object.keys(entries).length,
+    key: (i: number) => Object.keys(entries)[i] ?? null,
+    getItem: (k: string) => entries[k] ?? null,
+  });
+
+  it('stays a surprise until a story save has been there', () => {
+    const home = JSON.stringify(newGame());
+    const abroad = JSON.stringify({ ...newGame(), ukSeen: ['carlmon'] });
+    expect(britainUnlocked(null)).toBe(false);
+    expect(britainUnlocked(storage({ 'ranemon.story.v1:rich': home }))).toBe(false);
+    expect(britainUnlocked(storage({ other: abroad }))).toBe(false);
+    expect(
+      britainUnlocked(storage({ 'ranemon.story.v1:rich': home, 'ranemon.story.v1:con': abroad })),
+    ).toBe(true);
+    expect(looksOf('carlmon', false).map((v) => v.id)).toEqual(['tache']);
   });
 });

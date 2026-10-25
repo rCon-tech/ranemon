@@ -9,6 +9,9 @@ import { rollVariant, variantForm, variantOf, variantsOf, type Variant } from '.
 import { heldBoost, heldCalm, ITEMS, type Item, type ItemId } from '../story/items';
 import { MOVE_SLOTS } from '../story/learnsets';
 import { movesAt } from '../story/party';
+import { parseSave } from '../story/save';
+import { SAVE_KEY } from '../story/state';
+import { hasUkDex } from '../story/ukdex';
 
 /**
  * Battle mode's team rules: which Ranemon you pick from, at which stage, and what each of your
@@ -35,6 +38,21 @@ export const FORMS: { id: Forms; label: string; about: string }[] = [
     about: 'Every Ranemon fully evolved, with a bigger stat budget. Some pick a branch.',
   },
 ];
+
+/**
+ * Whether battle mode has Britain's Ranemon: London's own and the drawn UK looks stay a surprise
+ * until a Story mode save in this browser has made it over (it has a UK Ranedex).
+ */
+export function britainUnlocked(storage: Pick<Storage, 'length' | 'key' | 'getItem'> | null) {
+  if (!storage) return false;
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (key !== SAVE_KEY && !key?.startsWith(`${SAVE_KEY}:`)) continue;
+    const game = parseSave(storage.getItem(key));
+    if (game && hasUkDex(game)) return true;
+  }
+  return false;
+}
 
 const total = (c: Creature) => STAT_KEYS.reduce((sum, k) => sum + c.base[k], 0);
 
@@ -77,9 +95,9 @@ export function rosterOf(roster: RosterId, forms: Forms): Slot[] {
   return lines.map((l) => slotOf(l, forms)).filter((s): s is Slot => s !== null);
 }
 
-/** Every look a form has, the drawn UK one included for the lads. */
-export function looksOf(species: string): Variant[] {
-  const uk = variantOf(species, UK);
+/** Every look a form has, and the drawn UK one for the lads once Britain is unlocked. */
+export function looksOf(species: string, britain = true): Variant[] {
+  const uk = britain && variantOf(species, UK);
   return [...variantsOf(species), ...(hasUkForm(species) && uk ? [uk] : [])];
 }
 

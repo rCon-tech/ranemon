@@ -14,9 +14,9 @@ export const UPDATES: Update[] = [
     date: '2026-10-25',
     title: 'Battle mode catches up',
     notes: [
-      'Battle mode has a ROSTER switch: the lads, London’s own Ranemon, or everyone together. Your rival picks from the same roster.',
+      'Battle mode has a ROSTER switch, with more Ranemon to battle with as you get further in Story mode. Your rival picks from the same roster.',
       'Switch FORMS to EVOLVED to battle with everyone fully evolved. Where a Ranemon can evolve more than one way, you pick which.',
-      'Tap a Ranemon on YOUR TEAM to pick its look (the drawn UK look included), something for it to hold and its moves, with each move’s type and power.',
+      'Tap a Ranemon on YOUR TEAM to pick its look, something for it to hold and its moves, with each move’s type and power.',
       'In a friend battle, both trainers show up in the room in their skins, and tapping a Ranemon in your team shows its moves and what it’s holding.',
     ],
   },

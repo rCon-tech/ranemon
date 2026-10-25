@@ -8,6 +8,7 @@ import { moveById } from '@/lib/battle/moves';
 import { CLASSIC } from '@/lib/battle/variants';
 import { itemById } from '@/lib/story/items';
 import {
+  britainUnlocked,
   creatureOfPick,
   FORMS,
   holdItemsFor,
@@ -38,11 +39,14 @@ function Choice<T extends string>({
   label,
   options,
   value,
+  locked = [],
   onPick,
 }: {
   label: string;
   options: { id: T; label: string }[];
   value: T;
+  /** Options that can't be picked yet. */
+  locked?: T[];
   onPick: (id: T) => void;
 }) {
   return (
@@ -58,9 +62,10 @@ function Choice<T extends string>({
           type="button"
           className="pixel-btn text-center text-[11px]"
           aria-pressed={value === o.id}
+          disabled={locked.includes(o.id)}
           onClick={() => onPick(o.id)}
         >
-          {o.label}
+          {locked.includes(o.id) ? '🔒 ???' : o.label}
         </button>
       ))}
     </div>
@@ -74,15 +79,18 @@ function Choice<T extends string>({
 function PickEditor({
   pick,
   slot,
+  britain,
   onChange,
 }: {
   pick: TeamPick;
   slot: Slot;
+  /** Whether the drawn UK look is unlocked. */
+  britain: boolean;
   onChange: (pick: TeamPick) => void;
 }) {
   const [moveFrom, setMoveFrom] = useState<{ slot: number } | { spare: string } | null>(null);
   const c = creatureOfPick(pick);
-  const looks = looksOf(pick.form);
+  const looks = looksOf(pick.form, britain);
   const items = holdItemsFor(pick.form);
   const spares = spareMoves(formById(pick.form), pick.moves);
   const stab = (id: string) => {
@@ -238,6 +246,14 @@ function PickEditor({
  * on YOUR TEAM to set its form, look, held item and moves.
  */
 export function TeamSelect({ onReady }: Props) {
+  // Britain's Ranemon stay a surprise until a story save gets there.
+  const [britain] = useState(() => {
+    try {
+      return britainUnlocked(localStorage);
+    } catch {
+      return false;
+    }
+  });
   const [roster, setRoster] = useState<RosterId>('lads');
   const [forms, setForms] = useState<Forms>('basic');
   const [picks, setPicks] = useState<TeamPick[]>([]);
@@ -295,7 +311,13 @@ export function TeamSelect({ onReady }: Props) {
 
       <section className="dialog flex flex-col gap-2 p-3 text-ink" aria-label="Rules">
         <h2 className="text-[13px]">ROSTER</h2>
-        <Choice label="Roster" options={ROSTERS} value={roster} onPick={(r) => rule(r, forms)} />
+        <Choice
+          label="Roster"
+          options={ROSTERS}
+          value={roster}
+          locked={britain ? [] : ['london', 'everyone']}
+          onPick={(r) => rule(r, forms)}
+        />
         <h2 className="text-[13px]">FORMS</h2>
         <Choice label="Forms" options={FORMS} value={forms} onPick={(f) => rule(roster, f)} />
         <p className="text-[10px] leading-relaxed opacity-70">
@@ -374,6 +396,7 @@ export function TeamSelect({ onReady }: Props) {
                     key={p.form}
                     pick={p}
                     slot={slotOf(p.line)}
+                    britain={britain}
                     onChange={(next) =>
                       setPicks((ps) => ps.map((x) => (x.line === p.line ? next : x)))
                     }

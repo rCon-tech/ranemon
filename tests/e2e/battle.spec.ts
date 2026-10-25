@@ -46,6 +46,40 @@ test('battle mode: London and evolved rosters, and a pick’s look, item and mov
   await unlock(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'PRESS START' }).click();
+  // Britain's Ranemon stay a surprise until a story save has been there.
+  const rosters = page.getByRole('group', { name: 'Roster' });
+  await expect(rosters.getByRole('button', { name: '🔒 ???' })).toHaveCount(2);
+  await page.getByRole('region', { name: 'Your roster' }).getByRole('button').first().click();
+  await page.getByTestId('team-pick').first().click();
+  await expect(
+    page.getByRole('group', { name: 'Look' }).getByRole('button', { name: /UK/ }),
+  ).toHaveCount(0);
+
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'ranemon.story.v1:abroad',
+      JSON.stringify({
+        version: 1,
+        map: 'clare',
+        x: 5,
+        y: 5,
+        face: 'down',
+        party: [],
+        box: [],
+        bag: {},
+        money: 0,
+        flags: ['starter'],
+        seen: [],
+        caught: [],
+        ukSeen: ['carlmon'],
+        pub: { map: 'clare', x: 5, y: 5 },
+        uid: 1,
+        steps: 0,
+      }),
+    ),
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'PRESS START' }).click();
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
   await page.getByRole('group', { name: 'Roster' }).getByRole('button', { name: 'LONDON' }).click();
   await expect(roster.first()).toContainText('Golpeak');
