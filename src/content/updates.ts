@@ -44,6 +44,14 @@ export const UPDATES: Update[] = [
     ],
   },
   {
+    date: '2026-10-25',
+    title: 'A fresh pint over the sea',
+    notes: [
+      'Across the Irish Sea the pint by a wild Ranemon’s name starts fresh: it only shows for ones you’ve befriended over there.',
+      'Your Ranedex keeps every one you’ve befriended, and back home the pint is as it was.',
+    ],
+  },
+  {
     date: '2026-10-24',
     title: 'Silicon Docks',
     notes: [
