@@ -11,8 +11,21 @@ import { ROSTER } from '@/lib/battle/roster';
 import { UK, UK_ENTRIES } from '@/lib/battle/uk';
 import { variantForm } from '@/lib/battle/variants';
 import { UK_LEVEL } from '@/content/story/london';
-import { canUseOn, ITEMS, itemById, priceOf, shopStock, type ItemId } from '@/lib/story/items';
-import { KEY_ITEMS } from '@/lib/story/keys';
+import {
+  canUseOn,
+  ITEMS,
+  itemById,
+  pocketOf,
+  POCKETS,
+  priceOf,
+  sellPrice,
+  shopStock,
+  whereToUse,
+  type Item,
+  type ItemId,
+  type Pocket,
+} from '@/lib/story/items';
+import { KEY_ITEMS, type KeyItem } from '@/lib/story/keys';
 import { levelCap, type LevelCap } from '@/lib/story/levels';
 import { openMissions } from '@/lib/story/missions';
 import {
@@ -281,126 +294,568 @@ export function PartyPanel({
   );
 }
 
+/** The D-pad, A and B, handed to a menu while it's open (the Ranedex, the BAG, a shop). */
+export interface MenuNav {
+  dir: (dir: Dir) => void;
+  a: () => void;
+  /** B: back a step inside the menu. False when there's nowhere further back, so B closes it. */
+  b: () => boolean;
+}
+
+/** Hands `nav` to `navRef` while the menu is open, fresh on every render. */
+function useMenuNav(navRef: React.RefObject<MenuNav | null> | undefined, nav: MenuNav) {
+  useEffect(() => {
+    if (!navRef) return;
+    navRef.current = nav;
+    return () => {
+      navRef.current = null;
+    };
+  });
+}
+
+/** Keeps the row the D-pad is on in view. */
+function useCursorInView(box: React.RefObject<HTMLElement | null>, key: string) {
+  useEffect(() => {
+    box.current?.querySelector('[data-cursor="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [box, key]);
+}
+
+const CURSOR = 'outline outline-3 outline-offset-1 outline-accent2';
+
+/** A row of tabs along the top of a menu. */
+function Tabs<T extends string>({
+  tabs,
+  value,
+  onPick,
+  label,
+}: {
+  tabs: { id: T; label: string; count?: number }[];
+  value: T;
+  onPick: (id: T) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex gap-1" role="group" aria-label={label}>
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          aria-pressed={t.id === value}
+          data-testid={`tab-${t.id}`}
+          className={`pixel-btn flex flex-1 flex-col items-center px-0.5 py-1 text-[9px] leading-tight ${t.count === 0 && t.id !== value ? 'opacity-50' : ''}`}
+          onClick={() => onPick(t.id)}
+        >
+          <span>{t.label}</span>
+          {t.count !== undefined && <span className="text-[8px]">{t.count}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** What happened, in a little box: the last thing used or sold. */
+function Note({ lines }: { lines: string[] | null }) {
+  if (!lines?.length) return null;
+  return (
+    <div
+      className="rounded-lg border-2 border-accent2 bg-mist px-2 py-1 text-[10px] leading-relaxed"
+      role="status"
+      data-testid="bag-note"
+    >
+      {lines.map((l, i) => (
+        <p key={i}>{l}</p>
+      ))}
+    </div>
+  );
+}
+
+type BagTab = Pocket | 'key';
+
+type BagRow = { kind: 'item'; item: Item } | { kind: 'key'; key: KeyItem };
+
 export function BagPanel({
   game,
   onUse,
   onUseKey,
   onClose,
+  navRef,
 }: {
   game: StoryState;
-  onUse: (item: ItemId, member: number) => void;
+  /**
+   * Uses an item on a party member. Returns what happened when the BAG stays open (food, or
+   * something to hold), so you can carry on using things; nothing when the story takes over.
+   */
+  onUse: (item: ItemId, member: number) => string[] | void;
   onUseKey: (flag: string) => void;
   onClose: () => void;
+  navRef?: React.RefObject<MenuNav | null>;
 }) {
-  const [pick, setPick] = useState<ItemId | null>(null);
   const keys = KEY_ITEMS.filter(
     (k) => hasFlag(game, k.flag) && !(k.goneIf && hasFlag(game, k.goneIf)),
   );
   const items = ITEMS.filter((i) => (game.bag[i.id] ?? 0) > 0);
+  const rowsOf = (tab: BagTab): BagRow[] =>
+    tab === 'key'
+      ? keys.map((key) => ({ kind: 'key', key }))
+      : items.filter((i) => pocketOf(i) === tab).map((item) => ({ kind: 'item', item }));
+  const tabs: { id: BagTab; label: string; count: number }[] = [
+    ...POCKETS.map((p) => ({ id: p.id, label: p.label, count: rowsOf(p.id).length })),
+    { id: 'key' as const, label: 'KEY', count: keys.length },
+  ];
+  const [tab, setTab] = useState<BagTab>(() => tabs.find((t) => t.count > 0)?.id ?? 'food');
+  const [cursor, setCursor] = useState(0);
+  const [picked, setPick] = useState<ItemId | null>(null);
+  // Out of one: back to the list.
+  const pick = picked && game.bag[picked] ? picked : null;
+  const [member, setMember] = useState(0);
+  const [note, setNote] = useState<string[] | null>(null);
+  const box = useRef<HTMLDivElement>(null);
   const cap = levelCap(game);
+  const rows = rowsOf(tab);
+  const at = Math.min(cursor, Math.max(0, rows.length - 1));
+  const row = rows[at];
+
+  useCursorInView(box, `${tab}:${at}:${pick}:${member}`);
+
+  /** Whether the row can be used from here, and what its button says. */
+  const action = (r: BagRow | undefined): { label: string; ok: boolean } => {
+    if (!r) return { label: 'USE', ok: false };
+    if (r.kind === 'key') return { label: 'USE', ok: !!r.key.usable };
+    const kind = r.item.use.kind;
+    if (kind === 'pint' || kind === 'vape') return { label: 'IN BATTLE ONLY', ok: false };
+    const someone = game.party.some((m) => canUseOn(r.item, m, cap.level));
+    const verb = kind === 'hold' ? 'GIVE' : 'USE';
+    return someone ? { label: verb, ok: true } : { label: 'NOBODY NEEDS IT', ok: false };
+  };
+
+  const activate = (r: BagRow | undefined) => {
+    if (!r || !action(r).ok) return;
+    playSfx('select');
+    setNote(null);
+    if (r.kind === 'key') return onUseKey(r.key.flag);
+    setPick(r.item.id);
+    const first = game.party.findIndex((m) => canUseOn(r.item, m, cap.level));
+    setMember(Math.max(0, first));
+  };
+
+  const spendOn = (i: number) => {
+    if (!pick || !canUseOn(itemById(pick), game.party[i], cap.level)) return;
+    const lines = onUse(pick, i);
+    if (lines) setNote(lines);
+  };
+
+  const switchTab = (t: BagTab) => {
+    playSfx('blip');
+    setTab(t);
+    setCursor(0);
+    setNote(null);
+  };
+
+  useMenuNav(navRef, {
+    dir: (dir) => {
+      if (pick) {
+        if (dir === 'up' || dir === 'down') {
+          const to = member + (dir === 'up' ? -1 : 1);
+          if (to < 0 || to >= game.party.length) return;
+          playSfx('blip');
+          setMember(to);
+        }
+        return;
+      }
+      if (dir === 'left' || dir === 'right') {
+        const i = tabs.findIndex((t) => t.id === tab);
+        switchTab(tabs[(i + (dir === 'left' ? -1 : 1) + tabs.length) % tabs.length].id);
+        return;
+      }
+      const to = at + (dir === 'up' ? -1 : 1);
+      if (to < 0 || to >= rows.length) return;
+      playSfx('blip');
+      setCursor(to);
+    },
+    a: () => (pick ? spendOn(member) : activate(row)),
+    b: () => {
+      if (!pick) return false;
+      setPick(null);
+      return true;
+    },
+  });
+
   if (pick) {
     const item = itemById(pick);
     return (
       <Panel title={item.name.toUpperCase()} onClose={() => setPick(null)}>
-        <p className="text-[10px] leading-relaxed">
-          {item.use.kind === 'hold'
-            ? 'Give it to which Ranemon to hold?'
-            : 'Use it on which Ranemon?'}
-        </p>
-        {item.use.kind === 'level' && <CapNote cap={cap} />}
-        {game.party.map((m, i) => (
-          <MemberRow
-            key={m.uid}
-            m={m}
-            disabled={!canUseOn(item, m, cap.level)}
-            onClick={() => {
-              onUse(pick, i);
-              setPick(null);
-            }}
-          />
-        ))}
+        <div ref={box} className="flex flex-col gap-2">
+          <p className="flex justify-between text-[10px] leading-relaxed">
+            <span>
+              {item.use.kind === 'hold'
+                ? 'Give it to which Ranemon to hold?'
+                : 'Use it on which Ranemon?'}
+            </span>
+            <span data-testid="pick-count">×{game.bag[pick] ?? 0}</span>
+          </p>
+          {item.use.kind === 'level' && <CapNote cap={cap} />}
+          <Note lines={note} />
+          {game.party.map((m, i) => (
+            <div
+              key={m.uid}
+              data-cursor={i === member}
+              className={`flex flex-col rounded-[10px] ${i === member ? CURSOR : ''}`}
+            >
+              <MemberRow
+                m={m}
+                disabled={!canUseOn(item, m, cap.level)}
+                onClick={() => {
+                  setMember(i);
+                  spendOn(i);
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </Panel>
     );
   }
+
+  const act = action(row);
   return (
     <Panel title="BAG" onClose={onClose}>
-      {items.length === 0 && !keys.length && <p className="text-[11px]">The bag is empty.</p>}
-      {items.map((i) => (
-        <button
-          key={i.id}
-          type="button"
-          className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
-          disabled={i.use.kind === 'pint' || i.use.kind === 'vape'}
-          onClick={() => setPick(i.id)}
+      <Tabs label="Pockets" tabs={tabs} value={tab} onPick={switchTab} />
+      <p className="text-[9px] leading-relaxed opacity-75">
+        {tab === 'key'
+          ? 'Things you keep for good. They never run out.'
+          : POCKETS.find((p) => p.id === tab)?.about}
+      </p>
+      <Note lines={note} />
+      <div
+        ref={box}
+        className="-mx-1 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-1 py-1"
+        role="listbox"
+        aria-label="Items"
+      >
+        {rows.length === 0 && (
+          <p className="py-2 text-[11px]">
+            {items.length === 0 && !keys.length ? 'The bag is empty.' : 'Nothing in here.'}
+          </p>
+        )}
+        {rows.map((r, i) => {
+          const id = r.kind === 'item' ? r.item.id : r.key.flag;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="option"
+              aria-selected={i === at}
+              data-cursor={i === at}
+              data-testid={r.kind === 'item' ? `item-${id}` : `key-${id}`}
+              className={`pixel-btn menu-item flex justify-between px-2 py-1.5 text-left text-[11px] ${i === at ? CURSOR : ''}`}
+              onClick={() => (i === at ? activate(r) : setCursor(i))}
+            >
+              <span>{r.kind === 'item' ? r.item.name : r.key.name}</span>
+              {r.kind === 'item' && <span>×{game.bag[r.item.id]}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {row && (
+        <div
+          className="flex shrink-0 items-end gap-2 rounded-lg border-2 border-frame bg-mist p-2"
+          data-testid="bag-info"
         >
-          <span className="flex justify-between text-[11px]">
-            <span>{i.name}</span>
-            <span>×{game.bag[i.id]}</span>
-          </span>
-          <span className="text-[8px] leading-relaxed">
-            {i.about}
-            {i.use.kind === 'pint'
-              ? ' Use it in a wild battle.'
-              : i.use.kind === 'vape'
-                ? ' Use it in a battle.'
-                : ''}
-          </span>
-        </button>
-      ))}
-      {keys.length > 0 && <h3 className="mt-1 text-[11px] font-bold">KEY ITEMS</h3>}
-      {keys.map((k) => (
-        <button
-          key={k.flag}
-          type="button"
-          className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
-          disabled={!k.usable}
-          onClick={() => onUseKey(k.flag)}
-          data-testid={`key-${k.flag}`}
-        >
-          <span className="text-left text-[11px]">{k.name}</span>
-          <span className="text-left text-[8px] leading-relaxed">{k.about}</span>
-        </button>
-      ))}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="text-[11px] font-bold">
+              {row.kind === 'item' ? row.item.name : row.key.name}
+            </p>
+            <p className="text-[9px] leading-relaxed">
+              {row.kind === 'item' ? `${row.item.about} ${whereToUse(row.item)}` : row.key.about}
+            </p>
+          </div>
+          {(row.kind === 'item' || row.key.usable) && (
+            <button
+              type="button"
+              className="pixel-btn shrink-0 px-3 py-1 text-[11px]"
+              disabled={!act.ok}
+              onClick={() => activate(row)}
+              data-testid="bag-use"
+            >
+              {act.label}
+            </button>
+          )}
+        </div>
+      )}
     </Panel>
   );
 }
+
+/** Thousands with commas, as prices are shown: €1,050. */
+const euro = (n: number) => `€${n.toLocaleString('en-IE')}`;
+
+/** The bag's items, pocket by pocket, as the SELL list shows them. */
+const byPocket = (game: StoryState) =>
+  POCKETS.flatMap((p) => ITEMS.filter((i) => pocketOf(i) === p.id && (game.bag[i.id] ?? 0) > 0));
 
 export function ShopPanel({
   game,
   stall = null,
   onBuy,
+  onSell,
   onClose,
+  navRef,
 }: {
   game: StoryState;
   /** Someone's own stall instead of Vapes. */
   stall?: Stall | null;
   onBuy: (item: ItemId) => void;
+  /** Sells `count` of an item for `sellPrice` each. */
+  onSell: (item: ItemId, count: number) => void;
   onClose: () => void;
+  navRef?: React.RefObject<MenuNav | null>;
 }) {
   const stock = stall
     ? stall.stock.map((s) => itemById(s.item))
     : shopStock(mapById(game.map).county);
+  const [tab, setTab] = useState<'buy' | 'sell'>('buy');
+  const [cursor, setCursor] = useState(0);
+  /** The item being sold, how many, and whether you're being asked to confirm. */
+  const [selling, setSelling] = useState<ItemId | null>(null);
+  const [qty, setQty] = useState(1);
+  const [confirm, setConfirm] = useState(false);
+  const [note, setNote] = useState<string[] | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const sellable = byPocket(game);
+  const list = tab === 'buy' ? stock : sellable;
+  const at = Math.min(cursor, Math.max(0, list.length - 1));
+  useCursorInView(box, `${tab}:${at}`);
+
+  const have = selling ? (game.bag[selling] ?? 0) : 0;
+  const each = selling ? (sellPrice(selling) ?? 0) : 0;
+  const n = Math.max(1, Math.min(qty, have));
+
+  const buy = (i: number) => {
+    const item = stock[i];
+    if (!item || game.money < priceOf(item.id, stall)) return;
+    playSfx('select');
+    setNote(null);
+    onBuy(item.id);
+  };
+  const startSell = (i: number) => {
+    const item = sellable[i];
+    if (!item || sellPrice(item.id) === null) return;
+    playSfx('select');
+    setNote(null);
+    setSelling(item.id);
+    setQty(1);
+    setConfirm(false);
+  };
+  const doSell = () => {
+    if (!selling) return;
+    playSfx('select');
+    const name = itemById(selling).name;
+    onSell(selling, n);
+    setNote([`Sold ${n} × ${name} for ${euro(each * n)}.`]);
+    setSelling(null);
+    setConfirm(false);
+  };
+  const switchTab = (t: 'buy' | 'sell') => {
+    playSfx('blip');
+    setTab(t);
+    setCursor(0);
+    setNote(null);
+  };
+  const bump = (d: number) => {
+    playSfx('blip');
+    setQty(Math.max(1, Math.min(have, n + d)));
+  };
+
+  useMenuNav(navRef, {
+    dir: (dir) => {
+      if (selling) {
+        if (!confirm) bump(dir === 'up' || dir === 'right' ? 1 : -1);
+        return;
+      }
+      if (dir === 'left' || dir === 'right') return switchTab(tab === 'buy' ? 'sell' : 'buy');
+      const to = at + (dir === 'up' ? -1 : 1);
+      if (to < 0 || to >= list.length) return;
+      playSfx('blip');
+      setCursor(to);
+    },
+    a: () => {
+      if (selling) return confirm ? doSell() : setConfirm(true);
+      if (tab === 'buy') buy(at);
+      else startSell(at);
+    },
+    b: () => {
+      if (confirm) setConfirm(false);
+      else if (selling) setSelling(null);
+      else return false;
+      return true;
+    },
+  });
+
+  const title = stall?.name ?? 'VAPES';
+
+  if (selling) {
+    const item = itemById(selling);
+    return (
+      <Panel title={`SELL ${item.name.toUpperCase()}`} onClose={() => setSelling(null)}>
+        <p className="text-[11px]">Money: €{game.money}</p>
+        <p className="text-[10px] leading-relaxed">
+          You have {have}. The shop pays {euro(each)} each.
+        </p>
+        {!confirm ? (
+          <>
+            <div className="flex items-center justify-center gap-2" data-testid="sell-qty">
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[13px]"
+                disabled={n <= 1}
+                onClick={() => bump(-1)}
+                aria-label="One fewer"
+              >
+                −
+              </button>
+              <span className="min-w-12 text-center text-[15px] font-bold" data-testid="sell-count">
+                ×{n}
+              </span>
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[13px]"
+                disabled={n >= have}
+                onClick={() => bump(1)}
+                aria-label="One more"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className="pixel-btn px-2 py-1 text-[10px]"
+                disabled={n >= have}
+                onClick={() => {
+                  playSfx('blip');
+                  setQty(have);
+                }}
+              >
+                ALL
+              </button>
+            </div>
+            <p className="text-center text-[11px]">For {euro(each * n)}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[11px]"
+                onClick={() => setSelling(null)}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[11px]"
+                onClick={() => setConfirm(true)}
+                data-testid="sell-ok"
+              >
+                SELL
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col gap-2 rounded-lg border-2 border-frame bg-mist p-2">
+            <p className="text-[11px] leading-relaxed" data-testid="sell-confirm">
+              Sell {n} × {item.name} for {euro(each * n)}?
+              {n === have && pocketOf(item) === 'pints'
+                ? ' That’s all your pints of this kind.'
+                : ''}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[11px]"
+                onClick={() => setConfirm(false)}
+              >
+                NO
+              </button>
+              <button
+                type="button"
+                className="pixel-btn px-3 py-1 text-[11px]"
+                onClick={doSell}
+                data-testid="sell-yes"
+              >
+                YES
+              </button>
+            </div>
+          </div>
+        )}
+      </Panel>
+    );
+  }
+
   return (
-    <Panel title={stall?.name ?? 'VAPES'} onClose={onClose}>
+    <Panel title={title} onClose={onClose}>
+      <Tabs
+        label="Buy or sell"
+        tabs={[
+          { id: 'buy', label: 'BUY' },
+          { id: 'sell', label: 'SELL' },
+        ]}
+        value={tab}
+        onPick={switchTab}
+      />
       <p className="text-[11px]">Money: €{game.money}</p>
-      {stock.map((i) => (
-        <button
-          key={i.id}
-          type="button"
-          className="pixel-btn flex flex-col gap-1 px-2 py-1.5"
-          disabled={game.money < priceOf(i.id, stall)}
-          onClick={() => onBuy(i.id)}
-          data-testid={`buy-${i.id}`}
-        >
-          <span className="flex justify-between text-[11px]">
-            <span>{i.name}</span>
-            <span>€{priceOf(i.id, stall)}</span>
-          </span>
-          <span className="text-[8px] leading-relaxed">
-            {i.about} You have {game.bag[i.id] ?? 0}.
-          </span>
-        </button>
-      ))}
+      <Note lines={note} />
+      <div ref={box} className="flex flex-col gap-1.5">
+        {tab === 'buy' &&
+          stock.map((i, j) => (
+            <button
+              key={i.id}
+              type="button"
+              data-cursor={j === at}
+              className={`pixel-btn flex flex-col gap-1 px-2 py-1.5 ${j === at ? CURSOR : ''}`}
+              disabled={game.money < priceOf(i.id, stall)}
+              onClick={() => {
+                setCursor(j);
+                buy(j);
+              }}
+              data-testid={`buy-${i.id}`}
+            >
+              <span className="flex justify-between text-[11px]">
+                <span>{i.name}</span>
+                <span>€{priceOf(i.id, stall)}</span>
+              </span>
+              <span className="text-left text-[8px] leading-relaxed">
+                {i.about} You have {game.bag[i.id] ?? 0}.
+              </span>
+            </button>
+          ))}
+        {tab === 'sell' && (
+          <>
+            <p className="text-[9px] leading-relaxed opacity-75">
+              The shop pays half what it charges. Key items, and one-of-a-kind things you were given
+              or found, can’t be sold.
+            </p>
+            {sellable.length === 0 && <p className="text-[11px]">Nothing to sell.</p>}
+            {sellable.map((i, j) => {
+              const price = sellPrice(i.id);
+              return (
+                <button
+                  key={i.id}
+                  type="button"
+                  data-cursor={j === at}
+                  className={`pixel-btn flex justify-between px-2 py-1.5 text-[11px] ${j === at ? CURSOR : ''}`}
+                  disabled={price === null}
+                  onClick={() => {
+                    setCursor(j);
+                    startSell(j);
+                  }}
+                  data-testid={`sell-${i.id}`}
+                >
+                  <span className="text-left">
+                    {i.name} <span className="text-[9px]">×{game.bag[i.id]}</span>
+                  </span>
+                  <span>{price === null ? 'CAN’T SELL' : `${euro(price)} each`}</span>
+                </button>
+              );
+            })}
+          </>
+        )}
+      </div>
     </Panel>
   );
 }
@@ -442,14 +897,6 @@ export function GroupChatPanel({
   );
 }
 
-/** The D-pad, A and B, handed to the Ranedex while it's open. */
-export interface DexNav {
-  dir: (dir: Dir) => void;
-  a: () => void;
-  /** B: back from a page to the list. False when the list is showing, so B closes it. */
-  b: () => boolean;
-}
-
 /** Ranedex tiles per row, for moving up and down with the D-pad. */
 const DEX_COLUMNS = 4;
 
@@ -460,7 +907,7 @@ export function RanedexPanel({
 }: {
   game: StoryState;
   onClose: () => void;
-  navRef?: React.RefObject<DexNav | null>;
+  navRef?: React.RefObject<MenuNav | null>;
 }) {
   // Ireland's Ranedex, or London's once you've seen a London Ranemon (docs/london-ranedex.md).
   const london = LONDON.some((c) => game.seen.includes(c.id));

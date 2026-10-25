@@ -74,6 +74,7 @@ import {
   setFlag,
   settleBattle,
   unsetFlag,
+  sell,
   take,
   holdItem,
   takeHeld,
@@ -133,7 +134,7 @@ import {
   RanedexPanel,
   ShopPanel,
   SkinsPanel,
-  type DexNav,
+  type MenuNav,
   StarterPanel,
 } from './Panels';
 
@@ -742,12 +743,14 @@ export function Story() {
     run(g, steps);
   }
 
-  /** The Ranedex's own D-pad, A and B while it's open (see `RanedexPanel`). */
-  const dexNav = useRef<DexNav | null>(null);
+  /** The open menu's own D-pad, A and B: the Ranedex, the BAG or a shop (see `MenuNav`). */
+  const menuNav = useRef<MenuNav | null>(null);
+  /** Whether the open menu takes the D-pad, A and B itself. */
+  const navMenu = overlay === 'dex' || overlay === 'bag' || overlay === 'shop';
 
   function pressA() {
     if (line) return advance();
-    if (overlay === 'dex' && dexNav.current) return dexNav.current.a();
+    if (navMenu && menuNav.current) return menuNav.current.a();
     if (!game || busy) return;
     const [dx, dy] = DELTA[game.face];
     const map = mapFor(game.map, game.flags);
@@ -758,7 +761,7 @@ export function Story() {
 
   function pressB() {
     if (line) return advance();
-    if (overlay === 'dex' && dexNav.current?.b()) return playSfx('back');
+    if (navMenu && menuNav.current?.b()) return playSfx('back');
     if (overlay && overlay !== 'starter' && overlay !== 'ending' && overlay !== 'offer-chat') {
       playSfx('back');
       closeOverlay();
@@ -799,8 +802,8 @@ export function Story() {
 
   /** A D-pad press a menu takes instead of walking. False when no menu wants it. */
   function menuDir(dir: Dir): boolean {
-    if (overlay !== 'dex' || !dexNav.current || line) return false;
-    dexNav.current.dir(dir);
+    if (!navMenu || !menuNav.current || line) return false;
+    menuNav.current.dir(dir);
     return true;
   }
 
@@ -896,6 +899,7 @@ export function Story() {
         name: i.name,
         count: game.bag[i.id] ?? 0,
         use: i.use,
+        about: i.about,
       }))
     : [];
 
@@ -1236,6 +1240,7 @@ export function Story() {
         {overlay === 'bag' && (
           <BagPanel
             game={game}
+            navRef={menuNav}
             onClose={closeOverlay}
             onUseKey={(flag) => {
               setOverlay(null);
@@ -1256,9 +1261,12 @@ export function Story() {
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = r.lines;
               } else if (item.use.kind === 'hold') {
+                // Stays in the BAG: what happened shows there.
                 g = holdItem(game, i, id);
                 const back = m.held ? ` and gave back the ${itemById(m.held).name}` : '';
-                lines = [
+                persist(g);
+                setGame(g);
+                return [
                   `${name} is now holding the ${item.name}${back}!`,
                   `Its ${item.use.stat.toUpperCase()} goes up ${Math.round((item.use.factor - 1) * 100)}% in every battle.`,
                 ];
@@ -1274,9 +1282,13 @@ export function Story() {
                 };
                 lines = [`${name} put on the ${item.name}!`, ...r.lines];
               } else {
+                // Food stays in the BAG, so you can feed the next one straight after.
                 const healed = applyItem(item, m);
                 g = { ...g, party: g.party.map((x, j) => (j === i ? healed : x)) };
-                lines = [
+                playSfx('heal');
+                persist(g);
+                setGame(g);
+                return [
                   healed.hp > m.hp && m.hp > 0
                     ? `${name} regained ${healed.hp - m.hp} HP!`
                     : `${name} feels much better!`,
@@ -1295,9 +1307,15 @@ export function Story() {
             game={game}
             stall={stall}
             onClose={closeOverlay}
+            navRef={menuNav}
             onBuy={(id) => {
               const price = priceOf(id, stall);
               if (game.money >= price) setGame(give({ ...game, money: game.money - price }, id));
+            }}
+            onSell={(id, count) => {
+              const g = sell(game, id, count);
+              persist(g);
+              setGame(g);
             }}
           />
         )}
@@ -1315,7 +1333,7 @@ export function Story() {
             }}
           />
         )}
-        {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={dexNav} />}
+        {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={menuNav} />}
         {overlay === 'card' && <JerseysPanel game={game} onClose={closeOverlay} />}
         {overlay === 'skins' && (
           <SkinsPanel

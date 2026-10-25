@@ -1554,3 +1554,138 @@ test('story mode: MISSIONS on the START menu shows what you have open, and what 
   await missions('NoMissions');
   await expect(page.getByTestId('missions-empty')).toBeVisible();
 });
+
+test('story mode: the bag has pockets, food can be used again and again, and Vapes buys things back', async ({
+  page,
+}) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:sella')) return;
+    // In Vapes in Limerick, in front of the counter, with a hungry Olliemon and a full bag.
+    localStorage.setItem(
+      'ranemon.story.v1:sella',
+      JSON.stringify({
+        version: 1,
+        map: 'limerick-M0',
+        x: 3,
+        y: 4,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'olliemon',
+            level: 20,
+            exp: 8000,
+            hp: 5,
+            pp: [10],
+            status: null,
+            moves: ['fend-off'],
+          },
+        ],
+        box: [],
+        bag: {
+          pint: 5,
+          'settled-pint': 1,
+          'chicken-fillet-roll': 3,
+          'spice-bag': 4,
+          'cup-of-tea': 1,
+          'blue-razz': 2,
+          'blue-ghost': 1,
+          'vegan-stone': 1,
+        },
+        money: 1000,
+        flags: ['starter', 'visited:clare', 'visited:limerick', 'bike'],
+        seen: ['olliemon'],
+        caught: ['olliemon'],
+        pub: { map: 'limerick', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Sella');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  await expect(page.getByTestId('place')).toContainText('Vapes');
+  const text = page.getByTestId('story-text');
+
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'BAG' }).click();
+  // Food first, with a count of what's in each pocket.
+  await expect(page.getByTestId('tab-food')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('tab-food')).toContainText('3');
+  await expect(page.getByTestId('item-pint')).toHaveCount(0);
+  await expect(page.getByTestId('bag-info')).toContainText('Chicken Fillet Roll');
+  await page.screenshot({ path: test.info().outputPath('bag-food.png') });
+
+  // The D-pad moves down to the Spice Bag; A, then A again, feeds it to Olliemon.
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('bag-info')).toContainText('Restores 80 HP');
+  await page.keyboard.press('z');
+  await expect(page.getByTestId('pick-count')).toHaveText('×4');
+  await page.keyboard.press('z');
+  await expect(page.getByTestId('bag-note')).toContainText(/Olliemon regained \d+ HP!/);
+  // Still in the BAG, ready for another.
+  await expect(page.getByTestId('pick-count')).toHaveText('×3');
+  await page.screenshot({ path: test.info().outputPath('bag-feed.png') });
+  await page.keyboard.press('x');
+
+  // Right to PINTS: in battle only.
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('tab-pints')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('bag-use')).toHaveText('IN BATTLE ONLY');
+  await page.getByTestId('tab-key').click();
+  await expect(page.getByTestId('key-bike')).toBeVisible();
+  await page.getByTestId('tab-special').click();
+  await expect(page.getByTestId('item-vegan-stone')).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath('bag-special.png') });
+  await page.keyboard.press('x');
+  await expect(page.getByTestId('tab-food')).toHaveCount(0);
+
+  // The shopkeeper, across the counter.
+  await page.keyboard.press('z');
+  await expect(text).toContainText('Welcome to Vapes', { timeout: 10_000 });
+  await text.click();
+  await page.waitForTimeout(300);
+  if (await text.count()) await text.click();
+  await page.getByTestId('tab-sell').click();
+  // One-of-a-kind things can't be sold.
+  await expect(page.getByTestId('sell-vegan-stone')).toBeDisabled();
+  await expect(page.getByTestId('sell-spice-bag')).toContainText('€350 each');
+  await page.screenshot({ path: test.info().outputPath('shop-sell.png') });
+
+  await page.getByTestId('sell-spice-bag').click();
+  await page.getByRole('button', { name: 'One more' }).click();
+  await expect(page.getByTestId('sell-count')).toHaveText('×2');
+  await expect(page.getByText('For €700')).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath('shop-qty.png') });
+  await page.getByTestId('sell-ok').click();
+  await expect(page.getByTestId('sell-confirm')).toContainText('Sell 2 × Spice Bag for €700?');
+  await page.screenshot({ path: test.info().outputPath('shop-confirm.png') });
+  await page.getByTestId('sell-yes').click();
+  await expect(page.getByText('Money: €1700')).toBeVisible();
+  await expect(page.getByTestId('bag-note')).toContainText('Sold 2 × Spice Bag');
+  await expect(page.getByTestId('sell-spice-bag')).toContainText('×1');
+
+  // The keyboard sells too: down to the pints, A, right for one more, A, A.
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('z');
+  await expect(page.getByTestId('sell-qty')).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('z');
+  await expect(page.getByTestId('sell-confirm')).toContainText(
+    'Sell 2 × Pint of Guinness for €200?',
+  );
+  await page.keyboard.press('z');
+  await expect(page.getByText('Money: €1900')).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath('shop-sold.png') });
+
+  // It's saved.
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('ranemon.story.v1:sella') ?? '{}'),
+  );
+  expect(saved.money).toBe(1900);
+  expect(saved.bag['spice-bag']).toBe(1);
+  expect(saved.bag.pint).toBe(3);
+});

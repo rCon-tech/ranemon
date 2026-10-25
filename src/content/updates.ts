@@ -12,6 +12,17 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'A tidier bag',
+    notes: [
+      'The BAG has pockets now: FOOD, PINTS, VAPES, SPECIAL and KEY, with how many things are in each. Tap a thing to read what it does, and tap it again (or USE) to use it.',
+      'Food stays open after you use it, so you can feed your whole party one after the other.',
+      'In battle the BAG is split into pockets too, with what each thing does under its name.',
+      'Every shop buys things back now. Pick SELL, choose how many, and the shop pays half what it charges. Key items and one-of-a-kind finds can’t be sold.',
+      'The D-pad and keyboard work in the BAG and the shops: left and right change pocket, up and down pick a thing, A uses it and B goes back.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Down in one',
     notes: [
       'When a wild Ranemon takes to you, you can see it drink the pint now: it flies in, goes down a sip at a time, and the last of it is knocked back in one before it joins you.',
