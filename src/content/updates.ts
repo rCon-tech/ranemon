@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Not a fan',
+    notes: [
+      'Somebody in a café in Greystones thinks Ranemon are stupid, and is telling everyone. Maybe a battle will change their mind.',
+      'Change it and there’s a new skin to earn, and a new item for a Ranemon to hold that keeps it chill.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'The UK Ranedex',
     notes: [
       'Britain has a Ranedex of its own now: open the Ranedex and tap UK. It has every one of the lads drawn, their evolved forms too, and all of London’s own.',

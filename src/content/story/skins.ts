@@ -5,7 +5,7 @@ import { CHAMPION_OF_IRELAND, wonFlag } from './galway';
 import { TECHNO_DONE } from './cramps';
 import { BRIGHTON_DONE } from './enda';
 import { ARCADE_KING } from './brighton';
-import { BEAT_PEARS } from './greystones';
+import { BEAT_PEARS, BHAV_TRAINER } from './greystones';
 import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
 import { RENT_DONE } from './rent';
@@ -151,6 +151,12 @@ export const SKINS: Skin[] = [
   },
   { id: 'kill', name: 'Kill', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
   { id: 'stead', name: 'Stead', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
+  {
+    id: 'bhav',
+    name: 'Dr Bhav',
+    unlock: beat(BHAV_TRAINER),
+    hint: 'Prove a Ranemon hater in Greystones wrong.',
+  },
   {
     id: 'cyclist',
     name: 'Cyclist',
