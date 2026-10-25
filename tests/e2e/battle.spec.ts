@@ -37,7 +37,7 @@ test('the game asks for the password once per browser', async ({ page }) => {
   await page.getByRole('button', { name: 'ENTER' }).click();
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
   await page.reload();
-  await expect(page.getByText('PRESS START')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'STORY MODE' })).toBeVisible();
 });
 
 test('battle mode: London and evolved rosters, and a pick’s look, item and moves', async ({
@@ -45,7 +45,7 @@ test('battle mode: London and evolved rosters, and a pick’s look, item and mov
 }) => {
   await unlock(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'PRESS START' }).click();
+  await page.getByRole('button', { name: 'BATTLE MODE' }).click();
   // Britain's Ranemon stay a surprise until a story save has been there.
   const rosters = page.getByRole('group', { name: 'Roster' });
   await expect(rosters.getByRole('button', { name: '🔒 ???' })).toHaveCount(2);
@@ -79,7 +79,7 @@ test('battle mode: London and evolved rosters, and a pick’s look, item and mov
     ),
   );
   await page.goto('/');
-  await page.getByRole('button', { name: 'PRESS START' }).click();
+  await page.getByRole('button', { name: 'BATTLE MODE' }).click();
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
   await page.getByRole('group', { name: 'Roster' }).getByRole('button', { name: 'LONDON' }).click();
   await expect(roster.first()).toContainText('Golpeak');
@@ -128,7 +128,7 @@ test('pick 6 of the 20, then a full 6v6 battle against the CPU', async ({ page }
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'RANEMON' })).toBeVisible();
   await expect(page.getByText('Record: 0W · 0L')).toBeVisible();
-  await page.getByRole('button', { name: 'PRESS START' }).click();
+  await page.getByRole('button', { name: 'BATTLE MODE' }).click();
 
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
   await expect(roster).toHaveCount(20);

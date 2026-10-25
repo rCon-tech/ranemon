@@ -56,10 +56,10 @@ export default function Guide() {
         </p>
         <ul className="list-disc pl-4">
           <li>
-            <b>Battle</b> (PRESS START): pick 6 Ranemon in 2 minutes, from the 20 lads (more join as
-            you get further in Story mode), basic or fully evolved. Tap one on your team to pick its
-            look, what it holds and its moves. Your rival gets 6 of the rest. You fight 6 against 6
-            until one side has nobody left standing.
+            <b>Battle mode</b> (on the title screen): pick 6 Ranemon in 2 minutes, from the 20 lads
+            (more join as you get further in Story mode), basic or fully evolved. Tap one on your
+            team to pick its look, what it holds and its moves. Your rival gets 6 of the rest. You
+            fight 6 against 6 until one side has nobody left standing.
           </li>
           <li>
             <b>Story mode</b>: walk from Co. Clare to Trinity College Dublin, catch Ranemon, beat
