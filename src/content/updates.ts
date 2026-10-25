@@ -15,7 +15,7 @@ export const UPDATES: Update[] = [
     title: 'Easier to find your way round England',
     notes: [
       'The football in England now runs from the smallest club to the biggest, so you always know who’s next and the biggest match is saved for last.',
-      'A gold line along the bottom of the map says your next match, where it is and which platform it leaves from, and a NEXT sign bobs over where you need to go.',
+      'A gold line along the bottom of the map says your next match, where it is and which platform it leaves from.',
       'King’s Cross has a proper departures board: each platform’s number, where it goes and the crest of every club it’s for, with your next train lit up. The ticket office by the door sells you a ticket to any of them.',
       'Every ground looks like a football stadium now, with its club’s crest over the turnstiles, and every city has its landmarks, so you’ll know where you are the moment you step off the train.',
       'Already partway through? Your jerseys are all kept. One big match might be waiting for you again at the end.',

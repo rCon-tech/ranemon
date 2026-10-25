@@ -35,11 +35,10 @@ import {
   paintCentreSpot,
   paintCityRoom,
   paintKxBoard,
-  paintObjective,
   paintScenery,
   paintStandBanner,
 } from './england';
-import { KINGS_CROSS_ID, KX_DEPARTURES, nextClub, objectiveAt } from '@/content/story/premier';
+import { KINGS_CROSS_ID, KX_DEPARTURES, nextClub } from '@/content/story/premier';
 import {
   balloonsAt,
   bulbsOf,
@@ -764,13 +763,6 @@ export function Overworld(props: Props) {
       }
 
       drawn.sort((a, b) => a.y - b.y).forEach((d) => d.paint());
-
-      // Where to go for your next match in the Premier League, bobbing over the door or the guard.
-      const goal = objectiveAt(map, p.flags);
-      if (goal) {
-        const gy = goal.on === 'door' ? (goal.y + 1) * TILE : goal.y * TILE - 10;
-        paintObjective(c, sx(goal.x * TILE + 8), sy(gy), goal.on, now);
-      }
 
       // A party's fairy lights, strung over everyone's heads.
       const bulbs = map.party ? bulbsAt(map) : [];
