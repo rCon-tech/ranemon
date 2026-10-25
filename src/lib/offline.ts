@@ -25,6 +25,19 @@ function watch(reg: ServiceWorkerRegistration) {
   });
 }
 
+/** How much of the game is on the phone: `done` of `total` files. Null until the worker says. */
+export interface OfflineStatus {
+  done: number;
+  total: number;
+}
+let status: OfflineStatus | null = null;
+const statusListeners = new Set<() => void>();
+
+/** Asks the worker in charge how far it has got, and to carry on downloading what's missing. */
+function fill() {
+  navigator.serviceWorker.controller?.postMessage('fill');
+}
+
 let registered: Promise<ServiceWorkerRegistration | null> | null = null;
 
 /** Registers the service worker once, in builds that have one. */
@@ -32,8 +45,16 @@ export function registerOffline(): Promise<ServiceWorkerRegistration | null> {
   registered ??= (async () => {
     if (!OFFLINE || !('serviceWorker' in navigator)) return null;
     try {
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e.data?.type !== 'offline') return;
+        status = { done: e.data.done, total: e.data.total };
+        statusListeners.forEach((l) => l());
+      });
+      // The first visit: the worker takes over once the game itself is in, then fills in the rest.
+      navigator.serviceWorker.addEventListener('controllerchange', fill);
       const reg = await navigator.serviceWorker.register(asset('/sw.js'), { scope: asset('/') });
       watch(reg);
+      fill();
       // Asks the browser to keep the game's files and saves when the phone runs low on space.
       navigator.storage?.persist?.().catch(() => {});
       return reg;
@@ -42,6 +63,13 @@ export function registerOffline(): Promise<ServiceWorkerRegistration | null> {
     }
   })();
   return registered;
+}
+
+/** For `useSyncExternalStore`: how much of the game is on the phone, once the worker has said. */
+export const offlineStatus = () => status;
+export function onOfflineStatus(listener: () => void) {
+  statusListeners.add(listener);
+  return () => void statusListeners.delete(listener);
 }
 
 /** For `useSyncExternalStore`: whether a new version is downloaded and ready. */
