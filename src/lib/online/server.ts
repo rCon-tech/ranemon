@@ -12,6 +12,7 @@ import {
 } from '../battle/engine';
 import type { QueueItem } from '../ui/session';
 import {
+  CHAMPION_SKIN,
   entrantsOf,
   eventFor,
   isLevelRule,
@@ -21,6 +22,7 @@ import {
   stateFor,
   trainerId,
   validateTeam,
+  type ChampionView,
   type LevelRule,
   type RoomStage,
   type RoomView,
@@ -34,6 +36,7 @@ import {
  *   POST /api/battle {op: 'create', name, pin, rules, rule}  → a room with a code to share
  *   POST /api/battle {op: 'join', name, pin, rules, code}    → into the room (or back into it)
  *   POST /api/battle {op: 'ready' | 'poll' | 'act' | 'replace' | 'forfeit', code, token, ...}
+ *   POST /api/battle {op: 'champion'}                        → {champion}: who holds the crown
  *
  * Every answer is a RoomView, plus the player's `token` from create and join. The name's PIN
  * is checked against its online save, and the team is that save's party, checked by
@@ -57,8 +60,10 @@ interface Player {
   token: string;
   ready: boolean;
   team?: Entrant[];
-  /** Their Story mode skin, from their save (`skinOf`). */
+  /** Their Story mode skin, from their save (`skinOf`), or the Champion's while they hold it. */
   skin?: string;
+  /** They hold the Online Champion's crown. */
+  champion?: boolean;
 }
 
 export interface Room {
@@ -77,6 +82,33 @@ export interface Room {
   missed: [number, number];
   deadline: number;
   why?: RoomView['why'];
+  /** What the battle did to the crown, once it's over. */
+  crown?: RoomView['crown'];
+}
+
+/**
+ * The Online Champion: one trainer at a time, kept on the server. Beat them in a friend battle
+ * (or have them forfeit, or leave) and the crown, and the Champion's skin, are yours. Nobody
+ * holds it until the first friend battle anyone wins.
+ */
+export interface Champion {
+  id: string;
+  name: string;
+  /** When they took the crown. */
+  since: number;
+  /** Battles won while holding it. */
+  defences: number;
+  /** Who they took it from; missing for the first Champion. */
+  from?: string;
+  /** The battle that last changed the record (code and when it opened), so it counts once. */
+  battle: string;
+}
+
+/** The one Champion record, as JSON with a version, like a room. */
+export interface CrownStore {
+  get(): Promise<{ doc: string; version: number } | null>;
+  /** Writes if the record is still at `version` (0: there's none yet). False if it moved on. */
+  put(doc: string, version: number, now: number): Promise<boolean>;
 }
 
 /** Rooms by code, as JSON with a version, so two calls at once can't overwrite each other. */
@@ -99,6 +131,8 @@ export interface BattleContext {
   token(): string;
   /** A random number in [0, 1), for room codes. */
   random(): number;
+  /** The Online Champion's record. A server without it has no Champion. */
+  crown?: CrownStore;
 }
 
 export interface Reply {
@@ -135,6 +169,77 @@ function readSkin(raw: string | null): string | undefined {
     return undefined;
   }
 }
+
+async function readCrown(ctx: BattleContext): Promise<{ champ: Champion | null; version: number }> {
+  const got = ctx.crown && (await ctx.crown.get());
+  if (!got) return { champ: null, version: 0 };
+  try {
+    return { champ: JSON.parse(got.doc) as Champion, version: got.version };
+  } catch {
+    return { champ: null, version: got.version };
+  }
+}
+
+/**
+ * Dresses a player for the room: the Champion always wears the crown and the Champion's skin,
+ * and nobody else can, whatever their save says.
+ */
+function dress(p: Player, champ: Champion | null, saved: string | undefined) {
+  const crowned = !!champ && champ.id === p.id;
+  const skin = crowned ? CHAMPION_SKIN : saved === CHAMPION_SKIN ? undefined : saved;
+  if (skin) p.skin = skin;
+  else delete p.skin;
+  if (crowned) p.champion = true;
+  else delete p.champion;
+}
+
+/** The battle that ended in `room`, as the Champion record names it. */
+const battleKey = (room: Room) => `${room.code}@${room.created}`;
+
+/**
+ * What a finished battle does to the crown: the winner takes it from the Champion, or claims it
+ * if nobody holds it, and a Champion who wins has defended it. Null if it changes nothing.
+ */
+export function crowned(
+  champ: Champion | null,
+  room: Room,
+  now: number,
+): { champ: Champion; crown: NonNullable<Room['crown']> } | null {
+  const phase = room.state?.phase;
+  if (room.stage !== 'over' || phase?.kind !== 'over' || phase.winner === 'draw') return null;
+  const key = battleKey(room);
+  if (champ?.battle === key) return null;
+  const winner = room.players[phase.winner];
+  const loser = room.players[other(phase.winner)];
+  if (!winner || !loser) return null;
+  if (champ?.id === winner.id)
+    return {
+      champ: { ...champ, name: winner.name, defences: champ.defences + 1, battle: key },
+      crown: { holder: winner.name, change: 'kept' },
+    };
+  if (champ && champ.id !== loser.id) return null;
+  return {
+    champ: {
+      id: winner.id,
+      name: winner.name,
+      since: now,
+      defences: 0,
+      ...(champ && { from: loser.name }),
+      battle: key,
+    },
+    crown: { holder: winner.name, change: champ ? 'took' : 'claimed' },
+  };
+}
+
+/** The crown as anyone may see it. */
+const championView = (c: Champion | null): ChampionView | null =>
+  c && {
+    id: c.id,
+    name: c.name,
+    since: c.since,
+    defences: c.defences,
+    ...(c.from && { from: c.from }),
+  };
 
 const say = (text: string): QueueItem => ({ kind: 'say', text });
 
@@ -224,6 +329,7 @@ export function viewOf(room: Room, side: Side, after: number): RoomView {
           ready: p.ready,
           ...(p.team && { size: p.team.length }),
           ...(p.skin && { skin: p.skin }),
+          ...(p.champion && { champion: true as const }),
         }
       : null;
   const from = after < 0 ? room.steps.length : Math.min(after, room.steps.length);
@@ -243,6 +349,7 @@ export function viewOf(room: Room, side: Side, after: number): RoomView {
     // The seed would tell a changed game which moves will hit.
     state: state && { ...state, rng: 0 },
     ...(room.why && { why: room.why }),
+    ...(room.crown && { crown: room.crown }),
   };
 }
 
@@ -276,14 +383,37 @@ async function update(
         : (room.players.findIndex((p) => p.token === who.token) as Side | -1);
     if (side === -1) return fail(403, 'not in this room');
     const now = ctx.now();
+    const was = room.stage;
     advance(room, now);
     const refused = change(room, side);
     if (refused) return refused;
+    // The battle has just ended: settle the crown, and show who holds it now.
+    let crown: Champion | null = null;
+    if (was !== 'over' && room.stage === 'over' && ctx.crown) {
+      const { champ } = await readCrown(ctx);
+      const next = crowned(champ, room, now);
+      if (next) {
+        crown = next.champ;
+        room.crown = next.crown;
+        for (const p of room.players) dress(p, crown, p.champion ? undefined : p.skin);
+      }
+    }
     const doc = JSON.stringify(room);
     if (doc !== got.doc && !(await ctx.rooms.put(code, doc, got.version, now))) continue;
+    if (crown) await settleCrown(ctx, room, now);
     return { status: 200, body: { ...viewOf(room, side, after), ...extra } };
   }
   return fail(503, 'busy');
+}
+
+/** Writes the crown for a battle that has ended, once, trying again if another wrote first. */
+async function settleCrown(ctx: BattleContext, room: Room, now: number) {
+  for (let tries = 0; tries < 5; tries++) {
+    const { champ, version } = await readCrown(ctx);
+    const next = crowned(champ, room, now);
+    if (!next) return;
+    if (await ctx.crown!.put(JSON.stringify(next.champ), version, now)) return;
+  }
 }
 
 /** Handles one battle call. */
@@ -291,6 +421,9 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
   if (!isObject(body)) return fail(400, 'bad request');
   const { op } = body;
   const after = typeof body.after === 'number' ? body.after : 0;
+
+  if (op === 'champion')
+    return { status: 200, body: { champion: championView((await readCrown(ctx)).champ) } };
 
   if (op === 'create' || op === 'join') {
     if (body.rules !== RULES_VERSION) return fail(409, 'update');
@@ -303,7 +436,9 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
     if (auth === 'nosave') return fail(404, 'no save');
     const token = ctx.token();
     const skin = readSkin(await ctx.save(id));
-    const me: Player = { id, name, token, ready: false, ...(skin && { skin }) };
+    const { champ } = await readCrown(ctx);
+    const me: Player = { id, name, token, ready: false };
+    dress(me, champ, skin);
 
     if (op === 'create') {
       const rule = isLevelRule(body.rule) ? body.rule : 'flat50';
@@ -344,8 +479,7 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
       (room) => {
         if (known !== -1) {
           room.players[side].token = token;
-          if (skin) room.players[side].skin = skin;
-          else delete room.players[side].skin;
+          dress(room.players[side], champ, skin);
           return;
         }
         if (room.stage === 'closed') return fail(410, 'closed');
@@ -377,6 +511,7 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
         // An unreadable save brings no team.
       }
       const skin = readSkin(raw);
+      const { champ } = await readCrown(ctx);
       const checked = validateTeam(party);
       if ('error' in checked) return { status: 422, body: { error: 'team', why: checked.error } };
       return update(ctx, code, { token }, after, (room, side) => {
@@ -385,8 +520,7 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
         me.ready = true;
         me.team = entrantsOf(checked.team, room.rule);
         // The save is read again here, so a skin changed since joining shows too.
-        if (skin) me.skin = skin;
-        else delete me.skin;
+        dress(me, champ, skin);
         const [a, b] = room.players;
         if (!a.ready || !b?.ready) return;
         const now = ctx.now();

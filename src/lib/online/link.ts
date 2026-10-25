@@ -1,6 +1,6 @@
 import type { BattleState } from '../battle/engine';
 import type { Choice, QueueItem } from '../ui/session';
-import { RULES_VERSION, type LevelRule, type RoomView } from './rules';
+import { RULES_VERSION, type ChampionView, type LevelRule, type RoomView } from './rules';
 
 /**
  * A phone's side of a live friend battle on the save server (`server.ts`): it sends choices and
@@ -54,6 +54,19 @@ async function post(base: string, body: object): Promise<RoomView & { token?: st
     throw new LinkError(WORDS[error] ?? `The save server said no (${error}).`, error);
   }
   return data;
+}
+
+/**
+ * Who holds the Online Champion's crown, or null if nobody does yet. Undefined if the server
+ * couldn't be reached, or is from before the crown, so a phone keeps what it last knew.
+ */
+export async function fetchChampion(base: string): Promise<ChampionView | null | undefined> {
+  try {
+    const data = (await post(base, { op: 'champion' })) as { champion?: ChampionView | null };
+    return data.champion === undefined ? undefined : data.champion;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Opens a room for a friend to join. */

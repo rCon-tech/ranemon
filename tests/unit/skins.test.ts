@@ -18,6 +18,7 @@ import {
 } from '@/content/story/skins';
 import { TRAINERS } from '@/content/story/trainers';
 import { DEX } from '@/lib/battle/evolutions';
+import { CHAMPION_SKIN } from '@/lib/online/rules';
 import { devSave, storyFlags } from '@/lib/story/devsave';
 import { exportCode, importCode, migrate, parseSave, SCHEMA } from '@/lib/story/save';
 import { beatFlag, newGame, setFlag, type StoryState } from '@/lib/story/state';
@@ -34,7 +35,9 @@ describe('the skins', () => {
     for (const k of SKINS) {
       expect(STYLES[k.id], k.id).toBeDefined();
       if (k.id === DEFAULT_SKIN) continue;
-      expect(k.unlock.length, k.id).toBeGreaterThan(0);
+      // The Online Champion's skin comes with the crown, not a flag.
+      if (k.online) expect(k.unlock, k.id).toEqual([]);
+      else expect(k.unlock.length, k.id).toBeGreaterThan(0);
       expect(k.hint, k.id).not.toBe('');
     }
   });
@@ -143,8 +146,37 @@ describe('skins in saves', () => {
     expect(lookOf(s)).toBe('player');
   });
 
-  it('are all in the developer save', () => {
+  it('are all in the developer save, but the Online Champion’s', () => {
     const g = devSave();
-    for (const k of SKINS) expect(hasSkin(g, k), k.id).toBe(true);
+    for (const k of SKINS) expect(hasSkin(g, k), k.id).toBe(!k.online);
+  });
+});
+
+describe('the Online Champion’s skin', () => {
+  const g = devSave();
+
+  it('is worn only while the save server says you hold the crown', () => {
+    expect(skinById(CHAMPION_SKIN)!.online).toBe(true);
+    expect(hasSkin(g, skinById(CHAMPION_SKIN)!)).toBe(false);
+    expect(wearSkin(g, CHAMPION_SKIN)).toBe(g);
+    const worn = wearSkin(g, CHAMPION_SKIN, true);
+    expect(worn.skin).toBe(CHAMPION_SKIN);
+    expect(lookOf(worn, true)).toBe(CHAMPION_SKIN);
+    // Lose the crown and you're back in the usual look; win it back and it's on again.
+    expect(lookOf(worn, false)).toBe(DEFAULT_SKIN);
+  });
+
+  it('is never kept in a save, even one that says it has it', () => {
+    expect(newSkins(newGame()).map((k) => k.id)).not.toContain(CHAMPION_SKIN);
+    expect(unlockSkins(g).state.skins).not.toContain(CHAMPION_SKIN);
+    const forged = { ...g, skin: CHAMPION_SKIN, skins: [...g.skins!, CHAMPION_SKIN] };
+    expect(lookOf(forged)).toBe(DEFAULT_SKIN);
+  });
+
+  it('is drawn with a crown, a cape and a sceptre', () => {
+    const s = STYLES[CHAMPION_SKIN];
+    expect(s.hat?.kind).toBe('crown');
+    expect(s.cape).toBeDefined();
+    expect(s.stickTop).toBeDefined();
   });
 });

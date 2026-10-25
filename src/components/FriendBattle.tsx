@@ -7,6 +7,7 @@ import type { BattleState } from '@/lib/battle/engine';
 import { createRoom, joinRoom, LinkError, RoomLink } from '@/lib/online/link';
 import { moveById } from '@/lib/battle/moves';
 import {
+  CHAMPION_SKIN,
   entrantsOf,
   LEVEL_RULES,
   skinOf,
@@ -26,6 +27,7 @@ import { SoundButton, useMusic } from './Sound';
 import { MoveCard } from './MoveCard';
 import { Sprite } from './Sprite';
 import { isLook, Portrait } from './story/Portrait';
+import { ChampionBanner, useChampion } from './Champion';
 
 /** The save server's address, when this build has one (see `save-api/`). */
 function saveApi(): string | undefined {
@@ -104,7 +106,7 @@ type Screen =
   | { kind: 'home' }
   | { kind: 'room' }
   | { kind: 'battle'; link: RoomLink; start: { state: BattleState; events: QueueItem[] } }
-  | { kind: 'done'; result: Result };
+  | { kind: 'done'; result: Result; crown?: RoomView['crown'] };
 
 const RESULT_TEXT: Record<Result, string> = {
   win: 'You won!',
@@ -159,14 +161,36 @@ function TeamRow({ team, rule }: { team: Member[]; rule: LevelRule }) {
   );
 }
 
-/** A trainer in the room, dressed in their Story mode skin. */
-function Trainer({ name, skin }: { name: string; skin?: string }) {
+/** A trainer in the room, dressed in their Story mode skin, and crowned if they're Champion. */
+function Trainer({ name, skin, champion }: { name: string; skin?: string; champion?: boolean }) {
   return (
     <span className="flex w-20 flex-col items-center gap-1" data-testid="room-trainer">
-      <Portrait look={isLook(skin) ? skin : 'player'} className="h-12 w-8" />
+      <Portrait
+        look={isLook(skin) ? skin : 'player'}
+        className={`h-12 w-8 ${champion ? 'rounded-md shadow-[0_0_12px_rgba(255,210,58,0.8)]' : ''}`}
+      />
       <span className="max-w-full truncate text-[10px]">{name}</span>
+      {champion && (
+        <span className="text-[8px] font-bold text-gold" data-testid="room-champion">
+          ONLINE CHAMPION
+        </span>
+      )}
     </span>
   );
+}
+
+/** What the battle did to the crown, from this phone's side. */
+function crownText(crown: NonNullable<RoomView['crown']>, won: boolean): string {
+  if (!won)
+    return crown.change === 'took'
+      ? `${crown.holder} took your crown. Win it back!`
+      : crown.change === 'kept'
+        ? `${crown.holder} is still the Online Champion.`
+        : `${crown.holder} claimed the crown, and is the Online Champion.`;
+  if (crown.change === 'kept') return 'You defended your crown!';
+  return crown.change === 'took'
+    ? 'You beat the Champion! You are the Online Champion, and the Champion’s skin is yours.'
+    : 'You claimed the crown! You are the Online Champion, and the Champion’s skin is yours.';
 }
 
 /**
@@ -188,6 +212,7 @@ export function FriendBattle() {
   const [view, setView] = useState<RoomView | null>(null);
   const [copied, setCopied] = useState(false);
   const link = useRef<RoomLink | null>(null);
+  const { champ, refresh: refreshChamp } = useChampion(SAVE_API);
   useMusic(screen.kind === 'battle' ? undefined : 'title');
   const name = typedName ?? boot?.stored?.name ?? boot?.name ?? '';
   const code = typedCode ?? boot?.room ?? '';
@@ -362,12 +387,19 @@ export function FriendBattle() {
         key={view.code}
         remote={remote}
         difficulty="normal"
-        foe={{ kind: 'trainer', name: view.foe?.name ?? 'Your friend' }}
+        foe={{
+          kind: 'trainer',
+          name: view.foe
+            ? `${view.foe.champion ? 'Online Champion ' : ''}${view.foe.name}`
+            : 'Your friend',
+        }}
         scene="gym"
         music="leader"
         onFinish={(result) => {
+          const crown = view.crown;
           leave();
-          setScreen({ kind: 'done', result });
+          setScreen({ kind: 'done', result, ...(crown && { crown }) });
+          refreshChamp();
         }}
       />
     );
@@ -379,6 +411,15 @@ export function FriendBattle() {
         <p className="text-[20px] font-bold" data-testid="friend-result">
           {RESULT_TEXT[screen.result]}
         </p>
+        {screen.crown && (
+          <p
+            className="max-w-[300px] text-[13px] font-bold leading-relaxed text-gold [text-shadow:0_2px_0_#1c2026]"
+            data-testid="friend-crown"
+          >
+            {crownText(screen.crown, screen.result === 'win')}
+          </p>
+        )}
+        <ChampionBanner champ={champ} />
         <button
           type="button"
           className="pixel-btn menu-item w-full max-w-[260px] text-[14px]"
@@ -402,10 +443,14 @@ export function FriendBattle() {
           {view?.code ?? '…'}
         </p>
         <div className="flex items-end justify-center gap-3">
-          <Trainer name={view?.you.name ?? name.trim()} skin={view?.you.skin ?? skin} />
+          <Trainer
+            name={view?.you.name ?? name.trim()}
+            skin={view?.you.skin ?? skin}
+            champion={view?.you.champion}
+          />
           <span className="pb-5 text-[12px]">VS</span>
           {foe ? (
-            <Trainer name={foe.name} skin={foe.skin} />
+            <Trainer name={foe.name} skin={foe.skin} champion={foe.champion} />
           ) : (
             <span className="w-20 pb-5 text-[10px] opacity-60">???</span>
           )}
@@ -472,8 +517,13 @@ export function FriendBattle() {
     return shell(
       <div className="flex w-full max-w-[300px] flex-col gap-3">
         <div className="flex items-center justify-center gap-2">
-          <Trainer name={name.trim()} skin={skin} />
+          <Trainer
+            name={name.trim()}
+            skin={champ?.id === trainerId(name) ? CHAMPION_SKIN : skin}
+            champion={champ?.id === trainerId(name)}
+          />
         </div>
+        <ChampionBanner champ={champ} />
         <p className="text-[12px]">{name.trim()}’s team</p>
         <TeamRow team={team} rule={rule} />
         <div className="flex flex-col gap-1 text-left text-[12px]">
@@ -544,6 +594,7 @@ export function FriendBattle() {
       <p className="text-[11px] leading-relaxed text-frame">
         Battle a friend with your Story mode Ranemon. Sign in with your trainer name and PIN.
       </p>
+      <ChampionBanner champ={champ} />
       <label className="flex flex-col gap-1 text-left text-[12px]">
         TRAINER NAME
         <input

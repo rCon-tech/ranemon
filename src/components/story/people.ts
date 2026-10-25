@@ -96,6 +96,11 @@ export interface Style {
    * floaty skirt down to the ankles over the shoes. `top` should match it; `legs` is the skin.
    */
   maxi?: string;
+  /**
+   * A royal cape in this colour from the shoulders to the calves, edged in ermine, with a gold
+   * chain across the chest and gold embroidery down the back.
+   */
+  cape?: string;
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -1559,6 +1564,26 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2c3c64',
     shoes: '#2a1a12',
   },
+  // The Online Champion, worn only by whoever holds the crown: a jewelled gold crown, a crimson
+  // cape edged in ermine, a royal purple coat with gold frogging, a gold sash hung with medals,
+  // and a sceptre topped with a crystal orb.
+  champion: {
+    skin: SKIN,
+    hair: '#3a2416',
+    hairStyle: 'short',
+    hat: { kind: 'crown', colour: '#ffd23a', trim: '#e0204a' },
+    top: '#4a1e8a',
+    topKind: 'coat',
+    trim: '#ffd23a',
+    legs: '#f4f0e8',
+    shoes: '#1a1020',
+    strap: '#ffd23a',
+    badges: ['#e0204a', '#3ac0f0', '#ffd23a'],
+    stick: '#e8b830',
+    stickTop: '#b8ecff',
+    cape: '#b0142e',
+    tall: true,
+  },
   // John Collison, his brother: glasses, a navy jumper and a purple collar.
   jcollison: {
     skin: '#f8d8b8',
@@ -1791,6 +1816,91 @@ function legsSide(c: Ctx, s: Style, p: Pose) {
 }
 
 // ---------- the body ----------
+
+const ERMINE = '#f6f2ea';
+const GOLD = '#ffd23a';
+
+/** An ermine band: white fur with the black tail tips spotted along it. */
+function ermine(c: Ctx, x: number, y: number, w: number, h: number) {
+  px(c, x, y, w, h, ERMINE);
+  px(c, x, y + h - 1, w, 1, shade(ERMINE, 0.86));
+  for (let i = 2; i < w - 1; i += 5) px(c, x + i, y + (i % 2 ? 1 : Math.max(0, h - 3)), 1, 2, INK);
+}
+
+/** The cape behind someone, seen from the front: it shows past the arms to either side. */
+function capeBehind(c: Ctx, s: Style, p: Pose) {
+  const y0 = 36 + p.lift;
+  const cape = s.cape!;
+  shaded(c, 6, y0, 52, 50 - p.lift, 5, shade(cape, 0.82), 0.15, 0.2);
+  for (const x of [9, 54]) px(c, x, y0 + 8, 1, 38, shade(cape, 0.6));
+  ermine(c, 6, y0 + 46 - p.lift, 8, 4);
+  ermine(c, 50, y0 + 46 - p.lift, 8, 4);
+}
+
+/** The cape over someone's back, with gold embroidery, an ermine hem and a mantle. */
+function capeBack(c: Ctx, s: Style, p: Pose) {
+  const y0 = 35 + p.lift;
+  const cape = s.cape!;
+  const h = 51 - p.lift;
+  shaded(c, 8, y0, 48, h, 6, cape, 0.2, 0.25);
+  // Folds falling from the shoulders.
+  for (const x of [16, 25, 39, 48]) px(c, x, y0 + 10, 1, h - 16, shade(cape, 0.68));
+  for (const x of [20, 44]) px(c, x, y0 + 12, 1, h - 20, shade(cape, 1.18));
+  // A gold border and a crown worked in gold thread in the middle.
+  px(c, 10, y0 + h - 7, 44, 1, GOLD);
+  for (const x of [11, 52]) px(c, x, y0 + 8, 1, h - 15, GOLD);
+  const cx = 32;
+  const cy = y0 + 22;
+  px(c, cx - 6, cy + 4, 13, 3, GOLD);
+  for (const [dx, t] of [
+    [-6, 4],
+    [-1, 7],
+    [4, 4],
+  ] as const)
+    px(c, cx + dx, cy + 4 - t, 3, t, GOLD);
+  px(c, cx, cy - 4, 1, 1, '#e0204a');
+  px(c, cx - 5, cy + 5, 1, 1, '#3ac0f0');
+  px(c, cx + 5, cy + 5, 1, 1, '#3ac0f0');
+  for (const [x, y] of [
+    [18, 34],
+    [46, 34],
+    [24, 44],
+    [40, 44],
+  ])
+    px(c, x, y0 + y - 12, 2, 2, shade(GOLD, 0.85));
+  ermine(c, 8, y0 + h - 5, 48, 5);
+  // The ermine mantle over the shoulders.
+  round(c, 14, y0 - 1, 36, 9, 4, ERMINE);
+  for (let x = 17; x < 48; x += 5) px(c, x, y0 + 3, 1, 2, INK);
+}
+
+/** The cape seen from the side, hanging behind the back. */
+function capeSide(c: Ctx, s: Style, p: Pose) {
+  const y0 = 36 + p.lift;
+  const cape = s.cape!;
+  // It trails a little the other way to the stride.
+  const sway = Math.abs(p.stride);
+  shaded(c, 33, y0, 17 + sway, 50 - p.lift, 5, cape, 0.15, 0.3);
+  px(c, 41, y0 + 8, 1, 36, shade(cape, 0.68));
+  px(c, 46 + sway, y0 + 6, 1, 38, GOLD);
+  ermine(c, 33, y0 + 46 - p.lift, 17 + sway, 4);
+}
+
+/** The ermine mantle across the shoulders, and the gold chain that holds the cape on. */
+function capeFront(c: Ctx, p: Pose) {
+  const y0 = 36 + p.lift;
+  ermine(c, 16, y0, 8, 5);
+  ermine(c, 40, y0, 8, 5);
+  for (let i = 0; i <= 16; i++) {
+    const x = 24 + i;
+    const y = y0 + 3 + Math.sin((i / 16) * Math.PI) * 3;
+    px(c, x, y, 1, 1, i % 2 ? GOLD : shade(GOLD, 0.7));
+  }
+  round(c, 22, y0 + 1, 4, 4, 1, GOLD);
+  round(c, 38, y0 + 1, 4, 4, 1, GOLD);
+  px(c, 23, y0 + 2, 1, 1, '#e0204a');
+  px(c, 39, y0 + 2, 1, 1, '#e0204a');
+}
 
 const LONG = new Set<Top>(['gown', 'agbada', 'coat']);
 
@@ -2601,14 +2711,20 @@ export function paintPerson(
   const side: Side = dir === 'right' ? 'left' : dir;
   const p = poseOf(frame);
   if (side === 'left') {
+    if (s.cape) capeSide(c, s, p);
     legsSide(c, s, p);
     bodySide(c, s, p);
   } else {
     const back = side === 'up';
+    if (!back && s.cape) capeBehind(c, s, p);
     if (!back && s.guitar) torsoFront(c, { ...s, guitar: undefined }, p, true);
     legsFront(c, s, p, back);
     torsoFront(c, s, p, back);
     armsFront(c, s, p, back);
+    if (s.cape) {
+      if (back) capeBack(c, s, p);
+      else capeFront(c, p);
+    }
   }
   if (!headless) head(c, s, side, p);
   outline(c);

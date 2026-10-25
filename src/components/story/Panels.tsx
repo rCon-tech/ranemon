@@ -683,13 +683,30 @@ export function RanedexPanel({
   );
 }
 
-export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () => void }) {
+export function JerseysPanel({
+  game,
+  champion = false,
+  onClose,
+}: {
+  game: StoryState;
+  /** They hold the Online Champion's crown. */
+  champion?: boolean;
+  onClose: () => void;
+}) {
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
+      {champion && (
+        <p
+          className="rounded-lg border-2 border-gold bg-[#2a1450] px-2 py-1 text-center text-[11px] font-bold text-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]"
+          data-testid="card-champion"
+        >
+          ♛ ONLINE CHAMPION ♛
+        </p>
+      )}
       <div className="flex items-center gap-3">
         <Portrait
-          look={lookOf(game)}
-          className="h-[72px] w-12 rounded-lg border-2 border-frame bg-mist"
+          look={lookOf(game, champion)}
+          className={`h-[72px] w-12 rounded-lg border-2 bg-mist ${champion ? 'border-gold' : 'border-frame'}`}
         />
         <p className="text-[11px] leading-relaxed">
           Money €{game.money}
@@ -727,30 +744,33 @@ export function JerseysPanel({ game, onClose }: { game: StoryState; onClose: () 
  */
 export function SkinsPanel({
   game,
+  champion = false,
   onWear,
   onClose,
 }: {
   game: StoryState;
+  /** They hold the Online Champion's crown, so its skin is theirs while they keep it. */
+  champion?: boolean;
   onWear: (id: string) => void;
   onClose: () => void;
 }) {
-  const wearing = lookOf(game);
-  const have = SKINS.filter((k) => hasSkin(game, k)).length;
+  const wearing = lookOf(game, champion);
+  const have = SKINS.filter((k) => hasSkin(game, k, champion)).length;
   return (
     <Panel title="SKINS" onClose={onClose}>
       <p className="text-[10px] leading-relaxed">
         Beat someone, or finish their side quest, to walk around as them. {have}/{SKINS.length}{' '}
-        unlocked.
+        unlocked. The Online Champion’s skin is worn only by whoever holds the crown.
       </p>
       <div className="grid grid-cols-3 gap-1.5">
         {SKINS.map((k) => {
-          const open = hasSkin(game, k);
+          const open = hasSkin(game, k, champion);
           return (
             <button
               key={k.id}
               type="button"
               data-testid={`skin-${k.id}`}
-              className="pixel-btn flex flex-col items-center gap-1 px-1 py-1.5"
+              className={`pixel-btn flex flex-col items-center gap-1 px-1 py-1.5 ${k.online ? 'border-gold shadow-[0_0_10px_rgba(255,210,58,0.6)]' : ''}`}
               disabled={!open}
               aria-pressed={open ? wearing === k.id : undefined}
               aria-label={open ? k.name : `Locked. ${k.hint}`}
@@ -760,9 +780,10 @@ export function SkinsPanel({
                 onWear(k.id);
               }}
             >
-              <Portrait look={k.id} locked={!open} className="h-12 w-8" />
+              {/* The Champion's skin is on show to everyone: it's worth winning. */}
+              <Portrait look={k.id} locked={!open && !k.online} className="h-12 w-8" />
               <span className="text-center text-[8px] leading-tight">
-                {open ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
+                {open || k.online ? (k.id === DEFAULT_SKIN ? 'YOU' : k.name) : '?????'}
               </span>
               {!open && <span className="text-center text-[7px] leading-tight">{k.hint}</span>}
               {open && wearing === k.id && <span className="text-[7px]">WEARING</span>}

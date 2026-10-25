@@ -40,6 +40,20 @@ Vercel runs on each deploy) bundles `src/lib/online/server.ts` into `gen/battle.
 turned on in Vercel, which it is for new projects. Vercel redeploys the server on each push to
 `main`, so it stays on the same version as the game.
 
+### The Online Champion
+
+The crown lives in a `crown` table (one row) that the server makes on first use, so it needs no
+setting up, only a redeploy. It changes only when the server ends a friend battle with a winner.
+To hand it to someone by hand (Rich here), in the Neon SQL Editor:
+
+```sql
+INSERT INTO crown (id, doc, version, updated)
+VALUES ('online', '{"id":"rich","name":"Rich","since":0,"defences":0,"battle":"by-hand"}', 1, 0)
+ON CONFLICT (id) DO UPDATE SET doc = EXCLUDED.doc, version = crown.version + 1;
+```
+
+`DELETE FROM crown;` leaves it unclaimed again, for the next friend battle anyone wins.
+
 To try it on your own machine, run `npm run local` in `save-api/` (everything in memory, at
 `http://localhost:8787/api`), then `NEXT_PUBLIC_SAVE_API=http://localhost:8787/api pnpm dev`.
 

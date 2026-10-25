@@ -10,6 +10,7 @@ import {
   eventFor,
   HIDDEN,
   RULES_VERSION,
+  CHAMPION_SKIN,
   skinOf,
   stateFor,
   trainerId,
@@ -23,6 +24,7 @@ import {
   ROOM_MS,
   STEP_MS,
   type BattleContext,
+  type CrownStore,
   type RoomStore,
 } from '@/lib/online/server';
 import { devSave } from '@/lib/story/devsave';
@@ -141,7 +143,7 @@ describe('what each phone sees', () => {
 });
 
 /** The battle logic against memory, with a clock to move on. */
-function world(saves: Record<string, string | null> = { rich: LATE, con: LATE }) {
+function world(saves: Record<string, string | null> = { rich: LATE, con: LATE }, crowned = true) {
   const rooms = new Map<string, { doc: string; version: number }>();
   const store: RoomStore = {
     get: async (code) => rooms.get(code) ?? null,
@@ -152,10 +154,20 @@ function world(saves: Record<string, string | null> = { rich: LATE, con: LATE })
       return true;
     },
   };
+  let champion: { doc: string; version: number } | null = null;
+  const crown: CrownStore = {
+    get: async () => champion,
+    put: async (doc, version) => {
+      if ((champion?.version ?? 0) !== version) return false;
+      champion = { doc, version: version + 1 };
+      return true;
+    },
+  };
   let clock = 1_000_000;
   let n = 0;
   const ctx: BattleContext = {
     rooms: store,
+    ...(crowned && { crown }),
     auth: async (id, pin) => (!(id in saves) ? 'nosave' : pin === '1234' ? 'ok' : 'pin'),
     save: async (id) => saves[id] ?? null,
     now: () => clock,
@@ -183,6 +195,130 @@ async function started(w = world(), rule = 'flat50') {
   const ready = await w.call({ op: 'ready', code, token: players[1].token });
   return { w, code, players, ready };
 }
+
+describe('the Online Champion', () => {
+  const saves = () => ({ rich: LATE, con: LATE, ois: LATE });
+  const champion = async (w: ReturnType<typeof world>) =>
+    (await w.call({ op: 'champion' })).body as unknown as {
+      champion: { id: string; name: string; defences: number; from?: string } | null;
+    };
+  /** `a` opens a room, `b` joins, both ready, and `loser` forfeits. */
+  async function fight(w: ReturnType<typeof world>, a: string, b: string, loser: string) {
+    const rules = RULES_VERSION;
+    const one = await w.call({ op: 'create', name: a, pin: '1234', rules });
+    const code = one.body.code;
+    const two = await w.call({ op: 'join', name: b, pin: '1234', rules, code });
+    await w.call({ op: 'ready', code, token: one.body.token });
+    await w.call({ op: 'ready', code, token: two.body.token });
+    const token = loser === a ? one.body.token : two.body.token;
+    const other = loser === a ? two.body.token : one.body.token;
+    const lost = await w.call({ op: 'forfeit', code, token });
+    const won = await w.call({ op: 'poll', code, token: other, after: 0 });
+    return { code, lost: lost.body, won: won.body };
+  }
+
+  it('starts with nobody, and goes to whoever wins the first battle', async () => {
+    const w = world(saves());
+    expect(await champion(w)).toEqual({ champion: null });
+    const { won, lost } = await fight(w, 'Rich', 'Con', 'Con');
+    expect(won.crown).toEqual({ holder: 'Rich', change: 'claimed' });
+    expect(lost.crown).toEqual({ holder: 'Rich', change: 'claimed' });
+    expect(won.you).toMatchObject({ name: 'Rich', champion: true, skin: CHAMPION_SKIN });
+    expect(lost.foe).toMatchObject({ name: 'Rich', champion: true, skin: CHAMPION_SKIN });
+    expect(lost.you).not.toHaveProperty('champion');
+    expect((await champion(w)).champion).toMatchObject({ id: 'rich', name: 'Rich', defences: 0 });
+    expect((await champion(w)).champion).not.toHaveProperty('from');
+  });
+
+  it('passes to whoever beats the Champion, skin and all', async () => {
+    const w = world(saves());
+    await fight(w, 'Rich', 'Con', 'Con');
+    const { won, lost } = await fight(w, 'Con', 'Rich', 'Rich');
+    expect(won.crown).toEqual({ holder: 'Con', change: 'took' });
+    expect(won.you).toMatchObject({ name: 'Con', champion: true, skin: CHAMPION_SKIN });
+    // Rich lost it, and the skin with it.
+    expect(lost.you).not.toHaveProperty('champion');
+    expect(lost.you).not.toHaveProperty('skin');
+    expect((await champion(w)).champion).toMatchObject({ id: 'con', from: 'Rich', defences: 0 });
+    // Back in a room, Con is dressed as Champion and Rich isn't.
+    const rules = RULES_VERSION;
+    const room = await w.call({ op: 'create', name: 'Rich', pin: '1234', rules });
+    expect(room.body.you).not.toHaveProperty('skin');
+    const con = await w.call({ op: 'join', name: 'Con', pin: '1234', rules, code: room.body.code });
+    expect(con.body.you).toMatchObject({ champion: true, skin: CHAMPION_SKIN });
+  });
+
+  it('counts a defence once, however often the phones ask', async () => {
+    const w = world(saves());
+    await fight(w, 'Rich', 'Con', 'Con');
+    const { code, won } = await fight(w, 'Con', 'Rich', 'Con');
+    expect(won.crown).toEqual({ holder: 'Rich', change: 'kept' });
+    const again = await w.call({
+      op: 'join',
+      name: 'Rich',
+      pin: '1234',
+      rules: RULES_VERSION,
+      code,
+    });
+    await w.call({ op: 'poll', code, token: again.body.token, after: 0 });
+    expect((await champion(w)).champion).toMatchObject({ id: 'rich', defences: 1 });
+  });
+
+  it('stays put when two others battle', async () => {
+    const w = world(saves());
+    await fight(w, 'Rich', 'Con', 'Con');
+    const { won } = await fight(w, 'Ois', 'Con', 'Con');
+    expect(won).not.toHaveProperty('crown');
+    expect((await champion(w)).champion).toMatchObject({ id: 'rich', defences: 0 });
+  });
+
+  it('goes to the winner when the Champion runs out the clock', async () => {
+    const w = world(saves());
+    await fight(w, 'Rich', 'Con', 'Con');
+    const rules = RULES_VERSION;
+    const a = await w.call({ op: 'create', name: 'Rich', pin: '1234', rules });
+    const code = a.body.code;
+    const b = await w.call({ op: 'join', name: 'Con', pin: '1234', rules, code });
+    await w.call({ op: 'ready', code, token: a.body.token });
+    const live = await w.call({ op: 'ready', code, token: b.body.token });
+    for (let i = 0; i < MAX_MISSED; i++) {
+      const state = (await w.call({ op: 'poll', code, token: b.body.token })).body.state!;
+      if (state.phase.kind === 'choose')
+        await w.call({
+          op: 'act',
+          code,
+          token: b.body.token,
+          turn: state.turn,
+          action: legalActions(state, 0)[0],
+        });
+      w.tick(STEP_MS + 1);
+    }
+    expect(live.body.stage).toBe('live');
+    const over = await w.call({ op: 'poll', code, token: b.body.token });
+    expect(over.body).toMatchObject({ stage: 'over', why: 'timeout' });
+    expect(over.body.crown).toEqual({ holder: 'Con', change: 'took' });
+  });
+
+  it('can’t be put on by a save that just says it has the skin', async () => {
+    const forged = JSON.stringify({
+      ...JSON.parse(LATE),
+      skin: CHAMPION_SKIN,
+      skins: [CHAMPION_SKIN],
+    });
+    const w = world({ rich: LATE, con: forged });
+    const r = await w.call({ op: 'create', name: 'Con', pin: '1234', rules: RULES_VERSION });
+    expect(r.body.you).not.toHaveProperty('skin');
+    expect(r.body.you).not.toHaveProperty('champion');
+  });
+
+  it('isn’t there on a server without the crown', async () => {
+    const w = world(saves(), false);
+    expect(await champion(w)).toEqual({ champion: null });
+    const { won } = await fight(w, 'Rich', 'Con', 'Con');
+    expect(won).not.toHaveProperty('crown');
+    expect(won.you).not.toHaveProperty('champion');
+  });
+});
 
 describe('friend battles on the save server', () => {
   it('opens a room with a code anyone can type', async () => {

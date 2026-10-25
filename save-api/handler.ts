@@ -9,7 +9,8 @@
  *   POST /api/save {id, pin, raw}  → {ok}; the first save of a name sets its PIN. 409 if the
  *                                    server already has a newer save (from another device),
  *                                    which it keeps.
- *   POST /api/battle {op, ...}     → live friend battles, run by `src/lib/online/server.ts`
+ *   POST /api/battle {op, ...}     → live friend battles and the Online Champion, run by
+ *                                    `src/lib/online/server.ts`
  *
  * The handler takes its storage as a `SaveStore`, so the tests run it against memory.
  */
@@ -38,6 +39,12 @@ export interface RoomStore {
   put(code: string, doc: string, version: number, now: number): Promise<boolean>;
 }
 
+/** The Online Champion's record (`CrownStore` in `src/lib/online/server.ts`). */
+export interface CrownStore {
+  get(): Promise<{ doc: string; version: number } | null>;
+  put(doc: string, version: number, now: number): Promise<boolean>;
+}
+
 /** What the battle logic needs from the save server (`BattleContext` there). */
 export interface BattleContext {
   rooms: RoomStore;
@@ -47,6 +54,7 @@ export interface BattleContext {
   seed(): number;
   token(): string;
   random(): number;
+  crown?: CrownStore;
 }
 
 /**
@@ -63,7 +71,7 @@ export interface Options {
   origins: string[];
   now?: () => number;
   /** Friend battles, when this deployment has them. */
-  battles?: { rooms: RoomStore; call: BattleCall };
+  battles?: { rooms: RoomStore; call: BattleCall; crown?: CrownStore };
 }
 
 export const MAX_FAILS = 5;
@@ -165,9 +173,10 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
     } catch {
       return reply(400, { error: 'bad request' });
     }
-    const { rooms, call } = opts.battles;
+    const { rooms, call, crown } = opts.battles;
     const r = await call(body, {
       rooms,
+      ...(crown && { crown }),
       auth: (id, pin) => checkPin(store, id, pin, now()),
       save: async (id) => (await store.get(id))?.raw ?? null,
       now,
