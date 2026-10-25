@@ -160,6 +160,17 @@ export function validateTeam(party: unknown): { team: Member[] } | { error: stri
   return { team };
 }
 
+/**
+ * The skin a save is wearing, if it's one the save has unlocked: only its id, since the save
+ * server can't load the skins (they pull in the maps). Undefined is the usual look.
+ */
+export function skinOf(save: unknown): string | undefined {
+  if (!isObject(save)) return undefined;
+  const { skin, skins } = save;
+  if (typeof skin !== 'string' || !/^[a-z0-9-]{1,40}$/.test(skin)) return undefined;
+  return Array.isArray(skins) && skins.includes(skin) ? skin : undefined;
+}
+
 /** A checked team as the engine starts it online: at the rule's level, healthy and full of PP. */
 export function entrantsOf(team: Member[], rule: LevelRule): Entrant[] {
   return team.map((m) => {
@@ -255,6 +266,11 @@ export interface PlayerView {
   ready: boolean;
   /** How many Ranemon they bring, once ready. */
   size?: number;
+  /**
+   * The skin they wear in Story mode (`content/story/skins.ts`), to show in the room. Servers
+   * from before skins leave it out, and a phone that can't draw it shows the usual look.
+   */
+  skin?: string;
 }
 
 /** What every battle call answers with: where the room is up to, from this player's side. */

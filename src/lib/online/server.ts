@@ -17,6 +17,7 @@ import {
   isLevelRule,
   isOnlineAction,
   RULES_VERSION,
+  skinOf,
   stateFor,
   trainerId,
   validateTeam,
@@ -56,6 +57,8 @@ interface Player {
   token: string;
   ready: boolean;
   team?: Entrant[];
+  /** Their Story mode skin, from their save (`skinOf`). */
+  skin?: string;
 }
 
 export interface Room {
@@ -122,6 +125,15 @@ export function makeCode(random: () => number): string {
 export function normalCode(x: unknown): string {
   const s = typeof x === 'string' ? x.toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
   return /^[A-Z]{4}\d{2}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : '';
+}
+
+/** The skin a save's JSON is wearing, if any. */
+function readSkin(raw: string | null): string | undefined {
+  try {
+    return raw ? skinOf(JSON.parse(raw)) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 const say = (text: string): QueueItem => ({ kind: 'say', text });
@@ -206,7 +218,14 @@ function advance(room: Room, now: number) {
 export function viewOf(room: Room, side: Side, after: number): RoomView {
   const foeSide = other(side);
   const player = (p: Player | undefined) =>
-    p ? { name: p.name, ready: p.ready, ...(p.team && { size: p.team.length }) } : null;
+    p
+      ? {
+          name: p.name,
+          ready: p.ready,
+          ...(p.team && { size: p.team.length }),
+          ...(p.skin && { skin: p.skin }),
+        }
+      : null;
   const from = after < 0 ? room.steps.length : Math.min(after, room.steps.length);
   const state = room.state && stateFor(room.state, side, room.seen[foeSide]);
   return {
@@ -283,7 +302,8 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
     if (auth === 'locked') return fail(429, 'locked');
     if (auth === 'nosave') return fail(404, 'no save');
     const token = ctx.token();
-    const me: Player = { id, name, token, ready: false };
+    const skin = readSkin(await ctx.save(id));
+    const me: Player = { id, name, token, ready: false, ...(skin && { skin }) };
 
     if (op === 'create') {
       const rule = isLevelRule(body.rule) ? body.rule : 'flat50';
@@ -324,6 +344,8 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
       (room) => {
         if (known !== -1) {
           room.players[side].token = token;
+          if (skin) room.players[side].skin = skin;
+          else delete room.players[side].skin;
           return;
         }
         if (room.stage === 'closed') return fail(410, 'closed');
@@ -354,6 +376,7 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
       } catch {
         // An unreadable save brings no team.
       }
+      const skin = readSkin(raw);
       const checked = validateTeam(party);
       if ('error' in checked) return { status: 422, body: { error: 'team', why: checked.error } };
       return update(ctx, code, { token }, after, (room, side) => {
@@ -361,6 +384,9 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
         const me = room.players[side];
         me.ready = true;
         me.team = entrantsOf(checked.team, room.rule);
+        // The save is read again here, so a skin changed since joining shows too.
+        if (skin) me.skin = skin;
+        else delete me.skin;
         const [a, b] = room.players;
         if (!a.ready || !b?.ready) return;
         const now = ctx.now();

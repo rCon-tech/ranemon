@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Battle mode catches up',
+    notes: [
+      'Battle mode has a ROSTER switch, with more Ranemon to battle with as you get further in Story mode. Your rival picks from the same roster.',
+      'Switch FORMS to EVOLVED to battle with everyone fully evolved. Where a Ranemon can evolve more than one way, you pick which.',
+      'Tap a Ranemon on YOUR TEAM to pick its look, something for it to hold and its moves, with each move’s type and power.',
+      'In a friend battle, both trainers show up in the room in their skins, and tapping a Ranemon in your team shows its moves and what it’s holding.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'A missing Ranedex page',
     notes: [
       'One Ranemon you’re given late in the story never had a page in the Ranedex. It has one now, with its types, entry, stats and moves, and if you have it already its page is filled in.',
