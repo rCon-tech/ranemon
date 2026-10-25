@@ -165,7 +165,7 @@ London is the hub, as Dublin is at home: a big scrolling 2D map with the Thames 
 
 > **CLERK:** I know Brighton goes from Victoria. We moved everything here. It's easier.
 
-**The Tube** covers the four London grounds (Tottenham, Arsenal, Chelsea, Crystal Palace) from the one entrance; each is a small map of its own.
+**Every ground has its own part of town.** No two clubs share a map: Arsenal are in Highbury, Spurs on Tottenham High Road, Chelsea in Fulham, Palace in South Norwood, City in Eastlands and United at Old Trafford, Everton on the docks at Bramley-Moore and Liverpool up at Anfield. Each has a train of its own from King's Cross.
 
 **Michael D's farm, by post.** After each jersey, Ollie's parents send a photo from Clare: a short postcard scene with one of your Irish Ranemon on the farm. "Jammon has fixed ze tractor. Michael D is very happy." "Simomon is behind ze barn. 'Blazing up', he says. We do not ask." "Endamon has made friends with ze cows. All of ze cows." These replace Michael D's phone calls for the expansion.
 
@@ -176,39 +176,59 @@ Twelve grounds, played in the order below: **from the smallest club to the bigge
 **Finding your way** (Rich's ask: it should be obvious where to go next):
 
 - A gold line along the bottom of the map in Britain says the next match: `NEXT 3/12: Villa at Villa Park · Platform 3`.
-- **King's Cross** has seven platforms, numbered in the order you first need them, each guard standing under their own panel of the departures board: the platform number, where it goes and the crest of every club it's for (greyed once you've the jersey), with your next train lit up. The ticket office by the door opens the same board as a list to pick from. The guards say the platform, the train and the clubs before you get on, and every guard home tells you your next match.
+- **King's Cross** has twelve platforms, one per ground, numbered in the order you play them, each guard standing under their own panel of the departures board: the platform number, where it goes and the club's crest (greyed once you've the jersey), with your next train lit up. The ticket office by the door opens the same board as a list to pick from. The guards say the platform, the train and the club before you get on, and every guard home tells you your next match.
 - START → MISSIONS says which club you're on (3 of 12), its ground and its platform.
 
-| Platform | To         | Grounds                                                             |
-| -------- | ---------- | ------------------------------------------------------------------- |
-| 1        | Brighton   | The Amex (Falmer)                                                   |
-| 2        | The Tube   | Selhurst Park, Tottenham Hotspur Stadium, Stamford Bridge, Emirates |
-| 3        | Birmingham | Villa Park (needs Ian Wright's Railcard)                            |
-| 4        | Liverpool  | Bramley-Moore Dock, Anfield                                         |
-| 5        | Leeds      | Elland Road                                                         |
-| 6        | Newcastle  | St James' Park (needs the Railcard)                                 |
-| 7        | Manchester | The Etihad, Old Trafford                                            |
+| Platform | To              | Ground                                      | Train                                                                                   |
+| -------- | --------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1        | Falmer          | The Amex                                    | To Brighton, then up the hill to Falmer                                                 |
+| 2        | Selhurst        | Selhurst Park, South Norwood                | Thameslink to East Croydon, back one stop                                               |
+| 3        | Aston           | Villa Park (needs Ian Wright's Railcard)    | To Birmingham New Street, then Witton                                                   |
+| 4        | Bramley-Moore   | Everton Stadium, Bramley-Moore Dock         | To Liverpool Lime Street, then up the dock road                                         |
+| 5        | Beeston         | Elland Road                                 | To Leeds, then the bus out to Beeston                                                   |
+| 6        | Newcastle       | St James' Park, Gallowgate (needs Railcard) | Up the east coast                                                                       |
+| 7        | Tottenham       | Tottenham Hotspur Stadium                   | Overground to White Hart Lane                                                           |
+| 8        | Eastlands       | The Etihad                                  | To Piccadilly, tram to the Etihad Campus (first class only, seats in fifty-pound notes) |
+| 9        | Fulham Broadway | Stamford Bridge                             | District line                                                                           |
+| 10       | Highbury        | The Emirates                                | Piccadilly line to Arsenal, two stops                                                   |
+| 11       | Anfield         | Anfield                                     | To Lime Street, then the 26 bus                                                         |
+| 12       | Old Trafford    | Old Trafford                                | To Piccadilly, then the tram                                                            |
 
-**Every town looks like itself** (`src/components/story/england.ts`, 2D only): each ground is drawn as a football stadium from the street, with its roof, floodlights, the crowd under the roof, the club's colours, its name in big letters and its crest over the turnstiles (`crests.ts`, all twelve drawn in the game's style), and inside, the crest on the pitch and on a banner along the far stand. Manchester has a red-brick mill with the worker bee and the Town Hall; Liverpool the Royal Liver Building with its Liver Birds and the Mersey ferry to Dublin; Leeds its Town Hall and the white rose of Yorkshire; Birmingham Selfridges in its silver discs, the Bullring bull and a canal; Newcastle the Tyne Bridge and the Angel of the North; Falmer the South Downs; and the Tube's grounds each have their station's roundel.
+**Every ground looks like itself, in a part of town that looks like its own** (`src/components/story/england.ts`, 2D only, even with 3D picked). Each ground is drawn as that stadium from the street, with its name and its crest over the turnstiles (`crests.ts`), and inside, the crest on the pitch and on a banner along the far stand:
+
+- **Falmer**: the Amex's sweeping white arch, a gull on it; the South Downs and Falmer station.
+- **South Norwood**: Selhurst Park's old brick stand and the eagle on the roof, the Sainsbury's built into the Whitehorse Lane end, the Crystal Palace mast and a Victorian dinosaur up the hill, Selhurst station.
+- **Aston**: Villa Park's red-brick Holte End with its gable and claret and blue windows, Aston Hall, the Fazeley canal.
+- **Bramley-Moore Dock**: Everton's dock-warehouse stand with its steel gable ends, the Victoria clock tower on the dock wall, the Mersey with the ferry to Dublin, the Liver Building down the river.
+- **Beeston**: Elland Road's white East Stand, Billy Bremner in bronze with both arms up, the white rose of Yorkshire.
+- **Gallowgate**: St James' Park under its great white truss, black and white up the stand; the Tyne Bridge and the Angel of the North.
+- **Tottenham**: the Tottenham Hotspur Stadium, a huge silver bowl with the golden cockerel on top, people on the Skywalk over the roof and a glass front along the street; Bruce Castle and White Hart Lane station.
+- **Eastlands**: the Etihad's masts and all its money (pumpjacks, barrels, cash, gold, notes off the roof, the 115 charges under appeal), the velodrome, and an oil field that has nothing to do with the owner.
+- **Fulham**: Stamford Bridge with the old brick Shed End, Fulham Broadway station, Brompton Cemetery over the wall, and a Chelsea Pensioner.
+- **Highbury**: the Emirates, white, ringed with Arsenal legends arm in arm and the cannon by the door; Arsenal station; the old Art Deco East Stand at Highbury Square.
+- **Anfield**: the Main Stand over red brick with the Liver bird on the roof, the Shankly Gates, Homebaked, and Stanley Park with Goodison across it.
+- **Old Trafford**: the Theatre of Dreams under its white truss, the Munich clock and Sir Matt Busby; the United Trinity statue, a mill, and Salford Quays over the Ship Canal.
+
+Schema 7 moves saves with them: anyone inside a ground that moved (the Tube's four, Anfield, the Etihad) is in the same ground on its own map, anyone on the old Tube is on the King's Cross concourse, and anyone out on a redrawn street is back by its guard.
 
 Saves from the old order (United first) carry on: schema 6 keeps every jersey won but takes Roy Keane's off anyone not yet Champion, so he's played again at the end as the final (`replayKeane` in `save.ts`).
 
 #### The table
 
-| #   | Club           | Ground                                     | Town          | Legend          | Team, ace level | Jersey and reward                                                |
-| --- | -------------- | ------------------------------------------ | ------------- | --------------- | --------------- | ---------------------------------------------------------------- |
-| 1   | Brighton       | The Amex                                   | Falmer        | Glenn Murray    | 3, ace 10       | Brighton jersey; a Perfect Pour                                  |
-| 2   | Crystal Palace | Selhurst Park                              | London (Tube) | Ian Wright      | 3, ace 14       | Palace jersey; Railcard (Birmingham, Newcastle)                  |
-| 3   | Aston Villa    | Villa Park                                 | Birmingham    | Paul McGrath    | 3, ace 17       | Villa jersey; Full Irish x3                                      |
-| 4   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Liverpool     | Duncan Ferguson | 4, ace 20       | Everton jersey; Blue Ghost x2                                    |
-| 5   | Leeds          | Elland Road                                | Leeds         | Marcelo Bielsa  | 4, ace 23       | Leeds jersey; The Bucket                                         |
-| 6   | Newcastle      | St James' Park                             | Newcastle     | Alan Shearer    | 4, ace 26       | Newcastle jersey; Mammy's Dinner x2                              |
-| 7   | Tottenham      | Tottenham Hotspur Stadium                  | London (Tube) | Robbie Keane    | 4, ace 29       | Spurs jersey; a replica Europa League trophy                     |
-| 8   | Man City       | The Etihad                                 | Manchester    | Sergio Agüero   | 5, ace 32       | City jersey                                                      |
-| 9   | Chelsea        | Stamford Bridge                            | London (Tube) | John Terry      | 5, ace 35       | Chelsea jersey; Cup of Tea x3                                    |
-| 10  | Arsenal        | The Emirates                               | London (Tube) | Thierry Henry   | 5, ace 38       | Arsenal jersey; Monster x3                                       |
-| 11  | Liverpool      | Anfield                                    | Liverpool     | Steven Gerrard  | 6, ace 42       | Liverpool jersey; Monster x3                                     |
-| 12  | Man United     | Old Trafford                               | Manchester    | Roy Keane       | 6, ace 46       | United jersey; Fergie's Hairdryer; the **Premier League trophy** |
+| #   | Club           | Ground                                     | Town               | Legend          | Team, ace level | Jersey and reward                                                |
+| --- | -------------- | ------------------------------------------ | ------------------ | --------------- | --------------- | ---------------------------------------------------------------- |
+| 1   | Brighton       | The Amex                                   | Falmer             | Glenn Murray    | 3, ace 10       | Brighton jersey; a Perfect Pour                                  |
+| 2   | Crystal Palace | Selhurst Park                              | South Norwood      | Ian Wright      | 3, ace 14       | Palace jersey; Railcard (Birmingham, Newcastle)                  |
+| 3   | Aston Villa    | Villa Park                                 | Aston              | Paul McGrath    | 3, ace 17       | Villa jersey; Full Irish x3                                      |
+| 4   | Everton        | Hill Dickinson Stadium, Bramley-Moore Dock | Bramley-Moore Dock | Duncan Ferguson | 4, ace 20       | Everton jersey; Blue Ghost x2                                    |
+| 5   | Leeds          | Elland Road                                | Beeston            | Marcelo Bielsa  | 4, ace 23       | Leeds jersey; The Bucket                                         |
+| 6   | Newcastle      | St James' Park                             | Gallowgate         | Alan Shearer    | 4, ace 26       | Newcastle jersey; Mammy's Dinner x2                              |
+| 7   | Tottenham      | Tottenham Hotspur Stadium                  | Tottenham          | Robbie Keane    | 4, ace 29       | Spurs jersey; a replica Europa League trophy                     |
+| 8   | Man City       | The Etihad                                 | Eastlands          | Sergio Agüero   | 5, ace 32       | City jersey                                                      |
+| 9   | Chelsea        | Stamford Bridge                            | Fulham             | John Terry      | 5, ace 35       | Chelsea jersey; Cup of Tea x3                                    |
+| 10  | Arsenal        | The Emirates                               | Highbury           | Thierry Henry   | 5, ace 38       | Arsenal jersey; Monster x3                                       |
+| 11  | Liverpool      | Anfield                                    | Anfield            | Steven Gerrard  | 6, ace 42       | Liverpool jersey; Monster x3                                     |
+| 12  | Man United     | Old Trafford                               | Old Trafford       | Roy Keane       | 6, ace 46       | United jersey; Fergie's Hairdryer; the **Premier League trophy** |
 
 Florence Pugh's ask after Liam Neeson comes with the fifth jersey (Leeds), and Jamie Elliott turns up at King's Cross with the sixth (Newcastle), at the same levels as before.
 
@@ -451,19 +471,14 @@ The expansion adds one main mission and a handful of side missions to START → 
 
 ## Places, all 2D only
 
-| Place             | What it is                                                                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dublin Airport    | Bus stop, check-in, security, gate                                                                                                                 |
-| London Stansted   | Arrivals, the border queue, the Stansted Express                                                                                                   |
-| London            | The hub: King's Cross, the Tube, W.B Yates, Vapes & More, parks, Buckingham Palace                                                                 |
-| Tube grounds (4)  | Tottenham, Selhurst Park, Stamford Bridge, the Emirates                                                                                            |
-| Manchester        | Old Trafford and the Etihad                                                                                                                        |
-| Leeds             | Elland Road                                                                                                                                        |
-| Liverpool         | Bramley-Moore Dock and Anfield                                                                                                                     |
-| Birmingham        | Villa Park                                                                                                                                         |
-| Newcastle         | St James' Park                                                                                                                                     |
-| Brighton          | Existing map, reused; the Amex gets the legend                                                                                                     |
-| Buckingham Palace | Forecourt, Grand Staircase, Royal Mews, Harry's rooms, Ballroom, East Wing, State Dining Room, Throne Room; its `after` form is the takeover party |
+| Place             | What it is                                                                                                                                                            |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dublin Airport    | Bus stop, check-in, security, gate                                                                                                                                    |
+| London Stansted   | Arrivals, the border queue, the Stansted Express                                                                                                                      |
+| London            | The hub: King's Cross, the Tube, W.B Yates, Vapes & More, parks, Buckingham Palace                                                                                    |
+| The grounds (12)  | Each in its own part of town: Falmer, South Norwood, Aston, Bramley-Moore Dock, Beeston, Gallowgate, Tottenham, Eastlands, Fulham, Highbury, Anfield and Old Trafford |
+| Brighton          | Existing map, reused; the Amex gets the legend                                                                                                                        |
+| Buckingham Palace | Forecourt, Grand Staircase, Royal Mews, Harry's rooms, Ballroom, East Wing, State Dining Room, Throne Room; its `after` form is the takeover party                    |
 
 Each new map, room and battle is drawn flat with the 3D look picked, as Ghent and the I Love Techno hall are. No 3D models are made for any of them.
 
@@ -507,7 +522,7 @@ What the build does differently from the story above, so far:
 - **Levels.** Everything in Britain starts again from Lv 5 (see open question 3). The legends' teams keep the shape in the table but at lower levels: aces 10, 14, 17, 20, 23, 26, 29, 32, 35, 38, 42 and 46. Trainers in Britain don't scale up to your party once you're Champion of Ireland.
 - **UK Ranemon evolve** at Lv30 into their drawn evolved forms (PR #59's art), and have a UK Ranedex of their own, apart from Ireland's (`src/lib/story/ukdex.ts`).
 - **The Amex** is reached by train to Falmer, a small new map with Enda on it, rather than through the Brighton map from the Irish story.
-- **The Tube** is one small map off King's Cross with the four London grounds on it.
+- **No Tube map.** Each London ground has its own train and its own part of town, like the grounds outside London.
 - **Key items.** Fergie's Hairdryer, Bielsa's Bucket and the replica Europa League trophy are keepsakes for now, with no effect. Ian Wright's Railcard opens the trains to Falmer, Birmingham and Newcastle. The Rest Day, Proper Studs, Captain's Armband and Va-Va-Voom are swapped for existing items (full Irish, Monster, cups of tea).
 - **The grounds** are played strictly in the table's order: each turnstile is shut until the legend before is beaten.
 - **The palace** is a run of seven rooms, each behind the door at the top of the last: the Forecourt (three Royal Guards and Thatcher), the Grand Staircase (Edward), the Royal Mews (Anne), the Ballroom (William, with Harry's note on a door), the East Wing (Andrew, and Bridie, who heals you), the State Dining Room (the Zombie Queen) and the Throne Room (Charles, Lv 60). Each way out goes back to the Mall. Aces climb from 48 to 60.

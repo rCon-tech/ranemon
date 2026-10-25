@@ -16,7 +16,7 @@ import {
   nextClub,
   objectiveText,
 } from '@/content/story/premier';
-import { find, slot } from '@/lib/story/world';
+import { npcsOf } from '@/lib/story/world';
 import { FIXTURES } from '@/content/story/kneecap';
 import { migrate, replayKeane } from '@/lib/story/save';
 import { METROPOLITAN } from '@/content/story/sidemen';
@@ -110,21 +110,32 @@ describe('King’s Cross', () => {
   const platforms = room.npcs.filter((n) => n.look === 'conductor' && n !== METROPOLITAN);
 
   it('numbers its platforms in the order you first need them, each saying where it goes', () => {
-    expect(KX_DEPARTURES.map((d) => d.map)).toEqual([
-      'falmer',
-      'tube',
-      'birmingham',
-      'liverpool',
-      'leeds',
-      'newcastle',
-      'manchester',
+    expect(KX_DEPARTURES.map((d) => d.to)).toEqual([
+      'Falmer',
+      'Selhurst',
+      'Aston',
+      'Bramley-Moore',
+      'Beeston',
+      'Newcastle',
+      'Tottenham',
+      'Eastlands',
+      'Fulham Broadway',
+      'Highbury',
+      'Anfield',
+      'Old Trafford',
     ]);
+    expect(platforms).toHaveLength(12);
+    const placed = npcsOf(room);
     for (const [i, n] of platforms.entries()) {
       const ask = n.talk![0];
       expect(ask.do === 'ask' && ask.text, `platform ${i + 1}`).toContain(`Platform ${i + 1}.`);
       // Standing under its own part of the board.
-      expect(find(room, slot(i))[0]).toEqual({ x: 2 * i + 1, y: 3 });
+      const at = placed.find((p) => p.item === n)!;
+      expect({ x: at.x, y: at.y }).toEqual({ x: 2 * i + 1, y: 3 });
     }
+    // Nobody stands on anybody else, or in a wall.
+    expect(new Set(placed.map((p) => `${p.x},${p.y}`)).size).toBe(placed.length);
+    for (const p of placed) expect(room.rows[p.y][p.x], `${p.x},${p.y}`).not.toBe('W');
     // The ticket office opens the board as a list to pick from.
     const clerk = room.npcs.find((n) => n.look === 'clerk')!;
     expect(clerk.talk!.some((s) => s.do === 'departures' && s.station === 'kings-cross')).toBe(
@@ -132,7 +143,7 @@ describe('King’s Cross', () => {
     );
   });
 
-  it('runs a train to every town, and the Tube, from its own platform', () => {
+  it('runs a train to every ground’s own part of town, from its own platform', () => {
     const towns = platforms.map((n) =>
       play(n.talk!, new Set([RAILCARD])).find((l) => l.startsWith('TRAVEL')),
     );
@@ -175,7 +186,7 @@ describe('where to go next', () => {
     expect(nextClub(new Set())).toBeNull();
     expect(nextClub(start)).toMatchObject({ n: 1, club: 'Brighton & Hove Albion', platform: 1 });
     expect(objectiveText(start)).toBe('NEXT 1/12: Brighton at The Amex · Platform 1');
-    expect(nextClub(won(2))).toMatchObject({ club: 'Aston Villa', platform: 3, to: 'Birmingham' });
+    expect(nextClub(won(2))).toMatchObject({ club: 'Aston Villa', platform: 3, to: 'Aston' });
     expect(nextClub(won(11))).toMatchObject({
       n: 12,
       club: 'Manchester United',
@@ -221,5 +232,94 @@ describe('where to go next', () => {
     })!;
     expect(s.flags).not.toContain('pl:united');
     expect(s.flags).toContain('pl:leeds');
+  });
+});
+
+describe('every club’s own part of town', () => {
+  const stadia = (m: (typeof PL_MAPS)[number]) =>
+    (m.scenery ?? []).flatMap((s) => (s.kind === 'stadium' ? [s] : []));
+
+  it('gives every ground a map of its own, named for where it is, 2D only', () => {
+    expect(PL_MAPS.map((m) => m.name.split(',')[0])).toEqual([
+      'Falmer',
+      'South Norwood',
+      'Aston',
+      'Bramley-Moore Dock',
+      'Beeston',
+      'Gallowgate',
+      'Tottenham',
+      'Eastlands',
+      'Fulham',
+      'Highbury',
+      'Anfield',
+      'Old Trafford',
+    ]);
+    for (const [i, f] of FIXTURE_LIST.entries()) {
+      const m = PL_MAPS[i];
+      expect(m.flat, m.id).toBe(true);
+      expect(
+        stadia(m).map((s) => s.club),
+        m.id,
+      ).toEqual([f.id]);
+      expect(m.landmarks, m.id).toHaveLength(1);
+      expect(mapById(interiorId(m.id, 'L', 0)).crest).toBe(f.id);
+      expect(KX_DEPARTURES[i].map).toBe(m.id);
+    }
+  });
+
+  it('puts landmarks of its own round every ground, none of them shared', () => {
+    const stations = ['underground', 'overground', 'rail'];
+    const kinds = PL_MAPS.map((m) =>
+      (m.scenery ?? []).filter((s) => s.kind !== 'stadium' && !stations.includes(s.kind)),
+    );
+    for (const [i, k] of kinds.entries()) expect(k.length, PL_MAPS[i].id).toBeGreaterThan(0);
+    const all = kinds.flat().map((s) => s.kind);
+    expect(new Set(all).size).toBe(all.length);
+    // And a London ground has its own station, with its name on it.
+    const labels = PL_MAPS.flatMap((m) =>
+      (m.scenery ?? []).flatMap((s) => ('label' in s && s.label ? [s.label] : [])),
+    );
+    expect(labels).toEqual(['FALMER', 'SELHURST', 'WHITE HART LANE', 'FULHAM BROADWAY', 'ARSENAL']);
+  });
+
+  it('draws the Tottenham Hotspur Stadium biggest of all', () => {
+    const width = (m: (typeof PL_MAPS)[number]) => stadia(m).map((s) => s.x1 - s.x0 + 1)[0];
+    const spurs = width(mapById('tottenham'));
+    for (const m of PL_MAPS) if (m.id !== 'tottenham') expect(width(m), m.id).toBeLessThan(spurs);
+  });
+
+  it('keeps a save in a ground that moved in the same ground, and the Tube’s on the concourse', () => {
+    const at = (map: string) =>
+      migrate({
+        version: 1,
+        schema: 6,
+        map,
+        x: 6,
+        y: 8,
+        face: 'up',
+        party: [],
+        box: [],
+        bag: {},
+        money: 0,
+        flags: [],
+        seen: [],
+        caught: [],
+        pub: { map: 'london-P0', x: 3, y: 3 },
+        uid: 1,
+        steps: 0,
+      })!;
+    expect(at('tube-L0').map).toBe('tottenham-L0');
+    expect(at('tube-L1').map).toBe('selhurst-L0');
+    expect(at('tube-L2').map).toBe('fulham-L0');
+    expect(at('tube-L3').map).toBe('highbury-L0');
+    expect(at('liverpool-L1').map).toBe('anfield-L0');
+    expect(at('manchester-L1').map).toBe('eastlands-L0');
+    expect(at('manchester-L0').map).toBe('manchester-L0');
+    for (const room of ['tottenham-L0', 'anfield-L0', 'eastlands-L0'])
+      expect(mapById(room).rows[8][6]).toBe('@');
+    expect(at('tube')).toMatchObject({ map: KINGS_CROSS_ID, x: 12, y: 5 });
+    for (const map of ['falmer', 'birmingham', 'liverpool', 'leeds', 'newcastle', 'manchester'])
+      expect(at(map), map).toMatchObject({ map, x: 1, y: 4 });
+    expect(mapById(KINGS_CROSS_ID).rows[5][12]).toBe('F');
   });
 });

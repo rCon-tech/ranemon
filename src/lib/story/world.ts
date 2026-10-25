@@ -274,6 +274,11 @@ export interface Npc {
   /** Only there while this flag is set / not set. */
   showIf?: string;
   hideIf?: string;
+  /**
+   * Where they stand, for a room with more people than the ten markers (`1` to `9`, then `0`)
+   * can place, such as the twelve platforms at King's Cross. Leave it out to use the marker.
+   */
+  at?: { x: number; y: number };
 }
 
 export interface Gym {
@@ -383,32 +388,58 @@ export type ClubId =
   | 'liverpool'
   | 'united';
 
-/** A town's landmark drawn over its buildings (components/story/england.ts). */
+/** A place's landmark drawn over its buildings (components/story/england.ts). */
 export type LandmarkKind =
-  | 'manchester-town-hall'
-  | 'manchester-mill'
-  | 'liver-building'
-  | 'mersey'
-  | 'leeds-town-hall'
-  | 'yorkshire-rose'
-  | 'selfridges'
+  // Falmer
+  | 'south-downs'
+  // South Norwood
+  | 'crystal-palace-mast'
+  | 'sainsburys'
+  // Aston
+  | 'aston-hall'
   | 'canal'
+  // Bramley-Moore Dock
+  | 'liver-building'
+  | 'victoria-tower'
+  | 'mersey'
+  // Beeston
+  | 'bremner-statue'
+  | 'yorkshire-rose'
+  // Newcastle
   | 'tyne-bridge'
   | 'angel'
-  | 'south-downs'
-  | 'underground';
+  // Tottenham
+  | 'bruce-castle'
+  // Eastlands
+  | 'velodrome'
+  | 'oil-field'
+  // Fulham
+  | 'brompton-cemetery'
+  // Highbury
+  | 'highbury-square'
+  // Anfield
+  | 'stanley-park'
+  | 'shankly-gates'
+  | 'homebaked'
+  // Old Trafford
+  | 'manchester-mill'
+  | 'united-trinity'
+  | 'ship-canal'
+  // A station: the Underground's roundel, the Overground's, or National Rail's arrows.
+  | 'underground'
+  | 'overground'
+  | 'rail';
 
 /**
  * Something big drawn over a stretch of buildings, from tile (x0, y0) to (x1, y1): a football
  * ground (its door is the landmark door inside it) or a town's landmark. Drawing only.
  */
 export type Scenery = { x0: number; x1: number; y0: number; y1: number } & (
+  | { kind: 'stadium'; club: ClubId }
   | {
-      kind: 'stadium';
-      club: ClubId;
-      /** Its Tube station, for a ground in London. */ tube?: string;
+      kind: LandmarkKind;
+      /** The name on it, for a station. */ label?: string;
     }
-  | { kind: LandmarkKind }
 );
 
 /** The logos the overworld can draw (components/story/brands.ts). */
@@ -501,7 +532,7 @@ export function marker(map: GameMap, c: '@' | '>'): { x: number; y: number } {
 
 export function npcsOf(map: GameMap): Placed<Npc>[] {
   return map.npcs.map((npc, i) => {
-    const at = i < 10 ? find(map, slot(i))[0] : undefined;
+    const at = npc.at ?? (i < 10 ? find(map, slot(i))[0] : undefined);
     if (!at) throw new Error(`${map.id} has no slot ${i + 1}`);
     return { ...at, index: i, item: npc };
   });

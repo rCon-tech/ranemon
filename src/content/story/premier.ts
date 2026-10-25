@@ -28,9 +28,6 @@ import type {
 /** King's Cross, behind the first landmark door in London. */
 export const KINGS_CROSS_ID = interiorId('london', 'L', 0);
 
-/** Where a train back into London leaves you on the King's Cross concourse. */
-const CONCOURSE = { x: 6, y: 5 };
-
 /** A club's jersey, won from its legend. Kept apart from the nine county jerseys. */
 export const plFlag = (club: string) => `pl:${club}`;
 
@@ -70,7 +67,7 @@ interface Club {
   ground: string;
   legend: string;
   look: Look;
-  /** Where the ground is: the town's map, and the train to it from King's Cross. */
+  /** Where the ground is: its own map, and the train to it from King's Cross. */
   map: string;
   before: string;
   after: string;
@@ -229,7 +226,7 @@ const CLUBS: Club[] = [
     ground: 'Selhurst Park',
     legend: 'Ian Wright',
     look: 'wright',
-    map: 'tube',
+    map: 'selhurst',
     before: 'WRIGHTY: LISTEN TO ME. LISTEN TO ME. You are a BAD MAN. In a GOOD way. Come on then!',
     after:
       'WRIGHTY: OH MY DAYS. OH. MY. DAYS. You’ve done me! I played for Palace AND Arsenal and you’ve DONE me!',
@@ -329,7 +326,7 @@ const CLUBS: Club[] = [
     ground: 'Tottenham Hotspur Stadium',
     legend: 'Robbie Keane',
     look: 'robbie',
-    map: 'tube',
+    map: 'tottenham',
     before:
       'ROBBIE KEANE: Ah, here, an Irish trainer! Lovely. Any relation to Roy? No? Good. Beat me and I’ll do the cartwheel. Lose and I’ll do it anyway.',
     after:
@@ -351,7 +348,7 @@ const CLUBS: Club[] = [
     ground: 'The Etihad',
     legend: 'Sergio Agüero',
     look: 'aguero',
-    map: 'manchester',
+    map: 'eastlands',
     before:
       'AGÜERO: You know what 93:20 means here? It means it’s never over. Not the season, not the hearing, not the appeal. Vamos.',
     after:
@@ -368,7 +365,7 @@ const CLUBS: Club[] = [
     ground: 'Stamford Bridge',
     legend: 'John Terry',
     look: 'terry',
-    map: 'tube',
+    map: 'fulham',
     before: 'TERRY: Captain. Leader. Legend. It’s on a banner, so it’s true.',
     after: 'TERRY: Still a legend. Banner says so.',
     gift: [
@@ -387,7 +384,7 @@ const CLUBS: Club[] = [
     ground: 'The Emirates',
     legend: 'Thierry Henry',
     look: 'henry',
-    map: 'tube',
+    map: 'highbury',
     before: 'HENRY: Ah, ze Irish. You are still upset about ze 2009? …Okay. Zis is fair. Allez.',
     after:
       'HENRY: Bravo. (He offers to shake your hand, then pulls it back.) I am joking. I am joking. ’Ere.',
@@ -404,7 +401,7 @@ const CLUBS: Club[] = [
     ground: 'Anfield',
     legend: 'Steven Gerrard',
     look: 'gerrard',
-    map: 'liverpool',
+    map: 'anfield',
     before: 'GERRARD: We go again. Careful there. It’s slippy. Trust me.',
     after: 'GERRARD: We go again. Well. You go on. I’ll stay here.',
     gift: [
@@ -509,14 +506,33 @@ const GROUND = [
   'WWWWWWEWWWWW',
 ];
 
-/** A club's ground: its legend on the touchline, and anyone else who's about. */
+/** The city each ground is in, for the name of the ground from inside. */
+const CITY: Record<ClubId, string> = {
+  brighton: 'Brighton',
+  palace: 'London',
+  villa: 'Birmingham',
+  everton: 'Liverpool',
+  leeds: 'Leeds',
+  newcastle: 'Newcastle',
+  spurs: 'London',
+  city: 'Manchester',
+  chelsea: 'London',
+  arsenal: 'London',
+  liverpool: 'Liverpool',
+  united: 'Manchester',
+};
+
+/**
+ * A club's ground: its legend on the touchline, and anyone else who's about. It's named with its
+ * city (`Old Trafford, Manchester`), since some grounds share a name with the area they're in.
+ */
 function groundRoom(
   c: Club,
   others: Npc[] = [],
 ): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things' | 'crest'> {
   const npcs: Npc[] = [{ look: c.look, face: 'down', trainer: legendId(c.id) }, ...others];
   return {
-    name: c.ground,
+    name: `${c.ground}, ${CITY[c.id]}`,
     crest: c.id,
     rows: placesFor(GROUND, npcs.length),
     npcs,
@@ -538,24 +554,20 @@ function turnstile(id: string) {
 }
 
 /** A ground's door from the street: what it says outside, and its turnstile. */
-function grounds(ids: string[]): Pick<GameMap, 'landmarks' | 'landmarkLocks'> {
-  const landmarks = ids.map((id): Step[] => {
-    const c = clubById(id);
-    return [{ do: 'say', text: `${c.ground.toUpperCase()}. Home of ${c.club}.` }];
-  });
-  const landmarkLocks = Object.fromEntries(
-    ids.flatMap((id, i) => {
-      const lock = turnstile(id);
-      return lock ? [[i, lock]] : [];
-    }),
-  );
-  return { landmarks, landmarkLocks };
+function ground(id: ClubId): Pick<GameMap, 'landmarks' | 'landmarkLocks' | 'landmarkRooms'> {
+  const c = clubById(id);
+  const lock = turnstile(id);
+  return {
+    landmarks: [[{ do: 'say', text: `${c.ground.toUpperCase()}. Home of ${c.club}.` }]],
+    ...(lock && { landmarkLocks: { 0: lock } }),
+    landmarkRooms: { 0: groundRoom(c) },
+  };
 }
 
 // ---------- the trains ----------
 
 interface Line {
-  /** Where it goes, as on the board. */
+  /** Where it goes, as on the board: the ground's own part of town. */
   to: string;
   map: string;
   /** The train, as the guard calls it. */
@@ -567,70 +579,114 @@ interface Line {
 }
 
 /**
- * The trains from King's Cross, one per platform, in the order you first need them: platform 1
- * for the first club, and so on up the table.
+ * The trains from King's Cross, one per platform and one per ground, in the order you play them:
+ * platform 1 for the first club, and so on up the table to Old Trafford on platform 12.
  */
 const LINES: Line[] = [
   {
-    to: 'Brighton',
+    to: 'Falmer',
     map: 'falmer',
     train: 'The 09:12 to Brighton, for Falmer and the Amex',
     ride: 'South to the sea, then a little train up the hill. Enda is waving from the platform.',
     first: 'FALMER. A station, a university, the South Downs, and the Amex. And Enda.',
   },
   {
-    to: 'The Tube',
-    map: 'tube',
-    train:
-      'The Underground, for Selhurst Park, the Tottenham Hotspur Stadium, Stamford Bridge and the Emirates',
-    ride: 'Down the escalators, onto the Victoria line. Nobody looks at anybody.',
+    to: 'Selhurst',
+    map: 'selhurst',
+    train: 'The Thameslink to East Croydon, then one stop back to Selhurst, for Selhurst Park',
+    ride: 'Down through London Bridge and out past Norwood Junction. The Crystal Palace mast is on the hill the whole way.',
     first:
-      'THE TUBE. Four London grounds, one Underground, and a lot of people standing on the left.',
+      'SOUTH NORWOOD. Selhurst Park, squeezed in between the terraces, with a Sainsbury’s built into one end of it. The Crystal Palace mast up on the hill.',
   },
   {
-    to: 'Birmingham',
+    to: 'Aston',
     map: 'birmingham',
     railcard: true,
-    train: 'The 10:03 to Birmingham New Street, for Villa Park',
-    ride: 'Up through the Chilterns, past a lot of HS2 that isn’t there yet.',
+    train: 'The 10:03 to Birmingham New Street, then the train up to Witton, for Villa Park',
+    ride: 'Up through the Chilterns, past a lot of HS2 that isn’t there yet, then out to Aston.',
     first:
-      'BIRMINGHAM. Canals, a Bullring with a bronze bull, Selfridges in its silver discs, and a lot of flat caps.',
+      'ASTON. Aston Hall up the hill, the canal under the Expressway, and Villa Park with the Holte End’s red brick.',
   },
   {
-    to: 'Liverpool',
+    to: 'Bramley-Moore',
     map: 'liverpool',
-    train: 'The 10:47 to Liverpool Lime Street, for Everton and Anfield',
+    train: 'The 10:47 to Liverpool Lime Street, then up the dock road, for Bramley-Moore Dock',
     ride: 'Over to the west coast. The closer you get, the more Irish everyone sounds.',
     first:
-      'LIVERPOOL. The Mersey, the Liver Birds on the Liver Building, the ferry to Dublin, and half the city with an Irish granny.',
+      'BRAMLEY-MOORE DOCK. Everton’s new ground on the Mersey, the Victoria clock tower on the dock wall, the Liver Birds down the river, and the ferry to Dublin.',
   },
   {
-    to: 'Leeds',
+    to: 'Beeston',
     map: 'leeds',
-    train: 'The 11:30 to Leeds, for Elland Road. It’s late. It’s always late',
+    train:
+      'The 11:30 to Leeds, then the bus out to Beeston, for Elland Road. It’s late. It’s always late',
     ride: 'Up the East Coast line. A man opposite has a Leeds tattoo on his neck and a Leeds tattoo on his other neck.',
     first:
-      'LEEDS. The Town Hall clock, the white rose of Yorkshire, and everyone marching on together, mostly to the chippy.',
+      'BEESTON. Elland Road, Billy Bremner in bronze outside it with his arms in the air, the white rose of Yorkshire, and everyone marching on together, mostly to the chippy.',
   },
   {
     to: 'Newcastle',
     map: 'newcastle',
     railcard: true,
-    train: 'The 12:00 to Newcastle, for St James’ Park. Bring a coat. Nobody up there will',
+    train:
+      'The 12:00 to Newcastle, for Gallowgate and St James’ Park. Bring a coat. Nobody up there will',
     ride: 'All the way up the east coast, past the Angel of the North, and over the Tyne on the high bridge.',
-    first: 'NEWCASTLE. The Tyne, the Tyne Bridge, the Angel of the North, and nobody in a coat.',
+    first:
+      'GALLOWGATE. St James’ Park, enormous, right in the middle of town. The Tyne Bridge down the hill, and nobody in a coat.',
   },
   {
-    to: 'Manchester',
+    to: 'Tottenham',
+    map: 'tottenham',
+    train: 'The Overground to White Hart Lane, for the Tottenham Hotspur Stadium',
+    ride: 'Out of Liverpool Street and up through Hackney. The stadium fills the window long before the station.',
+    first:
+      'TOTTENHAM. The High Road, Bruce Castle, and the Tottenham Hotspur Stadium: a huge silver bowl with a golden cockerel on top and people walking across its roof.',
+  },
+  {
+    to: 'Eastlands',
+    map: 'eastlands',
+    train:
+      'The 12:33 to Manchester Piccadilly, then the tram to the Etihad Campus. First class only. The seats are upholstered in fifty-pound notes',
+    ride: 'North through the Midlands. A man in a sheikh’s headdress offers to buy the train. The guard says it isn’t for sale. He buys it anyway.',
+    first:
+      'EASTLANDS. The Etihad, the velodrome, and an oil field that definitely doesn’t belong to the club’s owner. There’s money blowing down the street.',
+  },
+  {
+    to: 'Fulham Broadway',
+    map: 'fulham',
+    train: 'The District line to Fulham Broadway, for Stamford Bridge',
+    ride: 'Round on the Circle, then out west on the District. Everyone gets off at Fulham Broadway in blue.',
+    first:
+      'FULHAM. Fulham Broadway station, Brompton Cemetery over the wall, Chelsea Pensioners in red coats, and Stamford Bridge, which isn’t in Chelsea.',
+  },
+  {
+    to: 'Highbury',
+    map: 'highbury',
+    train:
+      'The Piccadilly line to Arsenal, for Highbury and the Emirates. Two stops. Don’t sit down',
+    ride: 'Two stops north on the Piccadilly line. Arsenal is the only Tube station named after a football club.',
+    first:
+      'HIGHBURY. Arsenal station, the old Art Deco East Stand of Highbury (flats now), and the Emirates, ringed with Arsenal legends with their arms round each other.',
+  },
+  {
+    to: 'Anfield',
+    map: 'anfield',
+    train: 'The 13:05 to Liverpool Lime Street, then the 26 bus up to Anfield',
+    ride: 'Back over to Liverpool. Everyone on the 26 bus is singing. The driver too.',
+    first:
+      'ANFIELD. The Shankly Gates, Stanley Park with Goodison Park across it, Homebaked’s pies, and Anfield’s Main Stand towering over the terraced streets.',
+  },
+  {
+    to: 'Old Trafford',
     map: 'manchester',
-    train: 'The 12:33 to Manchester Piccadilly, for the Etihad and Old Trafford',
+    train: 'The 13:33 to Manchester Piccadilly, then the tram to Old Trafford',
     ride: 'North through the Midlands. It rains from Stoke onwards and doesn’t stop.',
     first:
-      'MANCHESTER. Red-brick mills, worker bees on every bin, rain, and two football grounds that won’t look at each other.',
+      'OLD TRAFFORD. The Theatre of Dreams, the Munich clock, Best, Law and Charlton in bronze, and the Ship Canal behind. It’s raining.',
   },
 ];
 
-/** The clubs whose grounds a line reaches, in the order you play them. */
+/** The clubs whose grounds a line reaches: one each. */
 const clubsOn = (l: Line) => CLUBS.filter((c) => c.map === l.map);
 
 /** A line's platform at King's Cross: its place on the board, from 1. */
@@ -659,6 +715,9 @@ function nextMatch(from: number = 0): Step[] {
   ];
 }
 
+/** Where a train back into London leaves you on the King's Cross concourse. */
+export const CONCOURSE = { x: 12, y: 5 };
+
 /** The train back to King's Cross, from anywhere: after a word on where you're going next. */
 const BACK_TO_LONDON: Step[] = [
   ...nextMatch(),
@@ -683,7 +742,7 @@ const guard = (face: Npc['face'] = 'down'): Npc => ({
 });
 
 /** Where each line arrives in its town, by the guard who brings you back. */
-const ARRIVAL = { x: 1, y: 3, face: 'right' as const };
+export const ARRIVAL = { x: 1, y: 4, face: 'right' as const };
 
 /** Getting on a line: the ride, and the town, with a word the first time. */
 function rideOn(l: Line): Step[] {
@@ -731,7 +790,7 @@ function platformGuard(l: Line, i: number): Step[] {
   ];
 }
 
-/** A row of the King's Cross departures board: a line, its grounds, and whether it runs. */
+/** A row of the King's Cross departures board: a line, its ground, and whether it runs. */
 export interface KxDeparture {
   platform: number;
   to: string;
@@ -761,6 +820,7 @@ export const KX_DEPARTURES: KxDeparture[] = LINES.map((l, i) => ({
 const KX_CLERK: Npc = {
   look: 'clerk',
   face: 'down',
+  at: { x: 17, y: 6 },
   talk: [
     ...nextMatch(),
     { do: 'say', text: 'CLERK: Welcome to King’s Cross. Where are you off to?' },
@@ -768,26 +828,31 @@ const KX_CLERK: Npc = {
   ],
 };
 
+/** Where each platform's guard stands, under their own part of the board: two tiles apart. */
+export const platformAt = (i: number) => ({ x: 2 * i + 1, y: 3 });
+
 /**
- * King's Cross: the departures board along the back wall, a guard on each platform under their
- * own part of it, and the ticket office by the door.
+ * King's Cross: the departures board along the back wall, a guard on each of the twelve
+ * platforms under their own part of it, and the ticket office by the door. The first ten guards
+ * stand on their markers, the last two by `at`.
  */
 export const KINGS_CROSS_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> = {
   name: 'King’s Cross',
   rows: [
-    'WWWWWWWWWWWWWWWW',
-    'WODDDDDDDDDDDDOW',
-    'WFFFFFFFFFFFFFFW',
-    'W1F2F3F4F5F6F7FW',
-    'WFFFFFFFFFFFFFFW',
-    'WUUF8FFFFFF9FUUW',
-    'WNFFFFF@FF0FFFNW',
-    'WWWWWWWEWWWWWWWW',
+    'WWWWWWWWWWWWWWWWWWWWWWWWWW',
+    'WODDDDDDDDDDDDDDDDDDDDDDOW',
+    'WFFFFFFFFFFFFFFFFFFFFFFFFW',
+    'W1F2F3F4F5F6F7F8F9F0FFFFFW',
+    'WFFFFFFFFFFFFFFFFFFFFFFFFW',
+    'WUUFFFFFFFFFFFFFFFFFFFFUUW',
+    'WNFFFFFFFFFFF@FFFFFFFFFFNW',
+    'WWWWWWWWWWWWWEWWWWWWWWWWWW',
   ],
   npcs: [
-    ...LINES.map((l, i) => ({
-      look: 'conductor' as const,
-      face: 'down' as const,
+    ...LINES.map((l, i): Npc => ({
+      look: 'conductor',
+      face: 'down',
+      ...(i >= 10 && { at: platformAt(i) }),
       talk: platformGuard(l, i),
     })),
     // The Metropolitan line to Wembley Park, and Jamie Elliott once the Sidemen have heard of you.
@@ -807,20 +872,26 @@ export const KINGS_CROSS_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
   },
 };
 
-// ---------- the towns ----------
+// ---------- each ground's own part of town ----------
 
 const town = (min: number, max: number, table: [string, number][]): Wild => ({ min, max, table });
 
-/** A stretch of a town's street: a ground, a landmark, or plain buildings (`P`, `M` and `#`). */
+/**
+ * A stretch of a street: the ground (wider for the big ones), a landmark (a station's with the
+ * name on it), or plain buildings (`P`, `M` and `#`).
+ */
 type Part =
-  { stadium: ClubId; tube?: string } | { landmark: LandmarkKind; w: number } | { houses: string };
+  | { stadium: ClubId; w: number }
+  | { landmark: LandmarkKind; w: number; label?: string }
+  | { houses: string };
 
-/** How many tiles wide a ground is from the street, with its turnstiles in the middle. */
-const STADIUM_W = 8;
+/** How many rows of the map a ground stands over, and a landmark: grounds stand taller. */
+const STADIUM_ROWS = 4;
+const LANDMARK_ROWS = 3;
 
 /**
- * A town's row of buildings from its parts, west to east between the trees, and what's drawn
- * over them: each ground's door is its landmark door, in the order the grounds come.
+ * A street from its parts, west to east between the trees, and what's drawn over it. The ground's
+ * door (its turnstiles) is in the middle of its front, the area's one landmark door.
  */
 function street(parts: Part[]): { doors: string; scenery: Scenery[] } {
   let doors = 'T';
@@ -831,82 +902,64 @@ function street(parts: Part[]): { doors: string; scenery: Scenery[] } {
       doors += p.houses;
       continue;
     }
-    const w = 'stadium' in p ? STADIUM_W : p.w;
-    const door = 'stadium' in p ? STADIUM_W / 2 : -1;
-    doors += [...Array(w)].map((_, i) => (i === door ? 'L' : '#')).join('');
-    const at = { x0, x1: x0 + w - 1, y0: 0, y1: 2 };
+    const door = 'stadium' in p ? Math.floor(p.w / 2) : -1;
+    doors += [...Array(p.w)].map((_, i) => (i === door ? 'L' : '#')).join('');
+    const y1 = STADIUM_ROWS - 1;
     scenery.push(
       'stadium' in p
-        ? { ...at, kind: 'stadium', club: p.stadium, ...(p.tube && { tube: p.tube }) }
-        : { ...at, kind: p.landmark },
+        ? { x0, x1: x0 + p.w - 1, y0: 0, y1, kind: 'stadium', club: p.stadium }
+        : {
+            x0,
+            x1: x0 + p.w - 1,
+            y0: STADIUM_ROWS - LANDMARK_ROWS,
+            y1,
+            kind: p.landmark,
+            ...(p.label && { label: p.label }),
+          },
     );
   }
   return { doors: doors + 'T', scenery };
 }
 
 /**
- * A map's rows with its scenery's top row cleared of trees (a plain wall, under the drawing), so
- * nothing grows through a stadium's roof: the trees along the top stay everywhere else.
+ * A ground's area of town from its street: two rows of trees along the top (cleared to a plain
+ * wall under the ground and the landmarks, so nothing grows through a roof), the buildings, the
+ * pavement, the road with its cars, and a park, with long grass in it if Ranemon live there.
+ * Its people stand at 1 (the guard home, by the way in), 2 (a local), then 3 and 4 (trainers, on
+ * the far pavement) and 5 (someone else about).
  */
-function clearedFor(rows: string[], scenery: Scenery[]): string[] {
-  return rows.map((r, y) =>
-    y !== 0
-      ? r
-      : [...r].map((t, x) => (scenery.some((s) => x >= s.x0 && x <= s.x1) ? 'W' : t)).join(''),
-  );
-}
-
-/** A stop with only grounds on it, off a train or the Tube: one street, its people and a sign. */
-function stopOf(
-  parts: Part[],
-  people: Record<number, string>,
-  sign: number,
-): Pick<GameMap, 'rows' | 'scenery'> {
+function areaOf(parts: Part[], people: number, grass = true): Pick<GameMap, 'rows' | 'scenery'> {
   const { doors, scenery } = street(parts);
   const w = doors.length;
-  const row = (fill: string, at: Record<number, string> = {}) =>
-    [...Array(w)].map((_, x) => (x === 0 || x === w - 1 ? 'T' : (at[x] ?? fill))).join('');
-  const rows = [
-    'T'.repeat(w),
-    row('^'),
-    doors,
-    row('v', { 1: '@' }),
-    row('v', people),
-    row('v', { [sign]: 'S' }),
-    'T'.repeat(w),
-  ];
-  return { rows: clearedFor(rows, scenery), scenery };
-}
-
-/**
- * A town from its street: where its people stand (1 the guard home, 2 a local, then 3 and 4 the
- * trainers), and what's drawn over its buildings.
- */
-function townOf(parts: Part[]): Pick<GameMap, 'rows' | 'scenery'> {
-  const { doors, scenery } = street(parts);
-  const w = doors.length;
+  if (w < 24) throw new Error(`a street of ${w} is too short for its people`);
+  const spot = (n: number, x: number) => (n <= people ? { [x]: String(n) } : {});
   const row = (fill: string | ((x: number) => string), at: Record<number, string> = {}) =>
     [...Array(w)]
       .map((_, x) =>
         x === 0 || x === w - 1 ? 'T' : (at[x] ?? (typeof fill === 'string' ? fill : fill(x))),
       )
       .join('');
-  const grass = (x: number) => ((x >= 2 && x <= 9) || (x >= 15 && x <= 21) ? ',' : 'v');
+  const covered = (x: number, y: number) =>
+    scenery.some((s) => x >= s.x0 && x <= s.x1 && y >= s.y0);
+  const top = (y: number) =>
+    [...Array(w)].map((_, x) => (x > 0 && x < w - 1 && covered(x, y) ? 'W' : 'T')).join('');
+  const park = (x: number) => (grass && ((x >= 2 && x <= 9) || (x >= 15 && x <= 21)) ? ',' : 'v');
   const rows = [
-    'T'.repeat(w),
+    top(0),
+    top(1),
     row('^'),
     doors,
     row('v', { 1: '@' }),
-    row('v', { 2: '1', 17: '2' }),
+    row('v', { ...spot(1, 2), ...spot(2, 17) }),
     row('a'),
     row('a', { 4: 'c', 19: 'c' }),
-    row('v'),
-    row(grass, { 7: '3', 14: 'S', 17: '4' }),
-    row(grass),
+    row('v', spot(5, 11)),
+    row(park, { ...spot(3, 7), 14: 'S', ...spot(4, 17) }),
+    row(park),
     row('v'),
     'T'.repeat(w),
   ];
-  return { rows: clearedFor(rows, scenery), scenery };
+  return { rows, scenery };
 }
 
 const say = (text: string): Step[] => [{ do: 'say', text }];
@@ -935,6 +988,510 @@ const trainerAt = (id: string, face: Npc['face'], look: Look = 'trainer'): Npc =
   sight: 3,
 });
 
+const local = (face: Npc['face'], text: string, look: Look = 'local'): Npc => ({
+  look,
+  face,
+  talk: say(text),
+});
+
+/** What every ground's area has: in Britain, 2D only, with its own guard back to London. */
+const AREA = { county: 9, flat: true, uk: true } as const;
+
+// 1. Brighton, at Falmer.
+
+export const FALMER: GameMap = {
+  id: 'falmer',
+  name: 'Falmer, East Sussex',
+  ...AREA,
+  ...areaOf(
+    [
+      { landmark: 'south-downs', w: 7 },
+      { stadium: 'brighton', w: 10 },
+      { houses: '##' },
+      { landmark: 'rail', w: 5, label: 'FALMER' },
+    ],
+    2,
+    false,
+  ),
+  npcs: [
+    guard(),
+    {
+      look: 'enda',
+      face: 'down',
+      talk: [
+        ...say('ENDA: I KNEW you’d come back! Is it a tradition now? It’s a tradition.'),
+        ...say(
+          'ENDA: I made you another friendship bracelet on the train. It says PREMIER LEAGUE. It’s spelt wrong.',
+        ),
+      ],
+    },
+  ],
+  signs: ['FALMER. The Amex. Brighton & Hove Albion. The South Downs behind.'],
+  ...ground('brighton'),
+};
+
+// 2. Crystal Palace, at Selhurst Park in South Norwood.
+
+export const SELHURST: GameMap = {
+  id: 'selhurst',
+  name: 'South Norwood, London',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'crystal-palace-mast', w: 7 },
+      { houses: '##' },
+      { stadium: 'palace', w: 10 },
+      { landmark: 'sainsburys', w: 6 },
+      { landmark: 'rail', w: 4, label: 'SELHURST' },
+    ],
+    4,
+    false,
+  ),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: That’s a Sainsbury’s, yeah. Built right into the Whitehorse Lane end. You can do your big shop at half time.',
+    ),
+    trainerAt('snw-eagle', 'right'),
+    trainerAt('snw-holmesdale', 'left'),
+  ],
+  signs: [
+    'SOUTH NORWOOD. Selhurst Park, home of Crystal Palace. The Crystal Palace itself burnt down in 1936. The mast and the dinosaurs are still up the hill.',
+  ],
+  ...ground('palace'),
+};
+
+// 3. Aston Villa, at Villa Park in Aston.
+
+const BIRMINGHAM_YATES: Yates = {
+  owner: {
+    look: 'mick',
+    face: 'down',
+    talk: [
+      ...say(
+        'MICK: Mick, from Tipperary. Sixty years in Birmingham. I’ve marched in every Paddy’s Day parade since 1966.',
+      ),
+      ...say('MICK: Take a flat cap from the rack. Everyone in here has to wear one. House rules.'),
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a photo of every Birmingham St Patrick’s Day parade since 1960.',
+    U: 'A table. Everyone at it is wearing a flat cap.',
+    J: 'A fire, and a rack of flat caps beside it.',
+  },
+};
+
+export const BIRMINGHAM: GameMap = {
+  id: 'birmingham',
+  name: 'Aston, Birmingham',
+  ...AREA,
+  terraces: 'english',
+  yates: BIRMINGHAM_YATES,
+  ...areaOf(
+    [
+      { landmark: 'aston-hall', w: 8 },
+      { houses: '##P##' },
+      { landmark: 'canal', w: 6 },
+      { houses: '#M#' },
+      { stadium: 'villa', w: 10 },
+    ],
+    4,
+  ),
+  wild: town(12, 16, [
+    ['steadmon', 20],
+    ['skehemon', 20],
+    ['simomon', 20],
+    ['paulimon', 20],
+    ['robinmon', 20],
+  ]),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'VILLA FAN: (In a gilet, and sunglasses, and a very fake moustache.) I’m basically royalty. I know a lot of people. Best of luck. You’ll need it. Ahem.',
+    ),
+    trainerAt('brum-canal', 'right'),
+    trainerAt('brum-bull', 'left'),
+  ],
+  signs: ['ASTON. Villa Park this way, Aston Hall up the hill. Up the Villa.'],
+  ...ground('villa'),
+};
+
+// 4. Everton, at Bramley-Moore Dock on the Mersey.
+
+const LIVERPOOL_YATES: Yates = {
+  owner: {
+    look: 'kelly',
+    face: 'down',
+    talk: [
+      ...say(
+        'NANA KELLY: We’re the Kellys. Four generations in this pub. Wexford, originally. Then the boat.',
+      ),
+      ...say(
+        'NANA KELLY: See the sign? LIVERPOOL, THE REAL CAPITAL OF IRELAND. Half the city’s Irish, la. The other half wishes it was.',
+      ),
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a ferry timetable to Dublin, pinned up beside them.',
+    U: 'A table. Four generations of Kellys have carved their names in it.',
+    J: 'A fire, and over it a sign: LIVERPOOL, THE REAL CAPITAL OF IRELAND.',
+  },
+};
+
+export const LIVERPOOL: GameMap = {
+  id: 'liverpool',
+  name: 'Bramley-Moore Dock, Liverpool',
+  ...AREA,
+  terraces: 'english',
+  yates: LIVERPOOL_YATES,
+  ...areaOf(
+    [
+      { landmark: 'liver-building', w: 8 },
+      { houses: '##P##' },
+      { landmark: 'victoria-tower', w: 4 },
+      { landmark: 'mersey', w: 7 },
+      { houses: '#M#' },
+      { stadium: 'everton', w: 10 },
+    ],
+    4,
+  ),
+  wild: town(15, 19, [
+    ['boydemon', 20],
+    ['thilomon', 20],
+    ['killemon', 20],
+    ['conemon', 20],
+    ['oismon', 20],
+  ]),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'SCOUSE LAD: Big Dunc? He caught a burglar in his own house once, la. Burglar’s still not right.',
+    ),
+    trainerAt('lpool-ferry', 'right'),
+    trainerAt('lpool-dock', 'left'),
+  ],
+  signs: [
+    'BRAMLEY-MOORE DOCK. Everton’s new ground, on the Mersey. The Pier Head and the ferry for Dublin down the river. Anfield is up the hill, on another train.',
+  ],
+  ...ground('everton'),
+};
+
+// 5. Leeds United, at Elland Road in Beeston.
+
+const LEEDS_YATES: Yates = {
+  owner: {
+    look: 'brid',
+    face: 'down',
+    talk: [
+      ...say(
+        'BRÍD: Bríd, from Kerry. I run the GAA club here too. Leeds Gaels. We’re short a full-back.',
+      ),
+      ...say('BRÍD: The All-Ireland final is on every screen. It’s always on. I record it.'),
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a Sam Maguire made of tinfoil.',
+    U: 'A table with a hurley across it. A sign: DO NOT USE AS A TABLE.',
+    J: 'A fire, and Kerry jerseys drying in front of it.',
+  },
+};
+
+export const LEEDS: GameMap = {
+  id: 'leeds',
+  name: 'Beeston, Leeds',
+  ...AREA,
+  terraces: 'english',
+  yates: LEEDS_YATES,
+  ...areaOf(
+    [
+      { landmark: 'yorkshire-rose', w: 6 },
+      { houses: '##P##' },
+      { landmark: 'bremner-statue', w: 6 },
+      { houses: '#M#' },
+      { stadium: 'leeds', w: 10 },
+    ],
+    4,
+  ),
+  wild: town(18, 22, [
+    ['steadmon', 20],
+    ['hugomon', 20],
+    ['paulimon', 20],
+    ['jammon', 20],
+    ['vinnimon', 20],
+  ]),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: Bielsa? He’s a god here. We put up a mural. And another one. And a statue of the bucket. Billy Bremner’s statue is jealous.',
+    ),
+    trainerAt('leeds-analyst-1', 'right'),
+    trainerAt('leeds-analyst-2', 'left'),
+  ],
+  signs: ['BEESTON. Elland Road this way, past Billy Bremner. Marching on together.'],
+  ...ground('leeds'),
+};
+
+// 6. Newcastle United, at St James' Park on Gallowgate.
+
+const NEWCASTLE_YATES: Yates = {
+  owner: {
+    look: 'grainne',
+    face: 'down',
+    talk: [
+      ...say('GRÁINNE: Gráinne. From Killybegs, in Donegal. My father fished. I pour.'),
+      ...say(
+        'GRÁINNE: No heating in here, ever. Nobody up here would use it. Got a Chicken Fillet Roll? I’ll swap you a fish story for one.',
+      ),
+    ],
+  },
+  things: {
+    V: 'Every whiskey in Ireland, and a stuffed fish that Gráinne swears was bigger.',
+    U: 'A table. Everyone at it is in a T-shirt. Your breath is fogging.',
+    J: 'A fireplace with no fire in it. There never has been.',
+  },
+};
+
+export const NEWCASTLE: GameMap = {
+  id: 'newcastle',
+  name: 'Gallowgate, Newcastle',
+  ...AREA,
+  terraces: 'english',
+  yates: NEWCASTLE_YATES,
+  ...areaOf(
+    [
+      { landmark: 'tyne-bridge', w: 8 },
+      { houses: '##P##' },
+      { landmark: 'angel', w: 7 },
+      { houses: '#M#' },
+      { stadium: 'newcastle', w: 12 },
+    ],
+    4,
+  ),
+  wild: town(21, 25, [
+    ['olliemon', 20],
+    ['gibbsmon', 20],
+    ['carlmon', 20],
+    ['killemon', 20],
+    ['owemon', 20],
+  ]),
+  npcs: [
+    guard(),
+    local('down', 'GEORDIE: Howay man, it’s not cold! It’s FRESH. Coats are for Londoners.'),
+    trainerAt('ncl-topless', 'right'),
+    trainerAt('ncl-bridge', 'left'),
+  ],
+  signs: [
+    'GALLOWGATE. St James’ Park, right in the middle of town. You can’t miss it. It’s enormous.',
+  ],
+  ...ground('newcastle'),
+};
+
+// 7. Tottenham Hotspur, on the High Road.
+
+export const TOTTENHAM: GameMap = {
+  id: 'tottenham',
+  name: 'Tottenham, North London',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'bruce-castle', w: 6 },
+      { landmark: 'overground', w: 5, label: 'WHITE HART LANE' },
+      { stadium: 'spurs', w: 14 },
+      { houses: '##' },
+    ],
+    4,
+    false,
+  ),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: Sixty-two thousand seats, a pitch that slides away for the NFL, a microbrewery, and you can walk across the roof. One trophy, mind.',
+    ),
+    trainerAt('thfc-skywalk', 'right'),
+    trainerAt('thfc-brewery', 'left'),
+  ],
+  signs: [
+    'TOTTENHAM. The Tottenham Hotspur Stadium, on the High Road where White Hart Lane was. To dare is to do.',
+  ],
+  ...ground('spurs'),
+};
+
+// 8. Manchester City, at the Etihad in Eastlands.
+
+export const EASTLANDS: GameMap = {
+  id: 'eastlands',
+  name: 'Eastlands, Manchester',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'velodrome', w: 8 },
+      { houses: '##' },
+      { landmark: 'oil-field', w: 7 },
+      { houses: '#M#' },
+      { stadium: 'city', w: 11 },
+    ],
+    4,
+  ),
+  wild: town(26, 30, [
+    ['olliemon', 20],
+    ['oismon', 20],
+    ['gibbsmon', 15],
+    ['thilomon', 15],
+    ['owemon', 15],
+    ['jammon', 15],
+  ]),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: The oil field? Been there since the takeover. Nothing to do with the owner. Different company. Same address.',
+    ),
+    trainerAt('mcr-ultra', 'right'),
+    trainerAt('mcr-cyclist', 'left'),
+  ],
+  signs: [
+    'EASTLANDS. The Etihad Stadium, home of Manchester City. Money found on the pavement must be handed in. It won’t be.',
+  ],
+  ...ground('city'),
+  landmarkRooms: {
+    // City's lawyers and their accountant, never far from the touchline.
+    0: groundRoom(clubById('city'), [
+      {
+        look: 'tux',
+        face: 'right',
+        talk: say(
+          'CITY’S LAWYER: 115 charges? Allegations. Proven? Alleged to be proven. We’ll be appealing the appeal. Have you a moment? This is billed by the minute.',
+        ),
+      },
+      {
+        look: 'tux',
+        face: 'left',
+        talk: say(
+          'CITY’S ACCOUNTANT: Sponsorship income from a company that is definitely not the owner, to a club that is definitely within the rules. Here’s the spreadsheet. Don’t look at column F.',
+        ),
+      },
+    ]),
+  },
+};
+
+// 9. Chelsea, at Stamford Bridge in Fulham.
+
+export const FULHAM: GameMap = {
+  id: 'fulham',
+  name: 'Fulham, West London',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'brompton-cemetery', w: 7 },
+      { landmark: 'underground', w: 5, label: 'FULHAM BROADWAY' },
+      { stadium: 'chelsea', w: 11 },
+      { houses: '##' },
+    ],
+    5,
+    false,
+  ),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: Stamford Bridge isn’t in Chelsea, it’s in Fulham. Fulham are in Fulham as well. Nobody tells the tourists.',
+    ),
+    trainerAt('cfc-shed', 'right'),
+    trainerAt('cfc-kings-road', 'left'),
+    local(
+      'down',
+      'CHELSEA PENSIONER: Scarlet coat, tricorn hat, season ticket since 1955. I’ve seen eleven managers sacked this year. It’s March.',
+      'oldman',
+    ),
+  ],
+  signs: [
+    'FULHAM. Stamford Bridge, home of Chelsea, by Fulham Broadway. Brompton Cemetery over the wall.',
+  ],
+  ...ground('chelsea'),
+};
+
+// 10. Arsenal, at the Emirates in Highbury.
+
+export const HIGHBURY: GameMap = {
+  id: 'highbury',
+  name: 'Highbury, North London',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'highbury-square', w: 8 },
+      { landmark: 'underground', w: 5, label: 'ARSENAL' },
+      { stadium: 'arsenal', w: 12 },
+      { houses: '##' },
+    ],
+    4,
+    false,
+  ),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'LOCAL: That was the old ground, Highbury. Marble halls, the clock end, Art Deco. They turned it into flats. The pitch is a garden now.',
+    ),
+    trainerAt('afc-clock-end', 'right'),
+    trainerAt('afc-invincible', 'left'),
+  ],
+  signs: [
+    'HIGHBURY. The Emirates, home of Arsenal, by Arsenal station. The old Highbury stadium is round the corner, flats now.',
+  ],
+  ...ground('arsenal'),
+};
+
+// 11. Liverpool, at Anfield.
+
+export const ANFIELD: GameMap = {
+  id: 'anfield',
+  name: 'Anfield, Liverpool',
+  ...AREA,
+  terraces: 'english',
+  ...areaOf(
+    [
+      { landmark: 'stanley-park', w: 8 },
+      { landmark: 'homebaked', w: 5 },
+      { houses: '#M#' },
+      { landmark: 'shankly-gates', w: 5 },
+      { stadium: 'liverpool', w: 12 },
+    ],
+    4,
+  ),
+  wild: town(36, 40, [
+    ['boydemon', 20],
+    ['robinmon', 20],
+    ['killemon', 20],
+    ['conemon', 20],
+    ['enda', 20],
+  ]),
+  npcs: [
+    guard(),
+    local(
+      'down',
+      'KOPITE: Goodison’s just across Stanley Park, la. Everton moved down to the docks. We still don’t go in that end of the park.',
+    ),
+    trainerAt('anf-kop', 'right'),
+    trainerAt('anf-gates', 'left'),
+  ],
+  signs: [
+    'ANFIELD. Home of Liverpool. The Shankly Gates, the Kop, and Stanley Park. You’ll never walk alone.',
+  ],
+  ...ground('liverpool'),
+};
+
+// 12. Manchester United, at Old Trafford.
+
 const MANCHESTER_YATES: Yates = {
   owner: {
     look: 'mayo',
@@ -961,21 +1518,22 @@ const MANCHESTER_YATES: Yates = {
 
 export const MANCHESTER: GameMap = {
   id: 'manchester',
-  name: 'Manchester, England',
-  county: 9,
-  flat: true,
+  name: 'Old Trafford, Manchester',
+  ...AREA,
   terraces: 'english',
-  uk: true,
   yates: MANCHESTER_YATES,
-  ...townOf([
-    { landmark: 'manchester-mill', w: 6 },
-    { stadium: 'united' },
-    { houses: '##P##' },
-    { landmark: 'manchester-town-hall', w: 8 },
-    { houses: '#M#' },
-    { stadium: 'city' },
-  ]),
-  wild: town(26, 30, [
+  ...areaOf(
+    [
+      { landmark: 'manchester-mill', w: 6 },
+      { houses: '##P##' },
+      { landmark: 'united-trinity', w: 6 },
+      { landmark: 'ship-canal', w: 6 },
+      { houses: '#M#' },
+      { stadium: 'united', w: 13 },
+    ],
+    4,
+  ),
+  wild: town(40, 44, [
     ['olliemon', 20],
     ['oismon', 20],
     ['gibbsmon', 15],
@@ -985,342 +1543,34 @@ export const MANCHESTER: GameMap = {
   ]),
   npcs: [
     guard(),
-    {
-      look: 'local',
-      face: 'down',
-      talk: say(
-        'LOCAL: United or City? Don’t answer. Whichever you say, half the street will stop talking to you.',
-      ),
-    },
+    local(
+      'down',
+      'LOCAL: City? That’s the other side of town, Eastlands. Different tram. Different planet. We don’t talk about them here.',
+    ),
     trainerAt('mcr-oasis', 'right'),
-    trainerAt('mcr-ultra', 'left'),
-  ],
-  signs: ['MANCHESTER. Old Trafford and the Etihad. Two grounds, one city, no peace.'],
-  ...grounds(['united', 'city']),
-  landmarkRooms: {
-    0: groundRoom(clubById('united')),
-    // City's lawyers and their accountant, never far from the touchline.
-    1: groundRoom(clubById('city'), [
-      {
-        look: 'tux',
-        face: 'right',
-        talk: say(
-          'CITY’S LAWYER: 115 charges? Allegations. Proven? Alleged to be proven. We’ll be appealing the appeal. Have you a moment? This is billed by the minute.',
-        ),
-      },
-      {
-        look: 'tux',
-        face: 'left',
-        talk: say(
-          'CITY’S ACCOUNTANT: Sponsorship income from a company that is definitely not the owner, to a club that is definitely within the rules. Here’s the spreadsheet. Don’t look at column F.',
-        ),
-      },
-    ]),
-  },
-};
-
-const LEEDS_YATES: Yates = {
-  owner: {
-    look: 'brid',
-    face: 'down',
-    talk: [
-      ...say(
-        'BRÍD: Bríd, from Kerry. I run the GAA club here too. Leeds Gaels. We’re short a full-back.',
-      ),
-      ...say('BRÍD: The All-Ireland final is on every screen. It’s always on. I record it.'),
-    ],
-  },
-  things: {
-    V: 'Every whiskey in Ireland, and a Sam Maguire made of tinfoil.',
-    U: 'A table with a hurley across it. A sign: DO NOT USE AS A TABLE.',
-    J: 'A fire, and Kerry jerseys drying in front of it.',
-  },
-};
-
-export const LEEDS: GameMap = {
-  id: 'leeds',
-  name: 'Leeds, England',
-  county: 9,
-  flat: true,
-  terraces: 'english',
-  uk: true,
-  yates: LEEDS_YATES,
-  ...townOf([
-    { landmark: 'leeds-town-hall', w: 8 },
-    { houses: '##P##' },
-    { landmark: 'yorkshire-rose', w: 6 },
-    { houses: '#M#' },
-    { stadium: 'leeds' },
-  ]),
-  wild: town(18, 22, [
-    ['steadmon', 20],
-    ['hugomon', 20],
-    ['paulimon', 20],
-    ['jammon', 20],
-    ['vinnimon', 20],
-  ]),
-  npcs: [
-    guard(),
-    {
-      look: 'local',
-      face: 'down',
-      talk: say(
-        'LOCAL: Bielsa? He’s a god here. We put up a mural. And another one. And a statue of the bucket.',
-      ),
-    },
-    trainerAt('leeds-analyst-1', 'right'),
-    trainerAt('leeds-analyst-2', 'left'),
-  ],
-  signs: ['LEEDS. Elland Road this way. Marching on together.'],
-  ...grounds(['leeds']),
-  landmarkRooms: { 0: groundRoom(clubById('leeds')) },
-};
-
-const LIVERPOOL_YATES: Yates = {
-  owner: {
-    look: 'kelly',
-    face: 'down',
-    talk: [
-      ...say(
-        'NANA KELLY: We’re the Kellys. Four generations in this pub. Wexford, originally. Then the boat.',
-      ),
-      ...say(
-        'NANA KELLY: See the sign? LIVERPOOL, THE REAL CAPITAL OF IRELAND. Half the city’s Irish, la. The other half wishes it was.',
-      ),
-    ],
-  },
-  things: {
-    V: 'Every whiskey in Ireland, and a ferry timetable to Dublin, pinned up beside them.',
-    U: 'A table. Four generations of Kellys have carved their names in it.',
-    J: 'A fire, and over it a sign: LIVERPOOL, THE REAL CAPITAL OF IRELAND.',
-  },
-};
-
-export const LIVERPOOL: GameMap = {
-  id: 'liverpool',
-  name: 'Liverpool, England',
-  county: 9,
-  flat: true,
-  terraces: 'english',
-  uk: true,
-  yates: LIVERPOOL_YATES,
-  ...townOf([
-    { landmark: 'liver-building', w: 8 },
-    { stadium: 'everton' },
-    { houses: '##P##' },
-    { landmark: 'mersey', w: 7 },
-    { houses: '#M#' },
-    { stadium: 'liverpool' },
-  ]),
-  wild: town(15, 19, [
-    ['boydemon', 20],
-    ['thilomon', 20],
-    ['killemon', 20],
-    ['conemon', 20],
-    ['oismon', 20],
-  ]),
-  npcs: [
-    guard(),
-    {
-      look: 'local',
-      face: 'down',
-      talk: say(
-        'SCOUSE LAD: Big Dunc? He caught a burglar in his own house once, la. Burglar’s still not right.',
-      ),
-    },
-    trainerAt('lpool-ferry', 'right'),
-    trainerAt('lpool-dock', 'left'),
+    trainerAt('mcr-stretford', 'left'),
   ],
   signs: [
-    'LIVERPOOL. Bramley-Moore Dock for Everton. Anfield for Liverpool. The ferry for Dublin.',
+    'OLD TRAFFORD. The Theatre of Dreams, home of Manchester United. Sir Matt Busby Way. The Holy Trinity in bronze.',
   ],
-  ...grounds(['everton', 'liverpool']),
-  landmarkRooms: {
-    0: groundRoom(clubById('everton')),
-    1: groundRoom(clubById('liverpool')),
-  },
+  ...ground('united'),
 };
 
-export const FALMER: GameMap = {
-  id: 'falmer',
-  name: 'Falmer, East Sussex',
-  county: 9,
-  flat: true,
-  uk: true,
-  ...stopOf(
-    [{ landmark: 'south-downs', w: 6 }, { stadium: 'brighton' }, { houses: '##' }],
-    {
-      2: '1',
-      8: '2',
-    },
-    10,
-  ),
-  npcs: [
-    guard(),
-    {
-      look: 'enda',
-      face: 'down',
-      talk: [
-        ...say('ENDA: I KNEW you’d come back! Is it a tradition now? It’s a tradition.'),
-        ...say(
-          'ENDA: I made you another friendship bracelet on the train. It says PREMIER LEAGUE. It’s spelt wrong.',
-        ),
-      ],
-    },
-  ],
-  signs: ['FALMER. The Amex. Brighton & Hove Albion.'],
-  ...grounds(['brighton']),
-  landmarkRooms: { 0: groundRoom(clubById('brighton')) },
-};
-
-const BIRMINGHAM_YATES: Yates = {
-  owner: {
-    look: 'mick',
-    face: 'down',
-    talk: [
-      ...say(
-        'MICK: Mick, from Tipperary. Sixty years in Birmingham. I’ve marched in every Paddy’s Day parade since 1966.',
-      ),
-      ...say('MICK: Take a flat cap from the rack. Everyone in here has to wear one. House rules.'),
-    ],
-  },
-  things: {
-    V: 'Every whiskey in Ireland, and a photo of every Birmingham St Patrick’s Day parade since 1960.',
-    U: 'A table. Everyone at it is wearing a flat cap.',
-    J: 'A fire, and a rack of flat caps beside it.',
-  },
-};
-
-export const BIRMINGHAM: GameMap = {
-  id: 'birmingham',
-  name: 'Birmingham, England',
-  county: 9,
-  flat: true,
-  terraces: 'english',
-  uk: true,
-  yates: BIRMINGHAM_YATES,
-  ...townOf([
-    { landmark: 'selfridges', w: 8 },
-    { houses: '##P##' },
-    { landmark: 'canal', w: 6 },
-    { houses: '#M#' },
-    { stadium: 'villa' },
-  ]),
-  wild: town(12, 16, [
-    ['steadmon', 20],
-    ['skehemon', 20],
-    ['simomon', 20],
-    ['paulimon', 20],
-    ['robinmon', 20],
-  ]),
-  npcs: [
-    guard(),
-    {
-      look: 'local',
-      face: 'down',
-      talk: say(
-        'VILLA FAN: (In a gilet, and sunglasses, and a very fake moustache.) I’m basically royalty. I know a lot of people. Best of luck. You’ll need it. Ahem.',
-      ),
-    },
-    trainerAt('brum-canal', 'right'),
-    trainerAt('brum-bull', 'left'),
-  ],
-  signs: ['BIRMINGHAM. Villa Park this way. Up the Villa.'],
-  ...grounds(['villa']),
-  landmarkRooms: { 0: groundRoom(clubById('villa')) },
-};
-
-const NEWCASTLE_YATES: Yates = {
-  owner: {
-    look: 'grainne',
-    face: 'down',
-    talk: [
-      ...say('GRÁINNE: Gráinne. From Killybegs, in Donegal. My father fished. I pour.'),
-      ...say(
-        'GRÁINNE: No heating in here, ever. Nobody up here would use it. Got a Chicken Fillet Roll? I’ll swap you a fish story for one.',
-      ),
-    ],
-  },
-  things: {
-    V: 'Every whiskey in Ireland, and a stuffed fish that Gráinne swears was bigger.',
-    U: 'A table. Everyone at it is in a T-shirt. Your breath is fogging.',
-    J: 'A fireplace with no fire in it. There never has been.',
-  },
-};
-
-export const NEWCASTLE: GameMap = {
-  id: 'newcastle',
-  name: 'Newcastle, England',
-  county: 9,
-  flat: true,
-  terraces: 'english',
-  uk: true,
-  yates: NEWCASTLE_YATES,
-  ...townOf([
-    { landmark: 'tyne-bridge', w: 8 },
-    { houses: '##P##' },
-    { landmark: 'angel', w: 7 },
-    { houses: '#M#' },
-    { stadium: 'newcastle' },
-  ]),
-  wild: town(21, 25, [
-    ['olliemon', 20],
-    ['gibbsmon', 20],
-    ['carlmon', 20],
-    ['killemon', 20],
-    ['owemon', 20],
-  ]),
-  npcs: [
-    guard(),
-    {
-      look: 'local',
-      face: 'down',
-      talk: say('GEORDIE: Howay man, it’s not cold! It’s FRESH. Coats are for Londoners.'),
-    },
-    trainerAt('ncl-topless', 'right'),
-    trainerAt('ncl-bridge', 'left'),
-  ],
-  signs: ['NEWCASTLE. St James’ Park, up the hill. You can’t miss it. It’s enormous.'],
-  ...grounds(['newcastle']),
-  landmarkRooms: { 0: groundRoom(clubById('newcastle')) },
-};
-
-export const TUBE: GameMap = {
-  id: 'tube',
-  name: 'The Tube, London',
-  county: 9,
-  flat: true,
-  uk: true,
-  ...stopOf(
-    [
-      { landmark: 'underground', w: 5 },
-      { stadium: 'spurs', tube: 'SEVEN SISTERS' },
-      { stadium: 'palace', tube: 'SELHURST' },
-      { stadium: 'chelsea', tube: 'FULHAM BROADWAY' },
-      { stadium: 'arsenal', tube: 'ARSENAL' },
-    ],
-    { 2: '1', 15: '2' },
-    8,
-  ),
-  npcs: [
-    guard(),
-    {
-      look: 'local',
-      face: 'left',
-      talk: say('COMMUTER: Stand on the right. WALK on the left. It’s not complicated. Tourists.'),
-    },
-  ],
-  signs: ['THE TUBE. Seven Sisters, Selhurst, Fulham Broadway and Arsenal. Mind the gap.'],
-  ...grounds(['spurs', 'palace', 'chelsea', 'arsenal']),
-  landmarkRooms: {
-    0: groundRoom(clubById('spurs')),
-    1: groundRoom(clubById('palace')),
-    2: groundRoom(clubById('chelsea')),
-    3: groundRoom(clubById('arsenal')),
-  },
-};
-
-export const PL_MAPS = [MANCHESTER, LEEDS, LIVERPOOL, FALMER, BIRMINGHAM, NEWCASTLE, TUBE];
+/** Every ground's own area, in the order you play them. */
+export const PL_MAPS = [
+  FALMER,
+  SELHURST,
+  BIRMINGHAM,
+  LIVERPOOL,
+  LEEDS,
+  NEWCASTLE,
+  TOTTENHAM,
+  EASTLANDS,
+  FULHAM,
+  HIGHBURY,
+  ANFIELD,
+  MANCHESTER,
+];
 
 /** Everyone on the way to the grounds: each with one of the lads and one of London’s own. */
 const ROUTE_TRAINERS: Trainer[] = [
@@ -1423,6 +1673,127 @@ const ROUTE_TRAINERS: Trainer[] = [
     ],
     'BRIDGE WALKER JEN: Seven bridges on the Tyne. I’ve walked them all today. One more battle.',
     'BRIDGE WALKER JEN: Eight, if you count that.',
+  ),
+  ukTrainer(
+    'snw-eagle',
+    'Eagle Handler Kayla',
+    [
+      ['robinmon', 11],
+      ['pedalmon', 12],
+    ],
+    'EAGLE HANDLER KAYLA: Kayla the eagle flies before every home game. I fly before every battle. Not literally.',
+    'EAGLE HANDLER KAYLA: Grounded.',
+  ),
+  ukTrainer(
+    'snw-holmesdale',
+    'Holmesdale Ultra Del',
+    [
+      ['skatemon', 12],
+      ['gibbsmon', 13],
+    ],
+    'HOLMESDALE ULTRA DEL: Drum, flags, ninety minutes standing up. You think you can out-sing the Holmesdale?',
+    'HOLMESDALE ULTRA DEL: Glad all over. Not really.',
+  ),
+  ukTrainer(
+    'thfc-skywalk',
+    'Skywalk Guide Priya',
+    [
+      ['carlmon', 25],
+      ['speedmon', 26],
+    ],
+    'SKYWALK GUIDE PRIYA: I take people over the roof, forty metres up. Clip in. We battle on the way down.',
+    'SKYWALK GUIDE PRIYA: Mind the edge on your way out.',
+  ),
+  ukTrainer(
+    'thfc-brewery',
+    'Brewer Dom',
+    [
+      ['bagelmon', 26],
+      ['jammon', 27],
+    ],
+    'BREWER DOM: Biggest bar in Europe, sixty-five metres long, and a brewery under the stand. One trophy, mind. Battle!',
+    'BREWER DOM: Spursy. That was very Spursy of me.',
+  ),
+  ukTrainer(
+    'mcr-cyclist',
+    'Velodrome Rider Laura',
+    [
+      ['pedalmon', 29],
+      ['vinnimon', 30],
+    ],
+    'VELODROME RIDER LAURA: Round and round the track at the velodrome all morning. You’re my warm-down.',
+    'VELODROME RIDER LAURA: Photo finish. Mine wasn’t the good one.',
+  ),
+  ukTrainer(
+    'cfc-shed',
+    'Shed End Gary',
+    [
+      ['simomon', 31],
+      ['wickmon', 32],
+    ],
+    'SHED END GARY: Been in the Shed since it was a shed. Battle me, and I’ll sing you “Blue is the Colour”.',
+    'SHED END GARY: Blue is the colour. Mostly my face, now.',
+  ),
+  ukTrainer(
+    'cfc-kings-road',
+    'King’s Road Tilly',
+    [
+      ['lorcamon', 32],
+      ['seedmon', 33],
+    ],
+    'KING’S ROAD TILLY: Daddy bought me a box for the season. I came down to see what the outside is like. Battle!',
+    'KING’S ROAD TILLY: I’m telling Daddy.',
+  ),
+  ukTrainer(
+    'afc-clock-end',
+    'Clock End Kev',
+    [
+      ['hugomon', 34],
+      ['oatmon', 35],
+    ],
+    'CLOCK END KEV: They moved the clock to the Emirates. I moved with it. Forty years in that end. Battle!',
+    'CLOCK END KEV: Time’s up, then.',
+  ),
+  ukTrainer(
+    'afc-invincible',
+    'Invincible Nadia',
+    [
+      ['owemon', 35],
+      ['fleamon', 36],
+    ],
+    'INVINCIBLE NADIA: Forty-nine games unbeaten, 2003 to 2004. I was there for every one. I don’t lose.',
+    'INVINCIBLE NADIA: Fifty. It was going to happen sometime.',
+  ),
+  ukTrainer(
+    'anf-kop',
+    'Kopite Jamie',
+    [
+      ['steadmon', 37],
+      ['decksmon', 38],
+    ],
+    'KOPITE JAMIE: The Kop sucks the ball into the net, la. Watch it suck the life out of your team.',
+    'KOPITE JAMIE: You’ll never walk alone. You might lose alone, though. Like me.',
+  ),
+  ukTrainer(
+    'anf-gates',
+    'Pie Man Tony',
+    [
+      ['crampemon', 38],
+      ['oystermon', 39],
+    ],
+    'PIE MAN TONY: Homebaked’s pies, best in Liverpool. Win this and you can have one. Lose and I’ll eat it at you.',
+    'PIE MAN TONY: Have the pie. Go on.',
+  ),
+  ukTrainer(
+    'mcr-stretford',
+    'Stretford Ender Bryan',
+    [
+      ['killemon', 41],
+      ['jabmon', 42],
+      ['robinmon', 43],
+    ],
+    'STRETFORD ENDER BRYAN: Thirteen titles under Fergie and I sat through every one. I’ve sat through a lot since, as well. Battle!',
+    'STRETFORD ENDER BRYAN: Like watching the last ten years all over again.',
   ),
 ];
 

@@ -282,7 +282,17 @@ function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
       'falmer',
       'birmingham',
       'newcastle',
-      'tube',
+      'selhurst',
+
+      'tottenham',
+
+      'eastlands',
+
+      'fulham',
+
+      'highbury',
+
+      'anfield',
     ].includes(outside)
   )
     return 'city';

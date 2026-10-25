@@ -1,7 +1,7 @@
 import { mapById, mapFor } from '@/content/story/maps';
 import { earned, SKINS } from '@/content/story/skins';
 import { CHAMPION } from '@/content/story/kneecap';
-import { legendId, plFlag } from '@/content/story/premier';
+import { ARRIVAL, CONCOURSE, KINGS_CROSS_ID, legendId, plFlag } from '@/content/story/premier';
 import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
@@ -25,7 +25,7 @@ import { doorStep, find, marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 6;
+export const SCHEMA = 7;
 
 type Raw = Record<string, unknown>;
 
@@ -67,7 +67,39 @@ const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
   // came first, are last and make you Champion. Anyone partway through with Roy Keane beaten
   // plays him again at the end, as the final; every other jersey is kept.
   5: (d) => ({ ...d, flags: replayKeane(strings(d.flags)), schema: 6 }),
+  // Every Premier League club got its own part of town. Anyone inside a ground that moved (the
+  // Tube's four, Anfield and the Etihad) is in the same ground on its own map; anyone out on a
+  // street that was redrawn round its ground is back by its guard; anyone on the Tube is on the
+  // King's Cross concourse.
+  6: (d) => ({
+    ...d,
+    ...toOwnGround(d),
+    pub: isObject(d.pub) ? { ...d.pub, ...toOwnGround(d.pub) } : d.pub,
+    schema: 7,
+  }),
 };
+
+/** The grounds that moved onto maps of their own, by their old room's id. */
+export const MOVED_GROUNDS: Record<string, string> = {
+  'tube-L0': 'tottenham-L0',
+  'tube-L1': 'selhurst-L0',
+  'tube-L2': 'fulham-L0',
+  'tube-L3': 'highbury-L0',
+  'liverpool-L1': 'anfield-L0',
+  'manchester-L1': 'eastlands-L0',
+};
+
+/** The Premier League streets that were redrawn round their grounds, with the same rooms behind. */
+const REDRAWN = ['falmer', 'birmingham', 'liverpool', 'leeds', 'newcastle', 'manchester'];
+
+/** A place on the old Premier League maps, on the new ones. */
+function toOwnGround(v: unknown): { map: string; x?: number; y?: number } | null {
+  if (!isObject(v) || typeof v.map !== 'string') return null;
+  if (v.map in MOVED_GROUNDS) return { map: MOVED_GROUNDS[v.map] };
+  if (v.map === 'tube') return { map: KINGS_CROSS_ID, ...CONCOURSE };
+  if (REDRAWN.includes(v.map)) return { map: v.map, x: ARRIVAL.x, y: ARRIVAL.y };
+  return null;
+}
 
 /** Roy Keane's jersey and win, taken off a save that's partway through the Premier League. */
 export function replayKeane(flags: string[]): string[] {

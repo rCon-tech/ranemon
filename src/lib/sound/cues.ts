@@ -134,7 +134,17 @@ const CITIES = [
   'falmer',
   'birmingham',
   'newcastle',
-  'tube',
+  'selhurst',
+
+  'tottenham',
+
+  'eastlands',
+
+  'fulham',
+
+  'highbury',
+
+  'anfield',
 ];
 
 /** Flanders Expo in Ghent (the second landmark door there), where it's techno all night. */
