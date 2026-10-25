@@ -291,7 +291,7 @@ The code change for this is in the first batch: per-stage budgets in `validateCr
 
 ### Wickmon's branches
 
-Wickmon (Chaos) is caught in Hackney Wick, and evolves when it's given one of these. Each is found in London: the vape in a Hackney Wick bin, the tamper from the Shoreditch barista, the wristband after a Dalston trainer, the listing from the Tesco Express noticeboard, the wallet from the tech founder's office.
+Wickmon (Chaos) is caught in Hackney Wick, and evolves when it's given one of these. Each is found in London: the vape in a Hackney Wick bin, the tamper from the Shoreditch barista, the wristband after a Dalston trainer, the listing from the Vapes & More noticeboard, the wallet from the tech founder's office.
 
 | Branch          | Item                 | Type   | Who it becomes                                 |
 | --------------- | -------------------- | ------ | ---------------------------------------------- |
@@ -387,7 +387,7 @@ Batches 1 to 5 each make a playable stretch of the story on their own, so the ga
 - **Special moves from Lv1, on every stage.** As with the lads, each line's special is known from the first form and kept as it evolves; each of Wickmon's branches swaps it for its own. Wickmon has one too, **Bin Rota**. **Rush Hour** hits once for every Ranemon on the team still standing.
 - **Sport moves.** Three new sports, six moves each like the old ones: polo (mostly Posh), Sunday League (mostly Graft) and synchronised swimming (mostly Arty).
 - **The hub's wild table** is eight of the lads, with Oystermon, Speedmon, Pedalmon and Skatemon as a fifth of it. Shoreditch & Hackney is three quarters lads, with its nine London lines and Aerodactivist in the rest.
-- **Shoreditch & Hackney** is reached by the Overground conductor on Liverpool Street's concourse once you have a UK Ranemon. Five trainers; the barista, the flatmate at the Tesco noticeboard and the canal boater give the tamper, the listing and the vape; Raver Ffion gives the wristband and Founder Jasper the wallet when beaten. You come off the train out of Shoreditch High Street station (the orange OVERGROUND sign, top left), with the conductor beside it and inside it for the way back. W.B Yates Shoreditch is on the high street: Liam Neeson heals, and Aoife from Sligo tells you what's next in London (Próvaí at W.B Yates London, then King's Cross, then the palace).
+- **Shoreditch & Hackney** is reached by the Overground conductor on Liverpool Street's concourse once you have a UK Ranemon. Five trainers; the barista, the flatmate at the Vapes & More noticeboard and the canal boater give the tamper, the listing and the vape; Raver Ffion gives the wristband and Founder Jasper the wallet when beaten. You come off the train out of Shoreditch High Street station (the orange OVERGROUND sign, top left), with the conductor beside it and inside it for the way back. W.B Yates Shoreditch is on the high street: Liam Neeson heals, and Aoife from Sligo tells you what's next in London (Próvaí at W.B Yates London, then King's Cross, then the palace).
 - **The London Ranedex** is a second tab on the Ranedex, shown once you've seen a London Ranemon, numbered from 001.
 - **Not yet:** London special moves use their type's move effect rather than a scene of their own.
 
