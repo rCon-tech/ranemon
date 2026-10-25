@@ -1146,12 +1146,49 @@ export function JerseysPanel({
   game,
   champion = false,
   onClose,
+  navRef,
 }: {
   game: StoryState;
   /** They hold the Online Champion's crown. */
   champion?: boolean;
   onClose: () => void;
+  navRef?: React.RefObject<MenuNav | null>;
 }) {
+  const ireland = COUNTIES.map((id) => {
+    const county = id.charAt(0).toUpperCase() + id.slice(1);
+    return {
+      id,
+      label: county,
+      title: mapById(id).name.split(', ').at(-1)!.replace('Co. ', ''),
+      kit: jerseyOf(id),
+      won: hasFlag(game, `jersey:${id}`),
+    };
+  });
+  const uk = FIXTURE_LIST.map((f) => ({
+    id: `pl-${f.id}`,
+    label: CLUB_SHORT[f.id],
+    title: `${f.club}, ${f.ground}`,
+    kit: clubJerseyOf(f.id),
+    won: hasFlag(game, f.flag),
+    crest: f.id,
+  }));
+  const [tab, setTab] = useState<'ireland' | 'uk'>('ireland');
+  const switchTab = (t: 'ireland' | 'uk') => {
+    if (t === tab) return;
+    playSfx('select');
+    setTab(t);
+  };
+  const tally = (js: { won: boolean }[]) => `${js.filter((j) => j.won).length}/${js.length}`;
+
+  // Left and right on the D-pad flick between the tabs; B closes the card.
+  useMenuNav(navRef, {
+    dir: (dir) => {
+      if (dir === 'left' || dir === 'right') switchTab(tab === 'ireland' ? 'uk' : 'ireland');
+    },
+    a: () => {},
+    b: () => false,
+  });
+
   return (
     <Panel title="TRAINER CARD" onClose={onClose}>
       {champion && (
@@ -1175,46 +1212,30 @@ export function JerseysPanel({
           {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
         </p>
       </div>
-      <JerseyGroup
-        title="IRELAND"
-        testId="jerseys-ireland"
-        columns="grid-cols-3"
-        jerseys={COUNTIES.map((id) => {
-          const county = id.charAt(0).toUpperCase() + id.slice(1);
-          return {
-            id,
-            label: county,
-            title: mapById(id).name.split(', ').at(-1)!.replace('Co. ', ''),
-            kit: jerseyOf(id),
-            won: hasFlag(game, `jersey:${id}`),
-          };
-        })}
+      <Tabs
+        label="Jerseys"
+        tabs={[
+          { id: 'ireland', label: `IRELAND ${tally(ireland)}` },
+          { id: 'uk', label: `UK ${tally(uk)}` },
+        ]}
+        value={tab}
+        onPick={switchTab}
       />
-      <JerseyGroup
-        title="UK · PREMIER LEAGUE"
-        testId="jerseys-uk"
-        columns="grid-cols-4"
-        jerseys={FIXTURE_LIST.map((f) => ({
-          id: `pl-${f.id}`,
-          label: CLUB_SHORT[f.id],
-          title: `${f.club}, ${f.ground}`,
-          kit: clubJerseyOf(f.id),
-          won: hasFlag(game, f.flag),
-          crest: f.id,
-        }))}
-      />
+      {tab === 'ireland' ? (
+        <JerseyGroup testId="jerseys-ireland" columns="grid-cols-3" jerseys={ireland} />
+      ) : (
+        <JerseyGroup testId="jerseys-uk" columns="grid-cols-4" jerseys={uk} />
+      )}
     </Panel>
   );
 }
 
-/** One country's jerseys on the Trainer Card, with how many of them you've won. */
+/** One country's jerseys on the Trainer Card. */
 function JerseyGroup({
-  title,
   testId,
   columns,
   jerseys,
 }: {
-  title: string;
   testId: string;
   columns: string;
   jerseys: {
@@ -1226,15 +1247,8 @@ function JerseyGroup({
     crest?: ClubId;
   }[];
 }) {
-  const won = jerseys.filter((j) => j.won).length;
   return (
     <section className="flex flex-col gap-1" data-testid={testId}>
-      <h3 className="flex justify-between border-b-2 border-frame text-[10px] font-bold">
-        <span>{title}</span>
-        <span>
-          {won}/{jerseys.length}
-        </span>
-      </h3>
       <div className={`grid ${columns} gap-1.5`}>
         {jerseys.map((j) => (
           <div
@@ -1402,8 +1416,8 @@ function Jersey({
       </svg>
       {/* The crest over the heart, on the wearer's left. */}
       {crest && (
-        <span className="absolute left-[19px] top-[8px]">
-          <Crest club={crest} size={11} />
+        <span className="absolute left-[19px] top-[9px]">
+          <Crest club={crest} size={7} />
         </span>
       )}
     </span>

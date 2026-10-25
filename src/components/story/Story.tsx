@@ -785,7 +785,8 @@ export function Story() {
   /** The open menu's own D-pad, A and B: the Ranedex, the BAG or a shop (see `MenuNav`). */
   const menuNav = useRef<MenuNav | null>(null);
   /** Whether the open menu takes the D-pad, A and B itself. */
-  const navMenu = overlay === 'dex' || overlay === 'bag' || overlay === 'shop';
+  const navMenu =
+    overlay === 'dex' || overlay === 'bag' || overlay === 'shop' || overlay === 'card';
 
   function pressA() {
     if (line) return advance();
@@ -1483,7 +1484,7 @@ export function Story() {
         )}
         {overlay === 'dex' && <RanedexPanel game={game} onClose={closeOverlay} navRef={menuNav} />}
         {overlay === 'card' && (
-          <JerseysPanel game={game} champion={champion} onClose={closeOverlay} />
+          <JerseysPanel game={game} champion={champion} onClose={closeOverlay} navRef={menuNav} />
         )}
         {overlay === 'skins' && (
           <SkinsPanel

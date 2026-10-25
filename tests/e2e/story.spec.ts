@@ -1820,14 +1820,23 @@ test('story mode: the Trainer Card shows the UK jerseys next to the Irish ones',
   await page.getByRole('button', { name: 'START' }).click();
   await page.getByRole('button', { name: 'JERSEYS' }).click();
 
+  await expect(page.getByTestId('tab-ireland')).toContainText('IRELAND 3/9');
+  await expect(page.getByTestId('tab-uk')).toContainText('UK 6/12');
   const ireland = page.getByTestId('jerseys-ireland');
-  const uk = page.getByTestId('jerseys-uk');
-  await expect(ireland).toContainText('3/9');
-  await expect(uk).toContainText('6/12');
   await expect(ireland.getByLabel('Clare jersey', { exact: true })).toBeVisible();
   await expect(ireland.getByLabel('Kildare jersey not won')).toBeVisible();
+  await expect(page.getByTestId('jerseys-uk')).toHaveCount(0);
+
+  // The UK jerseys have a tab of their own, by tap or the D-pad.
+  await page.getByTestId('tab-uk').click();
+  const uk = page.getByTestId('jerseys-uk');
   await expect(uk.getByLabel('Newcastle jersey', { exact: true })).toBeVisible();
   await expect(uk.getByLabel('Man Utd jersey not won')).toBeVisible();
   await expect(uk.locator('svg[data-jersey]')).toHaveCount(6);
+  await expect(page.getByTestId('jerseys-ireland')).toHaveCount(0);
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByTestId('tab-ireland')).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByTestId('tab-uk')).toHaveAttribute('aria-pressed', 'true');
   if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/card.png` });
 });
