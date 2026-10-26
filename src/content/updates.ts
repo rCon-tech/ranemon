@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-25',
+    title: 'Every club in England has its own home',
+    notes: [
+      'No more sharing: every ground in England now has its own part of town, with its own train from King’s Cross. North London, south London, west London, both ends of Liverpool and both sides of Manchester are all places of their own now.',
+      'Each ground looks like the real stadium from the street, with its club’s crest over the turnstiles, and the streets round it have landmarks you’d know. One of them is very big, very round and very shiny.',
+      'King’s Cross has twelve platforms now, one for every ground, in the order you play them. The board says exactly where each one goes.',
+      'Partway through? Nothing’s lost. If you were inside a ground, you’re still in it. If you were out on one of the old streets, you’re by the guard at the station.',
+    ],
+  },
+  {
+    date: '2026-10-25',
     title: 'Your English jerseys on the Trainer Card',
     notes: [
       'JERSEYS now shows the jerseys you win in England as well as the county ones, split into Ireland and the UK, with how many of each you have.',

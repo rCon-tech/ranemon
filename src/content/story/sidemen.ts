@@ -579,6 +579,8 @@ const HOMEWARD: Npc = {
 export const METROPOLITAN: Npc = {
   look: 'conductor',
   face: 'down',
+  // At the end of the King's Cross concourse, past the twelve platforms' guards.
+  at: { x: 4, y: 5 },
   talk: [
     {
       do: 'if',
@@ -608,6 +610,7 @@ export const METROPOLITAN: Npc = {
 export const JAMIE_AT_KINGS_CROSS: Npc = {
   look: 'jamie',
   face: 'right',
+  at: { x: 10, y: 5 },
   showIf: SIDEMEN_GATE,
   hideIf: SIDEMEN_DONE,
   talk: [

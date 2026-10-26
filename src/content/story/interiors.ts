@@ -278,7 +278,14 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
     case 'H': {
       const steps = outside.houses?.[index] ?? [];
       const own = outside.houseRooms?.[index];
-      if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
+      // A room that already names its city, such as `Old Trafford, Manchester`, keeps its name.
+      if (own)
+        return {
+          ...base,
+          arrive: steps,
+          ...own,
+          name: own.name.includes(', ') ? own.name : `${own.name}, ${town}`,
+        };
       const npc: Npc = { look: home ? 'mam' : 'local', face: 'down', talk: steps };
       return {
         ...base,
@@ -305,7 +312,14 @@ function room(outside: GameMap, kind: Kind, index: number): GameMap {
     case 'L': {
       const steps = outside.landmarks?.[index] ?? [];
       const own = outside.landmarkRooms?.[index];
-      if (own) return { ...base, arrive: steps, ...own, name: `${own.name}, ${town}` };
+      // A room that already names its city, such as `Old Trafford, Manchester`, keeps its name.
+      if (own)
+        return {
+          ...base,
+          arrive: steps,
+          ...own,
+          name: own.name.includes(', ') ? own.name : `${own.name}, ${town}`,
+        };
       const name = landmarkName(steps) ?? 'Michael D’s farmhouse';
       // Whoever looks after the place, standing by its display.
       const npcs = [keeperOf(outside.id, name)];
