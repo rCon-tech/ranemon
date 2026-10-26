@@ -560,7 +560,7 @@ const PROVAI_STARTER: Step[] = [
       },
       {
         do: 'say',
-        text: 'PRÓVAÍ: Trains go from King’s Cross. Engineering works this weekend, of course. Get to know your Ranemon in the park while we wait.',
+        text: 'PRÓVAÍ: Trains go from King’s Cross, and they’re running. Smallest club first, so Brighton’s on platform 1. The board lights up your next match.',
       },
     ],
     else: [
