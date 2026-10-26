@@ -297,6 +297,14 @@ describe('Britain', () => {
     expect(isPresent(mapById(interiorId('london', 'P', 0)).npcs[3], flags)).toBe(false);
   });
 
+  it('sends you to King’s Cross once you have the fixtures, with no talk of engineering works', () => {
+    const flags = new Set<string>([LANDED, UK_STARTER, beatFlag('rival-uk-1'), FIXTURES]);
+    const all = play(mapById(interiorId('london', 'P', 0)).npcs[2].talk!, flags).join(' ');
+    expect(all).toContain('King’s Cross');
+    expect(all).toContain('platform 1');
+    expect(all).not.toMatch(/engineering works/i);
+  });
+
   it('keeps Próvaí in the story about how UK Ranemon look', () => {
     const said = play(mapById(interiorId('london', 'P', 0)).npcs[2].talk!, new Set([LANDED]));
     const all = said.join(' ');
