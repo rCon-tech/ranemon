@@ -13,6 +13,7 @@ import { variantForm } from '@/lib/battle/variants';
 import { UK_LEVEL } from '@/content/story/london';
 import {
   canUseOn,
+  holdOf,
   ITEMS,
   itemById,
   pocketOf,
@@ -569,7 +570,9 @@ export function BagPanel({
             <span>
               {item.use.kind === 'hold'
                 ? 'Give it to which Ranemon to hold?'
-                : 'Use it on which Ranemon?'}
+                : holdOf(item.use)
+                  ? 'Give it to which Ranemon?'
+                  : 'Use it on which Ranemon?'}
             </span>
             <span data-testid="pick-count">×{game.bag[pick] ?? 0}</span>
           </p>

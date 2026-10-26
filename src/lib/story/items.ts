@@ -40,14 +40,25 @@ export type ItemUse =
   | { kind: 'level' }
   /** A vape: raises a stat of the Ranemon that's out, in battle only, until the battle ends. */
   | { kind: 'vape'; effect: Extract<ItemEffect, { kind: 'boost' }> }
-  /** Sets off an item evolution (`ITEM_EVOLUTIONS`), outside battle only. */
-  | { kind: 'evolve' }
+  /**
+   * Sets off an item evolution (`ITEM_EVOLUTIONS`), outside battle only. With `hold`, any other
+   * Ranemon of that line can hold it instead, so London's Wickmon items aren't Wickmon's alone.
+   */
+  | { kind: 'evolve'; hold?: Hold }
   /**
    * Given to a Ranemon to hold, outside battle: one of `line` only, or any Ranemon if there's no
    * line. While it holds it, a stat is multiplied in every battle. Taken back from PARTY.
    * `calm` keeps it chill as well: it can't be Flustered.
    */
-  | { kind: 'hold'; line?: string; stat: Stat; factor: number; calm?: true };
+  | ({ kind: 'hold' } & Hold);
+
+/** What holding an item does: a stat multiplied in every battle, for one line or (no line) any. */
+export interface Hold {
+  line?: string;
+  stat: Stat;
+  factor: number;
+  calm?: true;
+}
 
 export interface Item {
   id: ItemId;
@@ -226,53 +237,80 @@ export const ITEMS: Item[] = [
     use: { kind: 'hold', stat: 'spirit', factor: 1.2, calm: true },
   },
   // Wickmon's branches (docs/london-ranedex.md): each is found once, in Shoreditch & Hackney.
+  // Each is also something to hold for the London line it fits, from the people who give them
+  // out, so they don't all end up on Wickmon.
   {
     id: 'disposable-vape',
     name: 'Disposable Vape',
     about:
-      'A mango ice, found in a bin by the canal in Hackney Wick. Give it to a Wickmon and see what happens.',
+      'A mango ice, found in a bin by the canal in Hackney Wick. Give it to a Wickmon and see what happens. Or give it to a Skatemon or its evolutions to hold: Speed up 20% in every battle.',
     price: null,
     from: 99,
-    use: { kind: 'evolve' },
+    use: { kind: 'evolve', hold: { line: 'skatemon', stat: 'speed', factor: 1.2 } },
   },
   {
     id: 'espresso-tamper',
     name: 'Espresso Tamper',
-    about: 'A barista’s tamper, heavy and very clean. Give it to a Wickmon and see what happens.',
+    about:
+      'A barista’s tamper, heavy and very clean. Give it to a Wickmon and see what happens. Or give it to an Oatmon or its evolutions to hold: Attack up 20% in every battle.',
     price: null,
     from: 99,
-    use: { kind: 'evolve' },
+    use: { kind: 'evolve', hold: { line: 'oatmon', stat: 'attack', factor: 1.2 } },
   },
   {
     id: 'afterparty-wristband',
     name: 'Afterparty Wristband',
     about:
-      'A fabric wristband for an afterparty in Dalston. Nobody remembers it ending. Give it to a Wickmon and see what happens.',
+      'A fabric wristband for an afterparty in Dalston. Nobody remembers it ending. Give it to a Wickmon and see what happens. Or give it to a Decksmon or Electabass to hold: Attack up 20% in every battle.',
     price: null,
     from: 99,
-    use: { kind: 'evolve' },
+    use: { kind: 'evolve', hold: { line: 'decksmon', stat: 'attack', factor: 1.2 } },
   },
   {
     id: 'spareroom-listing',
     name: 'SpareRoom Listing',
     about:
-      'A box room in Hackney Wick, £1,100 a month, bills not included. Give it to a Wickmon and see what happens.',
+      'A box room in Hackney Wick, £1,100 a month, bills not included. Give it to a Wickmon and see what happens. Or give it to an Oystermon or its evolutions to hold: Defense up 20% in every battle.',
     price: null,
     from: 99,
-    use: { kind: 'evolve' },
+    use: { kind: 'evolve', hold: { line: 'oystermon', stat: 'defense', factor: 1.2 } },
   },
   {
     id: 'hardware-wallet',
     name: 'Hardware Wallet',
     about:
-      'A crypto wallet on a lanyard, from a tech founder’s desk. Give it to a Wickmon and see what happens.',
+      'A crypto wallet on a lanyard, from a tech founder’s desk. Give it to a Wickmon and see what happens. Or give it to a Seedmon or its evolutions to hold: Spirit up 20% in every battle.',
     price: null,
     from: 99,
-    use: { kind: 'evolve' },
+    use: { kind: 'evolve', hold: { line: 'seedmon', stat: 'spirit', factor: 1.2 } },
   },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
+
+/** What holding an item does, if it can be held: a hold item, or an evolution item with a hold. */
+export function holdOf(use: ItemUse | undefined): Hold | undefined {
+  if (use?.kind === 'hold') return use;
+  if (use?.kind === 'evolve') return use.hold;
+  return undefined;
+}
+
+/** Whether a species gets anything from holding it: any Ranemon, or one of its line. */
+const holdsFor = (hold: Hold | undefined, species: string | undefined): hold is Hold =>
+  !!hold && !!species && (!hold.line || lineOf(species) === hold.line);
+
+/**
+ * Whether an item would be held rather than used on this Ranemon: a hold item always, an
+ * evolution item when it can't evolve it but its line can hold it.
+ */
+export function holdsItem(item: Item, species: string): boolean {
+  if (item.use.kind === 'hold') return true;
+  return (
+    item.use.kind === 'evolve' &&
+    !itemEvolutionOf(species, item.id) &&
+    holdsFor(item.use.hold, species)
+  );
+}
 export const itemById = (id: ItemId): Item => BY_ID.get(id)!;
 
 /** Items a county's corner shop stocks. */
@@ -353,8 +391,11 @@ export interface Target {
 /** Whether an item would do anything for this Ranemon right now. */
 export function canUse(use: ItemUse, t: Target, item?: ItemId): boolean {
   if (use.kind === 'level') return t.level < Math.min(MAX_LEVEL, t.cap ?? MAX_LEVEL);
-  if (use.kind === 'evolve') return !!item && !!t.species && !!itemEvolutionOf(t.species, item);
-  if (use.kind === 'hold') return !!t.species && (!use.line || lineOf(t.species) === use.line);
+  if (use.kind === 'evolve')
+    return (
+      (!!item && !!t.species && !!itemEvolutionOf(t.species, item)) || holdsFor(use.hold, t.species)
+    );
+  if (use.kind === 'hold') return holdsFor(use, t.species);
   if (use.kind === 'pint') return false;
   if (use.kind === 'vape')
     return !!t.active && !!t.stages && t.hp > 0 && t.stages[use.effect.stat] < MAX_STAGE;
@@ -382,17 +423,15 @@ export const canUseOn = (item: Item, m: Member, cap?: number) =>
 export function heldBoost(
   m: Pick<Member, 'species' | 'held'>,
 ): Partial<Record<Stat, number>> | undefined {
-  const use = m.held && BY_ID.get(m.held)?.use;
-  if (!use || use.kind !== 'hold' || (use.line && lineOf(m.species) !== use.line)) return undefined;
-  return { [use.stat]: use.factor };
+  const hold = m.held && holdOf(BY_ID.get(m.held)?.use);
+  if (!holdsFor(hold, m.species)) return undefined;
+  return { [hold.stat]: hold.factor };
 }
 
 /** Whether a member's held item keeps it chill, so it can't be Flustered: Xanax. */
 export function heldCalm(m: Pick<Member, 'species' | 'held'>): boolean {
-  const use = m.held && BY_ID.get(m.held)?.use;
-  return (
-    !!use && use.kind === 'hold' && !!use.calm && (!use.line || lineOf(m.species) === use.line)
-  );
+  const hold = m.held && holdOf(BY_ID.get(m.held)?.use);
+  return holdsFor(hold, m.species) && !!hold.calm;
 }
 
 /** Applies a healing item outside battle. */
