@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { asset } from '@/lib/asset';
+import { MAX_LEVEL } from '@/lib/battle/creature';
 import type { BattleState } from '@/lib/battle/engine';
 import { createRoom, joinRoom, LinkError, RoomLink } from '@/lib/online/link';
 import { moveById } from '@/lib/battle/moves';
@@ -122,6 +123,12 @@ const RESULT_TEXT: Record<Result, string> = {
  */
 function TeamRow({ team, rule }: { team: Member[]; rule: LevelRule }) {
   const [open, setOpen] = useState<number | null>(null);
+  if (rule === 'random')
+    return (
+      <p className="text-[11px] leading-relaxed" data-testid="friend-team">
+        Your team sits this one out. You’ll both get a random party once the battle starts.
+      </p>
+    );
   const entrants = entrantsOf(team, rule);
   const shown = open === null ? null : { m: team[open], e: entrants[open] };
   return (
@@ -196,7 +203,8 @@ function crownText(crown: NonNullable<RoomView['crown']>, won: boolean): string 
 /**
  * Live battles against a friend, through the save server: sign in with your trainer name and
  * PIN, open a room and share its code (or join a friend's), and both press READY. Each of you
- * fights with your party from Story mode, as it was last saved online.
+ * fights with your party from Story mode, as it was last saved online, or with RANDOM PARTIES a
+ * party the server deals each of you at Lv100. Saves are only ever read here, never written.
  */
 export function FriendBattle() {
   const boot = useSyncExternalStore(noSubscribe, readBoot, () => null);
@@ -204,6 +212,8 @@ export function FriendBattle() {
   const [typedName, setName] = useState<string | null>(null);
   const [pin, setPin] = useState('');
   const [team, setTeam] = useState<Member[] | null>(null);
+  /** Why the save's own team can't battle; it can still play random parties. */
+  const [teamError, setTeamError] = useState<string | null>(null);
   const [skin, setSkin] = useState<string | undefined>(undefined);
   const [rule, setRule] = useState<LevelRule>('flat50');
   const [typedCode, setCode] = useState<string | null>(null);
@@ -293,11 +303,9 @@ export function FriendBattle() {
       }
       const save = JSON.parse(raw);
       const checked = validateTeam(save.party);
-      if ('error' in checked) {
-        setNote(`Your team can’t battle: ${checked.error}`);
-        return;
-      }
-      setTeam(checked.team);
+      setTeam('error' in checked ? [] : checked.team);
+      setTeamError('error' in checked ? `Your team can’t battle: ${checked.error}` : null);
+      if ('error' in checked) setRule('random');
       setSkin(skinOf(save));
       try {
         localStorage.setItem(PLAYER_KEY, name.trim());
@@ -487,8 +495,9 @@ export function FriendBattle() {
                 : `${foe.name} is here${foe.ready ? ' and ready' : ''}!`}
             </p>
             <p className="text-[10px] leading-relaxed text-frame">
-              You fight with your party as it was last saved online. Make sure Story mode has saved
-              (it does every 15 seconds while you play).
+              {view?.rule === 'random'
+                ? `You each get a random party at Lv${MAX_LEVEL} when the battle starts. Your own team and save aren’t touched.`
+                : 'You fight with your party as it was last saved online. Make sure Story mode has saved (it does every 15 seconds while you play).'}
             </p>
             <button
               type="button"
@@ -528,7 +537,13 @@ export function FriendBattle() {
         </div>
         <ChampionBanner champ={champ} />
         <p className="text-[12px]">{name.trim()}’s team</p>
-        <TeamRow team={team} rule={rule} />
+        {teamError && rule !== 'random' ? (
+          <p className="text-[11px] leading-relaxed">
+            {teamError} You can still play RANDOM PARTIES.
+          </p>
+        ) : (
+          <TeamRow team={team} rule={rule} />
+        )}
         <div className="flex flex-col gap-1 text-left text-[12px]">
           LEVELS
           <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="Levels">
@@ -538,7 +553,8 @@ export function FriendBattle() {
                 type="button"
                 role="radio"
                 aria-checked={rule === r.id}
-                className={`pixel-btn text-[11px] ${rule === r.id ? 'border-accent2' : ''}`}
+                className={`pixel-btn text-[11px] ${r.id === 'random' ? 'col-span-3' : ''} ${rule === r.id ? 'border-accent2' : ''}`}
+                data-testid={`rule-${r.id}`}
                 onClick={() => setRule(r.id)}
               >
                 {r.label}
@@ -552,7 +568,7 @@ export function FriendBattle() {
         <button
           type="button"
           className="pixel-btn menu-item text-[14px]"
-          disabled={busy}
+          disabled={busy || (!!teamError && rule !== 'random')}
           onClick={() => enter('create')}
         >
           CHALLENGE A FRIEND

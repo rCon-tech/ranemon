@@ -12,6 +12,15 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-27',
+    title: 'Random Parties in friend battles',
+    notes: [
+      'New in FRIEND BATTLE: RANDOM PARTIES. Pick it when you challenge a friend and you each get a random party of six, every one at Lv100.',
+      'Your own team stays at home, and your Story mode save isn’t touched.',
+      'You don’t even need a team that can battle to play it. Just sign in with your name and PIN.',
+    ],
+  },
+  {
+    date: '2026-10-27',
     title: 'Skip to Ranemon London',
     notes: [
       'New on the home screen: SKIP TO RANEMON LONDON. It’s a new game of its own that starts the moment you land in London, for anyone who wants to play England without playing Ireland first.',
