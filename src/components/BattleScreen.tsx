@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import type { Difficulty } from '@/lib/battle/cpu';
 import type { Creature } from '@/lib/battle/creature';
 import {
+  canMegaEvolve,
   legalActions,
   startBattle,
   switchTargets,
@@ -16,7 +17,7 @@ import {
 import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { matchup, TYPE_COLOR, TYPE_LABEL, type RaneType } from '@/lib/battle/types';
 import { canUse, type ItemUse } from '@/lib/story/items';
-import type { Foe } from '@/lib/ui/playback';
+import { shownForm, type Foe } from '@/lib/ui/playback';
 import { scaled } from '@/lib/speed';
 import {
   isChoosing,
@@ -181,6 +182,8 @@ export function BattleScreen({
   const { queue, pause } = session;
   // The move picked in the FIGHT menu, for the turn it was picked in. A second tap uses it.
   const [picked, setPicked] = useState<{ turn: number; index: number } | null>(null);
+  // MEGA EVOLVE pressed for the turn being chosen.
+  const [megaTurn, setMegaTurn] = useState<number | null>(null);
 
   // Playback: wait long enough to read the current line, then take the next step.
   useEffect(() => {
@@ -271,6 +274,11 @@ export function BattleScreen({
 
   const me = state.teams[0].battlers[view[0].active];
   const foe = state.teams[1].battlers[view[1].active];
+  // Each as the screen shows it: Mega only once the text has said so.
+  const meShown = shownForm(state, view, 0, view[0].active);
+  const foeShown = shownForm(state, view, 1, view[1].active);
+  const canMega = canMegaEvolve(state, 0);
+  const mega = canMega && megaTurn === state.turn;
   const legal = legalActions(state, 0);
   // With every move out of PP, any move button uses Flail.
   const flail = me.pp.every((p) => p === 0);
@@ -278,7 +286,8 @@ export function BattleScreen({
   const selected = mode === 'fight' && picked?.turn === state.turn ? picked.index : null;
   const use = (index: number) => {
     setPicked(null);
-    act({ kind: 'move', index: flail ? 0 : index });
+    setMegaTurn(null);
+    act({ kind: 'move', index: flail ? 0 : index, ...(mega && { mega: true }) });
   };
 
   const special = effect !== null && hasSpecialEffect(effect.moveId);
@@ -321,7 +330,7 @@ export function BattleScreen({
                           : 'h-full w-full'
                     }
                   >
-                    <Sprite creature={foe.creature} solid={look === '3d'} />
+                    <Sprite creature={foeShown} solid={look === '3d'} />
                   </div>
                 </div>
               </div>
@@ -332,7 +341,7 @@ export function BattleScreen({
             foe.hp === 0 &&
             entries[1] > 0 && (
               <div key={`faint-${view[1].active}`} className="anim-faint h-full w-full">
-                <Sprite creature={foe.creature} solid={look === '3d'} />
+                <Sprite creature={foeShown} solid={look === '3d'} />
               </div>
             )
           )}
@@ -351,7 +360,7 @@ export function BattleScreen({
                   className={hits[0] > 0 ? 'anim-hit h-full w-full' : 'h-full w-full'}
                 >
                   <div className={dodging === 0 ? 'anim-dodge-you h-full w-full' : 'h-full w-full'}>
-                    <Sprite creature={me.creature} back solid={look === '3d'} />
+                    <Sprite creature={meShown} back solid={look === '3d'} />
                   </div>
                 </div>
               </div>
@@ -361,14 +370,14 @@ export function BattleScreen({
             me.hp === 0 &&
             entries[0] > 0 && (
               <div key={`faint-${view[0].active}`} className="anim-faint h-full w-full">
-                <Sprite creature={me.creature} back solid={look === '3d'} />
+                <Sprite creature={meShown} back solid={look === '3d'} />
               </div>
             )
           )}
         </div>
         {view[1].shown && (
           <InfoBox
-            battler={foe}
+            battler={{ ...foe, creature: foeShown }}
             hp={view[1].hp[view[1].active]}
             status={view[1].status[view[1].active]}
             mine={false}
@@ -377,7 +386,7 @@ export function BattleScreen({
         )}
         {view[0].shown && (
           <InfoBox
-            battler={me}
+            battler={{ ...me, creature: meShown }}
             hp={view[0].hp[view[0].active]}
             status={view[0].status[view[0].active]}
             mine
@@ -609,6 +618,17 @@ export function BattleScreen({
                 );
               })}
             </div>
+            {canMega && (
+              <button
+                type="button"
+                className="pixel-btn mega-btn text-[13px]"
+                aria-pressed={mega}
+                data-cmd="mega"
+                onClick={() => setMegaTurn(mega ? null : state.turn)}
+              >
+                {mega ? '◆ MEGA EVOLVING THIS TURN' : '◇ MEGA EVOLVE'}
+              </button>
+            )}
             <div className="flex justify-between gap-2">
               <button
                 type="button"

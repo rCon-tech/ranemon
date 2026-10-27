@@ -29,6 +29,8 @@ export interface Creature {
   variant?: string;
   /** A rare golden palette, from story mode's wild Ranemon. */
   shiny?: boolean;
+  /** Its Mega form, for the rest of a battle (`mega.ts`). */
+  mega?: boolean;
 }
 
 /** Battle mode's level. Story mode runs from 5 to MAX_LEVEL. */

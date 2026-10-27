@@ -1,6 +1,7 @@
 import { interiorId } from './interiors';
 import { CHAMPION, FIXTURES, LONDON_ONLY, RAILCARD } from './kneecap';
 import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
+import { KNEECAP_AT_KINGS_CROSS, VICTORIA } from './rowans';
 import type {
   ClubId,
   GameMap,
@@ -884,6 +885,9 @@ export const KINGS_CROSS_ROOM: Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'
     METROPOLITAN,
     JAMIE_AT_KINGS_CROSS,
     KX_CLERK,
+    // The Victoria line, once someone has sent you a text (rowans.ts).
+    VICTORIA,
+    ...KNEECAP_AT_KINGS_CROSS,
   ],
   things: {
     D: `DEPARTURES. ${LINES.map(

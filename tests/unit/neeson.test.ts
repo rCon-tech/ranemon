@@ -49,7 +49,7 @@ describe('Florence Pugh in W.B Yates', () => {
     }
     expect(PUGH_TALK[0]).toEqual({ do: 'pub' });
     expect(STYLES.pugh).toBeDefined();
-    expect(PUGH_LINES.length).toBe(5);
+    expect(PUGH_LINES.length).toBe(6);
     for (const line of PUGH_LINES) expect(line.startsWith('FLORENCE PUGH: ')).toBe(true);
   });
 

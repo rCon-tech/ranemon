@@ -1,4 +1,5 @@
 import { LONDON_MOVES } from './london-moves';
+import { RANELASS_MOVES } from './ranelasses';
 import { PETCHEMON_MOVES } from './petchemon';
 import { POSEIDON_MOVES } from './poseidon';
 import { SECOND_SPECIALS } from './second-specials';
@@ -1072,6 +1073,7 @@ const BY_ID = new Map(
     ...POSEIDON_MOVES,
     ...PETCHEMON_MOVES,
     ...LONDON_MOVES,
+    ...RANELASS_MOVES,
     FLAIL,
   ].map((m) => [m.id, m]),
 );

@@ -116,7 +116,7 @@ import {
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
-import { LIMEPASS, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
+import { LIMEPASS, MEGA_RING, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
@@ -157,6 +157,10 @@ type Run = Step | { do: 'offer-chat' };
 
 /** What runs each time you come onto a map outdoors, such as someone running up to you. */
 const arrival = (map: GameMap): Run[] => (map.inside ? [] : (map.arrive ?? []));
+
+/** Your party, sent into a battle: with the Mega Ring, any of them with a Mega form can use it. */
+const yours = (g: StoryState) =>
+  g.party.map((m) => ({ ...toEntrant(m), ...(hasFlag(g, MEGA_RING) && { mega: true }) }));
 
 type Overlay =
   | 'menu'
@@ -554,7 +558,7 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
             setLine(null);
             setFight({
               teams: [
-                g.party.map(toEntrant),
+                yours(g),
                 [toEntrant({ ...makeMember(s.species, s.level, -1, variant), shiny, variant })],
               ],
               foe: { kind: 'wild' },
@@ -574,17 +578,22 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
             const t = trainerById(s.trainer);
             // Once you're Champion, every trainer scales up to your party; the Championship
             // in Galway always does, Champion or not. Britain is a new story line that starts
-            // again from Lv5, so its trainers keep their own levels.
+            // again from Lv5, so its trainers keep their own levels, unless they always scale
+            // (`above`), like the Ranelasses at Rowans.
             const own = teamOf(t, t.uk ? g.ukStarter : g.starter);
-            const team = (t.uk ? own : scaleTeam(own, g, t.above)).map(([id, level], i) =>
-              toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined)),
+            const team = (t.uk && t.above === undefined ? own : scaleTeam(own, g, t.above)).map(
+              ([id, level], i) => {
+                const e = toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined));
+                // A trainer with a Mega Ring, such as a Ranelass, uses it on their ace.
+                return e.creature.id === t.mega ? { ...e, mega: true } : e;
+              },
             );
             for (const e of team) g = see(g, e.creature.id);
             setGame(g);
             setQueue(q);
             setLine(null);
             setFight({
-              teams: [g.party.map(toEntrant), team],
+              teams: [yours(g), team],
               foe: { kind: 'trainer', name: t.name, line: t.line },
               ai: t.ai,
               trainer: t.id,
@@ -715,7 +724,7 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
         setFlash(null);
         setFight({
           teams: [
-            g.party.map(toEntrant),
+            yours(g),
             [toEntrant({ ...makeMember(species, level, -1, variant), shiny, variant })],
           ],
           foe: { kind: 'wild' },

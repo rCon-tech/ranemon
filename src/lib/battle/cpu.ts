@@ -1,5 +1,6 @@
 import {
   activeBattler,
+  canMegaEvolve,
   computeDamage,
   effectiveStat,
   legalActions,
@@ -158,8 +159,21 @@ function bestMove(state: BattleState, side: Side): Action {
   return best;
 }
 
-/** Picks an action for the CPU-controlled side. */
+/**
+ * Picks an action for the CPU-controlled side. A trainer with a Mega Ring Mega evolves the first
+ * time its Ranemon that can attacks.
+ */
 export function chooseAction(
+  state: BattleState,
+  side: Side,
+  difficulty: Difficulty,
+  random: Random,
+): Action {
+  const action = pickAction(state, side, difficulty, random);
+  return action.kind === 'move' && canMegaEvolve(state, side) ? { ...action, mega: true } : action;
+}
+
+function pickAction(
   state: BattleState,
   side: Side,
   difficulty: Difficulty,

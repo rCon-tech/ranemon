@@ -29,6 +29,7 @@ import { palaceRooms } from './palace';
 import { PL_MAPS } from './premier';
 import { SHOREDITCH } from './shoreditch';
 import { GALWAY, HALL_ROOMS } from './galway';
+import { FINSBURY_PARK, ROWANS_ROOMS } from './rowans';
 import {
   SILICON_LABELS,
   SILICON_LANDMARKS,
@@ -1535,10 +1536,16 @@ export const MAPS: GameMap[] = [
   SHOREDITCH,
   GALWAY,
   WEMBLEY,
+  FINSBURY_PARK,
 ];
 
 /** The rooms behind every door. */
-export const INTERIORS = [...MAPS.flatMap(interiorsOf), ...HALL_ROOMS, ...palaceRooms(LONDON)];
+export const INTERIORS = [
+  ...MAPS.flatMap(interiorsOf),
+  ...HALL_ROOMS,
+  ...ROWANS_ROOMS,
+  ...palaceRooms(LONDON),
+];
 
 const BY_ID = new Map([...MAPS, ...INTERIORS].map((m) => [m.id, m]));
 export function mapById(id: string): GameMap {

@@ -21,6 +21,15 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-27',
+    title: 'Is it really over?',
+    notes: [
+      'Freed the lads? Have another listen to what everyone at the palace has to say once the Agreement’s signed.',
+      'Something is going on in north London, and there’s a new way to battle for whoever gets to the bottom of it.',
+      'Already finished London? Go back to the Throne Room. Someone there has something to tell you.',
+    ],
+  },
+  {
+    date: '2026-10-27',
     title: 'Skip to Ranemon London',
     notes: [
       'New on the home screen: SKIP TO RANEMON LONDON. It’s a new game of its own that starts the moment you land in London, for anyone who wants to play England without playing Ireland first.',
