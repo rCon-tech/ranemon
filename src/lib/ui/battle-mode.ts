@@ -106,9 +106,7 @@ export function looksOf(species: string, britain = true): Variant[] {
 
 /** The items a species gets something from holding: any Ranemon's, and its own line's. */
 export function holdItemsFor(species: string): Item[] {
-  return ITEMS.filter(
-    (i) => i.use.kind === 'hold' && heldBoost({ species, held: i.id }) !== undefined,
-  );
+  return ITEMS.filter((i) => heldBoost({ species, held: i.id }) !== undefined);
 }
 
 /** Its spare moves: what it would know by Lv50 in story mode, minus its second special move. */

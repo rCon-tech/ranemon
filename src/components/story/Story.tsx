@@ -40,7 +40,15 @@ import {
 import { remoteSaves } from '@/lib/story/remote';
 import { describe, keepCopy, replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
-import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
+import {
+  applyItem,
+  holdOf,
+  holdsItem,
+  ITEMS,
+  itemById,
+  priceOf,
+  type ItemId,
+} from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
 import { COMPANIONS, companionOf, finds, pickFind } from '@/lib/story/norm';
 import {
@@ -1456,15 +1464,16 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
                 const r = blueGhost(m, game.party, levelCap(game));
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = r.lines;
-              } else if (item.use.kind === 'hold') {
+              } else if (holdsItem(item, m.species)) {
                 // Stays in the BAG: what happened shows there.
+                const hold = holdOf(item.use)!;
                 g = holdItem(game, i, id);
                 const back = m.held ? ` and gave back the ${itemById(m.held).name}` : '';
                 persist(g);
                 setGame(g);
                 return [
                   `${name} is now holding the ${item.name}${back}!`,
-                  `Its ${item.use.stat.toUpperCase()} goes up ${Math.round((item.use.factor - 1) * 100)}% in every battle.`,
+                  `Its ${hold.stat.toUpperCase()} goes up ${Math.round((hold.factor - 1) * 100)}% in every battle.`,
                 ];
               } else if (item.use.kind === 'evolve') {
                 const r = itemEvolve(m, id);

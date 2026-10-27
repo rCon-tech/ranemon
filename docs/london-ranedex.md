@@ -301,6 +301,16 @@ Wickmon (Chaos) is caught in Hackney Wick, and evolves when it's given one of th
 | **Flatshareon** | SpareRoom listing    | Graft  | Roommate who became the landlord               |
 | **Joltcoin**    | Hardware wallet      | Brains | Roommate who went all in on crypto             |
 
+Each item can also be held, by the London line it fits, so they don't all end up on Wickmon: given to Wickmon it evolves it; given to that line (any stage) it's held for +20% to a stat in every battle, like the Vegan Stone.
+
+| Item                 | Held by                    | Stat    |
+| -------------------- | -------------------------- | ------- |
+| Vape                 | Skatemon line (skaters)    | Speed   |
+| Espresso tamper      | Oatmon line (coffee)       | Attack  |
+| Afterparty wristband | Decksmon line (DJs)        | Attack  |
+| SpareRoom listing    | Oystermon line (commuters) | Defense |
+| Hardware wallet      | Seedmon line (tech)        | Spirit  |
+
 ## Where they live
 
 London today is one hub map (Liverpool Street to the palace) with lads in the long grass at Lv3 to 6, and the Tube to the four London grounds. The plan adds **ten 2D area maps**, each reached from the Tube, opened as you collect jerseys so the levels climb with the story. All are flat, drawn in 2D even with the 3D look picked.

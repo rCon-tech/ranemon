@@ -17,7 +17,7 @@ import { POSEIDON } from '../battle/poseidon';
 import { ROSTER } from '../battle/roster';
 import { TYPES, typeMultiplier } from '../battle/types';
 import { variantOf } from '../battle/variants';
-import { heldBoost, heldCalm, ITEMS } from '../story/items';
+import { heldBoost, heldCalm, holdOf, ITEMS } from '../story/items';
 import { BOSS, creatureOf, movesAt, PARTY_SIZE, speciesById, type Member } from '../story/party';
 import type { QueueItem } from '../ui/session';
 
@@ -137,7 +137,7 @@ export function validateTeam(party: unknown): { team: Member[] } | { error: stri
     }
     if (m.variant !== undefined && !variantOf(species.id, m.variant as string))
       return { error: `${name} has a look it doesn’t have.` };
-    if (m.held !== undefined && !ITEMS.some((i) => i.id === m.held && i.use.kind === 'hold'))
+    if (m.held !== undefined && !ITEMS.some((i) => i.id === m.held && holdOf(i.use)))
       return { error: `${name} is holding something it can’t.` };
     team.push({
       uid,
