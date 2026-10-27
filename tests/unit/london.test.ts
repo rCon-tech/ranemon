@@ -228,6 +228,7 @@ describe('Britain', () => {
       'manchester',
       'shoreditch',
       'wembley',
+      'finsbury-park',
     ]);
     for (const m of [...uk, mapById('airport')]) expect(m.flat, m.id).toBe(true);
   });

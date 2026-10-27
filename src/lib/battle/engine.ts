@@ -2,6 +2,7 @@ import { LEVEL, levelStats, type BaseStats, type Creature } from './creature';
 import { FLAIL, moveById, type Move, type SpecialEffect, type Stat, type Status } from './moves';
 import { Rng } from './rng';
 import { formById, lineOf, sameStage } from './evolutions';
+import { megaForm } from './mega';
 import { effectiveness } from './types';
 
 export type Side = 0 | 1;
@@ -27,11 +28,17 @@ export interface Battler {
   cameIn?: number;
   /** Holding something that keeps it chill, like Xanax: it can't be Flustered. */
   calm?: boolean;
+  /** Its trainer has a Mega Ring, and it has a Mega form (`mega.ts`). */
+  canMega?: boolean;
+  /** What it was before it Mega evolved, for the screen to show until the moment it does. */
+  before?: Creature;
 }
 
 export interface Team {
   battlers: Battler[];
   active: number;
+  /** A side Mega evolves once a battle at most. */
+  megaUsed?: boolean;
 }
 
 export type Phase =
@@ -52,7 +59,10 @@ export interface BattleState {
  * The story layer applies what happened; the engine only lets the foe have its turn.
  */
 export type Action =
-  { kind: 'move'; index: number } | { kind: 'switch'; to: number } | { kind: 'pass' };
+  /** `mega`: Mega evolve first, as it attacks (`canMegaEvolve`). */
+  | { kind: 'move'; index: number; mega?: boolean }
+  | { kind: 'switch'; to: number }
+  | { kind: 'pass' };
 
 /**
  * A creature joining a battle. A bare Creature is level 50 at full health, as in battle mode;
@@ -71,6 +81,8 @@ export interface Entrant {
   held?: Partial<Record<Stat, number>>;
   /** Its held item keeps it chill, like Xanax: it can't be Flustered. */
   calm?: boolean;
+  /** It may Mega evolve in this battle, if it has a Mega form. */
+  mega?: boolean;
 }
 
 export type BattleEvent =
@@ -102,6 +114,8 @@ export type BattleEvent =
   | { kind: 'swap-hp'; side: Side; hp: [number, number] }
   /** A wild partner joins at `index` and takes the caller's place. */
   | { kind: 'wild-partner'; side: Side; index: number; hp: number }
+  /** The one out Mega evolves, before it moves. */
+  | { kind: 'mega'; side: Side; index: number }
   | { kind: 'faint'; side: Side }
   | { kind: 'win'; winner: Side | 'draw' };
 
@@ -131,6 +145,7 @@ function makeBattler(entry: Creature | Entrant): Battler {
     mods: { ...NO_MODS },
     pp: e.pp ? [...e.pp] : e.creature.moves.map((id) => moveById(id).pp),
     ...(e.calm && { calm: true }),
+    ...(e.mega && megaForm(e.creature) && { canMega: true }),
   };
 }
 
@@ -219,6 +234,12 @@ export function switchTargets(state: BattleState, side: Side): number[] {
   return team.battlers.flatMap((b, i) => (i !== team.active && b.hp > 0 ? [i] : []));
 }
 
+/** Whether the side's Ranemon out now can Mega evolve as it attacks this turn. */
+export function canMegaEvolve(state: BattleState, side: Side): boolean {
+  const b = activeBattler(state, side);
+  return !state.teams[side].megaUsed && !!b.canMega && b.hp > 0;
+}
+
 /** Everything a side may do this turn. */
 export function legalActions(state: BattleState, side: Side): Action[] {
   const b = activeBattler(state, side);
@@ -231,6 +252,7 @@ export function legalActions(state: BattleState, side: Side): Action[] {
 
 function isLegal(state: BattleState, side: Side, action: Action): boolean {
   if (action.kind === 'pass') return true;
+  if (action.kind === 'move' && action.mega && !canMegaEvolve(state, side)) return false;
   return legalActions(state, side).some(
     (a) =>
       a.kind === action.kind &&
@@ -295,6 +317,25 @@ class Turn {
     const dealt = Math.min(b.hp, amount);
     b.hp -= dealt;
     return dealt;
+  }
+
+  /**
+   * Mega evolves the one out: its Mega form's stats, with the same HP and whatever a held item
+   * did to them, for the rest of the battle.
+   */
+  megaEvolve(side: Side) {
+    const team = this.state.teams[side];
+    const b = team.battlers[team.active];
+    const mega = megaForm(b.creature)!;
+    const was = levelStats(b.creature.base, b.level);
+    const now = levelStats(mega.base, b.level);
+    for (const stat of ['attack', 'defense', 'spirit', 'speed'] as Stat[])
+      b.stats[stat] = Math.floor((now[stat] * b.stats[stat]) / was[stat]);
+    b.before = b.creature;
+    b.creature = mega;
+    b.canMega = false;
+    team.megaUsed = true;
+    this.events.push({ kind: 'mega', side, index: team.active });
   }
 
   /** Returns false if the creature can't act this turn. */
@@ -603,6 +644,11 @@ export function playTurn(
   }
 
   const turn = new Turn(clone(state));
+  // Mega Evolution comes before anything else, so the new Speed decides who goes first.
+  for (const side of [0, 1] as Side[]) {
+    const action = actions[side];
+    if (action.kind === 'move' && action.mega) turn.megaEvolve(side);
+  }
   const fainted = new Set<Side>();
   for (const side of actionOrder(turn, actions)) {
     const action = actions[side];

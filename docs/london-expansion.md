@@ -407,6 +407,22 @@ The ending plays as one long party, the palace's `after` form, which stays for g
 
 Credits roll over a Tube-map-style map of the whole expansion, station by station, with your party.
 
+### The secret boss: the Ranelasses (spoilers)
+
+Nothing in the game, the Updates screen included, names them before you meet them. Before then there are only hints: Camilla says someone will be "on the phone on Tuesday" if Charles doesn't battle you, the Zombie Queen tells Charles to "pick up when they ring", and Florence Pugh, healing your party, mentions a table of eight girls in sunglasses who never pay.
+
+**The reveal** (`REVEAL` in `src/content/story/rowans.ts`). At the end of the takeover, Charles quietly admits he only signs what he's told, by someone in the shadows who rings on Tuesdays. Próvaí gets a text from no number: "Lovely gig, lads. Rowans, Finsbury Park. Tonight. Bring the Champion. x". That sets `rowans:shadows`, and the last line becomes "THE END…?". Anyone who signed the Agreement before this was in the game hears it from Próvaí in the Throne Room.
+
+**Finsbury Park.** A guard at the far end of the King's Cross concourse runs the Victoria line there, with Mo Chara, Móglaí Bap and Próvaí waiting beside him until you've been. Finsbury Park is a 24 × 13 street (`FINSBURY_PARK`): the station, W.B Yates (Declan from Donegal), Vapes & More, Rowans (the bowling alley that's a nightclub after dark) and the park's long grass at Lv 56 to 60. 2D only (`flat`).
+
+**Rowans** is eight rooms in a row, run like the Hall of Champions in Galway: Shoe Hire, The Pool Tables, The Bar, The Karaoke Booth, The Dancefloor, The Diner, The VIP Lanes and Lane One. The first time in, the lights go down and Viv introduces the Ranelasses over the PA: "Of course it's the girls. It was always the girls." Each Ranelass waits in front of the door to the next (`readyIf`, `landmarkLocks`), and a full heal or a loss starts the run again from the shoe hire (`breakRun`, called from `healParty`). In order: Sibeal, Dr Bhav, Ana, Annie, Esme, Meg, Dr Batool, and Viv, their leader, on Lane One. All Hard AI, scaled to your best Ranemon (`ABOVE`).
+
+Each brings her own Ranemon, which nobody else has and which isn't in either Ranedex or Battle mode (`src/lib/battle/ranelasses.ts`), and an ace that **Mega Evolves** (`Trainer.mega`): Sibeal's Hitmonois, Bhav's Cholokill, Ana's Hitmonollie, Annie's Steadakazam, Esme's Clefenda, Meg's Conix, Batool's Lorchu and Viv's Carlizard. Every one of them boasts that nobody handles her Ranemon like she does.
+
+**Mega Evolution** (`src/lib/battle/mega.ts`). Once a battle, a side with a Mega Ring can Mega evolve one Ranemon that has a Mega form, before anyone moves that turn. It keeps its HP, moves and level, and gets 100 more across its other stats, most of it in its strongest. It stays Mega for the rest of the battle. Sprites are in `public/sprites/mega/`, built by `scripts/mega.py`.
+
+**The reward.** Beating Viv the first time gives you her **Mega Ring** (`item:mega-ring`, a key item): a MEGA EVOLVE button appears over your moves whenever your Ranemon on the field has a Mega form. Kneecap then play Rowans.
+
 ### After the credits
 
 - **Charles rematch.** Talk to Charles behind the bar in W.B Yates Buckingham Palace for a rematch every in-game week, at Lv 60.

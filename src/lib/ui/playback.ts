@@ -19,6 +19,8 @@ export interface SideView {
   shown: boolean;
   hp: number[];
   status: (Status | null)[];
+  /** Which have Mega evolved by this point, so the screen shows the Mega form from then on. */
+  mega: boolean[];
 }
 
 export type View = [SideView, SideView];
@@ -29,19 +31,26 @@ export function viewOf(state: BattleState): View {
     shown: team.battlers[team.active].hp > 0,
     hp: team.battlers.map((b) => b.hp),
     status: team.battlers.map((b) => b.status),
+    mega: team.battlers.map((b) => !!b.creature.mega),
   })) as View;
 }
 
 /** Applies one event to the view. Returns a new view. */
 export function applyEvent(view: View, event: BattleEvent): View {
   if (event.kind === 'win' || !('side' in event)) return view;
-  const next = view.map((s) => ({ ...s, hp: [...s.hp], status: [...s.status] })) as View;
+  const next = view.map((s) => ({
+    ...s,
+    hp: [...s.hp],
+    status: [...s.status],
+    mega: [...s.mega],
+  })) as View;
   const side = next[event.side];
   switch (event.kind) {
     case 'wild-partner':
       side.hp[side.active] = 0;
       side.hp.push(event.hp);
       side.status.push(null);
+      side.mega.push(false);
       side.shown = false;
       break;
     case 'swap-hp':
@@ -71,6 +80,9 @@ export function applyEvent(view: View, event: BattleEvent): View {
     case 'faint':
       side.hp[side.active] = 0;
       side.shown = false;
+      break;
+    case 'mega':
+      side.mega[event.index] = true;
       break;
   }
   return next;
@@ -190,5 +202,17 @@ export function describeEvent(
     }
     case 'faint':
       return `${name} fainted!`;
+    case 'mega': {
+      const b = state.teams[side].battlers[event.index];
+      const was = b.before?.name ?? creature;
+      const whose = side === 0 ? 'Your' : `${trainer}’s`;
+      return `${whose} Mega Ring is glowing! ${was} Mega Evolved into ${creature}!`;
+    }
   }
+}
+
+/** A battler as the screen should show it: its Mega form only once the view has seen it happen. */
+export function shownForm(state: BattleState, view: View, side: Side, index: number) {
+  const b = state.teams[side].battlers[index];
+  return view[side].mega[index] ? b.creature : (b.before ?? b.creature);
 }
