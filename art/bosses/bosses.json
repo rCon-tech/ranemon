@@ -12,10 +12,7 @@
       "topKind": "shirt",
       "trim": "#1c1c22",
       "tank": true,
-      "neckerchief": [
-        "#c8303a",
-        "#f4f0ea"
-      ],
+      "neckerchief": ["#c8303a", "#f4f0ea"],
       "legs": "#f0eee8",
       "shoes": "#c89a70",
       "earrings": "#e0c060",
@@ -24,23 +21,9 @@
     "ranemon": {
       "id": "vivemon",
       "name": "Vivemon",
-      "types": [
-        "chill",
-        "charm"
-      ],
-      "stats": [
-        95,
-        70,
-        85,
-        120,
-        90
-      ],
-      "moves": [
-        "cold-shoulder",
-        "dazzling-smile",
-        "power-nap",
-        "sangria-jug"
-      ],
+      "types": ["chill", "charm"],
+      "stats": [95, 70, 85, 120, 90],
+      "moves": ["cold-shoulder", "dazzling-smile", "power-nap", "sangria-jug"],
       "signature": {
         "name": "Sangria Jug",
         "type": "chill",
@@ -70,23 +53,9 @@
     "ranemon": {
       "id": "megamon",
       "name": "Megamon",
-      "types": [
-        "hype",
-        "charm"
-      ],
-      "stats": [
-        90,
-        95,
-        75,
-        95,
-        105
-      ],
-      "moves": [
-        "hype-train",
-        "charm-offensive",
-        "group-chat-spam",
-        "mega-pouch"
-      ],
+      "types": ["hype", "charm"],
+      "stats": [90, 95, 75, 95, 105],
+      "moves": ["hype-train", "charm-offensive", "group-chat-spam", "mega-pouch"],
       "signature": {
         "name": "Mega Pouch",
         "type": "hype",
@@ -117,23 +86,9 @@
     "ranemon": {
       "id": "anniemon",
       "name": "Anniemon",
-      "types": [
-        "posh",
-        "chill"
-      ],
-      "stats": [
-        85,
-        80,
-        90,
-        100,
-        105
-      ],
-      "moves": [
-        "old-money",
-        "members-only",
-        "cold-shoulder",
-        "scooter-by"
-      ],
+      "types": ["posh", "chill"],
+      "stats": [85, 80, 90, 100, 105],
+      "moves": ["old-money", "members-only", "cold-shoulder", "scooter-by"],
       "signature": {
         "name": "Scooter By",
         "type": "posh",
@@ -157,32 +112,15 @@
       "maxi": "#c8d630",
       "legs": "#f2cdb4",
       "shoes": "#4aa0d8",
-      "shawl": [
-        "#f08aa8",
-        "#f06a24"
-      ],
+      "shawl": ["#f08aa8", "#f06a24"],
       "glass": "#f4a040"
     },
     "ranemon": {
       "id": "esmeon",
       "name": "Esmeon",
-      "types": [
-        "charm",
-        "hype"
-      ],
-      "stats": [
-        90,
-        75,
-        80,
-        110,
-        105
-      ],
-      "moves": [
-        "dazzling-smile",
-        "compliment-barrage",
-        "hype-speech",
-        "spritz-o-clock"
-      ],
+      "types": ["charm", "hype"],
+      "stats": [90, 75, 80, 110, 105],
+      "moves": ["dazzling-smile", "compliment-barrage", "hype-speech", "spritz-o-clock"],
       "signature": {
         "name": "Spritz O’Clock",
         "type": "charm",
@@ -199,17 +137,11 @@
       "skin": "#eac4a4",
       "hair": "#4a2c1e",
       "hairStyle": "long",
-      "hat": {
-        "kind": "mortar",
-        "colour": "#16161c"
-      },
+      "hat": { "kind": "mortar", "colour": "#16161c" },
       "top": "#16161c",
       "topKind": "gown",
       "trim": "#5a86c8",
-      "facings": [
-        "#5a86c8",
-        "#f4f0e8"
-      ],
+      "facings": ["#5a86c8", "#f4f0e8"],
       "legs": "#f4f0e8",
       "skirt": "#f4f0e8",
       "shoes": "#f4f0e8",
@@ -218,23 +150,9 @@
     "ranemon": {
       "id": "batoolmon",
       "name": "Batoolmon",
-      "types": [
-        "brains",
-        "charm"
-      ],
-      "stats": [
-        100,
-        70,
-        90,
-        115,
-        85
-      ],
-      "moves": [
-        "galaxy-brain",
-        "well-actually",
-        "lullaby-playlist",
-        "bedside-manner"
-      ],
+      "types": ["brains", "charm"],
+      "stats": [100, 70, 90, 115, 85],
+      "moves": ["galaxy-brain", "well-actually", "lullaby-playlist", "bedside-manner"],
       "signature": {
         "name": "Bedside Manner",
         "type": "brains",
@@ -263,23 +181,9 @@
     "ranemon": {
       "id": "anamon",
       "name": "Anamon",
-      "types": [
-        "hype",
-        "chill"
-      ],
-      "stats": [
-        100,
-        90,
-        80,
-        90,
-        100
-      ],
-      "moves": [
-        "rounds-on-me",
-        "hype-train",
-        "unbothered",
-        "golden-pint"
-      ],
+      "types": ["hype", "chill"],
+      "stats": [100, 90, 80, 90, 100],
+      "moves": ["rounds-on-me", "hype-train", "unbothered", "golden-pint"],
       "signature": {
         "name": "Golden Pint",
         "type": "hype",
@@ -296,23 +200,9 @@
     "ranemon": {
       "id": "bhavemon",
       "name": "Bhavemon",
-      "types": [
-        "chill",
-        "brains"
-      ],
-      "stats": [
-        95,
-        70,
-        80,
-        120,
-        95
-      ],
-      "moves": [
-        "unbothered",
-        "well-actually",
-        "power-nap",
-        "prescription"
-      ],
+      "types": ["chill", "brains"],
+      "stats": [95, 70, 80, 120, 95],
+      "moves": ["unbothered", "well-actually", "power-nap", "prescription"],
       "signature": {
         "name": "Prescription",
         "type": "chill",
@@ -329,23 +219,9 @@
     "ranemon": {
       "id": "sibealmon",
       "name": "Sibealmon",
-      "types": [
-        "charm",
-        "graft"
-      ],
-      "stats": [
-        95,
-        90,
-        85,
-        85,
-        105
-      ],
-      "moves": [
-        "puppy-eyes",
-        "double-shift",
-        "helping-hand-ois",
-        "walkies"
-      ],
+      "types": ["charm", "graft"],
+      "stats": [95, 90, 85, 85, 105],
+      "moves": ["puppy-eyes", "double-shift", "helping-hand-ois", "walkies"],
       "signature": {
         "name": "Walkies",
         "type": "charm",

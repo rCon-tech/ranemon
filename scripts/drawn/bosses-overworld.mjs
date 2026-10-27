@@ -11,6 +11,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { chromium } from '@playwright/test';
+import { format, resolveConfig } from 'prettier';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const out = resolve(root, 'art/bosses');
@@ -55,5 +56,9 @@ for (const { id, png } of sheets) {
   mkdirSync(resolve(out, id), { recursive: true });
   writeFileSync(resolve(out, id, 'overworld.png'), Buffer.from(png.split(',')[1], 'base64'));
 }
-writeFileSync(resolve(out, 'bosses.json'), JSON.stringify(bosses, null, 2) + '\n');
+const json = resolve(out, 'bosses.json');
+writeFileSync(
+  json,
+  await format(JSON.stringify(bosses), { ...(await resolveConfig(json)), filepath: json }),
+);
 console.log(`Painted ${sheets.length}: ${sheets.map((s) => s.id).join(', ')}`);
