@@ -2,6 +2,7 @@ import { scaleStats, type BaseStats, type Creature } from './creature';
 import { LEGEND } from './legend';
 import { LONDON, LONDON_EVOLUTIONS, LONDON_ITEM_EVOLUTIONS } from './london';
 import { PETCHEMON } from './petchemon';
+import { RANELASS_MON } from './ranelasses';
 import { ROSTER } from './roster';
 
 /**
@@ -253,7 +254,9 @@ export function formAt(species: string, level: number): string {
 }
 
 const FORMS = new Map(
-  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, PETCHEMON, LEGEND, ...LONDON].map((c) => [c.id, c]),
+  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, PETCHEMON, LEGEND, ...LONDON, ...RANELASS_MON].map(
+    (c) => [c.id, c],
+  ),
 );
 
 /** Any Ranemon, base or evolved. */

@@ -11,6 +11,7 @@ import {
   previousOf,
 } from '../battle/evolutions';
 import { LONDON } from '../battle/london';
+import { RANELASS_MON } from '../battle/ranelasses';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
 import { PETCHEMON } from '../battle/petchemon';
@@ -70,9 +71,17 @@ export const BOSS: Creature = {
 };
 
 const SPECIES = new Map(
-  [...ROSTER, ...EVOLVED, ...ITEM_EVOLVED, BOSS, PETCHEMON, LEGEND, POSEIDON, ...LONDON].map(
-    (c) => [c.id, c],
-  ),
+  [
+    ...ROSTER,
+    ...EVOLVED,
+    ...ITEM_EVOLVED,
+    BOSS,
+    PETCHEMON,
+    LEGEND,
+    POSEIDON,
+    ...LONDON,
+    ...RANELASS_MON,
+  ].map((c) => [c.id, c]),
 );
 
 export function speciesById(id: string): Creature {
