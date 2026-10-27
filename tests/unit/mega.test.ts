@@ -49,6 +49,10 @@ describe('Mega forms', () => {
       '/sprites/mega/carlizard-tache.png',
     );
     expect(megaSprite('/sprites/shiny/bw/cholokill.png')).toBe('/sprites/shiny/mega/cholokill.png');
+    expect(megaSprite('/sprites/drawn/conix.png')).toBe('/sprites/drawn/mega/conix.png');
+    expect(megaSprite('/sprites/shiny/drawn/lorchu.png')).toBe(
+      '/sprites/shiny/drawn/mega/lorchu.png',
+    );
   });
 });
 

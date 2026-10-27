@@ -188,6 +188,8 @@ const lass = (
   name,
   team,
   mega,
+  // In Britain, so the lads on their teams are their drawn UK forms, Megas and all.
+  uk: true,
   ai: 'hard',
   above: ABOVE[id],
   prize: id === VIV ? 15000 : 8000,

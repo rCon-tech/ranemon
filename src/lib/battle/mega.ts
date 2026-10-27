@@ -42,10 +42,14 @@ export function megaStats(base: BaseStats, focus: Mega['focus']): BaseStats {
 
 /**
  * Its Mega sprite: the same picture's Mega version, its look and shininess kept
- * (`/sprites/evo/carlizard-tache.png` becomes `/sprites/mega/carlizard-tache.png`).
+ * (`/sprites/evo/carlizard-tache.png` becomes `/sprites/mega/carlizard-tache.png`). A drawn UK
+ * form's Mega is drawn too (`/sprites/drawn/carlizard.png` becomes
+ * `/sprites/drawn/mega/carlizard.png`, from `scripts/drawn/mega.py`).
  */
 export const megaSprite = (sprite: string) =>
-  sprite.replace(/^\/sprites\/(shiny\/)?(evo|bw)\//, '/sprites/$1mega/');
+  /^\/sprites\/(shiny\/)?drawn\//.test(sprite)
+    ? sprite.replace(/^\/sprites\/(shiny\/)?drawn\//, '/sprites/$1drawn/mega/')
+    : sprite.replace(/^\/sprites\/(shiny\/)?(evo|bw)\//, '/sprites/$1mega/');
 
 /** A creature's Mega form, or undefined if it hasn't one (or already is one). */
 export function megaForm(c: Creature): Creature | undefined {
