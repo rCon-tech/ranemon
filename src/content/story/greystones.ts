@@ -191,7 +191,7 @@ export const BHAV_REWARD: Step[] = [
   { do: 'give', item: 'xanax' },
   {
     do: 'say',
-    text: 'Give the Xanax to any Ranemon to hold, from the BAG: it stays chill. Spirit up 20% in every battle, and nothing can Fluster it.',
+    text: 'Give the Xanax to any Ranemon to hold, from the BAG: it stays chill. Spirit up 20% in every battle, so its Spirit moves hit harder and Spirit moves hurt it less. And nothing can Fluster it.',
   },
 ];
 

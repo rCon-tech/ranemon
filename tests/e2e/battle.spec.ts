@@ -17,6 +17,8 @@ async function playToTheEnd(page: Page) {
       // The first tap shows what the move does; USE confirms it.
       await moves.getByRole('button', { disabled: false }).first().click();
       await expect(page.getByTestId('move-info')).toBeVisible();
+      // And which stats it pits against each other, so Spirit isn't a mystery.
+      await expect(page.getByTestId('move-category-help')).toHaveText(/move: /);
       await page.getByRole('button', { name: /^USE / }).click();
     } else if (await team.isVisible()) {
       await team.getByRole('button', { disabled: false }).first().click();

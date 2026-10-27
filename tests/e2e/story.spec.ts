@@ -522,6 +522,7 @@ for (const view of THREE_D ? (['2d', '3d'] as const) : (['2d'] as const)) {
     const entry = page.getByTestId('dex-entry');
     await expect(entry).toHaveAttribute('data-id', 'olliemon');
     await expect(entry).toContainText('BASE STATS');
+    await expect(entry.getByTestId('spirit-help')).toContainText('SPI is Spirit');
     // His second special move is learnt later on, so it isn't given away.
     await expect(entry).toContainText('??? · learnt later on');
     await expect(entry).not.toContainText('Know Your Sport');

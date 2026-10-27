@@ -147,9 +147,15 @@ export default function Guide() {
             always goes first, then faster moves, then the faster Ranemon.
           </li>
           <li>
-            <b>Stats</b>: HP is how much it can take, ATK how hard its physical moves hit, DEF how
-            well it takes them, SPI (Spirit) powers its other moves and guards against them, and SPD
-            decides who goes first.
+            <b>Stats</b>: HP is how much it can take, ATK how hard its Physical moves hit, DEF how
+            well it takes them, and SPD decides who goes first.
+          </li>
+          <li>
+            <b>Spirit</b> (SPI) does two jobs. It is how hard its Spirit moves hit <i>and</i> how
+            well it takes Spirit moves from the foe: a Spirit move is its Spirit against the foe’s
+            Spirit. So raising your Spirit helps on both ends, and lowering a foe’s Spirit makes
+            your Spirit moves hit harder and theirs hit softer. It does nothing for Physical moves,
+            and Status moves do no damage at all. Every move shows PHYS, SPIR or STATUS.
           </li>
           <li>
             Moves have PP, so they run out. A Ranemon with no PP left will flail. One hit in 24 is a
