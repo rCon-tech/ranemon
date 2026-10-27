@@ -1,0 +1,289 @@
+import type { Style } from '@/components/story/people';
+import type { RaneType } from '@/lib/battle/types';
+
+/**
+ * London's new bosses, each with a Ranemon of their own: drafts for Rich to approve, not in the
+ * game. Nothing in `src/` imports this file. Each boss is one entry here (how they walk the
+ * overworld, and a proposal for their Ranemon) and one in `scripts/drawn/bosses.py` (how their
+ * Ranemon is drawn). Rebuild everything in `art/bosses/` with:
+ *
+ *     node scripts/drawn/bosses-overworld.mjs && python3 scripts/drawn/bosses.py
+ *
+ * Bosses already in the game (Dr Bhav, Sibeal) name their existing look instead of a style.
+ */
+
+export interface Proposal {
+  id: string;
+  name: string;
+  types: [RaneType] | [RaneType, RaneType];
+  /** HP, Attack, Defense, Spirit, Speed: 460 in all, like a line's last stage. */
+  stats: [number, number, number, number, number];
+  /** Four moves: three from the game, and an idea for a signature move of its own. */
+  moves: [string, string, string, string];
+  signature: { name: string; type: RaneType; idea: string };
+  entry: string;
+}
+
+export interface Boss {
+  id: string;
+  name: string;
+  /** Where the look comes from: a photo Rich sent, or the look the game already has. */
+  from: string;
+  /** A new overworld look, or the id of one already in `STYLES`. */
+  look: Style | string;
+  ranemon: Proposal;
+}
+
+export const BOSSES: Boss[] = [
+  {
+    id: 'viv',
+    name: 'Viv',
+    from: 'Photo: on a waterfront terrace in Lisbon with a jug of sangria.',
+    // Dark hair pulled back, sunglasses, a black ribbed tank top, a red and white scarf knotted
+    // at the neck, white wide-leg trousers and a glass of sangria.
+    look: {
+      skin: '#f2cdb4',
+      hair: '#2a1e1a',
+      hairStyle: 'bun',
+      glasses: 'shades',
+      top: '#1c1c22',
+      topKind: 'shirt',
+      trim: '#1c1c22',
+      tank: true,
+      neckerchief: ['#c8303a', '#f4f0ea'],
+      legs: '#f0eee8',
+      shoes: '#c89a70',
+      earrings: '#e0c060',
+      glass: '#8a1830',
+    },
+    ranemon: {
+      id: 'vivemon',
+      name: 'Vivemon',
+      types: ['chill', 'charm'],
+      stats: [95, 70, 85, 120, 90],
+      moves: ['cold-shoulder', 'dazzling-smile', 'power-nap', 'sangria-jug'],
+      signature: {
+        name: 'Sangria Jug',
+        type: 'chill',
+        idea: 'Pours a round for itself: heals a third of its HP and raises its Spirit.',
+      },
+      entry:
+        'Found only where there is sun, a sea view and a jug on the table. It has been on holiday for three years and calls it a couple of days away.',
+    },
+  },
+  {
+    id: 'meg',
+    name: 'Meg',
+    from: 'Photo: at a picnic in the park, with a drinks pouch.',
+    // Long dark brown hair with lighter ends, gold hoops, an oversized lilac-grey shirt worn open
+    // over a black top, and a denim skirt.
+    look: {
+      skin: '#e8bc98',
+      hair: '#4a3226',
+      hairStyle: 'long',
+      top: '#cdc0c4',
+      topKind: 'coat',
+      trim: '#b8aab0',
+      open: '#1c1c22',
+      legs: '#e8bc98',
+      skirt: '#26365e',
+      shoes: '#e8bc98',
+      earrings: '#e0b848',
+      glass: '#f4b020',
+    },
+    ranemon: {
+      id: 'megamon',
+      name: 'Megamon',
+      types: ['hype', 'charm'],
+      stats: [90, 95, 75, 95, 105],
+      moves: ['hype-train', 'charm-offensive', 'group-chat-spam', 'mega-pouch'],
+      signature: {
+        name: 'Mega Pouch',
+        type: 'hype',
+        idea: 'Bursts a festival drinks pouch over the foe. Raises its own Attack and Spirit.',
+      },
+      entry:
+        'Mega evolves at the first sign of sun in a London park. The stone round its neck is a drinks pouch it has never once finished.',
+    },
+  },
+  {
+    id: 'annie',
+    name: 'Annie',
+    from: 'Photo: at Framingham, Kilshane House, by a red Vespa with a glass of red.',
+    // Long light brown hair, sunglasses, a sage linen waistcoat and wide trousers to match, white
+    // trainers, a small black handbag and a glass of red.
+    look: {
+      skin: '#f2cdb0',
+      hair: '#9a7048',
+      hairStyle: 'long',
+      glasses: 'shades',
+      top: '#c8d09a',
+      topKind: 'waistcoat',
+      trim: '#c8d09a',
+      tank: true,
+      legs: '#c8d09a',
+      shoes: '#f4f4f0',
+      earrings: '#e8e8f0',
+      handbag: '#16161c',
+      glass: '#7a1424',
+    },
+    ranemon: {
+      id: 'anniemon',
+      name: 'Anniemon',
+      types: ['posh', 'chill'],
+      stats: [85, 80, 90, 100, 105],
+      moves: ['old-money', 'members-only', 'cold-shoulder', 'scooter-by'],
+      signature: {
+        name: 'Scooter By',
+        type: 'posh',
+        idea: 'Arrives on a red Vespa and leaves before the bill. Always goes first.',
+      },
+      entry:
+        'Only ever seen at the good table. Rides a little red scooter between garden parties and has never once spilled its red.',
+    },
+  },
+  {
+    id: 'esme',
+    name: 'Esme',
+    from: 'Photo: on a terrace above the sea, with a spritz.',
+    // A blonde bob, sunglasses, a big smile, a lime high-neck maxi dress, a pink and orange wrap
+    // over the shoulders, blue heels and a spritz.
+    look: {
+      skin: '#f2cdb4',
+      hair: '#e0c088',
+      hairStyle: 'bob',
+      glasses: 'shades',
+      top: '#c8d630',
+      topKind: 'shirt',
+      trim: '#c8d630',
+      maxi: '#c8d630',
+      legs: '#f2cdb4',
+      shoes: '#4aa0d8',
+      shawl: ['#f08aa8', '#f06a24'],
+      glass: '#f4a040',
+    },
+    ranemon: {
+      id: 'esmeon',
+      name: 'Esmeon',
+      types: ['charm', 'hype'],
+      stats: [90, 75, 80, 110, 105],
+      moves: ['dazzling-smile', 'compliment-barrage', 'hype-speech', 'spritz-o-clock'],
+      signature: {
+        name: 'Spritz O’Clock',
+        type: 'charm',
+        idea: 'It is always five o’clock somewhere. Hits hard and may Fluster the foe.',
+      },
+      entry:
+        'An Eevee that evolved by the sea at golden hour. It wears its wrap like a tail and its smile can be seen from the next terrace.',
+    },
+  },
+  {
+    id: 'batool',
+    name: 'Dr Batool',
+    from: 'Photo: in her gown and mortarboard, admitted as a Member of the RCOG.',
+    // Long brown hair with a fringe, a mortarboard, a black gown with blue facings over a long
+    // white dress, and white heels.
+    look: {
+      skin: '#eac4a4',
+      hair: '#4a2c1e',
+      hairStyle: 'long',
+      hat: { kind: 'mortar', colour: '#16161c' },
+      top: '#16161c',
+      topKind: 'gown',
+      trim: '#5a86c8',
+      facings: ['#5a86c8', '#f4f0e8'],
+      legs: '#f4f0e8',
+      skirt: '#f4f0e8',
+      shoes: '#f4f0e8',
+      pearls: true,
+    },
+    ranemon: {
+      id: 'batoolmon',
+      name: 'Batoolmon',
+      types: ['brains', 'charm'],
+      stats: [100, 70, 90, 115, 85],
+      moves: ['galaxy-brain', 'well-actually', 'lullaby-playlist', 'bedside-manner'],
+      signature: {
+        name: 'Bedside Manner',
+        type: 'brains',
+        idea: 'Heals half its HP and cures its status. The foe is told to rest and lowers its guard.',
+      },
+      entry:
+        'Has delivered more Ranemon than any trainer in London. Graduated top of its year and still turned up to the ceremony on time.',
+    },
+  },
+  {
+    id: 'ana',
+    name: 'Ana',
+    from: 'Photo: at a summer garden party, with a pint in a plastic cup.',
+    // Long dark brown hair with lighter ends, gold aviators, a big smile, a rust halter-neck maxi
+    // dress, a bracelet and a pint.
+    look: {
+      skin: '#d8a47c',
+      hair: '#3a2820',
+      hairStyle: 'long',
+      glasses: 'round',
+      top: '#c8783a',
+      topKind: 'shirt',
+      trim: '#c8783a',
+      maxi: '#c8783a',
+      legs: '#d8a47c',
+      shoes: '#a8683a',
+      glass: '#e8b040',
+    },
+    ranemon: {
+      id: 'anamon',
+      name: 'Anamon',
+      types: ['hype', 'chill'],
+      stats: [100, 90, 80, 90, 100],
+      moves: ['rounds-on-me', 'hype-train', 'unbothered', 'golden-pint'],
+      signature: {
+        name: 'Golden Pint',
+        type: 'hype',
+        idea: 'Raises a pint to the sun. Heals a quarter of its HP and raises its Speed.',
+      },
+      entry:
+        'Comes out when the sun does and is gone by the first cloud. Holds its pint so carefully it has never lost a drop on the grass.',
+    },
+  },
+  {
+    id: 'bhav',
+    name: 'Dr Bhav',
+    from: 'Already in the game, in Greystones: her look is unchanged.',
+    look: 'bhav',
+    ranemon: {
+      id: 'bhavemon',
+      name: 'Bhavemon',
+      types: ['chill', 'brains'],
+      stats: [95, 70, 80, 120, 95],
+      moves: ['unbothered', 'well-actually', 'power-nap', 'prescription'],
+      signature: {
+        name: 'Prescription',
+        type: 'chill',
+        idea: 'Writes the foe a prescription: it falls asleep. Its own Spirit rises.',
+      },
+      entry:
+        'Swore it hated Ranemon until it lost to one. Carries a prescription pad and an oat latte that never goes cold.',
+    },
+  },
+  {
+    id: 'sibeal',
+    name: 'Sibeal',
+    from: 'Already in the game, Norm’s owner: her look is unchanged.',
+    look: 'sibeal',
+    ranemon: {
+      id: 'sibealmon',
+      name: 'Sibealmon',
+      types: ['charm', 'graft'],
+      stats: [95, 90, 85, 85, 105],
+      moves: ['puppy-eyes', 'double-shift', 'helping-hand-ois', 'walkies'],
+      signature: {
+        name: 'Walkies',
+        type: 'charm',
+        idea: 'Norm runs rings round the foe on his lead. Hits two to five times.',
+      },
+      entry:
+        'Never seen without its border collie. Will walk you round the whole of Dublin in the rain and say it was a lovely day for it.',
+    },
+  },
+];

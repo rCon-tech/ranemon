@@ -112,6 +112,18 @@ export interface Style {
    * chain across the chest and gold embroidery down the back.
    */
   cape?: string;
+  /** Sleeveless, with slim bare arms: a tank top, or a sleeveless waistcoat with a V neck. */
+  tank?: boolean;
+  /** A little scarf knotted at the side of the neck: its colour, and its pattern's. */
+  neckerchief?: [string, string];
+  /** A big wrap over the shoulders and down the arms: its colour, and its zigzag's. */
+  shawl?: [string, string];
+  /** A glass in the hand (the one without the handbag), and the colour of what's in it. */
+  glass?: string;
+  /** Worn open, down the front, over a top in this colour. */
+  open?: string;
+  /** A gown's facings down the front, in this colour, over a dress in the other. */
+  facings?: [string, string];
 }
 
 /** How tall someone `small` stands, next to everyone else. */
@@ -2064,6 +2076,12 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
     px(c, 28, y0 + 18, 8, 1, shade(s.bag, 1.3));
   }
   if (s.stripes) for (let y = y0 + 5; y < y0 + h - 3; y += 4) px(c, 17, y, 30, 2, s.stripes);
+  if (s.tank) {
+    // Bare shoulders either side of the straps.
+    px(c, 17, y0, 5, 7, s.skin);
+    px(c, 42, y0, 5, 7, s.skin);
+    if (s.topKind !== 'waistcoat') round(c, 25, y0 - 1, 14, back ? 3 : 6, 2, s.skin);
+  }
   if (s.hearts && back) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
   if (back && s.strap) for (let i = 0; i < 26; i++) px(c, 44 - i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (s.maxi) {
@@ -2082,7 +2100,8 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   if (back) {
     // A seam down the back, and the collar.
     px(c, 32, y0 + 3, 1, h - 6, dark);
-    px(c, 24, y0, 16, 3, s.topKind === 'suit' ? dark : s.trim);
+    if (!s.tank) px(c, 24, y0, 16, 3, s.topKind === 'suit' ? dark : s.trim);
+    if (s.neckerchief) neckerchief(c, s.neckerchief, 24, y0, 16, false);
     if (s.topKind === 'hivis') {
       px(c, 17, y0 + 11, 30, 3, s.trim);
       px(c, 17, y0 + 19, 30, 3, s.trim);
@@ -2114,7 +2133,8 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, 20, y0 + 15, 6, 1, darker);
       break;
     case 'waistcoat':
-      px(c, 24, y0, 16, h - 2, s.trim);
+      if (s.tank) for (let i = 0; i < 12; i++) px(c, 26 + i / 2, y0 + i, 12 - i, 1, s.skin);
+      else px(c, 24, y0, 16, h - 2, s.trim);
       for (const y of [8, 14, 20]) px(c, 31, y0 + y, 2, 2, s.top);
       break;
     case 'hivis':
@@ -2154,6 +2174,11 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       px(c, 36, y0 + 22, 9, 1, light);
       break;
     case 'shirt':
+      if (s.tank) {
+        // Ribbed all the way down.
+        for (let x = 19; x < 46; x += 3) px(c, x, y0 + 6, 1, h - 9, dark);
+        break;
+      }
       if (s.vest) {
         // A scooped neck and wide armholes, and a logo on the chest.
         round(c, 25, y0 - 1, 14, 6, 3, s.skin);
@@ -2191,6 +2216,19 @@ function torsoFront(c: Ctx, s: Style, p: Pose, back: boolean) {
   if (!long && s.topKind !== 'jumper' && s.topKind !== 'hivis')
     px(c, 18, y0 + h - 2, 28, 2, shade(s.shorts ?? s.legs, 0.6));
   if (s.hearts) for (const [x, y] of HEARTS_TORSO) heart(c, x, y0 + y, s.hearts);
+  if (s.open) {
+    // The top underneath, and the two fronts falling open either side of it.
+    px(c, 27, y0, 10, h - 2, s.open);
+    px(c, 26, y0, 1, h - 2, shade(s.top, 1.2));
+    px(c, 37, y0, 1, h - 2, darker);
+  }
+  if (s.facings) {
+    px(c, 28, y0, 8, h, s.facings[1]);
+    px(c, 25, y0, 3, h, s.facings[0]);
+    px(c, 36, y0, 3, h, s.facings[0]);
+    px(c, 25, y0, 1, h, shade(s.facings[0], 1.3));
+  }
+  if (s.neckerchief) neckerchief(c, s.neckerchief, 24, y0, 16, true);
   if (s.badges) s.badges.forEach((b, i) => round(c, 36 + (i % 2) * 4, y0 + 7 + i * 4, 3, 3, 1, b));
   if (s.strap) for (let i = 0; i < 26; i++) px(c, 20 + i * 0.95, y0 + 1 + i, 3, 2, s.strap);
   if (s.cross) {
@@ -2238,11 +2276,11 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       round(c, x - 2, ay + 3, 11, 8, 4, s.skin);
       px(c, x + (x < 32 ? 1 : 3), ay + 5, 4, 2, shade(s.skin, 1.12));
       px(c, x, ay + 12, 7, 1, shade(s.skin, 0.82));
-    } else if (s.maxi) {
+    } else if (s.maxi || s.tank) {
       // Bare arms, a bangle on the wrist.
       shaded(c, x, ay, 7, 22, 3, s.skin, 0.3, 0.3);
       px(c, x + 1, ay + 11, 5, 1, shade(s.skin, 0.86));
-      px(c, x, ay + 19, 7, 1, '#e0b848');
+      if (s.maxi) px(c, x, ay + 19, 7, 1, '#e0b848');
     } else {
       shaded(c, x, ay, 7, 22, 3, s.top, 0.35, 0.35);
       // An elbow fold and a cuff.
@@ -2256,8 +2294,12 @@ function armsFront(c: Ctx, s: Style, p: Pose, back: boolean) {
       round(c, x, ay + (wide ? 24 : 21), 7, 6, 2, s.skin);
       px(c, x + (x < 32 ? 0 : 5), ay + (wide ? 25 : 22), 2, 4, shade(s.skin, 0.85));
     }
+    if (s.shawl && !back) wrap(c, s.shawl, x - 3, ay - 2, 13, 19);
     if (s.glowsticks) glowstick(c, s.glowsticks, x + 2, ay + 13);
+    if (s.glass && !back && x > 32 === !s.handbag)
+      glass(c, s.glass, x > 32 ? x + 2 : x - 2, ay + 13);
   }
+  if (s.shawl && back) wrap(c, s.shawl, 13, y0 - 2, 38, 20);
   if (!back && s.handbag) handbag(c, s.handbag, 49, y0 + 22);
   if (s.tote) {
     if (!back) for (let i = 0; i < 20; i++) px(c, 20 + i, y0 + i * 0.9, 2, 1, shade(s.tote, 0.8));
@@ -2274,6 +2316,43 @@ function handbag(c: Ctx, colour: string, x: number, y: number) {
   shaded(c, x - 2, y + 1, 16, 12, 3, colour, 0.3, 0.3);
   px(c, x, y + 3, 12, 1, shade(colour, 1.8));
   px(c, x + 4, y + 1, 4, 2, '#e8c040');
+}
+
+/** A scarf round the neck `w` wide from `x`, and in front its knot and two ends. */
+function neckerchief(
+  c: Ctx,
+  [cloth, pattern]: [string, string],
+  x: number,
+  y: number,
+  w: number,
+  front: boolean,
+) {
+  px(c, x, y - 1, w, 3, cloth);
+  for (let i = x + 1; i < x + w; i += 3) px(c, i, y, 1, 1, pattern);
+  if (!front) return;
+  round(c, x + w - 6, y, 5, 4, 1, shade(cloth, 0.8));
+  px(c, x + w - 6, y + 4, 2, 9, cloth);
+  px(c, x + w - 3, y + 4, 2, 7, cloth);
+  for (const dy of [5, 8, 11]) px(c, x + w - 6, y + dy, 2, 1, pattern);
+  for (const dy of [6, 9]) px(c, x + w - 3, y + dy, 2, 1, pattern);
+}
+
+/** A patterned wrap over a box: zigzag bands, and a darker edge along the bottom. */
+function wrap(c: Ctx, [cloth, zig]: [string, string], x: number, y: number, w: number, h: number) {
+  shaded(c, x, y, w, h, 3, cloth, 0.3, 0.3);
+  for (let i = 0; i < w; i++)
+    for (let j = 2; j < h - 2; j++)
+      if ((i + Math.abs((j % 8) - 4)) % 7 < 2) px(c, x + i, y + j, 1, 1, zig);
+  px(c, x, y + h - 2, w, 2, shade(zig, 0.85));
+}
+
+/** A stemmed glass held in a hand at (`x`, `y`), with a drink in it. */
+function glass(c: Ctx, drink: string, x: number, y: number) {
+  px(c, x - 1, y, 7, 7, '#dce8ec');
+  px(c, x, y + 2, 5, 4, drink);
+  px(c, x, y + 2, 1, 2, shade(drink, 1.5));
+  px(c, x + 2, y + 7, 1, 4, '#dce8ec');
+  px(c, x, y + 10, 5, 1, '#dce8ec');
 }
 
 function staff(c: Ctx, s: Style, x: number, y: number) {
@@ -2312,7 +2391,7 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     c.restore();
   }
   if (s.bag) shaded(c, 38, y0 + 4, 10, 22, 4, s.bag, 0.3, 0.3);
-  const bare = s.vest || s.maxi;
+  const bare = s.vest || s.maxi || s.tank;
   shaded(c, 29 + swing, y0 + 1, 7, 22, 3, bare ? shade(s.skin, 0.8) : far, 0.1, 0.4);
   shaded(c, 21, y0, 22, h, 5, s.top, 0.3, 0.25);
   px(c, 21, y0 + h - 1, 22, 1, shade(s.top, 0.6));
@@ -2354,18 +2433,24 @@ function bodySide(c: Ctx, s: Style, p: Pose) {
     shaded(c, ax - 1, y0 + 1, 10, 22, 4, s.skin, 0.35, 0.3);
     round(c, ax - 2, y0 + 3, 12, 8, 4, s.skin);
     px(c, ax, y0 + 12, 8, 1, shade(s.skin, 0.82));
-  } else if (s.maxi) {
+  } else if (s.maxi || s.tank) {
     shaded(c, ax, y0 + 1, 8, 22, 3, s.skin, 0.35, 0.3);
-    px(c, ax, y0 + 19, 8, 1, '#e0b848');
+    if (s.maxi) px(c, ax, y0 + 19, 8, 1, '#e0b848');
   } else {
     shaded(c, ax - (wide ? 2 : 0), y0 + 1, wide ? 11 : 8, wide ? 25 : 22, 3, s.top, 0.35, 0.3);
     px(c, ax + 1, y0 + 12, 6, 1, shade(s.top, 0.72));
   }
   if (s.strap) px(c, 24, y0 + 1, 3, h - 3, s.strap);
+  if (s.neckerchief) {
+    neckerchief(c, s.neckerchief, 21, y0, 14, false);
+    px(c, 20, y0 + 2, 2, 8, s.neckerchief[0]);
+  }
+  if (s.shawl) wrap(c, s.shawl, ax - 3, y0 - 1, 14, 19);
   if (s.hearts) heart(c, ax + 2, y0 + 5, s.hearts);
   if (s.knots) knotwork(c, ax + 2, y0 + 2, 17, s.knots);
   round(c, ax, y0 + (wide ? 24 : 21), 8, 6, 2, s.skin);
   if (s.handbag) handbag(c, s.handbag, ax - 3, y0 + 22);
+  if (s.glass) glass(c, s.glass, ax - 4, y0 + 14);
   if (s.tote) shaded(c, 34, y0 + 16, 11, 14, 2, s.tote);
   if (s.stick) staff(c, s, ax - 3, y0 + 18);
   if (s.glowsticks) glowstick(c, s.glowsticks, ax + 2, y0 + 13);
