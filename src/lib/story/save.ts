@@ -7,11 +7,13 @@ import { ITEMS } from './items';
 import { catchUp, speciesById, type Member } from './party';
 import {
   beatFlag,
+  modeOf,
   newGame,
   playerId,
   SAVE_KEY,
   saveKey,
   START_MONEY,
+  type StoryMode,
   type StoryState,
 } from './state';
 import { doorStep, find, marker, type Dir } from './world';
@@ -316,16 +318,21 @@ export interface Backup {
   raw: string;
 }
 
-/** The rolling copies of each trainer's save, newest first. */
-export const backupKey = (name: string) => `ranemon.backups:${playerId(name)}`;
+/** The rolling copies of each trainer's save, newest first. A London-only game keeps its own. */
+export const backupKey = (name: string, mode: StoryMode = 'dublin') =>
+  `${mode === 'london' ? 'ranemon.london.backups' : 'ranemon.backups'}:${playerId(name)}`;
 /** A copy is kept at most this often while you play. */
 export const BACKUP_EVERY_MS = 10 * 60 * 1000;
 /** How many copies of each kind are kept. */
 const KEEP: Record<BackupReason, number> = { auto: 5, update: 3, restore: 3, import: 3, clash: 3 };
 
-export function backups(storage: Pick<Storage, 'getItem'> | null, name: string): Backup[] {
+export function backups(
+  storage: Pick<Storage, 'getItem'> | null,
+  name: string,
+  mode: StoryMode = 'dublin',
+): Backup[] {
   try {
-    const list = JSON.parse(storage?.getItem(backupKey(name)) ?? '[]');
+    const list = JSON.parse(storage?.getItem(backupKey(name, mode)) ?? '[]');
     return Array.isArray(list)
       ? list.filter((b): b is Backup => typeof b?.raw === 'string' && typeof b?.at === 'number')
       : [];
@@ -334,15 +341,15 @@ export function backups(storage: Pick<Storage, 'getItem'> | null, name: string):
   }
 }
 
-function keepBackup(storage: Store | null, name: string, b: Backup) {
+function keepBackup(storage: Store | null, name: string, b: Backup, mode: StoryMode) {
   if (!storage) return;
-  const list = [b, ...backups(storage, name).filter((o) => o.raw !== b.raw)];
+  const list = [b, ...backups(storage, name, mode).filter((o) => o.raw !== b.raw)];
   const count: Partial<Record<BackupReason, number>> = {};
   let kept = list.filter((o) => (count[o.why] = (count[o.why] ?? 0) + 1) <= KEEP[o.why]);
   // A full browser drops the oldest copies first; the save itself is already written.
   while (kept.length) {
     try {
-      storage.setItem(backupKey(name), JSON.stringify(kept));
+      storage.setItem(backupKey(name, mode), JSON.stringify(kept));
       return;
     } catch {
       kept = kept.slice(0, -1);
@@ -351,11 +358,12 @@ function keepBackup(storage: Store | null, name: string, b: Backup) {
 }
 
 /** Every save this browser has for the trainer, before any of them is read: the save, then its copies. */
-function stored(storage: Pick<Storage, 'getItem'> | null, name: string): string[] {
-  const own = storage?.getItem(saveKey(name)) ?? null;
+function stored(storage: Pick<Storage, 'getItem'> | null, name: string, mode: StoryMode): string[] {
+  const own = storage?.getItem(saveKey(name, mode)) ?? null;
   // Saves from before trainer names were kept under one key, so the first name to look finds it.
-  const first = own ?? storage?.getItem(SAVE_KEY) ?? null;
-  return [first, ...backups(storage, name).map((b) => b.raw)].filter((r): r is string => !!r);
+  // They're all Dublin saves: London-only games came long after.
+  const first = own ?? (mode === 'dublin' ? (storage?.getItem(SAVE_KEY) ?? null) : null);
+  return [first, ...backups(storage, name, mode).map((b) => b.raw)].filter((r): r is string => !!r);
 }
 
 /**
@@ -366,14 +374,16 @@ function stored(storage: Pick<Storage, 'getItem'> | null, name: string): string[
 export function load(
   storage: Store | Pick<Storage, 'getItem'> | null,
   name: string,
+  mode: StoryMode = 'dublin',
 ): StoryState | null {
   try {
-    for (const raw of stored(storage, name)) {
+    for (const raw of stored(storage, name, mode)) {
       const s = parseSave(raw);
-      if (!s) continue;
+      // Only ever a save from the same game: a London-only one is never played as Dublin's.
+      if (!s || modeOf(s) !== mode) continue;
       const before = schemaOf(JSON.parse(raw));
       if (before < SCHEMA && storage && 'setItem' in storage)
-        keepBackup(storage, name, { at: Date.now(), why: 'update', raw });
+        keepBackup(storage, name, { at: Date.now(), why: 'update', raw }, mode);
       return s;
     }
     return null;
@@ -382,16 +392,20 @@ export function load(
   }
 }
 
-/** Saves to this browser under the trainer's name, keeping a copy now and then. Returns the JSON written, or null. */
+/**
+ * Saves to this browser under the trainer's name, keeping a copy now and then. Returns the JSON
+ * written, or null. A London-only game goes under its own keys (`modeOf`).
+ */
 export function save(storage: Store | null, s: StoryState, name: string): string | null {
   try {
     const now = Date.now();
+    const mode = modeOf(s);
     const raw = JSON.stringify({ ...s, schema: writeSchema(s), savedAt: now });
-    storage?.setItem(saveKey(name), raw);
+    storage?.setItem(saveKey(name, mode), raw);
     if (!storage) return null;
-    const last = backups(storage, name).find((b) => b.why === 'auto');
+    const last = backups(storage, name, mode).find((b) => b.why === 'auto');
     if (!last || now - last.at >= BACKUP_EVERY_MS)
-      keepBackup(storage, name, { at: now, why: 'auto', raw });
+      keepBackup(storage, name, { at: now, why: 'auto', raw }, mode);
     return raw;
   } catch {
     return null;
@@ -399,8 +413,14 @@ export function save(storage: Store | null, s: StoryState, name: string): string
 }
 
 /** Keeps a save as a copy, without making it the trainer's save. */
-export function keepCopy(storage: Store | null, name: string, raw: string, why: BackupReason) {
-  keepBackup(storage, name, { at: Date.now(), why, raw });
+export function keepCopy(
+  storage: Store | null,
+  name: string,
+  raw: string,
+  why: BackupReason,
+  mode: StoryMode = 'dublin',
+) {
+  keepBackup(storage, name, { at: Date.now(), why, raw }, mode);
 }
 
 /**
@@ -413,8 +433,9 @@ export function replace(
   name: string,
   why: 'restore' | 'import',
 ) {
-  const current = storage?.getItem(saveKey(name));
-  if (current) keepBackup(storage, name, { at: Date.now(), why, raw: current });
+  const mode = modeOf(s);
+  const current = storage?.getItem(saveKey(name, mode));
+  if (current) keepBackup(storage, name, { at: Date.now(), why, raw: current }, mode);
   return save(storage, s, name);
 }
 
@@ -462,7 +483,11 @@ export function importCode(text: string): { state: StoryState } | { error: strin
 
 /** A one-line summary of a save, to tell copies apart. */
 export function describe(s: StoryState): string {
-  const jerseys = s.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all').length;
+  // A London-only game has only the Premier League's jerseys.
+  const jerseys =
+    modeOf(s) === 'london'
+      ? s.flags.filter((f) => f.startsWith('pl:')).length
+      : s.flags.filter((f) => f.startsWith('jersey:') && f !== 'jersey:all').length;
   const lead = s.party[0];
   let place = s.map;
   try {

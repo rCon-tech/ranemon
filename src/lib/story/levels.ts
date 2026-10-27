@@ -1,3 +1,4 @@
+import { LONDON_ONLY } from '@/content/story/kneecap';
 import { trainerById } from '@/content/story/trainers';
 import { MAX_LEVEL } from '../battle/creature';
 import { beatFlag, type StoryState } from './state';
@@ -8,6 +9,9 @@ import { beatFlag, type StoryState } from './state';
  * next one's. Once you're Champion the only cap is MAX_LEVEL (100), and every trainer battle
  * scales up to your party instead, so the missions after the gyms are still a fight. The
  * Championship in Galway always scales, Champion or not, to just under your best (`above`).
+ *
+ * A London-only game has no gyms in its way: like a Champion of Ireland arriving in London, it
+ * has no cap, and Britain's trainers keep their own levels either way.
  */
 
 /** Every gym leader, in the order you meet them on the road. B&S at Trinity are the last. */
@@ -40,7 +44,7 @@ const aceOf = (team: [string, number][]) => Math.max(...team.map(([, l]) => l));
 
 /** How high a save's Ranemon can grow right now. */
 export function levelCap(s: Flags): LevelCap {
-  const champion = has(s, CHAMPION);
+  const champion = has(s, CHAMPION) || has(s, LONDON_ONLY);
   const next = GYM_ORDER.find((id) => !has(s, beatFlag(id)));
   if (champion || !next) return { level: MAX_LEVEL, leader: null };
   const t = trainerById(next);

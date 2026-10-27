@@ -1,5 +1,7 @@
 import { mapById, outsideOf } from '@/content/story/maps';
 import { breakRun } from '@/content/story/galway';
+import { LONDON_ONLY } from '@/content/story/kneecap';
+import { LONDON_START, LONDON_START_FLAGS, LONDON_START_PUB } from '@/content/story/london';
 import type { BattleState } from '../battle/engine';
 import { moveById } from '../battle/moves';
 import type { Result } from '../ui/session';
@@ -76,6 +78,12 @@ export interface StoryState {
 export const SAVE_KEY = 'ranemon.story.v1';
 /** The trainer name last used in this browser. */
 export const PLAYER_KEY = 'ranemon.player';
+/**
+ * London-only games are kept under keys of their own, so a trainer can have a Dublin save and a
+ * London one under the same name, and neither can ever be read as, or write over, the other.
+ */
+export const LONDON_SAVE_KEY = 'ranemon.london.v1';
+export const LONDON_PLAYER_KEY = 'ranemon.london.player';
 
 /**
  * A trainer name as saves are filed under it: case and extra spaces don't matter, and spaces
@@ -91,7 +99,8 @@ export function playerId(name: string): string {
 }
 
 /** Where a trainer's save lives in this browser. */
-export const saveKey = (name: string) => `${SAVE_KEY}:${playerId(name)}`;
+export const saveKey = (name: string, mode: StoryMode = 'dublin') =>
+  `${mode === 'london' ? LONDON_SAVE_KEY : SAVE_KEY}:${playerId(name)}`;
 export const START_MONEY = 3000;
 
 export function newGame(): StoryState {
@@ -115,6 +124,29 @@ export function newGame(): StoryState {
     schema: SCHEMA,
   };
 }
+
+/**
+ * SKIP TO RANEMON LONDON: a new game of its own that starts at Stansted with no Ranemon, for
+ * players who haven't played Ranemon Dublin. It never meets the Dublin game: its saves are kept
+ * apart (`save.ts`), and it carries `LONDON_ONLY` so the London story can tell it apart.
+ */
+export function newLondonGame(): StoryState {
+  const { map, x, y, face } = LONDON_START;
+  return {
+    ...newGame(),
+    map,
+    x,
+    y,
+    face,
+    flags: [...LONDON_START_FLAGS, `visited:${map}`],
+    pub: { ...LONDON_START_PUB },
+  };
+}
+
+/** Which game a save is from: Ranemon Dublin (the story from Clare), or a London-only game. */
+export type StoryMode = 'dublin' | 'london';
+export const modeOf = (s: Pick<StoryState, 'flags'>): StoryMode =>
+  s.flags.includes(LONDON_ONLY) ? 'london' : 'dublin';
 
 export const hasFlag = (s: StoryState, flag: string) => s.flags.includes(flag);
 

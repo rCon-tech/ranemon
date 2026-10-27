@@ -46,7 +46,7 @@ import { hasUkDex, ukKnowledge, UK_DEX } from '@/lib/story/ukdex';
 import { shinyForm } from '@/lib/story/shiny';
 import { playSfx } from '@/lib/sound/engine';
 import type { Dir, Stall } from '@/lib/story/world';
-import { hasFlag, type StoryState } from '@/lib/story/state';
+import { hasFlag, modeOf, type StoryState } from '@/lib/story/state';
 import { COUNTIES, mapById, outsideOf } from '@/content/story/maps';
 import {
   bandsOf,
@@ -58,7 +58,7 @@ import {
 } from '@/content/story/jerseys';
 import { DEPARTURES, isRunning, type Departure } from '@/content/story/station';
 import { FIXTURE_LIST, KX_DEPARTURES, nextClub, type KxDeparture } from '@/content/story/premier';
-import { RAILCARD } from '@/content/story/kneecap';
+import { CHAMPION, RAILCARD } from '@/content/story/kneecap';
 import { paintCrest } from './crests';
 import type { ClubId } from '@/lib/story/world';
 import { DEFAULT_SKIN, hasSkin, lookOf, SKINS } from '@/content/story/skins';
@@ -990,9 +990,11 @@ export function RanedexPanel({
   onClose: () => void;
   navRef?: React.RefObject<MenuNav | null>;
 }) {
-  // Ireland's Ranedex, or the UK's once you've met a Ranemon over there (`ukdex.ts`).
-  const uk = hasUkDex(game);
-  const [region, setRegion] = useState<'ireland' | 'uk'>('ireland');
+  // Ireland's Ranedex, or the UK's once you've met a Ranemon over there (`ukdex.ts`). A
+  // London-only game has only ever been in Britain, so it has the UK's alone.
+  const londonOnly = modeOf(game) === 'london';
+  const uk = londonOnly || hasUkDex(game);
+  const [region, setRegion] = useState<'ireland' | 'uk'>(londonOnly ? 'uk' : 'ireland');
   const inUk = region === 'uk' && uk;
   const dex = inUk ? UK_DEX : IRISH_DEX;
   const [cursor, setCursor] = useState(0);
@@ -1091,7 +1093,7 @@ export function RanedexPanel({
 
   return (
     <Panel title={inUk ? 'UK RANEDEX' : 'RANEDEX'} onClose={onClose}>
-      {uk && (
+      {uk && !londonOnly && (
         <div className="flex gap-1" aria-label="Ranedex">
           {(['ireland', 'uk'] as const).map((r) => (
             <button
@@ -1172,9 +1174,11 @@ export function JerseysPanel({
     won: hasFlag(game, f.flag),
     crest: f.id,
   }));
-  const [tab, setTab] = useState<'ireland' | 'uk'>('ireland');
+  // A London-only game has only the UK's jerseys, and its money is in pounds.
+  const londonOnly = modeOf(game) === 'london';
+  const [tab, setTab] = useState<'ireland' | 'uk'>(londonOnly ? 'uk' : 'ireland');
   const switchTab = (t: 'ireland' | 'uk') => {
-    if (t === tab) return;
+    if (t === tab || londonOnly) return;
     playSfx('select');
     setTab(t);
   };
@@ -1204,23 +1208,35 @@ export function JerseysPanel({
           look={lookOf(game, champion)}
           className={`h-[72px] w-12 rounded-lg border-2 bg-mist ${champion ? 'border-gold' : 'border-frame'}`}
         />
-        <p className="text-[11px] leading-relaxed">
-          Money €{game.money}
-          <br />
-          Ranedex {game.caught.length}
-          <br />
-          {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
-        </p>
+        {londonOnly ? (
+          <p className="text-[11px] leading-relaxed">
+            Money £{game.money}
+            <br />
+            Ranedex {(game.ukCaught ?? []).length}
+            <br />
+            {hasFlag(game, CHAMPION) ? 'PREMIER LEAGUE CHAMPION' : `Jerseys ${tally(uk)}`}
+          </p>
+        ) : (
+          <p className="text-[11px] leading-relaxed">
+            Money €{game.money}
+            <br />
+            Ranedex {game.caught.length}
+            <br />
+            {hasFlag(game, 'champion') ? 'CHAMPION OF IRELAND' : 'Jerseys'}
+          </p>
+        )}
       </div>
-      <Tabs
-        label="Jerseys"
-        tabs={[
-          { id: 'ireland', label: `IRELAND ${tally(ireland)}` },
-          { id: 'uk', label: `UK ${tally(uk)}` },
-        ]}
-        value={tab}
-        onPick={switchTab}
-      />
+      {!londonOnly && (
+        <Tabs
+          label="Jerseys"
+          tabs={[
+            { id: 'ireland', label: `IRELAND ${tally(ireland)}` },
+            { id: 'uk', label: `UK ${tally(uk)}` },
+          ]}
+          value={tab}
+          onPick={switchTab}
+        />
+      )}
       {tab === 'ireland' ? (
         <JerseyGroup testId="jerseys-ireland" columns="grid-cols-3" jerseys={ireland} />
       ) : (

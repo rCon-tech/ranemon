@@ -30,6 +30,7 @@ import {
   hasCloudSaves,
   isPin,
   loadOnline,
+  onlineName,
   saveOnline,
   setCloudSaves,
   settle,
@@ -67,8 +68,11 @@ import {
   crossBorder,
   load,
   makeLead,
+  modeOf,
   toggleExpShare,
   newGame,
+  newLondonGame,
+  LONDON_PLAYER_KEY,
   parseSave,
   saveKey,
   PLAYER_KEY,
@@ -85,6 +89,7 @@ import {
   holdItem,
   takeHeld,
   toGroupChat,
+  type StoryMode,
   type StoryState,
 } from '@/lib/story/state';
 import {
@@ -116,7 +121,7 @@ import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
 import { hasUkForm, UK } from '@/lib/battle/uk';
-import { UK_LEVEL } from '@/content/story/london';
+import { LONDON_INTRO, UK_LEVEL } from '@/content/story/london';
 import { PUGH_LINES } from '@/content/story/neeson';
 import { UK_STARTER } from '@/content/story/kneecap';
 import { objectiveText, type KxDeparture } from '@/content/story/premier';
@@ -299,14 +304,22 @@ function sceneOf(map: GameMap, trainer: string | null, foe: string): Scene {
   return 'field';
 }
 
-export function Story() {
+/**
+ * Story mode. `mode` is which game: Ranemon Dublin, from Co. Clare (STORY MODE), or a London-only
+ * game (SKIP TO RANEMON LONDON), which has saves of its own, here and online.
+ */
+export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
+  const london = mode === 'london';
+  const playerKey = london ? LONDON_PLAYER_KEY : PLAYER_KEY;
+  /** The name this game's saves go online under (`onlineName`). */
+  const online = (trainer: string) => onlineName(trainer, mode);
   const [game, setGame] = useState<StoryState | null>(null);
   // The trainer name last used here. Read through the store so the server render hydrates.
   const remembered = useSyncExternalStore(
     noSubscribe,
     () => {
       try {
-        return storage()?.getItem(PLAYER_KEY) ?? '';
+        return storage()?.getItem(playerKey) ?? '';
       } catch {
         return '';
       }
@@ -397,7 +410,7 @@ export function Story() {
 
   const persist = useCallback((g: StoryState) => {
     const raw = save(storage(), g, player.current);
-    if (raw) saveOnline(player.current, raw);
+    if (raw) saveOnline(onlineName(player.current, modeOf(g)), raw);
   }, []);
 
   // Don't lose the last online save when the tab goes away, and send up a save made offline as
@@ -612,7 +625,11 @@ export function Story() {
   function startGame(g: StoryState, fresh: boolean) {
     const map = mapFor(g.map, g.flags);
     const intro =
-      fresh && map.enter ? [...map.enter, { do: 'flag' as const, flag: `visited:${map.id}` }] : [];
+      fresh && london
+        ? LONDON_INTRO
+        : fresh && map.enter
+          ? [...map.enter, { do: 'flag' as const, flag: `visited:${map.id}` }]
+          : [];
     run(g, [...intro, ...arrival(map)]);
   }
 
@@ -832,6 +849,8 @@ export function Story() {
   /** The Town Map, from the place name or the M key, whenever you could open the START menu. */
   function openMap() {
     if (!game || line || fight || flash || exclaim !== null || flight !== null) return;
+    // The Town Map is of Ireland, which a London-only game never sees.
+    if (london) return;
     if (overlay === 'map') setOverlay(null);
     else if (!overlay || overlay === 'menu') setOverlay('map');
   }
@@ -963,30 +982,32 @@ export function Story() {
    * `clash` holds both when each has moved on without the other.
    */
   async function findSave(trainer: string) {
-    const local = load(storage(), trainer);
-    const online = await loadOnline(trainer, cloudNeedsPin() ? pin : undefined);
-    if ('error' in online) {
+    const local = load(storage(), trainer, mode);
+    const got = await loadOnline(online(trainer), cloudNeedsPin() ? pin : undefined);
+    if ('error' in got) {
       const blocked =
-        online.error === 'pin'
+        got.error === 'pin'
           ? `That PIN doesn’t match the online save for “${trainer.trim()}”.`
-          : online.error === 'locked'
+          : got.error === 'locked'
             ? 'Too many wrong PINs for that name. Try again in 15 minutes.'
             : 'Couldn’t reach online saves just now.';
-      return { save: local, blocked, offline: online.error === 'offline' };
+      return { save: local, blocked, offline: got.error === 'offline' };
     }
-    const remote = parseSave(online.raw);
-    const pick = choose(local, remote, online.rev, readSync(trainer));
+    const parsed = parseSave(got.raw);
+    // Never a save from the other game, whatever is online under the name.
+    const remote = parsed && modeOf(parsed) === mode ? parsed : null;
+    const pick = choose(local, remote, got.rev, readSync(online(trainer)));
     if (pick === 'ask' && local && remote)
       return {
         save: local,
         blocked: null,
         offline: false,
-        clash: { local, online: remote, onlineRaw: online.raw!, rev: online.rev },
+        clash: { local, online: remote, onlineRaw: got.raw!, rev: got.rev },
       };
     return {
       save: pick === 'online' ? remote : local,
       // The online save is carried on from: later saves here follow on from it.
-      adopt: pick === 'online' ? online.rev : undefined,
+      adopt: pick === 'online' ? got.rev : undefined,
       blocked: null,
       offline: false,
     };
@@ -995,7 +1016,7 @@ export function Story() {
   function begin(trainer: string, g: StoryState, fresh: boolean) {
     player.current = trainer.trim();
     try {
-      storage()?.setItem(PLAYER_KEY, player.current);
+      storage()?.setItem(playerKey, player.current);
     } catch {
       // Private windows can refuse storage; the game still runs.
     }
@@ -1006,7 +1027,7 @@ export function Story() {
 
   async function onContinue() {
     if (title.localOnly) {
-      const local = load(storage(), name);
+      const local = load(storage(), name, mode);
       if (local) return begin(name, local, false);
     }
     setTitle({ busy: true, note: null, replace: false });
@@ -1027,11 +1048,11 @@ export function Story() {
         localOnly: !!found,
       });
     else if (found) {
-      if (adopt !== undefined) settle(name, adopt);
+      if (adopt !== undefined) settle(online(name), adopt);
       begin(name, found, false);
     }
-    // The developer save starts with everything unlocked.
-    else if (await isDevName(name)) begin(name, devSave(), false);
+    // The developer save starts with everything unlocked. It's a Dublin save.
+    else if (!london && (await isDevName(name))) begin(name, devSave(), false);
     else
       setTitle({
         busy: false,
@@ -1062,8 +1083,8 @@ export function Story() {
         return;
       }
       if (found) {
-        const jerseys = found.flags.filter(
-          (f) => f.startsWith('jersey:') && f !== 'jersey:all',
+        const jerseys = found.flags.filter((f) =>
+          london ? f.startsWith('pl:') : f.startsWith('jersey:') && f !== 'jersey:all',
         ).length;
         setTitle({
           busy: false,
@@ -1073,19 +1094,21 @@ export function Story() {
         return;
       }
     }
-    if (await isDevName(name)) begin(name, devSave(), false);
+    if (london) begin(name, newLondonGame(), true);
+    else if (await isDevName(name)) begin(name, devSave(), false);
     else begin(name, newGame(), true);
   }
 
   async function openTools() {
     const { save: current } = await findSave(name);
-    setTools({ current: current ?? load(storage(), name) });
+    setTools({ current: current ?? load(storage(), name, mode) });
   }
 
   if (!game && tools) {
     return (
       <SaveTools
         name={name}
+        mode={mode}
         storage={storage()}
         current={tools.current}
         onUse={(g, why) => {
@@ -1113,8 +1136,8 @@ export function Story() {
       const chosen = which === 'local' ? clash.local : clash.online;
       const other =
         which === 'local' ? clash.onlineRaw : JSON.stringify({ ...clash.local, version: 1 });
-      keepCopy(storage(), name, other, 'clash');
-      settle(name, clash.rev);
+      keepCopy(storage(), name, other, 'clash', mode);
+      settle(online(name), clash.rev);
       setClash(null);
       begin(name, chosen, false);
     };
@@ -1166,13 +1189,21 @@ export function Story() {
         <h1 className="text-[40px] font-bold leading-tight text-gold [-webkit-text-stroke:2px_#1c4f96] [text-shadow:0_4px_0_#1c4f96,0_6px_0_#1c2026]">
           RANEMON
           <br />
-          STORY
+          {london ? 'LONDON' : 'STORY'}
         </h1>
-        <p className="text-[11px] leading-relaxed text-frame">
-          From Co. Clare to Trinity College Dublin.
-          <br />
-          Nine jerseys. One pint at a time.
-        </p>
+        {london ? (
+          <p className="text-[11px] leading-relaxed text-frame" data-testid="london-title">
+            A new game that starts in London.
+            <br />
+            Twelve clubs. One King. Free the lads.
+          </p>
+        ) : (
+          <p className="text-[11px] leading-relaxed text-frame">
+            From Co. Clare to Trinity College Dublin.
+            <br />
+            Nine jerseys. One pint at a time.
+          </p>
+        )}
         <form
           className="flex w-full max-w-[260px] flex-col gap-2"
           onSubmit={(e) => {
@@ -1238,7 +1269,7 @@ export function Story() {
             {title.busy
               ? 'Looking for your save…'
               : (title.note ??
-                (unsynced(name, parseSave(storage()?.getItem(saveKey(name))))
+                (unsynced(online(name), parseSave(storage()?.getItem(saveKey(name, mode))))
                   ? 'This save has progress that isn’t online yet. It goes up next time you play with a connection.'
                   : undefined) ??
                 (needsPin
@@ -1319,10 +1350,11 @@ export function Story() {
           type="button"
           className="absolute left-1 top-1 rounded bg-panel/85 px-1.5 text-[9px] text-paper"
           onClick={openMap}
-          aria-label={`${map.name}. Open the Town Map.`}
+          aria-label={london ? map.name : `${map.name}. Open the Town Map.`}
           data-testid="place"
         >
-          {map.name} ▸
+          {map.name}
+          {london ? '' : ' ▸'}
         </button>
         {objective && map.uk && (
           <div
@@ -1357,6 +1389,7 @@ export function Story() {
           <StartMenu
             expShare={!!game.expShare}
             limepass={hasFlag(game, LIMEPASS)}
+            townMap={!london}
             onPick={(o) => {
               if (o === 'share') {
                 const g = toggleExpShare(game);
@@ -1599,12 +1632,15 @@ export function Story() {
 function StartMenu({
   expShare,
   limepass,
+  townMap = true,
   onPick,
   onClose,
 }: {
   expShare: boolean;
   /** Whether you have the Limepass, which adds LIMEPASS to the menu. */
   limepass: boolean;
+  /** The Town Map of Ireland: not in a London-only game. */
+  townMap?: boolean;
   onPick: (
     o:
       | 'party'
@@ -1624,7 +1660,7 @@ function StartMenu({
     ['party', 'PARTY'],
     ['bag', 'BAG'],
     ['dex', 'RANEDEX'],
-    ['map', 'MAP'],
+    ...(townMap ? ([['map', 'MAP']] as const) : []),
     ['missions', 'MISSIONS'],
     ...(limepass ? ([['limepass', 'LIMEPASS']] as const) : []),
     ['card', 'JERSEYS'],

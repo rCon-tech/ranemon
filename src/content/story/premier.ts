@@ -1,5 +1,5 @@
 import { interiorId } from './interiors';
-import { CHAMPION, FIXTURES, RAILCARD } from './kneecap';
+import { CHAMPION, FIXTURES, LONDON_ONLY, RAILCARD } from './kneecap';
 import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
 import type {
   ClubId,
@@ -49,12 +49,37 @@ const POSTCARDS = [
   'Robinmon is spreading a positive message to ze hens. Ze hens are positive.',
 ];
 
+/**
+ * A London-only game has no Ranemon on the farm, so it gets a text from your mam instead, one
+ * after each jersey, in order.
+ */
+const MAM_TEXTS = [
+  'Brighton! By the sea! Did you bring a coat? Text me back. Text me anyway.',
+  'Your auntie says Crystal Palace is a rough area. Is that true. Are you eating.',
+  'Saw the Villa match on the news. Was that you? Your hair looked very long.',
+  'Everton. Is that the blue one or the red one. Your father says it matters.',
+  'Leeds is very far up. Bring a coat. I mean it.',
+  'Newcastle. They don’t wear coats there I hear. YOU wear a coat.',
+  'Spurs! Your uncle Tom is delighted. He hasn’t said why.',
+  'Manchester City. That’s a lot of money for football. Are they paying you.',
+  'Chelsea. Very posh, I hear. Mind your manners.',
+  'Arsenal! Mrs Byrne’s son supports them. He’s a solicitor now.',
+  'Liverpool. Half of Mayo is in Liverpool. Say hello to them.',
+];
+
 const postcard = (i: number): Step[] =>
   i < POSTCARDS.length
     ? [
         {
-          do: 'say',
-          text: `A postcard from Ollie’s parents, from Michael D’s farm in Clare: “${POSTCARDS[i]}”`,
+          do: 'if',
+          flag: LONDON_ONLY,
+          then: [{ do: 'say', text: `♪ Bzzt. A text from your mam: “${MAM_TEXTS[i]}”` }],
+          else: [
+            {
+              do: 'say',
+              text: `A postcard from Ollie’s parents, from Michael D’s farm in Clare: “${POSTCARDS[i]}”`,
+            },
+          ],
         },
       ]
     : [];
@@ -1019,10 +1044,25 @@ export const FALMER: GameMap = {
       look: 'enda',
       face: 'down',
       talk: [
-        ...say('ENDA: I KNEW you’d come back! Is it a tradition now? It’s a tradition.'),
-        ...say(
-          'ENDA: I made you another friendship bracelet on the train. It says PREMIER LEAGUE. It’s spelt wrong.',
-        ),
+        {
+          do: 'if',
+          // A London-only game has never met Enda in Kildare, or been to Brighton with him.
+          flag: LONDON_ONLY,
+          then: [
+            ...say(
+              'ENDA: Hiya! I’m Enda! I’m very small and I make best friends with everyone. You’re my best friend now. That’s just how it is.',
+            ),
+            ...say(
+              'ENDA: I made you a friendship bracelet on the train. It says PREMIER LEAGUE. It’s spelt wrong.',
+            ),
+          ],
+          else: [
+            ...say('ENDA: I KNEW you’d come back! Is it a tradition now? It’s a tradition.'),
+            ...say(
+              'ENDA: I made you another friendship bracelet on the train. It says PREMIER LEAGUE. It’s spelt wrong.',
+            ),
+          ],
+        },
       ],
     },
   ],
