@@ -185,7 +185,8 @@ export const ITEMS: Item[] = [
   {
     id: 'mango-tango',
     name: 'Mango Tango',
-    about: 'Smells like a summer in Salthill. Raises SPIRIT in battle.',
+    about:
+      'Smells like a summer in Salthill. Raises SPIRIT in battle: its Spirit moves hit harder and it takes Spirit moves better.',
     price: 500,
     from: 1,
     use: { kind: 'vape', effect: { kind: 'boost', stat: 'spirit', stages: 1 } },
@@ -220,7 +221,7 @@ export const ITEMS: Item[] = [
     id: 'xanax',
     name: 'Xanax',
     about:
-      'From Dr Bhav in Greystones, for proving her wrong. Give it to any Ranemon to hold and it stays chill: Spirit up 20% in every battle, and nothing can Fluster it.',
+      'From Dr Bhav in Greystones, for proving her wrong. Give it to any Ranemon to hold and it stays chill: Spirit up 20% in every battle (its Spirit moves hit harder and it takes Spirit moves better), and nothing can Fluster it.',
     price: null,
     from: 99,
     use: { kind: 'hold', stat: 'spirit', factor: 1.2, calm: true },

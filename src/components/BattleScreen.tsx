@@ -17,6 +17,7 @@ import { FLAIL, moveById, type Move } from '@/lib/battle/moves';
 import { matchup, TYPE_COLOR, TYPE_LABEL, type RaneType } from '@/lib/battle/types';
 import { canUse, type ItemUse } from '@/lib/story/items';
 import type { Foe } from '@/lib/ui/playback';
+import { CATEGORY_HELP } from '@/lib/ui/stats';
 import { scaled } from '@/lib/speed';
 import {
   isChoosing,
@@ -144,6 +145,9 @@ function MoveInfo({
         </span>
       )}
       <span className="opacity-80">{move.flavour}</span>
+      <span className="text-[10px] opacity-70" data-testid="move-category-help">
+        {CATEGORY_HELP[move.category]}
+      </span>
     </span>
   );
 }
