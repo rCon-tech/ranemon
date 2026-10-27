@@ -2,8 +2,10 @@ import type { Style } from '@/components/story/people';
 import type { RaneType } from '@/lib/battle/types';
 
 /**
- * London's new bosses, each with a Ranemon of their own: drafts for Rich to approve, not in the
- * game. Nothing in `src/` imports this file. Each boss is one entry here (how they walk the
+ * London's secret bosses, the Ranelasses, each with a Ranemon of their own. They're in the game
+ * now, at Rowans (`src/content/story/rowans.ts`): their looks are copied into `STYLES` in
+ * people.ts and their Ranemon into `src/lib/battle/ranelasses.ts`, so this file is the source for
+ * the art only. Nothing in `src/` imports it. Each boss is one entry here (how they walk the
  * overworld, and a proposal for their Ranemon) and one in `scripts/drawn/bosses.py` (how their
  * Ranemon is drawn). Rebuild everything in `art/bosses/` with:
  *

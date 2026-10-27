@@ -1718,6 +1718,109 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#2a2a38',
     shoes: '#f4f4f4',
   },
+  // Viv, a Ranelass at Rowans.
+  // Dark hair pulled back, sunglasses, a black ribbed tank top, a red and white scarf knotted
+  // at the neck, white wide-leg trousers and a glass of sangria.
+  viv: {
+    skin: '#f2cdb4',
+    hair: '#2a1e1a',
+    hairStyle: 'bun',
+    glasses: 'shades',
+    top: '#1c1c22',
+    topKind: 'shirt',
+    trim: '#1c1c22',
+    tank: true,
+    neckerchief: ['#c8303a', '#f4f0ea'],
+    legs: '#f0eee8',
+    shoes: '#c89a70',
+    earrings: '#e0c060',
+    glass: '#8a1830',
+  },
+  // Meg, a Ranelass at Rowans.
+  // Long dark brown hair with lighter ends, gold hoops, an oversized lilac-grey shirt worn open
+  // over a black top, and a denim skirt.
+  meg: {
+    skin: '#e8bc98',
+    hair: '#4a3226',
+    hairStyle: 'long',
+    top: '#cdc0c4',
+    topKind: 'coat',
+    trim: '#b8aab0',
+    open: '#1c1c22',
+    legs: '#e8bc98',
+    skirt: '#26365e',
+    shoes: '#e8bc98',
+    earrings: '#e0b848',
+    glass: '#f4b020',
+  },
+  // Annie, a Ranelass at Rowans.
+  // Long light brown hair, sunglasses, a sage linen waistcoat and wide trousers to match, white
+  // trainers, a small black handbag and a glass of red.
+  annie: {
+    skin: '#f2cdb0',
+    hair: '#9a7048',
+    hairStyle: 'long',
+    glasses: 'shades',
+    top: '#c8d09a',
+    topKind: 'waistcoat',
+    trim: '#c8d09a',
+    tank: true,
+    legs: '#c8d09a',
+    shoes: '#f4f4f0',
+    earrings: '#e8e8f0',
+    handbag: '#16161c',
+    glass: '#7a1424',
+  },
+  // Esme, a Ranelass at Rowans.
+  // A blonde bob, sunglasses, a big smile, a lime high-neck maxi dress, a pink and orange wrap
+  // over the shoulders, blue heels and a spritz.
+  esme: {
+    skin: '#f2cdb4',
+    hair: '#e0c088',
+    hairStyle: 'bob',
+    glasses: 'shades',
+    top: '#c8d630',
+    topKind: 'shirt',
+    trim: '#c8d630',
+    maxi: '#c8d630',
+    legs: '#f2cdb4',
+    shoes: '#4aa0d8',
+    shawl: ['#f08aa8', '#f06a24'],
+    glass: '#f4a040',
+  },
+  // Dr Batool, a Ranelass at Rowans.
+  // Long brown hair with a fringe, a mortarboard, a black gown with blue facings over a long
+  // white dress, and white heels.
+  batool: {
+    skin: '#eac4a4',
+    hair: '#4a2c1e',
+    hairStyle: 'long',
+    hat: { kind: 'mortar', colour: '#16161c' },
+    top: '#16161c',
+    topKind: 'gown',
+    trim: '#5a86c8',
+    facings: ['#5a86c8', '#f4f0e8'],
+    legs: '#f4f0e8',
+    skirt: '#f4f0e8',
+    shoes: '#f4f0e8',
+    pearls: true,
+  },
+  // Ana, a Ranelass at Rowans.
+  // Long dark brown hair with lighter ends, gold aviators, a big smile, a rust halter-neck maxi
+  // dress, a bracelet and a pint.
+  ana: {
+    skin: '#d8a47c',
+    hair: '#3a2820',
+    hairStyle: 'long',
+    glasses: 'round',
+    top: '#c8783a',
+    topKind: 'shirt',
+    trim: '#c8783a',
+    maxi: '#c8783a',
+    legs: '#d8a47c',
+    shoes: '#a8683a',
+    glass: '#e8b040',
+  },
 };
 
 /** A Ranemon's body below its photo head: a little round body in its colour. */

@@ -12,6 +12,7 @@ import { UK_TRAINERS } from './london';
 import { PALACE_TRAINERS } from './palace';
 import { PREMIER_TRAINERS } from './premier';
 import { GALWAY_TRAINERS } from './galway';
+import { ROWANS_TRAINERS } from './rowans';
 import { SILICON_TRAINERS } from './silicon';
 import { SIDEMEN_TRAINERS, WEMBLEY_TRAINERS } from './sidemen';
 import { NEESON_TRAINERS } from './neeson';
@@ -810,6 +811,7 @@ const T: Trainer[] = [
   ...PREMIER_TRAINERS,
   ...PALACE_TRAINERS,
   ...GALWAY_TRAINERS,
+  ...ROWANS_TRAINERS,
   ...SILICON_TRAINERS,
   ...SIDEMEN_TRAINERS,
   ...WEMBLEY_TRAINERS,

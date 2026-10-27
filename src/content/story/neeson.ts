@@ -34,6 +34,7 @@ export const PUGH_LINES = [
   'FLORENCE PUGH: I’ve had a stew on since seven. Your Ranemon have had three bowls each. They’re fighting fit.',
   'FLORENCE PUGH: Bit of a Midsommar crowd in tonight. Don’t drink anything with flowers in it. Your Ranemon are grand.',
   'FLORENCE PUGH: Black Widow taught me how to fall off things. Pulling pints I taught myself. Go on, they’re healed.',
+  'FLORENCE PUGH: There’s a table of eight girls in the corner in sunglasses. Indoors. At night. They never pay, and everyone who comes in nods at them. Anyway! Your Ranemon are healed.',
 ];
 
 /** What Florence asks of you, the first time you're in once you've the Leeds jersey. */
