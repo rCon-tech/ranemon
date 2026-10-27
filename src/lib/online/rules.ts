@@ -17,6 +17,7 @@ import { POSEIDON } from '../battle/poseidon';
 import { Rng } from '../battle/rng';
 import { ROSTER } from '../battle/roster';
 import { TYPES, typeMultiplier } from '../battle/types';
+import { UK } from '../battle/uk';
 import { variantOf } from '../battle/variants';
 import { heldBoost, heldCalm, ITEMS } from '../story/items';
 import {
@@ -196,16 +197,18 @@ export function skinOf(save: unknown): string | undefined {
 }
 
 /**
- * Every Ranemon a random party can be dealt: each one in the form it has at Lv100, so no
- * unevolved ones, plus the ones that only evolve with an item. Never B&S.
+ * Every Ranemon a random party can be dealt: the ones made from photos (the lads, their
+ * evolutions and the legends), each in the form it has at Lv100. London's drawn Ranemon never
+ * are, and nor is B&S.
  */
-const RANDOM_POOL: string[] = ALL_SPECIES.map((c) => c.id).filter(
-  (id) => formAt(id, MAX_LEVEL) === id,
-);
+const RANDOM_POOL: string[] = ALL_SPECIES.filter((c) => !LONDON.includes(c))
+  .map((c) => c.id)
+  .filter((id) => formAt(id, MAX_LEVEL) === id);
 
 /**
  * A random party for each side, from the seed, all at Lv100 with the moves they'd know by then.
- * No Ranemon turns up twice in the battle, so there's still only one of each legend.
+ * Each one is as likely to come in its photo look as its drawn (UK) look, where it has one. No
+ * Ranemon turns up twice in the battle, so there's still only one of each legend.
  */
 export function randomParties(seed: number): [Member[], Member[]] {
   const rng = new Rng(seed);
@@ -213,7 +216,7 @@ export function randomParties(seed: number): [Member[], Member[]] {
   const deal = (): Member[] =>
     Array.from({ length: PARTY_SIZE }, (_, i) => {
       const [id] = pool.splice(rng.int(0, pool.length - 1), 1);
-      return makeMember(id, MAX_LEVEL, i + 1);
+      return makeMember(id, MAX_LEVEL, i + 1, rng.chance(0.5) ? UK : undefined);
     });
   return [deal(), deal()];
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MAX_LEVEL } from '@/lib/battle/creature';
 import { legalActions, startBattle, switchTargets, type Side } from '@/lib/battle/engine';
 import { LEGEND } from '@/lib/battle/legend';
+import { LONDON } from '@/lib/battle/london';
 import { PETCHEMON } from '@/lib/battle/petchemon';
 import { creatureById } from '@/lib/battle/roster';
 import {
@@ -106,6 +107,11 @@ describe('online teams', () => {
     const species = [...a, ...b].map((m) => m.species);
     expect(new Set(species).size).toBe(12);
     expect(species).not.toContain('bns');
+    // Only the Ranemon made from photos, in their photo or drawn look.
+    const london = new Set(LONDON.map((c) => c.id));
+    expect(species.filter((id) => london.has(id))).toEqual([]);
+    const looks = new Set([...a, ...b].map((m) => m.variant ?? 'photo'));
+    expect([...looks].sort()).toEqual(['photo', 'uk']);
     for (const party of [a, b]) {
       expect(validateTeam(party)).toHaveProperty('team');
       expect(entrantsOf(party, 'random').map((e) => e.level)).toEqual(Array(6).fill(MAX_LEVEL));
