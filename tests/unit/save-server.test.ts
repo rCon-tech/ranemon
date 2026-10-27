@@ -56,6 +56,17 @@ describe('the save server', () => {
     expect(row.hash).toHaveLength(44);
   });
 
+  it('keeps a London-only game apart from the Dublin save under the same name', async () => {
+    const s = server();
+    const london = JSON.stringify({ ...JSON.parse(LIVE), flags: ['london:only'] });
+    expect((await s.call('/api/save', { id: 'rich', pin: '1234', raw: LIVE })).status).toBe(200);
+    expect((await s.call('/api/save', { id: 'ln__rich', pin: '1234', raw: london })).status).toBe(
+      200,
+    );
+    expect((await s.call('/api/load', { id: 'rich', pin: '1234' })).body.raw).toBe(LIVE);
+    expect((await s.call('/api/load', { id: 'ln__rich', pin: '1234' })).body.raw).toBe(london);
+  });
+
   it('turns away the wrong PIN, and locks the name after five', async () => {
     const s = server();
     await s.call('/api/save', { id: 'rich', pin: '1234', raw: LIVE });

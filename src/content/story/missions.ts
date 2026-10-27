@@ -10,6 +10,7 @@ import {
   CHAMPION,
   FIXTURES,
   LANDED,
+  LONDON_ONLY,
   PROVAI_ASKED,
   PROVAI_MET,
   UK_STARTER,
@@ -51,6 +52,8 @@ export interface Mission {
   start?: string;
   /** Closed for good once this flag is set. */
   done: string;
+  /** Never shown in a save with this flag, such as Ireland's story in a London-only game. */
+  hideIf?: string;
   steps: MissionStep[];
 }
 
@@ -77,6 +80,7 @@ export const MISSIONS: Mission[] = [
     about:
       'B&S have shut themselves into Trinity. Michael D wants someone from the country to take the title off them.',
     done: BALL_FLAG,
+    hideIf: LONDON_ONLY,
     steps: [
       {
         until: 'starter',

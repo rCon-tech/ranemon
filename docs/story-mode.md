@@ -353,6 +353,7 @@ Maps are drawn in [Tiled](https://www.mapeditor.org/) (free) and exported as JSO
 - Each save carries a `version` number, and `save.ts` migrates old saves forward so content updates never wipe a run.
 - Holds: player name, map and position, party and Group Chat (species, nickname, level, EXP, HP, PP, status), bag, money, flags, Ranedex seen and caught, play time, and an RNG seed so a reloaded battle plays the same way.
 - When accounts arrive, the same JSON syncs to the server with no format change.
+- A London-only game (SKIP TO RANEMON LONDON on the home screen, `/london`) has its own slot: `ranemon.london.v1:<name>`, its own backups, and its own online save under `ln__<name>`. Its saves carry the `london:only` flag, which is how the game tells them apart; a Dublin save never has it, and neither game will load the other's save, save code or online save.
 
 ## Implementation plan
 

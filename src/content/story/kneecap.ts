@@ -8,6 +8,13 @@ import type { Npc, Step } from '@/lib/story/world';
  * london.ts.
  */
 
+/**
+ * A save from SKIP TO RANEMON LONDON on the home screen: a new game that starts at Stansted, for
+ * players who haven't played Ranemon Dublin. Only these saves have it, so every line gated on it
+ * leaves the Dublin game, and Dublin saves that go on to London, exactly as they were.
+ */
+export const LONDON_ONLY = 'london:only';
+
 /** Próvaí has found you, yes or no: he waits at Connolly from then on. */
 export const PROVAI_MET = 'provai:met';
 /** You've said yes: the airport bus runs for you. */
