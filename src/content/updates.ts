@@ -20,6 +20,16 @@ export const UPDATES: Update[] = [
     ],
   },
   {
+    date: '2026-10-27',
+    title: 'Skip to Ranemon London',
+    notes: [
+      'New on the home screen: SKIP TO RANEMON LONDON. It’s a new game of its own that starts the moment you land in London, for anyone who wants to play England without playing Ireland first.',
+      'You start with no Ranemon at all. Someone you’ve never met needs a hand, and they’ll sort you out with your first one and a few bits for the road.',
+      'It has its own saves, with your name and PIN, so it never touches your Story mode save. Play both under the same name if you like.',
+      'Already in London in Story mode? Nothing changes. Ireland first and then over the sea is still the full story.',
+    ],
+  },
+  {
     date: '2026-10-25',
     title: 'Every club in England has its own home',
     notes: [

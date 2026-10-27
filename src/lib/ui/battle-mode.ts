@@ -10,7 +10,7 @@ import { heldBoost, heldCalm, ITEMS, type Item, type ItemId } from '../story/ite
 import { MOVE_SLOTS } from '../story/learnsets';
 import { movesAt } from '../story/party';
 import { parseSave } from '../story/save';
-import { SAVE_KEY } from '../story/state';
+import { LONDON_SAVE_KEY, SAVE_KEY } from '../story/state';
 import { hasUkDex } from '../story/ukdex';
 
 /**
@@ -47,7 +47,10 @@ export function britainUnlocked(storage: Pick<Storage, 'length' | 'key' | 'getIt
   if (!storage) return false;
   for (let i = 0; i < storage.length; i++) {
     const key = storage.key(i);
-    if (key !== SAVE_KEY && !key?.startsWith(`${SAVE_KEY}:`)) continue;
+    // London-only games (SKIP TO RANEMON LONDON) count too: they're all in Britain.
+    if (!key) continue;
+    const story = key === SAVE_KEY || key.startsWith(`${SAVE_KEY}:`);
+    if (!story && !key.startsWith(`${LONDON_SAVE_KEY}:`)) continue;
     const game = parseSave(storage.getItem(key));
     if (game && hasUkDex(game)) return true;
   }

@@ -11,7 +11,7 @@ export interface OpenMission {
 }
 
 export const isOpen = (m: Mission, flags: ReadonlySet<string>) =>
-  (!m.start || flags.has(m.start)) && !flags.has(m.done);
+  (!m.start || flags.has(m.start)) && !flags.has(m.done) && !(m.hideIf && flags.has(m.hideIf));
 
 /**
  * Every mission you have open, started but not finished, in the order of `MISSIONS`, each with

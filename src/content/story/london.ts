@@ -4,6 +4,9 @@ import {
   CHAMPION,
   FIXTURES,
   LANDED,
+  LONDON_ONLY,
+  PROVAI_ASKED,
+  PROVAI_MET,
   THATCHER_IN,
   THATCHER_OUT,
   UK_STARTER,
@@ -36,6 +39,73 @@ const AIRPORT_PUB = { map: 'airport', x: 3, y: 6 };
 
 /** The level of Próvaí's UK Ranemon. */
 export const UK_LEVEL = 5;
+
+// ---------- SKIP TO RANEMON LONDON ----------
+
+/**
+ * A London-only game (`LONDON_ONLY`) starts here, in Stansted's arrivals hall: you've never had
+ * a Ranemon, and the story picks up where a Dublin save's would after the border. Próvaí has
+ * already asked for you (the flags his scene at Connolly sets), so Free the Lads is open.
+ */
+export const LONDON_START_FLAGS = [LONDON_ONLY, PROVAI_MET, PROVAI_ASKED, LANDED];
+export const LONDON_START = { map: ARRIVALS_ID, x: 2, y: 4, face: 'up' as const };
+/** Where a London-only game wakes after a blackout until it first visits a pub. */
+export const LONDON_START_PUB = STANSTED_PUB;
+
+/** The opening of a London-only game: who you are, Próvaí's voice note, and the border. */
+export const LONDON_INTRO: Step[] = [
+  {
+    do: 'say',
+    text: 'RANEMON LONDON. You’ve just stepped off the Ryanair from Dublin with a one-way ticket, a rucksack and a new job in London on Monday.',
+  },
+  {
+    do: 'say',
+    text: 'You’ve never had a Ranemon in your life. Everyone at home has one. You were always going to get round to it.',
+  },
+  {
+    do: 'say',
+    text: 'BORDER FORCE: Next. Irish passport? Common Travel Area. In you come. No Ranemon? Good. We haven’t decided what they ARE yet.',
+  },
+  { do: 'say', text: '♪ Bzzt. A voice note, from a number you don’t know.' },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Dia dhuit! Your cousin gave me your number. Says you’re moving over and you’re sound. I’m Próvaí. DJ Próvaí. Out of Kneecap.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: I need a hand. Mo Chara and Móglaí Bap went over on a bit of a mission. They haven’t come back. Phones are off.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Last thing I got was a voice note of Mo Chara shouting “HE’S GOT A CROWN ON HIM”. That’s all. That was it.',
+  },
+  {
+    do: 'say',
+    text: 'PRÓVAÍ: Border Force took my Ranemon off me at this airport. Took my decks too. Get the Stansted Express into Liverpool Street and find me outside W.B Yates.',
+  },
+];
+
+/** What a London-only game is handed in W.B Yates, as it has no bag from home. */
+const LONDON_KIT: Step[] = [
+  {
+    do: 'say',
+    text: 'DONAL: And you’ve nothing with you at all? God help us. Here. A few rolls for the road, and a cup of tea for the nerves.',
+  },
+  { do: 'give', item: 'chicken-fillet-roll', count: 5 },
+  { do: 'give', item: 'cup-of-tea', count: 2 },
+  {
+    do: 'say',
+    text: 'DONAL: Florence’s rule in here: everyone in the round gets fed. Any of your Ranemon that sat out a win get half the EXP.',
+  },
+  { do: 'say', text: 'You got The Round! Ranemon who sat out a win now get half the EXP.' },
+  { do: 'flag', flag: 'round' },
+  {
+    do: 'say',
+    text: 'DONAL: And take the High Nelly out the back. It was my father’s. London’s too big to walk.',
+  },
+  { do: 'say', text: 'You got the High Nelly bike! Hold B to ride.' },
+  { do: 'flag', flag: 'bike' },
+];
 
 // ---------- the flight, and the border ----------
 
@@ -362,10 +432,23 @@ function arrivalsRoom(): Pick<GameMap, 'rows' | 'npcs' | 'name' | 'things'> {
         face: 'down',
         talk: [
           {
-            do: 'ask',
-            text: 'RYANAIR: Flying home to Dublin? Your Ranemon in Ireland would be waiting at the other end.',
-            yes: FLIGHT_HOME,
-            no: [{ do: 'say', text: 'RYANAIR: No bother. There’s one every hour. Roughly.' }],
+            do: 'if',
+            // A London-only game came over on a one-way ticket: Ireland is Ranemon Dublin's.
+            flag: LONDON_ONLY,
+            then: [
+              {
+                do: 'say',
+                text: 'RYANAIR: Home to Dublin? Not on a one-way ticket, love. Ireland’s a whole adventure of its own: that’s STORY MODE, back on the home screen.',
+              },
+            ],
+            else: [
+              {
+                do: 'ask',
+                text: 'RYANAIR: Flying home to Dublin? Your Ranemon in Ireland would be waiting at the other end.',
+                yes: FLIGHT_HOME,
+                no: [{ do: 'say', text: 'RYANAIR: No bother. There’s one every hour. Roughly.' }],
+              },
+            ],
           },
         ],
       },
@@ -483,8 +566,21 @@ const THATCHER_SCENE: Step[] = [
   { do: 'flag', flag: THATCHER_IN },
   { do: 'say', text: THATCHER_HELLO },
   {
-    do: 'say',
-    text: 'THATCHER: After you beat me on the quays, I came home for a proper cup of tea. Ireland was lovely, dear, but nobody queues and the tea comes in a mug.',
+    do: 'if',
+    // In a London-only game you've never met her.
+    flag: LONDON_ONLY,
+    then: [
+      {
+        do: 'say',
+        text: 'THATCHER: Margaret Thatcher. You may have heard of me. I have just come home from Ireland for a proper cup of tea. Lovely country, dear, but nobody queues and the tea comes in a mug.',
+      },
+    ],
+    else: [
+      {
+        do: 'say',
+        text: 'THATCHER: After you beat me on the quays, I came home for a proper cup of tea. Ireland was lovely, dear, but nobody queues and the tea comes in a mug.',
+      },
+    ],
   },
   {
     do: 'say',
@@ -546,6 +642,7 @@ const LADS_STORY: Step[] = [
     text: 'DONAL: And take these, on the house. Poured properly, mind. Not like the ones on that table.',
   },
   { do: 'give', item: 'pint', count: 5 },
+  { do: 'if', flag: LONDON_ONLY, then: LONDON_KIT },
 ];
 
 /** Próvaí in the back of W.B Yates: your UK Ranemon, Thatcher, and the story of the lads. */
@@ -584,16 +681,37 @@ const PROVAI_STARTER: Step[] = [
         ],
         else: [
           {
-            do: 'say',
-            text: 'PRÓVAÍ: They took the Ranemon off you? Ah, they did the same to me. Even took my decks. Said they were livestock.',
-          },
-          {
-            do: 'say',
-            text: 'PRÓVAÍ: Don’t worry. Donal owes me a favour. Now. UK Ranemon are a bit different.',
-          },
-          {
-            do: 'say',
-            text: 'PRÓVAÍ: Fair warning, these Brit Ranemon are weird looking. Same lads, same moves, just a bit… off. You get used to them.',
+            do: 'if',
+            flag: LONDON_ONLY,
+            // A London-only game has never had a Ranemon, so Próvaí starts from the start.
+            then: [
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: You’ve never had a Ranemon? Not one? Ah, here. Donal owes me a favour.',
+              },
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: Ranemon are your mates, more or less. They battle for you. Wild ones you befriend with a pint: throw it, and if they finish it, they’re yours.',
+              },
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: Fair warning, the Brit ones are weird looking. Same lads as at home, same moves, just a bit… off. You get used to them.',
+              },
+            ],
+            else: [
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: They took the Ranemon off you? Ah, they did the same to me. Even took my decks. Said they were livestock.',
+              },
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: Don’t worry. Donal owes me a favour. Now. UK Ranemon are a bit different.',
+              },
+              {
+                do: 'say',
+                text: 'PRÓVAÍ: Fair warning, these Brit Ranemon are weird looking. Same lads, same moves, just a bit… off. You get used to them.',
+              },
+            ],
           },
           {
             do: 'say',

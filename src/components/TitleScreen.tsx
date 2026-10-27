@@ -83,6 +83,16 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
             ▶ PRESS START
           </span>
         </Link>
+        {/* A new game of its own that starts over the sea, for anyone who hasn't played Dublin. */}
+        <Link
+          href="/london"
+          className="pixel-btn flex flex-col items-center gap-0.5 py-2 text-center"
+          data-cmd="bag"
+          data-testid="skip-to-london"
+        >
+          <span className="text-[15px] font-bold leading-none">SKIP TO RANEMON LONDON</span>
+          <span className="text-[10px]">NEW GAME · STARTS IN LONDON</span>
+        </Link>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"

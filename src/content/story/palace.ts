@@ -1,5 +1,5 @@
 import { interiorId } from './interiors';
-import { AGREEMENT, KING_BEATEN } from './kneecap';
+import { AGREEMENT, KING_BEATEN, LONDON_ONLY } from './kneecap';
 import { REVEAL, SHADOWS } from './rowans';
 import {
   find,
@@ -91,21 +91,38 @@ const TAKEOVER: Step[] = [
     'Camilla hands Charles a pen and a sheet of palace notepaper. He signs it, very slowly: THE GOOD SATURDAY AGREEMENT. Ranemon are in the Common Travel Area.',
   ),
   { do: 'flag', flag: AGREEMENT },
-  ...said(
-    'Your phone buzzes. MADAME: We ’ave seen ze news! Ze Agreement! We are on ze plane already.',
-  ),
-  ...said('MONSIEUR: Ryanair. Pff. But we are coming.'),
-  ...said(
-    'An hour later Ollie’s parents walk into the Throne Room with every one of your Irish Ranemon. Your old follower runs straight to you.',
-  ),
-  { do: 'reunite' },
-  ...said('Your Irish Ranemon are back with you, for good. Your UK Ranemon are staying too.'),
+  {
+    do: 'if',
+    // A London-only game has no Irish party waiting on Michael D's farm.
+    flag: LONDON_ONLY,
+    then: said(
+      'Your phone buzzes. MAM: YOU ARE ON THE NEWS. In a PALACE. Your father has rung everyone. Are you eating?',
+    ),
+    else: [
+      ...said(
+        'Your phone buzzes. MADAME: We ’ave seen ze news! Ze Agreement! We are on ze plane already.',
+      ),
+      ...said('MONSIEUR: Ryanair. Pff. But we are coming.'),
+      ...said(
+        'An hour later Ollie’s parents walk into the Throne Room with every one of your Irish Ranemon. Your old follower runs straight to you.',
+      ),
+      { do: 'reunite' },
+      ...said('Your Irish Ranemon are back with you, for good. Your UK Ranemon are staying too.'),
+    ],
+  },
   ...said(
     'A tricolour goes up the flagpole over the palace. Kneecap play on the balcony over the Mall, Próvaí on the decks, and the Mall is packed to Trafalgar Square.',
   ),
   ...said(
     'Michael D lands on the lawn in the Air Corps helicopter, dogs and all, and hands the Irish Crown Jewels to Próvaí. “Back to Dublin Castle, where they belong. And this time, lock the door.”',
   ),
+  {
+    do: 'if',
+    flag: LONDON_ONLY,
+    then: said(
+      'MICHAEL D: (to you) And you. Any time you’re home, call in to the farm in Clare. There’s twenty pints on my kitchen table, and a whole country of Ranemon to meet.',
+    ),
+  },
   ...said(
     'The State Dining Room is W.B Yates, Buckingham Palace now, run by Bridie. Florence Pugh pulls the pints. Charles is collecting glasses in an apron. He is not good at it.',
   ),

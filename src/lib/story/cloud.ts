@@ -1,4 +1,4 @@
-import { playerId, type StoryState } from './state';
+import { playerId, type StoryMode, type StoryState } from './state';
 
 /**
  * Online saves, filed under the trainer's name so a save follows you to another device or
@@ -77,6 +77,26 @@ export function setCloudSaves(c: CloudSaves | Promise<CloudSaves | null> | null)
 }
 
 export const hasCloudSaves = () => cloud !== null;
+
+/** A short checksum of a name, for London ids that would run past the server's 20 letters. */
+function digest(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(36).padStart(6, '0').slice(-6);
+}
+
+/**
+ * The name a save goes online under. A Dublin save keeps the trainer's own; a London-only game
+ * goes under `ln__` and the name, a save (and PIN) of its own on the server, so it can never
+ * write over the trainer's Dublin save. It's passed in place of the name, and `playerId` leaves
+ * it as it is.
+ */
+export function onlineName(name: string, mode: StoryMode = 'dublin'): string {
+  if (mode === 'dublin') return name;
+  const id = playerId(name);
+  const own = `ln__${id}`;
+  return own.length <= 20 ? own : `ln__${id.slice(0, 10)}${digest(id)}`;
+}
 /** Whether the title screen should ask for a PIN. */
 export const cloudNeedsPin = () => !!cloud?.pin;
 export const isPin = (pin: string) => /^\d{4,8}$/.test(pin);
