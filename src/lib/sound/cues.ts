@@ -40,6 +40,12 @@ export function battleCues(
     }
     case 'wild-partner':
       return [{ cry: state.teams[item.side].battlers[item.index].creature.id }];
+    case 'mega':
+      // The shine of a shiny, then its cry, louder than ever.
+      return [
+        { sfx: 'shiny' },
+        { cry: state.teams[item.side].battlers[item.index].creature.id, delay: 0.5 },
+      ];
     case 'withdraw':
       return [{ sfx: 'withdraw' }];
     case 'move': {

@@ -1,5 +1,6 @@
 import { interiorId } from './interiors';
 import { AGREEMENT, KING_BEATEN, LONDON_ONLY } from './kneecap';
+import { REVEAL, SHADOWS } from './rowans';
 import {
   find,
   type GameMap,
@@ -125,7 +126,9 @@ const TAKEOVER: Step[] = [
   ...said(
     'The State Dining Room is W.B Yates, Buckingham Palace now, run by Bridie. Florence Pugh pulls the pints. Charles is collecting glasses in an apron. He is not good at it.',
   ),
-  ...said('THE END. Go raibh maith agaibh. (Free the lads: done.)'),
+  // Charles lets slip who he answers to, and the text comes: Rowans (rowans.ts).
+  ...REVEAL,
+  ...said('THE END…? Go raibh maith agaibh. (Free the lads: done.)'),
 ];
 
 export const PALACE_TRAINERS: Trainer[] = [
@@ -216,7 +219,7 @@ export const PALACE_TRAINERS: Trainer[] = [
       ['crampemon', 58],
     ],
     'ZOMBIE QUEEN: One has been dead for four years. One took the Tube up from Windsor. It was frightful. One has seen off fifteen prime ministers, and one rather fancies seeing you off too.',
-    'ZOMBIE QUEEN: (She sighs, straightens her hat and shuffles back down to the vaults.) Do tell Charles to water the begonias.',
+    'ZOMBIE QUEEN: (She sighs, straightens her hat and shuffles back down to the vaults.) Do tell Charles to water the begonias. And to pick up when they ring. One always did.',
     { line: 'A procession of undead corgis shuffles in behind her.' },
   ),
   royal(
@@ -463,7 +466,9 @@ const ROOMS: Room[] = [
             do: 'if',
             flag: AGREEMENT,
             then: said('CAMILLA: Enda is SUCH fun. Have you met Enda? We’re going to Brighton.'),
-            else: said('CAMILLA: (A gin and tonic in hand.) Oh, just battle the child, Charles.'),
+            else: said(
+              'CAMILLA: (A gin and tonic in hand.) Oh, just battle the child, Charles. You know who’ll be on the phone on Tuesday if you don’t.',
+            ),
           },
         ],
       },
@@ -497,9 +502,17 @@ const ROOMS: Room[] = [
         look: 'provai',
         face: 'up',
         showIf: AGREEMENT,
-        talk: said(
-          'PRÓVAÍ: The Mall’s packed to Trafalgar Square. Best gig we’ve ever played. Sláinte.',
-        ),
+        talk: [
+          {
+            do: 'if',
+            flag: SHADOWS,
+            then: said(
+              'PRÓVAÍ: The Mall’s packed to Trafalgar Square. But that text… King’s Cross, the Victoria line. We’ll be there.',
+            ),
+            // Anyone who signed the Agreement before Rowans was in the game hears it here.
+            else: [...said('PRÓVAÍ: Here. Charles has something he wants to tell you.'), ...REVEAL],
+          },
+        ],
       },
       {
         look: 'higgins',

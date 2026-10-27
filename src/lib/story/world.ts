@@ -174,7 +174,13 @@ export type Look =
   | 'vikkstar'
   | 'tbj'
   | 'jamie'
-  | 'champion';
+  | 'champion'
+  | 'viv'
+  | 'meg'
+  | 'annie'
+  | 'esme'
+  | 'ana'
+  | 'batool';
 
 /**
  * The dogs: Norm, Sibeal's collie, and Elvis, Carl Ryan's enormous black dog. Either can walk
@@ -257,6 +263,11 @@ export interface Trainer {
    * best Ranemon (negative is under it, and never past MAX_LEVEL): the Championship in Galway.
    */
   above?: number;
+  /**
+   * The species on its team that Mega evolves (`lib/battle/mega.ts`): the trainer has a Mega
+   * Ring, and uses it on that one. The Ranelasses at Rowans.
+   */
+  mega?: string;
 }
 
 export interface Npc {

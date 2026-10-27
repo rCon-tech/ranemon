@@ -1,5 +1,6 @@
 import { mapById, outsideOf } from '@/content/story/maps';
 import { breakRun } from '@/content/story/galway';
+import { breakRun as breakRowans } from '@/content/story/rowans';
 import { LONDON_ONLY } from '@/content/story/kneecap';
 import { LONDON_START, LONDON_START_FLAGS, LONDON_START_PUB } from '@/content/story/london';
 import type { BattleState } from '../battle/engine';
@@ -246,9 +247,12 @@ export function recruit(
   };
 }
 
-/** Heals everyone. It also ends a run through the Championship in Galway, which allows no healing. */
+/**
+ * Heals everyone. It also ends a run through the Championship in Galway, or through Rowans, which
+ * allow no healing.
+ */
 export function healParty(s: StoryState): StoryState {
-  return { ...s, party: s.party.map(heal), flags: breakRun(s.flags) };
+  return { ...s, party: s.party.map(heal), flags: breakRowans(breakRun(s.flags)) };
 }
 
 export const canFight = (s: StoryState) => s.party.some((m) => m.hp > 0);

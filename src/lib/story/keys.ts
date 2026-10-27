@@ -25,6 +25,9 @@ export const TAKE_TABLET: Step[] = [
   { do: 'flag', flag: TABLET_TAKEN },
 ];
 
+/** The Mega Ring: your Ranemon that have a Mega form can Mega evolve, once a battle. */
+export const MEGA_RING = 'item:mega-ring';
+
 /** The Limepass, from the Lime rep in Limerick: Lime e-bikes to ride, and fast travel. */
 export const LIMEPASS = 'limepass';
 
@@ -95,6 +98,12 @@ export const KEY_ITEMS: KeyItem[] = [
     flag: 'item:trophy',
     name: 'Premier League Trophy',
     about: 'Yours. The police line on the Mall has to let you through now. It’s the law. Probably.',
+  },
+  {
+    flag: MEGA_RING,
+    name: 'Mega Ring',
+    about:
+      'Gold, with a stone that glows. Once a battle, one of your Ranemon that has a Mega form can Mega evolve: press MEGA EVOLVE before you pick its move.',
   },
 ];
 

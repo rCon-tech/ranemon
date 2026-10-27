@@ -162,6 +162,15 @@ button {
 [data-cmd='run'] {
   --fill: #2f7fe0;
 }
+/* Mega Evolution: the keystone's purple, glowing once it's pressed for this turn. */
+[data-cmd='mega'] {
+  --fill: #9a4ad8;
+}
+[data-cmd='mega'][aria-pressed='true'] {
+  --fill: #d84ab0;
+  outline: 3px solid var(--color-accent2);
+  outline-offset: 2px;
+}
 .move-btn {
   --fill: var(--type);
 }

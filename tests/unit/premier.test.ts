@@ -3,6 +3,7 @@ import { interiorId } from '@/content/story/interiors';
 import { CHAMPION, RAILCARD } from '@/content/story/kneecap';
 import { LONDON, UK_LEVEL } from '@/content/story/london';
 import { mapById } from '@/content/story/maps';
+import { VICTORIA } from '@/content/story/rowans';
 import { MISSIONS } from '@/content/story/missions';
 import {
   FIXTURE_LIST,
@@ -107,7 +108,9 @@ describe('the Premier League', () => {
 describe('King’s Cross', () => {
   const room = mapById(KINGS_CROSS_ID);
   // The Metropolitan line and Jamie Elliott are the Sidemen's (sidemen.test.ts).
-  const platforms = room.npcs.filter((n) => n.look === 'conductor' && n !== METROPOLITAN);
+  const platforms = room.npcs.filter(
+    (n) => n.look === 'conductor' && n !== METROPOLITAN && n !== VICTORIA,
+  );
 
   it('numbers its platforms in the order you first need them, each saying where it goes', () => {
     expect(KX_DEPARTURES.map((d) => d.to)).toEqual([
