@@ -19,8 +19,11 @@ import {
 } from '@/content/story/rowans';
 import { trainerById } from '@/content/story/trainers';
 import { UPDATES } from '@/content/updates';
-import { MEGAS } from '@/lib/battle/mega';
-import { makeMember, speciesById as creatureById } from '@/lib/story/party';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { MEGAS, megaForm } from '@/lib/battle/mega';
+import { UK } from '@/lib/battle/uk';
+import { makeMember, speciesById as creatureById, toEntrant } from '@/lib/story/party';
 import { MEGA_RING } from '@/lib/story/keys';
 import { healParty, newGame } from '@/lib/story/state';
 import { find, npcsOf, type Step } from '@/lib/story/world';
@@ -110,6 +113,21 @@ describe('Rowans', () => {
         if (other !== t) expect(other.team.map(([id]) => id)).not.toContain(own);
       // And she tells you so.
       expect(t.before).toMatch(/only|nobody|no one|never/i);
+    }
+  });
+
+  it('fights with drawn UK forms, so the Megas are drawn too', () => {
+    for (const t of ROWANS_TRAINERS) {
+      expect(t.uk, t.id).toBe(true);
+      const [id, level] = t.team.at(-1)!;
+      const ace = toEntrant(makeMember(id, level, -1, UK)).creature;
+      expect(ace.sprite, t.id).toMatch(/^\/sprites\/drawn\//);
+      const sprite = megaForm(ace)!.sprite!;
+      expect(sprite).toBe(`/sprites/drawn/mega/${t.mega}.png`);
+      expect(existsSync(resolve('public', `.${sprite}`)), sprite).toBe(true);
+      expect(
+        existsSync(resolve('public', `.${sprite.replace('/sprites/', '/sprites/shiny/')}`)),
+      ).toBe(true);
     }
   });
 
