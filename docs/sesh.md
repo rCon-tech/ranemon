@@ -32,7 +32,7 @@ A random party of 6 strong Ranemon and about 20 minutes a run, over the last thr
 - **A battle**: who it is and what they say, then the usual battle screen with the BAG, in the stage's scene, with the trainer music for fights and the boss music for Bouncers and bosses.
 - **The Offie** and **the Smoking Area**, and the **results card**: bosses, standing, turns, the score, your 5 best nights in this browser, and PLAY AGAIN.
 
-Every choice is saved as it's made, so leaving and coming back carries on the same night, in the same node. A battle left halfway starts again from its beginning, with the same foes and the same rolls.
+Every choice is saved as it's made, so leaving and coming back carries on the same night, in the same node. A battle keeps its choices as they're made (`fight` in the save), so a page closed mid-fight opens straight back into it, on the turn it was on: the choices play out the same again. Reloading can't change what happened, since the same choices always give the same rolls.
 
 ## Replays
 
@@ -40,4 +40,4 @@ A run is plain data (`SeshRun` in `src/lib/sesh/run.ts`), and everything in it f
 
 ## Tuning
 
-In a 300-run check with a simple bot (`tests/fixtures/sesh-bot.ts`: Hard-CPU moves, food between fights, a rest when hurt, Bouncers only when healthy), about 1 run in 5 clears The Afterparty, going into the bosses at about Lv53, 59 and 65.
+`tests/sim/sesh.test.ts` (in `pnpm simulate`) plays 300 runs with a simple bot (`tests/fixtures/sesh-bot.ts`: Hard-CPU moves, food between fights, a rest when hurt, Bouncers only when healthy). About 1 run in 5 clears The Afterparty (it checks 1 in 10 to 4 in 10), going into the bosses at about Lv53, 59 and 65. It also times a whole night: the battles' playback at 2× plus 2.5 seconds for each choice in battle and 4 outside comes to about 17 minutes (it checks 12 to 28). If play-testing finds runs too long, the proposal's first cut is to 2 picks a stage (`PICKS`).

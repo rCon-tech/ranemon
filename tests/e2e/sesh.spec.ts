@@ -35,3 +35,35 @@ test('Quick Sesh: from the title screen into the first node of the night', async
   await page.getByRole('link', { name: 'SOUND TEST' }).waitFor();
   expect(await page.evaluate(() => localStorage.getItem('ranemon.speed'))).toBeNull();
 });
+
+test('Quick Sesh: a battle left halfway carries on where it was', async ({ page }) => {
+  await unlock(page);
+  await page.goto('/sesh');
+  await page.getByTestId('sesh-name').fill('Sesh Resumer');
+  await page.getByTestId('sesh-new').click();
+  await page.getByTestId('sesh-go').click();
+  // Into the first battle on the map, whichever row it's in.
+  for (let i = 0; i < 12 && !(await page.getByTestId('sesh-fight').count()); i++) {
+    if (await page.getByTestId('sesh-line').count()) await page.getByTestId('sesh-line').click();
+    else if (await page.getByTestId('leave-offie').count())
+      await page.getByTestId('leave-offie').click();
+    else if (await page.getByTestId('rest-ghost').count())
+      await page.getByTestId('rest-ghost').click();
+    else await page.locator('[data-testid^="node-"]:not([disabled])').first().click();
+  }
+  await page.getByTestId('sesh-fight').click();
+  await page.getByRole('button', { name: 'FIGHT', exact: true }).click();
+  const move = page.getByRole('group', { name: 'Moves' }).locator('button:not([disabled])').first();
+  await move.click();
+  await move.click();
+  // One move in: the next turn, or (a one-hit win) the end of the battle.
+  const turn2 = page.getByText('Turn 2');
+  const done = page.getByRole('button', { name: 'CONTINUE' });
+  await expect(turn2.or(done)).toBeVisible({ timeout: 30_000 });
+  const ended = await done.isVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'CARRY ON THE NIGHT' }).click();
+  // Straight back into the battle, where it was.
+  await expect(page.getByTestId('battlefield')).toBeVisible();
+  await expect(ended ? done : turn2).toBeVisible();
+});

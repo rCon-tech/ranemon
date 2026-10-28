@@ -10,7 +10,7 @@ import { TypeBadge } from '@/components/TypeBadge';
 import { MoveCard } from '@/components/MoveCard';
 import { MemberRow, MovesPanel, Panel } from '@/components/story/Panels';
 import { moveById } from '@/lib/battle/moves';
-import type { BattleInput } from '@/lib/sesh/battle';
+import { replayBattle, type BattleInput } from '@/lib/sesh/battle';
 import {
   battleOf,
   bossNext,
@@ -39,6 +39,7 @@ import {
 import { QUICK_STAGES } from '@/lib/sesh/stages';
 import { ownSpeed } from '@/lib/speed';
 import { playSfx } from '@/lib/sound/engine';
+import type { Session } from '@/lib/ui/session';
 import { canUseOn, holdsItem, ITEMS, itemById, type ItemId } from '@/lib/story/items';
 import {
   creatureOf,
@@ -538,6 +539,8 @@ export function Sesh() {
   const [overlay, setOverlay] = useState<'party' | 'bag' | 'quit' | null>(null);
   const [bests, setBests] = useState<SeshBest[]>([]);
   const [fightBag, setFightBag] = useState<SeshRun['bag']>({});
+  /** A battle left halfway, played back to where it was, to carry on from. */
+  const [resume, setResume] = useState<Session | null>(null);
 
   // The Sesh plays at its own speed, 2× to start.
   useEffect(() => ownSpeed('sesh', 2), []);
@@ -564,9 +567,24 @@ export function Sesh() {
     setPlayer(who);
     setSave(next);
     setReady(next.actions.length > 0);
-    setBriefed(false);
     setLines([]);
     setBests(loadBests(who));
+    // A battle left halfway carries on where it was: the same choices play out the same.
+    const left = next.fight?.length && !next.run.over ? battleOf(next.run) : null;
+    let back: ReturnType<typeof replayBattle> | null = null;
+    try {
+      back = left ? replayBattle(left.start, next.fight!, next.run.bag) : null;
+    } catch {
+      // A save from an older version that no longer plays the same: start the battle again.
+    }
+    // One that had finished but wasn't carried on from shows its end, with CONTINUE.
+    setResume(back?.session ?? null);
+    setBriefed(!!back);
+    if (back) {
+      const bag = { ...next.run.bag };
+      for (const id of back.used) bag[id] = (bag[id] ?? 0) - 1;
+      setFightBag(bag);
+    }
   }
 
   function newGame() {
@@ -604,7 +622,14 @@ export function Sesh() {
 
   function finishBattle(inputs: BattleInput[]) {
     setBriefed(false);
+    setResume(null);
     act({ kind: 'battle', inputs });
+  }
+
+  /** Keeps a battle's choices as they're made, so closing the page doesn't lose the fight. */
+  function keepInputs(inputs: BattleInput[]) {
+    if (!save || !player) return;
+    storeSesh(player, { ...save, fight: inputs });
   }
 
   // ---------- the start screen ----------
@@ -670,7 +695,7 @@ export function Sesh() {
     return (
       <BattleScreen
         key={nodeKey}
-        start={battle.start}
+        start={resume ?? battle.start}
         difficulty={battle.foe.ai}
         scene={stageOf(night).scene}
         music={battle.foe.kind === 'fight' ? 'trainer' : 'boss'}
@@ -681,6 +706,7 @@ export function Sesh() {
           onUse: (id) => setFightBag((b) => ({ ...b, [id]: (b[id as ItemId] ?? 0) - 1 })),
           expOf: (i) => (night.party[i] ? expProgress(night.party[i]) : 0),
         }}
+        onInputs={(inputs) => keepInputs(inputs as BattleInput[])}
         onFinish={(_, __, ___, inputs) => finishBattle(inputs as BattleInput[])}
       />
     );
