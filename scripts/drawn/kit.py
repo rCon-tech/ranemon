@@ -204,7 +204,7 @@ class Look:
     # point, hips, down, crossed, moustache, chin, hold, raise, both, guard
     pose: str = "down"
     # none, fish, stein, can, wine, fakemoustache, shades_collar, tricolour, chefbuttons,
-    # beads, tattoo, logo; and for London: cup, tote, card, laptop, flowers, bagel, skateboard,
+    # beads, tattoo, logo, baguette; and for London: cup, tote, card, laptop, flowers, bagel, skateboard,
     # placard, vape, lanyard, apron, phone
     props: tuple = ()
     build: float = 1.0
@@ -582,6 +582,9 @@ def props_front(f: Figure, look: Look, arms: list[Arm]):
         x, y = arms[0].hand
         f.part(ellipse(x - 5, y - 15, x + 5, y - 4), ramp((150, 30, 50), (190, 60, 80), (100, 16, 34)))
         f.part(rect(x, y - 5, x + 1, y - 1), ramp((220, 230, 236)), line=False)
+    if "baguette" in p:
+        x, y = hand
+        f.part(capsule((x - 4, y + 10), (x + 12, y - 28), 6), ramp((222, 160, 76), (246, 206, 132), (172, 108, 46)))
     if "fakemoustache" in p:
         f.part(poly((38, 41), (48, 39), (58, 41), (60, 46), (55, 44), (48, 43), (41, 44), (36, 46)),
                ramp((40, 36, 40)))
@@ -654,6 +657,10 @@ def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
         d.point((x + 9, y), fill=(40, 40, 48))
     if "logo" in p:
         d.line([(CX + 8, 61), (CX + 13, 61)], fill=(220, 60, 60))
+    if "baguette" in p:
+        x, y = arms[-1].hand
+        for i in range(4):
+            d.line([(x + i * 4 - 3, y - 4 - i * 8), (x + i * 4 + 3, y - 8 - i * 8)], fill=(156, 98, 40))
     if "monster" in p:
         x, y = arms[-1].hand
         for i in range(3):

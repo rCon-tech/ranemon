@@ -241,6 +241,19 @@ export const SECOND_SPECIALS: Move[] = [
     priority: 0,
     specials: [{ kind: 'boost', target: 'foe', stat: 'speed', factor: 0.7 }],
   },
+  {
+    id: 'wait-till-you-meet-my-brother',
+    signature: 'nickamon',
+    name: 'Wait Till You Meet My Brother',
+    flavour: 'Warns the foe that his brother is even more French. It braces itself: Spirit up 20%.',
+    type: 'chill',
+    category: 'spirit',
+    power: 85,
+    accuracy: 95,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'self', stat: 'spirit', factor: 1.2 }],
+  },
 ];
 
 /** A line's second special move, by its base form's id. */

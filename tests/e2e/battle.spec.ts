@@ -133,7 +133,7 @@ test('pick 6 of the 20, then a full 6v6 battle against the CPU', async ({ page }
   await page.getByRole('button', { name: 'BATTLE MODE' }).click();
 
   const roster = page.getByRole('region', { name: 'Your roster' }).getByRole('button');
-  await expect(roster).toHaveCount(20);
+  await expect(roster).toHaveCount(21);
   const start = page.getByRole('button', { name: /BATTLE!/ });
   await expect(start).toBeDisabled();
   for (let i = 0; i < 7; i++) await roster.nth(i).click();
