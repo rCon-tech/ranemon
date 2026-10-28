@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HOME_ID, interiorId } from '@/content/story/interiors';
 import { AFTER_MAPS, INTERIORS, MAPS, mapById } from '@/content/story/maps';
+import { TRAIN_ROOMS } from '@/content/story/premier';
 import { teamOf, TRAINERS, trainerById } from '@/content/story/trainers';
 import { speciesById } from '@/lib/story/party';
 import {
@@ -178,8 +179,11 @@ describe('rooms', () => {
       [...DOORS].flatMap((kind) => find(room, kind).map((_, i) => interiorId(room.id, kind, i))),
     );
     for (const id of inner) expect(mapById(id).id).toBe(id);
+    // And the trains in England, taken from the platforms at King's Cross rather than a door.
     expect(INTERIORS.length).toBe(
-      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0) + inner.length,
+      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0) +
+        inner.length +
+        TRAIN_ROOMS.length,
     );
   });
 

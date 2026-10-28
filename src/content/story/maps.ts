@@ -26,7 +26,7 @@ import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
 import { WEMBLEY } from './sidemen';
 import { palaceRooms } from './palace';
-import { PL_MAPS } from './premier';
+import { PL_MAPS, TRAIN_ROOMS } from './premier';
 import { SHOREDITCH } from './shoreditch';
 import { GALWAY, HALL_ROOMS } from './galway';
 import { FINSBURY_PARK, ROWANS_ROOMS } from './rowans';
@@ -1543,6 +1543,7 @@ export const MAPS: GameMap[] = [
 export const INTERIORS = [
   ...MAPS.flatMap(interiorsOf),
   ...HALL_ROOMS,
+  ...TRAIN_ROOMS,
   ...ROWANS_ROOMS,
   ...palaceRooms(LONDON),
 ];
