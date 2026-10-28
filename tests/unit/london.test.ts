@@ -236,16 +236,14 @@ describe('Britain', () => {
   it('has W.B Yates for a pub, with Florence Pugh on the bar, and a Vapes & More', () => {
     const pub = mapById(interiorId('london', 'P', 0));
     expect(pub.name).toBe('W.B Yates, London');
-    const [pugh, owner, provai, thatcher, carl] = pub.npcs;
+    const [pugh, owner, provai, thatcher] = pub.npcs;
     expect(pugh.look).toBe('pugh');
     expect(pugh.talk).toBe(PUGH_TALK);
     expect(pugh.talk![0]).toEqual({ do: 'pub' });
     expect(owner.look).toBe('donal');
     expect(provai.look).toBe('provai');
     expect(thatcher.look).toBe('thatcher');
-    // And Carl Ryan in the corner with his Blue Ghosts.
-    expect(carl.look).toBe('carl');
-    expect(npcsOf(pub)).toHaveLength(5);
+    expect(npcsOf(pub)).toHaveLength(4);
     expect(PUGH_LINES.length).toBeGreaterThan(3);
     expect(mapById(interiorId('london', 'M', 0)).name).toBe('Vapes & More, London');
   });

@@ -1,4 +1,4 @@
-import { CARL_PUB, CARL_YATES } from './ball';
+import { CARL_PUB } from './ball';
 import { ELVIS_PUB } from './elvis';
 import { keeperOf } from './keepers';
 import { PUGH_TALK } from './neeson';
@@ -45,7 +45,6 @@ const HOUSE = [
 /**
  * W.B Yates: the pub, but with its fourth place by Próvaí's table, where a visitor stands in
  * view of the scene (Thatcher, in London) rather than down by the door under the text box.
- * Carl Ryan stands in the corner by the door, out of everyone's way (`CARL_IN_YATES`).
  */
 const YATES = [
   'WWWWWWWWWW',
@@ -58,9 +57,6 @@ const YATES = [
   'WFFF@FFFNW',
   'WWWWEWWWWW',
 ];
-
-/** Carl in a W.B Yates: in the corner, left of the door, where nobody has to get past him. */
-const CARL_IN_YATES: Npc = { ...CARL_YATES, at: { x: 1, y: 6 } };
 
 const LAYOUTS: Record<Kind, string[]> = {
   P: [
@@ -167,8 +163,7 @@ function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'insi
     ...base,
     name: `W.B Yates, ${town}`,
     rows: placesFor(YATES, npcs.length),
-    // Carl Ryan, in the corner, with his sports bag of Blue Ghosts, as in every McGrattans.
-    npcs: [...npcs, CARL_IN_YATES],
+    npcs,
     things: {
       V: 'Every whiskey in Ireland, a few from Scotland, and none at all from England.',
       U: 'A sticky table, a pint of Guinness and a packet of King crisps, smuggled over.',

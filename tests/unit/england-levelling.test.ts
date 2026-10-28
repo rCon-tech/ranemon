@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { CARL_PRICE, CARL_STALL, CARL_YATES, MET_CARL } from '@/content/story/ball';
 import { interiorId } from '@/content/story/interiors';
 import { LONDON } from '@/content/story/london';
 import { INTERIORS, MAPS, mapById } from '@/content/story/maps';
@@ -34,7 +33,6 @@ function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
     if (s.do === 'say') out.push(s.text);
     else if (s.do === 'flag') flags.add(s.flag);
     else if (s.do === 'travel') out.push(`TRAVEL ${s.map}`);
-    else if (s.do === 'shop') out.push(`SHOP ${s.stall?.name ?? 'VAPES'}`);
     else if (s.do === 'if') play(flags.has(s.flag) ? s.then : (s.else ?? []), flags, out);
     else if (s.do === 'ask') play(s.yes ?? [], flags, out);
   }
@@ -147,30 +145,5 @@ describe('the first train to each town', () => {
         expect(trainerById(n.trainer!).uk).toBe(true);
       }
     }
-  });
-});
-
-describe('Carl Ryan in W.B Yates', () => {
-  const yateses = INTERIORS.filter((r) => r.name.startsWith('W.B Yates'));
-
-  it('is in the corner of every W.B Yates', () => {
-    expect(yateses.length).toBeGreaterThan(5);
-    for (const room of yateses) {
-      const carl = npcsOf(room).find((n) => n.item.look === 'carl');
-      expect(carl?.item.talk, room.id).toBe(CARL_YATES.talk);
-    }
-  });
-
-  it('sells Blue Ghosts for a tenth of the shop price, as at home', () => {
-    expect(CARL_STALL.stock).toEqual([{ item: 'blue-ghost', price: CARL_PRICE }]);
-    expect(play(CARL_YATES.talk!, new Set())).toContain(`SHOP ${CARL_STALL.name}`);
-  });
-
-  it('introduces himself to a London-only game, and knows you if you met him at home', () => {
-    const fresh = play(CARL_YATES.talk!, new Set()).join(' ');
-    expect(fresh).toContain('Carl Ryan. From Dublin.');
-    const home = play(CARL_YATES.talk!, new Set([MET_CARL])).join(' ');
-    expect(home).toContain('Well, look who it is.');
-    expect(home).not.toContain('From Dublin.');
   });
 });

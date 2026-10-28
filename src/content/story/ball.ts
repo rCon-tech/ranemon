@@ -82,59 +82,6 @@ export const CARL_PUB: Npc = {
   ],
 };
 
-/** Set the first time you talk to Carl in a W.B Yates. */
-export const MET_CARL_YATES = 'met:carl-yates';
-
-/**
- * Carl in the corner of every W.B Yates in Britain too, with the same sports bag at the same
- * price, for anyone who'd rather not grind between grounds. He knows you if you met him at home.
- */
-export const CARL_YATES: Npc = {
-  look: 'carl',
-  face: 'down',
-  talk: [
-    {
-      do: 'if',
-      flag: MET_CARL_YATES,
-      then: [
-        {
-          do: 'say',
-          text: 'CARL RYAN: Keep it down. Florence doesn’t know about the bag, and I’d like to keep it that way.',
-        },
-      ],
-      else: [
-        { do: 'flag', flag: MET_CARL_YATES },
-        {
-          do: 'if',
-          flag: MET_CARL,
-          then: [
-            {
-              do: 'say',
-              text: 'CARL RYAN: Well, look who it is. Q4 is locked, so I brought the bag over on the ferry. Elvis is minding the pub at home.',
-            },
-          ],
-          else: [
-            { do: 'say', text: 'CARL RYAN: Psst. Over here. Big lad, sports bag. Don’t stare.' },
-            {
-              do: 'say',
-              text: 'CARL RYAN: Carl Ryan. From Dublin. Your Ranemon look like they could do with a lift. Blue Ghosts. One each and up they go a level, no battling, no grinding.',
-            },
-          ],
-        },
-        {
-          do: 'say',
-          text: 'CARL RYAN: A tenth of what Vapes & More charge, same as at home. Where they came from? A lad knows a lad who knows a van. Don’t ask.',
-        },
-      ],
-    },
-    { do: 'shop', stall: CARL_STALL },
-    {
-      do: 'say',
-      text: 'CARL RYAN: You never saw me. And they won’t take your lot past the next legend, so don’t come crying to me.',
-    },
-  ],
-};
-
 /** Michael D, in Trinity once you're Champion, ball or no ball. */
 export const HIGGINS: Npc = {
   look: 'higgins',
