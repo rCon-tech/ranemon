@@ -27,13 +27,18 @@ import {
   type SeshAction,
   type SeshRun,
 } from '@/lib/sesh/run';
+import { countdown, dailyRun, dayOf, untilNext } from '@/lib/sesh/daily';
 import { bossAt } from '@/lib/sesh/foes';
 import {
   lastSeshPlayer,
   loadBests,
+  loadDailyBests,
   loadSesh,
   recordBest,
+  recordDaily,
+  slotOf,
   storeSesh,
+  type DailyBests,
   type SeshBest,
   type SeshSave,
 } from '@/lib/sesh/save';
@@ -54,6 +59,17 @@ import { NODE_LOOK, SeshMap } from './SeshMap';
 
 const euro = (n: number) => `€${n.toLocaleString('en-IE')}`;
 const noSubscribe = () => () => {};
+const everySecond = (tick: () => void) => {
+  const t = setInterval(tick, 1000);
+  return () => clearInterval(t);
+};
+/** The time to the second, ticking; null while rendering on the server. */
+const useNow = () =>
+  useSyncExternalStore(
+    everySecond,
+    () => Math.floor(Date.now() / 1000) * 1000,
+    () => null,
+  );
 
 /** The bag as the battle screen shows it: food and vapes. */
 function battleBag(bag: SeshRun['bag']): BagEntry[] {
@@ -459,13 +475,17 @@ function Briefing({ run, onFight }: { run: SeshRun; onFight: () => void }) {
 function Results({
   run,
   bests,
+  daily,
   onAgain,
 }: {
   run: SeshRun;
   bests: SeshBest[];
+  /** Your best Daily Challenge each day, when this run was one. */
+  daily: DailyBests;
   onAgain: () => void;
 }) {
   const won = run.over === 'won';
+  const best = run.daily ? daily[run.daily] : undefined;
   return (
     <Panel title={won ? 'WHAT A NIGHT!' : 'HOME IN A TAXI'}>
       <p className="text-[12px] leading-relaxed" data-testid="sesh-result">
@@ -493,7 +513,12 @@ function Results({
         SCORE {scoreOf(run).toLocaleString('en-IE')}
       </p>
       <PartyStrip party={run.party} gone={run.gone} />
-      {bests.length > 0 && (
+      {best && (
+        <p className="text-center text-[11px]" data-testid="sesh-daily-best">
+          YOUR BEST ON THE {run.daily} CHALLENGE: {best.score.toLocaleString('en-IE')}
+        </p>
+      )}
+      {!run.daily && bests.length > 0 && (
         <>
           <h3 className="mt-1 text-[11px] font-bold">YOUR BEST NIGHTS</h3>
           <ol className="flex flex-col gap-0.5 text-[10px]">
@@ -515,7 +540,7 @@ function Results({
         onClick={onAgain}
         data-testid="sesh-again"
       >
-        PLAY AGAIN
+        {run.daily ? 'TRY TODAY’S CHALLENGE AGAIN' : 'PLAY AGAIN'}
       </button>
       <Link href="/" className="text-center text-[11px] underline underline-offset-4">
         TITLE SCREEN
@@ -540,6 +565,7 @@ export function Sesh() {
   const [briefed, setBriefed] = useState(false);
   const [overlay, setOverlay] = useState<'party' | 'bag' | 'quit' | null>(null);
   const [bests, setBests] = useState<SeshBest[]>([]);
+  const [daily, setDaily] = useState<DailyBests>({});
   const [fightBag, setFightBag] = useState<SeshRun['bag']>({});
   /** A battle left halfway, played back to where it was, to carry on from. */
   const [resume, setResume] = useState<Session | null>(null);
@@ -564,6 +590,11 @@ export function Sesh() {
 
   const saved = name ? loadSesh(name) : null;
   const canContinue = !!saved && !saved.run.over;
+  const now = useNow();
+  const today = now === null ? null : dayOf(now);
+  const savedDaily = name ? loadSesh(name, 'daily') : null;
+  const dailyLeft = savedDaily && !savedDaily.run.over ? savedDaily : null;
+  const todaysBest = name && today ? loadDailyBests(name)[today] : undefined;
 
   function begin(next: SeshSave, who: string) {
     setPlayer(who);
@@ -571,6 +602,7 @@ export function Sesh() {
     setReady(next.actions.length > 0);
     setLines([]);
     setBests(loadBests(who));
+    setDaily(loadDailyBests(who));
     // A battle left halfway carries on where it was: the same choices play out the same.
     const left = next.fight?.length && !next.run.over ? battleOf(next.run) : null;
     let back: ReturnType<typeof replayBattle> | null = null;
@@ -589,12 +621,20 @@ export function Sesh() {
     }
   }
 
-  function newGame() {
-    if (!name) return;
+  /** A new free run, or today's Daily Challenge from the start. */
+  function startRun(who: string, run: SeshRun) {
     playSfx('select');
-    const next: SeshSave = { v: 1, run: newRun(freshSeed()), actions: [] };
-    storeSesh(name, next);
-    begin(next, name);
+    const next: SeshSave = { v: 1, run, actions: [] };
+    storeSesh(who, next, slotOf(run));
+    begin(next, who);
+  }
+
+  function newGame() {
+    if (name) startRun(name, newRun(freshSeed()));
+  }
+
+  function startDaily(who: string) {
+    startRun(who, dailyRun(dayOf(Date.now())));
   }
 
   function act(a: SeshAction) {
@@ -607,18 +647,19 @@ export function Sesh() {
       return;
     }
     const next: SeshSave = { v: 1, run: out.run, actions: [...save.actions, a] };
-    storeSesh(player, next);
+    storeSesh(player, next, slotOf(out.run));
     setSave(next);
     setLines(out.lines);
     if (out.run.over && !save.run.over) {
-      setBests(
-        recordBest(player, {
-          score: scoreOf(out.run),
-          beaten: out.run.beaten,
-          standing: out.run.party.length,
-          at: new Date().toISOString(),
-        }),
-      );
+      const best: SeshBest = {
+        score: scoreOf(out.run),
+        beaten: out.run.beaten,
+        standing: out.run.party.length,
+        at: new Date().toISOString(),
+      };
+      // A Daily Challenge counts for its day; a free run is kept among your best nights.
+      if (out.run.daily) setDaily(recordDaily(player, out.run.daily, best));
+      else setBests(recordBest(player, best));
     }
   }
 
@@ -631,7 +672,7 @@ export function Sesh() {
   /** Keeps a battle's choices as they're made, so closing the page doesn't lose the fight. */
   function keepInputs(inputs: BattleInput[]) {
     if (!save || !player) return;
-    storeSesh(player, { ...save, fight: inputs });
+    storeSesh(player, { ...save, fight: inputs }, slotOf(save.run));
   }
 
   // ---------- the start screen ----------
@@ -683,6 +724,51 @@ export function Sesh() {
             {canContinue ? 'NEW RUN (ENDS THIS ONE)' : 'NEW RUN'}
           </button>
         </form>
+        <section
+          className="dialog flex w-full max-w-[320px] flex-col gap-2 px-3 py-3 text-ink"
+          data-testid="sesh-daily"
+        >
+          <h2 className="text-[14px] font-bold">DAILY CHALLENGE</h2>
+          <p className="text-[11px] leading-relaxed">
+            The same night for everyone today: the same party, maps and bosses. Play it as often as
+            you like; your best score counts.
+          </p>
+          {today && (
+            <p className="text-[11px]">
+              {today}
+              {todaysBest ? ` · Your best: ${todaysBest.score.toLocaleString('en-IE')}` : ''}
+            </p>
+          )}
+          {dailyLeft && (
+            <button
+              type="button"
+              className="pixel-btn menu-item text-[13px]"
+              data-cmd="fight"
+              disabled={!name}
+              onClick={() => begin(dailyLeft, name)}
+              data-testid="sesh-daily-carry-on"
+            >
+              {dailyLeft.run.daily === today
+                ? 'CARRY ON TODAY’S CHALLENGE'
+                : `CARRY ON THE ${dailyLeft.run.daily} CHALLENGE`}
+            </button>
+          )}
+          <button
+            type="button"
+            className="pixel-btn menu-item text-[13px]"
+            data-cmd={dailyLeft?.run.daily === today ? 'bag' : 'fight'}
+            disabled={!name}
+            onClick={() => startDaily(name)}
+            data-testid="sesh-daily-start"
+          >
+            {dailyLeft?.run.daily === today ? 'START TODAY’S AGAIN' : 'PLAY TODAY’S CHALLENGE'}
+          </button>
+          {now !== null && (
+            <p className="text-[10px] opacity-80" data-testid="sesh-daily-next">
+              Next challenge in {countdown(untilNext(now))}
+            </p>
+          )}
+        </section>
         <Link href="/" className="text-[11px] text-[#e6e2ff] underline underline-offset-4">
           BACK TO THE TITLE
         </Link>
@@ -721,11 +807,8 @@ export function Sesh() {
       <Results
         run={night}
         bests={bests}
-        onAgain={() => {
-          const next: SeshSave = { v: 1, run: newRun(freshSeed()), actions: [] };
-          storeSesh(player, next);
-          begin(next, player);
-        }}
+        daily={daily}
+        onAgain={() => (night.daily ? startDaily(player) : startRun(player, newRun(freshSeed())))}
       />
     );
   } else if (!ready) {
@@ -757,6 +840,11 @@ export function Sesh() {
             <p className="text-[10px] opacity-80">
               {st.place} · Stage {night.stage + 1} of {QUICK_STAGES.length} · {euro(night.cash)}
             </p>
+            {night.daily && (
+              <p className="text-[10px] font-bold text-accent" data-testid="sesh-daily-tag">
+                DAILY CHALLENGE · {night.daily}
+              </p>
+            )}
           </div>
           <div className="flex gap-1">
             <SoundButton />
