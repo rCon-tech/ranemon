@@ -12,6 +12,16 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-28',
+    title: 'Quick Sesh',
+    notes: [
+      'New on the home screen: QUICK SESH. You get a random party of six strong Ranemon and one night out: The Pub, The Nightclub and The Afterparty, with a boss at the end of each.',
+      'Pick your way through each stage one stop at a time: a fight, a bouncer, the offie or a sit-down in the smoking area. Anyone still fainted after a battle goes home in a taxi.',
+      'A new boss every run. It plays at 2× to start, and it has its own saves, so it never touches your Story mode.',
+      'LONG SESH is coming once we’ve all had a go.',
+    ],
+  },
+  {
+    date: '2026-10-28',
     title: 'Très bien',
     notes: [
       'Someone down by the sea in Clare has something to tell you about himself, whether you ask or not. Beat him and there’s a new skin to wear.',

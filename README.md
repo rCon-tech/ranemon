@@ -49,6 +49,10 @@ The full V1 plan (rules, stats, types, moves, Creature Studio, tech stack and mi
 - **Speed**: the ▶ button on the map and in battles cycles 1×, 2× and 4×. Walking, text, battle playback and animations all speed up (`src/lib/speed.ts`).
 - **How to play** (`/guide`, on the title screen): the game, the six types and the full type chart, battles, statuses and story mode, for new players.
 
+## The Sesh
+
+`/sesh` (QUICK SESH on the title screen, with LONG SESH under it, greyed out for now) is a standalone roguelike themed as a night out, following `docs/sesh.md`. Quick Sesh deals a random party of 6 photo Ranemon at Lv50 and plays three stages, The Pub, The Nightclub and The Afterparty, each a short branching map of fights, Bouncers, the Offie and the Smoking Area, then a random boss. Foe levels are fixed by stage (Lv46 to 65), a Ranemon still fainted after a battle goes home in a taxi, and the score is bosses beaten, then Ranemon standing, then turns. Every screen is 2D only, whatever look is picked, and it plays at a speed of its own, 2× to start (`ownSpeed` in `src/lib/speed.ts`). Its saves are its own (`ranemon.sesh.v1:<name>` in this browser, `src/lib/sesh/save.ts`), and a run replays exactly from its seed and choices (`src/lib/sesh/run.ts`).
+
 ## Friend battles
 
 `/friends` (FRIEND BATTLE on the title screen) is a live battle against a friend with your Story mode party, through the save server (`docs/online-saves.md`). You sign in with your trainer name and PIN, open a room and share its code (like `BOKA-42`, or a link that fills it in), and both press READY. The challenger picks the levels: everyone at 50 (the default), a cap at 50, or as caught.

@@ -114,14 +114,25 @@ export interface Session {
    * always play out the same battle, so a run can be replayed from its choices alone.
    */
   seeded: boolean;
+  /** In a seeded session, every choice the player made that the battle took, in order. */
+  inputs: Input[];
 }
+
+/** A choice the player made in a seeded battle, enough to play it again (`lib/sesh/battle.ts`). */
+export type Input =
+  | { kind: 'act'; action: Action }
+  | { kind: 'replace'; to: number }
+  /** An item from the BAG by its id, on one of your Ranemon by its place in the battle. */
+  | { kind: 'item'; item: string; target: number }
+  | { kind: 'forfeit' };
 
 export type SessionAction =
   | { type: 'step'; random: number }
   | { type: 'act'; action: Action; random: number }
   | { type: 'replace'; to: number }
   | { type: 'open'; mode: MenuMode }
-  | { type: 'item'; name: string; effect: ItemEffect; target: number; random: number }
+  /** `id` is the item's, kept in a seeded session's inputs. */
+  | { type: 'item'; name: string; effect: ItemEffect; target: number; random: number; id?: string }
   | { type: 'pint'; pint: Pint; rate: number; random: number }
   | { type: 'run'; random: number }
   | { type: 'forfeit' }
@@ -189,6 +200,7 @@ export function startSession(
     remote: options.remote ?? false,
     outbox: null,
     seeded: options.seeded ?? false,
+    inputs: [],
   };
 }
 
@@ -445,7 +457,29 @@ export const isChoosing = (mode: Mode) =>
   mode === 'bag' ||
   mode === 'confirm-run';
 
+/** The input a session action makes, if it's a choice a seeded session keeps. */
+function inputOf(a: SessionAction): Input | null {
+  switch (a.type) {
+    case 'act':
+      return { kind: 'act', action: a.action };
+    case 'replace':
+      return { kind: 'replace', to: a.to };
+    case 'item':
+      return { kind: 'item', item: a.id ?? a.name, target: a.target };
+    case 'forfeit':
+      return { kind: 'forfeit' };
+    default:
+      return null;
+  }
+}
+
 export function reduce(s: Session, a: SessionAction): Session {
+  const next = apply(s, a);
+  const input = s.seeded && next !== s ? inputOf(a) : null;
+  return input ? { ...next, inputs: [...s.inputs, input] } : next;
+}
+
+function apply(s: Session, a: SessionAction): Session {
   switch (a.type) {
     case 'step':
       return s.mode === 'playing' ? step(s, a.random) : s;

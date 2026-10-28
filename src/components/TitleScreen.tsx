@@ -93,6 +93,26 @@ export function TitleScreen({ record, onStart }: { record: BattleRecord; onStart
           <span className="text-[15px] font-bold leading-none">SKIP TO RANEMON LONDON</span>
           <span className="text-[10px]">NEW GAME · STARTS IN LONDON</span>
         </Link>
+        {/* The Sesh, a roguelike night out: Quick Sesh first, Long Sesh once it's been played. */}
+        <Link
+          href="/sesh"
+          className="pixel-btn flex flex-col items-center gap-0.5 py-2 text-center"
+          data-cmd="mega"
+          data-testid="quick-sesh"
+        >
+          <span className="text-[15px] font-bold leading-none">QUICK SESH</span>
+          <span className="text-[10px]">A RANDOM PARTY · ONE NIGHT OUT</span>
+        </Link>
+        <button
+          type="button"
+          disabled
+          className="pixel-btn flex flex-col items-center gap-0.5 py-2 text-center opacity-60"
+          data-cmd="mega"
+          data-testid="long-sesh"
+        >
+          <span className="text-[15px] font-bold leading-none">LONG SESH</span>
+          <span className="text-[10px]">COMING SOON</span>
+        </button>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"

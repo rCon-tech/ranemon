@@ -35,29 +35,24 @@ function kindFrom(rng: Rng): NodeKind {
   return 'fight';
 }
 
-/** Where a node sits across its row, 0 to 1, for joining it to the nearest ones in the next. */
-const across = (i: number, n: number) => (i + 0.5) / n;
-
-/** Joins each row to the next: every node to its nearest, sometimes its second nearest too. */
+/**
+ * Joins each row to the next without any lines crossing: each node leads to the nodes in the
+ * next row that overlap it across the screen, so nothing in the next row is out of reach. Rows of
+ * the same width sometimes get one diagonal too, so there's still a choice to make.
+ */
 function links(rng: Rng, widths: number[]): number[][][] {
   return widths.map((n, r) => {
     const m = widths[r + 1];
     if (m === undefined) return Array.from({ length: n }, () => []);
-    const byNear = (i: number) =>
-      Array.from({ length: m }, (_, j) => j).sort(
-        (a, b) => Math.abs(across(a, m) - across(i, n)) - Math.abs(across(b, m) - across(i, n)),
-      );
-    const next = Array.from({ length: n }, (_, i) => {
-      const [near, second] = byNear(i);
-      return rng.chance(0.6) && second !== undefined ? [near, second].sort() : [near];
-    });
-    // Nothing in the next row is out of reach.
-    for (let j = 0; j < m; j++) {
-      if (next.some((to) => to.includes(j))) continue;
-      const from = Array.from({ length: n }, (_, i) => i).sort(
-        (a, b) => Math.abs(across(a, n) - across(j, m)) - Math.abs(across(b, n) - across(j, m)),
-      )[0];
-      next[from] = [...next[from], j].sort();
+    const next = Array.from({ length: n }, (_, i) =>
+      Array.from({ length: m }, (_, j) => j).filter(
+        (j) => j * n < (i + 1) * m && i * m < (j + 1) * n,
+      ),
+    );
+    if (n === m && rng.chance(0.6)) {
+      const i = rng.int(0, n - 2);
+      if (rng.chance(0.5)) next[i] = [...next[i], i + 1];
+      else next[i + 1] = [i, ...next[i + 1]];
     }
     return next;
   });
