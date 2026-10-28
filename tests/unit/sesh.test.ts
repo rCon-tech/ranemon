@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { lineOf } from '@/lib/battle/evolutions';
+import { formAt, lineOf } from '@/lib/battle/evolutions';
 import { LONDON } from '@/lib/battle/london';
 import { hasMega } from '@/lib/battle/mega';
 import { RANELASS_MON } from '@/lib/battle/ranelasses';
 import { Rng } from '@/lib/battle/rng';
 import { actionOf, replayBattle, settle, startSeshBattle } from '@/lib/sesh/battle';
 import { STYLES } from '@/components/story/people';
+import { trainerById } from '@/content/story/trainers';
 import { BOSSES } from '@/lib/sesh/bosses';
 import { bossAt, bossesFor, bouncerAt, DROPS, fightAt } from '@/lib/sesh/foes';
 import { isFair, routes, stageMap } from '@/lib/sesh/map';
@@ -152,7 +153,12 @@ describe('Sesh foes', () => {
         expect(boss.team).toHaveLength(stage.boss.team);
         expect(boss.team.at(-1)!.level).toBe(stage.boss.level);
         expect(new Set(boss.team.map((m) => lineOf(m.species))).size).toBe(boss.team.length);
-        for (const m of boss.team) expect(SESH_POOL).toContain(m.species);
+        const own = BOSSES.find((b) => b.id === ids[s])!;
+        const story = own.own ? trainerById(own.trainer!).team.map(([id]) => lineOf(id)) : [];
+        for (const m of boss.team) {
+          if (own.own) expect(story).toContain(lineOf(m.species));
+          else expect(SESH_POOL).toContain(m.species);
+        }
         if (boss.mega) {
           expect(stage.id).toBe('after');
           expect(boss.team.at(-1)!.species).toBe(boss.mega);
@@ -182,6 +188,13 @@ describe('Sesh foes', () => {
         expect(foe.look).toBe(b.look);
         expect(foe.music).toBeTruthy();
         expect(foe.team).toHaveLength(stage.boss.team);
+        if (b.own) {
+          // Their own Ranemon is the ace, evolved for the level, and none of theirs is dealt to you.
+          const ace = trainerById(b.trainer!).team.at(-1)![0];
+          expect(lineOf(foe.team.at(-1)!.species)).toBe(lineOf(ace));
+          expect(foe.team.at(-1)!.species).toBe(formAt(ace, stage.boss.level));
+          expect(SESH_POOL.map(lineOf)).not.toContain(lineOf(ace));
+        }
       });
     }
   });

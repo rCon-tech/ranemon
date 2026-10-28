@@ -28,9 +28,22 @@ export interface Boss {
   line?: string;
   /** The types their team is built around, where their story team doesn't say it well. */
   types?: RaneType[];
+  /**
+   * They bring their own Ranemon, never dealt to you: their team is their story team's, at the
+   * stage's level, with their own as the ace. The Sidemen and Jamie Elliott.
+   */
+  own?: boolean;
 }
 
 /** A gym leader: their story trainer, the Gym Leader look and the Gym Leader theme. */
+/** A boss who's only themselves: their story trainer, their look, and all their story lines. */
+const named = (id: string, trainer: string, look: Look, extra: Partial<Boss> = {}): Boss => ({
+  id,
+  trainer,
+  look,
+  ...extra,
+});
+
 const leader = (id: string, trainer: string, after: string, extra: Partial<Boss> = {}): Boss => ({
   id,
   trainer,
@@ -243,4 +256,70 @@ export const BOSSES: Boss[] = [
       'MICHAEL COLLINS: I’m Michael Collins. I’ve held the title since 1922, and I’ve not missed a night out since either. Shall we?',
     after: 'MICHAEL COLLINS: …Well. That’s that, so. Mine’s a pint.',
   },
+  // ---------- Premier League legends ----------
+  named('murray', 'pl-brighton', 'murray'),
+  named('wright', 'pl-palace', 'wright'),
+  named('mcgrath', 'pl-villa', 'mcgrath'),
+  named('ferguson', 'pl-everton', 'ferguson'),
+  named('bielsa', 'pl-leeds', 'bielsa'),
+  named('shearer', 'pl-newcastle', 'shearer'),
+  named('robbie', 'pl-spurs', 'robbie'),
+  named('aguero', 'pl-city', 'aguero'),
+  named('terry', 'pl-chelsea', 'terry'),
+  named('henry', 'pl-arsenal', 'henry'),
+  named('gerrard', 'pl-liverpool', 'gerrard'),
+  named('keane', 'pl-united', 'keane', {
+    before:
+      'KEANE: A night out. Lovely. I don’t do nights out. I do battles. Fail to prepare, prepare to fail.',
+  }),
+  // ---------- Silicon Docks ----------
+  named('pichai', 'silicon-pichai', 'pichai'),
+  named('zuckerberg', 'silicon-zuckerberg', 'zuckerberg'),
+  named('nadella', 'silicon-nadella', 'nadella'),
+  named('cook', 'silicon-cook', 'cook'),
+  named('bezos', 'silicon-bezos', 'bezos'),
+  named('chew', 'silicon-chew', 'chew'),
+  named('musk', 'silicon-musk', 'musk'),
+  named('collisons', 'silicon-collisons', 'pcollison'),
+  // ---------- Liam Neeson ----------
+  named('neeson', 'neeson', 'neeson', {
+    before:
+      'LIAM NEESON: I don’t know who you are. I don’t know what you want. But I have a very particular set of skills. I’ll show you every one of them.',
+  }),
+  // ---------- the Sidemen, who bring their own ----------
+  named('ksi', 'sidemen-ksi', 'ksi', {
+    own: true,
+    before:
+      'KSI: Yo, a night out and a battle? Cameras rolling? Good. I don’t lose. Ask anyone. Actually, don’t ask anyone.',
+  }),
+  named('tbj', 'sidemen-tbj', 'tbj', {
+    own: true,
+    before:
+      'TBJ: (laughing) Ah, no way, a challenger in the smoking area! Nobody ever picks me. You won’t pick me either. Battle!',
+  }),
+  named('zerkaa', 'sidemen-zerkaa', 'zerkaa', {
+    own: true,
+    before:
+      'ZERKAA: Right. I’ve looked at the numbers, and statistically you win about none of these. I’ve made a spreadsheet of the night. Shall we?',
+  }),
+  named('behzinga', 'sidemen-behzinga', 'behzinga', {
+    own: true,
+    before:
+      'BEHZINGA: LET’S GOOOOO! I’ve done ten K this morning, I’m on the sparkling water, and I’m BUZZING. Let’s have a battle!',
+  }),
+  named('miniminter', 'sidemen-miniminter', 'miniminter', {
+    own: true,
+    before:
+      'MINIMINTER: (laughing) Oh, here we go! I’ve had the worst luck all night. Lost my coat, lost my mates. I’m due a win.',
+  }),
+  named('vikkstar', 'sidemen-vikkstar', 'vikkstar', {
+    own: true,
+    before:
+      'VIKKSTAR123: One sec, I’m in the final circle. … OK, we won. Right, you. Let’s go, I’ve got a stream at nine.',
+  }),
+  named('jamie', 'sidemen-jamie', 'jamie', {
+    own: true,
+    before:
+      'JAMIE ELLIOTT: I picked every one of the lads’ Ranemon, and I know them better than they do. Let’s see if you’re a Sideman.',
+  }),
 ];

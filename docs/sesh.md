@@ -19,8 +19,21 @@ A random party of 6 strong Ranemon and about 20 minutes a run, over the last thr
 - **Nodes**: a Fight (1 Ranemon, now and then 2, Normal CPU, from the stage's own trainers: route lads and hens at The Pub, the Rave Cave's ravers, Silicon Docks' staff), a Bouncer (Hard, 3 Ranemon, drops a held item; The Afterparty's drops the Mega Ring), the Offie (4 to 6 items from the story's shelves at story prices, sometimes a Blue Ghost) and the Smoking Area (heal the party, learn one of 3 moves of its types, or take a Blue Ghost).
 - **Bosses** (`src/lib/sesh/bosses.ts`, `bossAt` in `foes.ts`): a random named character from the main game at each stage, no repeats in a run. The stage sets the difficulty through the boss's level, team size and CPU (Hard). Each brings a new team of photo Ranemon built around the types of their story team, the ace last; at The Afterparty the ace is one with a Mega form where their types allow, and it Mega evolves. The Ranelasses are never in the pool.
   - Each boss comes in their story skin (drawn on the Briefing with `Portrait`), with their own battle theme (gym leaders get the Gym Leader theme, the DJs I Love Techno, everyone else the Boss theme) and their story lines, rewritten for a night out where the story's only fit the story.
-  - The pool so far is the Irish one: the 9 gym leaders, Thatcher, B&S, Alex Simonin, Paul Mescal, the Happy Pear Twins, Melchior, MC, Carl Ryan, Poseidon, Josh Lee, Cramps, the Rave Cave DJ, Enda, the Arcade King, DJ Vandenbass, Rob Lipsett, Blindboy, The 2 Johnnies, Bono and Michael Collins.
+  - The pool is 58 bosses:
+    - **Ireland:** the 9 gym leaders, Thatcher, B&S, Alex Simonin, Paul Mescal, the Happy Pear Twins, Melchior, MC, Carl Ryan, Poseidon, Josh Lee, Cramps, the Rave Cave DJ, Enda, the Arcade King, DJ Vandenbass, Rob Lipsett, Blindboy, The 2 Johnnies, Bono and Michael Collins.
+    - **The Premier League legends:** Murray, Wright, McGrath, Ferguson, Bielsa, Shearer, Robbie Keane, Agüero, Terry, Henry, Gerrard and Roy Keane.
+    - **Silicon Docks:** Pichai, Zuckerberg, Nadella, Cook, Bezos, Chew, Musk and the Collisons.
+    - **Liam Neeson.**
+    - **The Sidemen** (KSI, TBJ, Zerkaa, Behzinga, Miniminter, Vikkstar123) and **Jamie Elliott**, who bring their own (`own`).
+  - A boss who brings their own has a team from their story team, not the photo pool: their own Ranemon as the ace, the rest dealt from the others on their story team, each in its form for the level (`formAt`), the non-aces 2 levels under. Their Ranemon are never dealt to you.
+
+  | Boss         | Pub     | Nightclub | Afterparty             |
+  | ------------ | ------- | --------- | ---------------------- |
+  | Level of ace | 52      | 58        | 65 (Mega where it can) |
+  | Team         | 3       | 4         | 5                      |
+  | The others   | ace − 2 | ace − 2   | ace − 2                |
   - Someone with no story trainer of their own (Carl, Josh, Cramps, the Rave Cave DJ, Enda) or whose story team isn't theirs (Thatcher's are the lads picked against your starter; the Pears are two trainers) gives their name, lines and types in `bosses.ts`.
+
 - **EXP**: everyone still out gets `SESH_EXP` (7) times a trainer's EXP for every foe that faints, so the party grows from Lv50 to about Lv65 by the last boss.
 - **Permadeath**: a Ranemon still fainted when a battle ends is sent home in a taxi for the rest of the run. Hair of the Dog revives only during a battle. Lose a battle, or win one with nobody standing, and the night's over.
 - **Score** (`scoreOf`): bosses beaten first, then Ranemon left standing, then fewest turns.
