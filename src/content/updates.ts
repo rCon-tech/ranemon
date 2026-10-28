@@ -22,6 +22,14 @@ export const UPDATES: Update[] = [
   },
   {
     date: '2026-10-28',
+    title: 'Très bien',
+    notes: [
+      'Someone down by the sea in Clare has something to tell you about himself, whether you ask or not. Beat him and there’s a new skin to wear.',
+      'There’s a new Ranemon in the long grass, at home and over the water, and it evolves.',
+    ],
+  },
+  {
+    date: '2026-10-28',
     title: 'Cheap Blue Ghosts in England',
     notes: [
       'The man with the sports bag has made it over the water. Look in the corner of any W.B Yates for Blue Ghosts at a tenth of the Vapes & More price, if you’d rather not grind between grounds.',

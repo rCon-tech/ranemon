@@ -226,6 +226,18 @@ export const ROSTER: Creature[] = [
     sprite: '/sprites/bw/crampemon.png',
     solid: true,
   },
+  {
+    id: 'nickamon',
+    name: 'Nickamon',
+    types: ['charm', 'chill'],
+    base: { hp: 85, attack: 70, defense: 75, spirit: 90, speed: 80 },
+    moves: ['ooh-la-la', 'dazzling-smile', 'smooth-talk', 'unbothered'],
+    entry:
+      'The second most French man in Ireland, and he’ll tell you so before you ask. Says to wait until you meet his brother.',
+    colour: '#3d6fd1',
+    sprite: '/sprites/bw/nickamon.png',
+    solid: true,
+  },
 ];
 
 export function creatureById(id: string): Creature {
