@@ -669,8 +669,8 @@ export function BagPanel({
   );
 }
 
-/** Thousands with commas, as prices are shown: €1,050. */
-const euro = (n: number) => `€${n.toLocaleString('en-IE')}`;
+/** Thousands with commas, as prices are shown: €1,050, or £1,050 in Britain. */
+const money = (n: number, uk?: boolean) => `${uk ? '£' : '€'}${n.toLocaleString('en-IE')}`;
 
 /** The bag's items, pocket by pocket, as the SELL list shows them. */
 const byPocket = (game: StoryState) =>
@@ -693,6 +693,9 @@ export function ShopPanel({
   onClose: () => void;
   navRef?: React.RefObject<MenuNav | null>;
 }) {
+  // In Britain, prices are in pounds.
+  const uk = outsideOf(mapById(game.map)).uk;
+  const cash = (n: number) => money(n, uk);
   const stock = stall
     ? stall.stock.map((s) => itemById(s.item))
     : shopStock(mapById(game.map).county);
@@ -734,7 +737,7 @@ export function ShopPanel({
     playSfx('select');
     const name = itemById(selling).name;
     onSell(selling, n);
-    setNote([`Sold ${n} × ${name} for ${euro(each * n)}.`]);
+    setNote([`Sold ${n} × ${name} for ${cash(each * n)}.`]);
     setSelling(null);
     setConfirm(false);
   };
@@ -775,15 +778,18 @@ export function ShopPanel({
   });
 
   // In Britain the shop is a Vapes & More.
-  const title = stall?.name ?? (outsideOf(mapById(game.map)).uk ? 'VAPES & MORE' : 'VAPES');
+  const title = stall?.name ?? (uk ? 'VAPES & MORE' : 'VAPES');
 
   if (selling) {
     const item = itemById(selling);
     return (
       <Panel title={`SELL ${item.name.toUpperCase()}`} onClose={() => setSelling(null)}>
-        <p className="text-[11px]">Money: €{game.money}</p>
+        <p className="text-[11px]">
+          Money: {uk ? '£' : '€'}
+          {game.money}
+        </p>
         <p className="text-[10px] leading-relaxed">
-          You have {have}. The shop pays {euro(each)} each.
+          You have {have}. The shop pays {cash(each)} each.
         </p>
         {!confirm ? (
           <>
@@ -821,7 +827,7 @@ export function ShopPanel({
                 ALL
               </button>
             </div>
-            <p className="text-center text-[11px]">For {euro(each * n)}</p>
+            <p className="text-center text-[11px]">For {cash(each * n)}</p>
             <div className="flex justify-end gap-2">
               <button
                 type="button"
@@ -843,7 +849,7 @@ export function ShopPanel({
         ) : (
           <div className="flex flex-col gap-2 rounded-lg border-2 border-frame bg-mist p-2">
             <p className="text-[11px] leading-relaxed" data-testid="sell-confirm">
-              Sell {n} × {item.name} for {euro(each * n)}?
+              Sell {n} × {item.name} for {cash(each * n)}?
               {n === have && pocketOf(item) === 'pints'
                 ? ' That’s all your pints of this kind.'
                 : ''}
@@ -882,7 +888,10 @@ export function ShopPanel({
         value={tab}
         onPick={switchTab}
       />
-      <p className="text-[11px]">Money: €{game.money}</p>
+      <p className="text-[11px]">
+        Money: {uk ? '£' : '€'}
+        {game.money}
+      </p>
       <Note lines={note} />
       <div ref={box} className="flex flex-col gap-1.5">
         {tab === 'buy' &&
@@ -901,7 +910,10 @@ export function ShopPanel({
             >
               <span className="flex justify-between text-[11px]">
                 <span>{i.name}</span>
-                <span>€{priceOf(i.id, stall)}</span>
+                <span>
+                  {uk ? '£' : '€'}
+                  {priceOf(i.id, stall)}
+                </span>
               </span>
               <span className="text-left text-[8px] leading-relaxed">
                 {i.about} You have {game.bag[i.id] ?? 0}.
@@ -933,7 +945,7 @@ export function ShopPanel({
                   <span className="text-left">
                     {i.name} <span className="text-[9px]">×{game.bag[i.id]}</span>
                   </span>
-                  <span>{price === null ? 'CAN’T SELL' : `${euro(price)} each`}</span>
+                  <span>{price === null ? 'CAN’T SELL' : `${cash(price)} each`}</span>
                 </button>
               );
             })}
