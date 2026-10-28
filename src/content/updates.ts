@@ -11,6 +11,13 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-28',
+    title: 'Cheap Blue Ghosts in England',
+    notes: [
+      'The man with the sports bag has made it over the water. Look in the corner of any W.B Yates for Blue Ghosts at a tenth of the Vapes & More price, if you’d rather not grind between grounds.',
+    ],
+  },
+  {
     date: '2026-10-27',
     title: 'Is it really over?',
     notes: [

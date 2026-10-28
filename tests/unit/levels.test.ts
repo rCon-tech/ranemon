@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { MAX_LEVEL } from '@/lib/battle/creature';
 import { startBattle } from '@/lib/battle/engine';
 import { creatureById } from '@/lib/battle/roster';
-import { CARL_PRICE, CARL_PUB, MET_CARL } from '@/content/story/ball';
+import { CARL_PRICE, CARL_PUB, CARL_STALL, CARL_YATES, MET_CARL } from '@/content/story/ball';
 import { INTERIORS } from '@/content/story/maps';
 import { trainerById } from '@/content/story/trainers';
 import { canUseOn, itemById, priceOf } from '@/lib/story/items';
 import { GYM_ORDER, levelCap, scaleTeam } from '@/lib/story/levels';
 import { blueGhost, expAt, gainExp, makeMember, toEntrant } from '@/lib/story/party';
 import { beatFlag, newGame, recruit, settleBattle } from '@/lib/story/state';
-import type { Step } from '@/lib/story/world';
+import { isWalkable, npcsOf, tileAt, type Step } from '@/lib/story/world';
 
 const beaten = (n: number) => GYM_ORDER.slice(0, n).map(beatFlag);
 
@@ -35,6 +35,35 @@ describe('Carl Ryan in McGrattans', () => {
     const text = JSON.stringify(CARL_PUB.talk);
     expect(text).toMatch(/Don’t ask|never saw me/);
     const first = CARL_PUB.talk![0] as Extract<Step, { do: 'if' }>;
+    expect(first.flag).toBe(MET_CARL);
+  });
+});
+
+describe('Carl Ryan in W.B Yates', () => {
+  const pubs = INTERIORS.filter((m) => m.name.startsWith('W.B Yates'));
+
+  it('is in every W.B Yates, from the start, in a corner of his own', () => {
+    expect(pubs.length).toBeGreaterThan(5);
+    for (const pub of pubs) {
+      const placed = npcsOf(pub);
+      const carl = placed.find((n) => n.item.look === 'carl');
+      expect(carl?.item, pub.id).toBe(CARL_YATES);
+      expect(carl?.item.showIf, pub.id).toBeUndefined();
+      expect(isWalkable(tileAt(pub, carl!.x, carl!.y)), pub.id).toBe(true);
+      // Nobody else stands where he does.
+      expect(
+        placed.filter((n) => n.x === carl!.x && n.y === carl!.y),
+        pub.id,
+      ).toHaveLength(1);
+    }
+  });
+
+  it('sells the same cheap Blue Ghosts as in McGrattans, in pounds', () => {
+    expect(CARL_YATES.talk).toContainEqual({ do: 'shop', stall: CARL_STALL });
+    const text = JSON.stringify(CARL_YATES.talk);
+    expect(text).toContain(`£${CARL_PRICE}`);
+    expect(text).not.toContain('€');
+    const first = CARL_YATES.talk![0] as Extract<Step, { do: 'if' }>;
     expect(first.flag).toBe(MET_CARL);
   });
 });

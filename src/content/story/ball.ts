@@ -82,6 +82,49 @@ export const CARL_PUB: Npc = {
   ],
 };
 
+/**
+ * Carl in the corner of every W.B Yates over in Britain, the same sports bag and the same price
+ * (in pounds now), for anyone who'd rather not grind between Premier League grounds. He knows you
+ * if you met him in McGrattans; a London-only game meets him here for the first time.
+ */
+export const CARL_YATES: Npc = {
+  look: 'carl',
+  face: 'down',
+  // His own corner by the tables, past the places the room's other people take.
+  at: { x: 1, y: 6 },
+  talk: [
+    {
+      do: 'if',
+      flag: MET_CARL,
+      then: [
+        {
+          do: 'say',
+          text: 'CARL RYAN: Well, look who it is. Don’t act surprised. The van does the ferry too.',
+        },
+      ],
+      else: [
+        { do: 'flag', flag: MET_CARL },
+        { do: 'say', text: 'CARL RYAN: Psst. Over here. Irish, are you? Thought so.' },
+        {
+          do: 'say',
+          text: 'CARL RYAN: Long way between grounds, and the Premier League lads don’t go easy. Blue Ghosts. One each and up they go a level, no battling, no grinding.',
+        },
+      ],
+    },
+    {
+      do: 'say',
+      text: `CARL RYAN: £${CARL_PRICE} a can, a tenth of what Vapes & More charge. Customs never asked, so neither should you.`,
+    },
+    // Elvis, if you brought him over (content/story/elvis.ts).
+    CARL_TAKES_ELVIS,
+    { do: 'shop', stall: CARL_STALL },
+    {
+      do: 'say',
+      text: 'CARL RYAN: You never saw me. Up the Premier League, or whatever they say here.',
+    },
+  ],
+};
+
 /** Michael D, in Trinity once you're Champion, ball or no ball. */
 export const HIGGINS: Npc = {
   look: 'higgins',
