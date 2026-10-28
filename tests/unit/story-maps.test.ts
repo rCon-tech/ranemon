@@ -67,9 +67,10 @@ describe.each([
 
   it('places every person, and nobody extra', () => {
     expect(npcsOf(map)).toHaveLength(map.npcs.length);
-    // Ten at most: `1` to `9`, then `0`.
-    expect(map.npcs.length).toBeLessThanOrEqual(10);
-    if (map.npcs.length < 10) expect(find(map, slot(map.npcs.length))).toHaveLength(0);
+    // Ten markers at most: `1` to `9`, then `0`. Anyone past them stands where `at` says.
+    const marked = map.npcs.filter((n, i) => i < 10 || !n.at).length;
+    expect(marked).toBeLessThanOrEqual(10);
+    if (marked < 10) expect(find(map, slot(marked))).toHaveLength(0);
   });
 
   it('has text for every sign, house and landmark', () => {
