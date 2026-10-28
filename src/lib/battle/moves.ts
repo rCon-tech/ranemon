@@ -1004,6 +1004,19 @@ export const SPECIAL_MOVES: Move[] = [
     priority: 0,
     specials: [{ kind: 'boost', target: 'self', stat: 'speed', factor: 1.2 }],
   },
+  {
+    id: 'ooh-la-la',
+    signature: 'nickamon',
+    name: 'Ooh La La',
+    flavour: 'A shrug, a grin and an “ooh la la”. The foe is charmed: its Attack falls 20%.',
+    type: 'charm',
+    category: 'spirit',
+    power: 80,
+    accuracy: 100,
+    pp: 10,
+    priority: 0,
+    specials: [{ kind: 'boost', target: 'foe', stat: 'attack', factor: 0.8 }],
+  },
 ];
 
 /** Moves only story mode's bosses know. Named by Rich later; these are placeholders. */

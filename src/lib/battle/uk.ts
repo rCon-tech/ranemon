@@ -39,6 +39,7 @@ export const UK_ENTRIES: Record<string, string> = {
     'Bought a townhouse in Mayfair to make a problem go away. The problem was the townhouse.',
   crampemon:
     'Has a residency in a Peckham car park. Still looking for Thilomon to go back to back with.',
+  nickamon: 'Tells everyone in London he’s French. They believe him, which he finds suspicious.',
   // The evolved forms, drawn with their evolution's pieces grown into the body (scripts/drawn/).
   carlizard: 'Flies over the Thames to the bar. The Nozzy Call can be heard from Croydon.',
   steadakazam: 'Bends spoons on the Victoria line. Still home and asleep by 8:30pm.',
@@ -64,6 +65,7 @@ export const UK_ENTRIES: Record<string, string> = {
   vinnisaur: 'A flower grew from the Mayfair townhouse problem. Now it’s the size of Mayfair.',
   crampsb2bthilomon:
     'Back to back in a Peckham car park at last. The residency is sold out until 2030.',
+  nickoking: 'Holds court in a Soho brasserie. The waiters call him Your Majesty, ironically.',
 };
 
 /** Whether a species has a UK form: every one of the lads, and every form they evolve into. */
