@@ -18,6 +18,7 @@ export const UPDATES: Update[] = [
       'Pick your way through each stage one stop at a time: a fight, a bouncer, the offie or a sit-down in the smoking area. Anyone still fainted after a battle goes home in a taxi.',
       'A new boss every run. It plays at 2× to start, and it has its own saves, so it never touches your Story mode.',
       'The DAILY CHALLENGE: the same night for everyone each day, with the same party, maps and bosses. Play it as often as you like; your best score counts. A new one starts at midnight (UTC).',
+      'THE BOARDS: today’s Daily Challenge, past days’ winners and your own best runs, on the save server with your trainer name and PIN. A run finished offline goes up the next time you open it online.',
       'LONG SESH is coming once we’ve all had a go.',
     ],
   },

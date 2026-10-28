@@ -5,30 +5,40 @@ import {
   type CrownStore,
   type RoomStore,
   type SaveStore,
+  type SeshCall,
+  type SeshStore,
 } from './handler.js';
-import { neonCrown, neonRooms, neonStore } from './store.js';
+import { neonCrown, neonRooms, neonSesh, neonStore } from './store.js';
 
 let store: SaveStore | null = null;
 let rooms: RoomStore | null = null;
 let crown: CrownStore | null = null;
+let runs: SeshStore | null = null;
 
 const origins = () =>
   (process.env.ALLOWED_ORIGINS ?? 'https://rcon-tech.github.io').split(',').map((o) => o.trim());
 
 /**
  * Runs a request through the save server with the database and allowed sites from Vercel's
- * settings. `battles` is the bundled battle logic, for `api/battle.ts`.
+ * settings. `battles` is the bundled battle logic, for `api/battle.ts`, and `sesh` The Sesh's
+ * boards, for `api/sesh.ts`.
  */
-export async function serve(req: Request, battles?: BattleCall): Promise<Response> {
+export async function serve(
+  req: Request,
+  battles?: BattleCall,
+  sesh?: SeshCall,
+): Promise<Response> {
   const url = databaseUrl(process.env);
   try {
     if (!url) throw new Error('no database connected');
     store ??= neonStore(url);
     rooms ??= neonRooms(url);
     crown ??= neonCrown(url);
+    runs ??= neonSesh(url);
     return await handle(req, store, {
       origins: origins(),
       ...(battles && { battles: { rooms, call: battles, crown } }),
+      ...(sesh && { sesh: { runs, call: sesh } }),
     });
   } catch (e) {
     console.error(e);

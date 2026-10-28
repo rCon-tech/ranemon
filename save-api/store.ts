@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import type { CrownStore, RoomStore, SaveRow, SaveStore } from './handler.js';
+import type { CrownStore, RoomStore, SaveRow, SaveStore, SeshRow, SeshStore } from './handler.js';
 
 /** The tables, made on first use, so setting up needs no SQL. */
 const SCHEMA = [
@@ -36,6 +36,20 @@ const SCHEMA = [
     version INTEGER NOT NULL,    -- bumped on each write, so two battles ending at once can't both take it
     updated BIGINT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS sesh_runs (
+    id TEXT NOT NULL,            -- the trainer name, as saves are filed under it
+    day TEXT NOT NULL,           -- the Daily Challenge's day (UTC, YYYY-MM-DD), or 'free'
+    seed BIGINT NOT NULL,        -- with the choices, all it takes to replay the run
+    name TEXT NOT NULL,          -- the name as typed, for the boards
+    score BIGINT NOT NULL,       -- worked out by the server's own replay, never sent by a phone
+    beaten INTEGER NOT NULL,
+    standing INTEGER NOT NULL,
+    turns INTEGER NOT NULL,
+    at BIGINT NOT NULL,          -- when the server took it: ties go to whoever was first
+    actions TEXT NOT NULL,       -- every choice, as JSON
+    PRIMARY KEY (id, day, seed)
+  )`,
+  `CREATE INDEX IF NOT EXISTS sesh_runs_board ON sesh_runs (day, score DESC, at)`,
 ];
 
 /** A room code can be used again once its room has been quiet this long. */
@@ -155,5 +169,63 @@ export function neonStore(url: string): SaveStore {
         id,
         now,
       ])),
+  };
+}
+
+const seshRow = (r: Record<string, unknown>): SeshRow => ({
+  name: String(r.name),
+  day: String(r.day),
+  score: Number(r.score),
+  beaten: Number(r.beaten),
+  standing: Number(r.standing),
+  turns: Number(r.turns),
+  at: Number(r.at),
+});
+
+const ROW = 'name, day, score, beaten, standing, turns, at';
+
+/** The Sesh's runs, in the same database. Each name keeps its best run per day and seed. */
+export function neonSesh(url: string): SeshStore {
+  const q = query(url);
+  return {
+    put: async (e) => {
+      const rows = await q(
+        `INSERT INTO sesh_runs (id, day, seed, name, score, beaten, standing, turns, at, actions)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id, day, seed) DO UPDATE SET name = EXCLUDED.name, score = EXCLUDED.score,
+           beaten = EXCLUDED.beaten, standing = EXCLUDED.standing, turns = EXCLUDED.turns,
+           at = EXCLUDED.at, actions = EXCLUDED.actions
+         WHERE EXCLUDED.score > sesh_runs.score
+         RETURNING id`,
+        [e.id, e.day, e.seed, e.name, e.score, e.beaten, e.standing, e.turns, e.at, e.actions],
+      );
+      return rows.length > 0;
+    },
+    board: async (day, limit) =>
+      (
+        await q(`SELECT ${ROW} FROM sesh_runs WHERE day = $1 ORDER BY score DESC, at LIMIT $2`, [
+          day,
+          limit,
+        ])
+      ).map(seshRow),
+    winners: async (before, limit) =>
+      (
+        await q(
+          `SELECT * FROM (
+             SELECT DISTINCT ON (day) ${ROW} FROM sesh_runs
+             WHERE day <> 'free' AND day < $1 ORDER BY day, score DESC, at
+           ) w ORDER BY day DESC LIMIT $2`,
+          [before, limit],
+        )
+      ).map(seshRow),
+    mine: async (id, day, limit) =>
+      (
+        await q(
+          day === null
+            ? `SELECT ${ROW} FROM sesh_runs WHERE id = $1 AND day <> 'free' ORDER BY day DESC LIMIT $2`
+            : `SELECT ${ROW} FROM sesh_runs WHERE id = $1 AND day = $3 ORDER BY score DESC, at LIMIT $2`,
+          day === null ? [id, limit] : [id, limit, day],
+        )
+      ).map(seshRow),
   };
 }

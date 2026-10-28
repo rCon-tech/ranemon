@@ -15,6 +15,9 @@ export const DAILY_GRACE_MS = 2 * DAY;
 /** The day (UTC, `YYYY-MM-DD`) a moment falls on. */
 export const dayOf = (now: number | Date) => new Date(now).toISOString().slice(0, 10);
 
+/** Today (UTC). */
+export const today = () => dayOf(Date.now());
+
 /** A day's seed. */
 export const dailySeed = (day: string) => seedFrom(`ranemon-sesh-daily:${day}`);
 
