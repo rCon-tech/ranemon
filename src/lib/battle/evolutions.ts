@@ -145,6 +145,13 @@ export const EVOLUTIONS: Evolution[] = [
       'Crampemon and Thilomon, back to back on the decks as one. Nobody leaves till they say so.',
     partner: 'thilomon',
   },
+  {
+    from: 'nickamon',
+    id: 'nickoking',
+    name: 'Nickoking',
+    entry:
+      'Crowned himself King of France in a Lahinch chipper. Still only the second most French man in Ireland.',
+  },
 ].map((e) => ({ ...e, level: EVOLUTION_LEVEL }));
 
 /**

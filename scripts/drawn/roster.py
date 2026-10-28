@@ -15,7 +15,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 import kit
-from kit import SKIN_RUDDY, Look, plaid, ramp, solid, speckle, stripes
+from kit import SKIN_OLIVE, SKIN_RUDDY, Look, plaid, ramp, solid, speckle, stripes
 
 OUT = Path(__file__).resolve().parents[2] / "art" / "drawn"
 
@@ -123,6 +123,11 @@ LOOKS: dict[str, Look] = {
     "crampemon": Look(hair="slick", hair_colour=(206, 168, 96), face_hair="bigbeard",
                       face_hair_colour=(176, 104, 56), mouth="grin", eyes="happy",
                       inner=solid((34, 34, 38)), pose="hips", build=1.1),
+    # Nick: dark hair, a dark beard and a big grin, a white tee with a little red logo, and a
+    # baguette, as the second most French man in Ireland.
+    "nickamon": Look(skin=SKIN_OLIVE, hair="short", hair_colour=(36, 28, 26), face_hair="beard",
+                     face_hair_colour=(44, 32, 28), eyes="happy", mouth="grin", inner=solid(WHITE),
+                     sleeves="short", trousers=(30, 30, 36), pose="hold", props=("logo", "baguette")),
     # A quiff, black wayfarers, a white tee and arms like legs.
     "petchemon": Look(hair="quiff", hair_colour=(86, 62, 46), eyes="shades", mouth="grin",
                       face_hair="stubble", face_hair_colour=(86, 62, 46), inner=solid(WHITE),
