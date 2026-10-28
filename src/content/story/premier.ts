@@ -770,10 +770,15 @@ const guard = (face: Npc['face'] = 'down'): Npc => ({
 /** Where each line arrives in its town, by the guard who brings you back. */
 export const ARRIVAL = { x: 1, y: 4, face: 'right' as const };
 
-/** Getting on a line: the ride, and the town, with a word the first time. */
-function rideOn(l: Line): Step[] {
-  const go: Step[] = [
-    { do: 'say', text: l.ride },
+/** A train's carriage, on the way to a line's town. */
+export const trainId = (map: string) => `train-${map}`;
+
+/** Where you board a train: at the back of the carriage, by its doors. */
+export const ON_BOARD = { x: 1, y: 4, face: 'up' as const };
+
+/** Getting off at a line's town: the town, with a word the first time. */
+function getOff(l: Line): Step[] {
+  return [
     { do: 'travel', map: l.map, ...ARRIVAL },
     {
       do: 'if',
@@ -782,6 +787,28 @@ function rideOn(l: Line): Step[] {
       else: [
         { do: 'say', text: l.first },
         { do: 'flag', flag: `seen:${l.map}` },
+      ],
+    },
+  ];
+}
+
+/**
+ * Getting on a line: the ride, and the town. The first time, the train is packed and you battle
+ * your way up it to the front (`trainRoom`) before you can get off.
+ */
+function rideOn(l: Line): Step[] {
+  const go: Step[] = [
+    {
+      do: 'if',
+      flag: `seen:${l.map}`,
+      then: [{ do: 'say', text: l.ride }, ...getOff(l)],
+      else: [
+        {
+          do: 'say',
+          text: 'GUARD: First time on this one? It’s rammed. You’ll have to battle your way up the train to the front to get off.',
+        },
+        { do: 'say', text: l.ride },
+        { do: 'travel', map: trainId(l.map), ...ON_BOARD },
       ],
     },
   ];
@@ -950,14 +977,36 @@ function street(parts: Part[]): { doors: string; scenery: Scenery[] } {
   return { doors: doors + 'T', scenery };
 }
 
+/** How many rows of long grass the common under every ground's street has. */
+export const COMMON_ROWS = 9;
+
+/**
+ * The common: rows of long grass the width of the street, with short grass round the edge, a
+ * tree here and there and a few flowers, so there's room to battle wild Ranemon and level up.
+ */
+export function commonOf(w: number, rows = COMMON_ROWS): string[] {
+  return [...Array(rows)].map((_, y) =>
+    [...Array(w)]
+      .map((_, x) => {
+        if (x === 0 || x === w - 1) return 'T';
+        if (x === 1 || x === w - 2 || y === 0 || y === rows - 1) return '.';
+        if ((x * 3 + y * 5) % 17 === 0) return 'T';
+        if ((x + y * 7) % 13 === 0) return '"';
+        return ',';
+      })
+      .join(''),
+  );
+}
+
 /**
  * A ground's area of town from its street: two rows of trees along the top (cleared to a plain
  * wall under the ground and the landmarks, so nothing grows through a roof), the buildings, the
- * pavement, the road with its cars, and a park, with long grass in it if Ranemon live there.
+ * pavement, the road with its cars, a park with long grass in it, and below that a big common of
+ * long grass to battle and level up in between the grounds.
  * Its people stand at 1 (the guard home, by the way in), 2 (a local), then 3 and 4 (trainers, on
  * the far pavement) and 5 (someone else about).
  */
-function areaOf(parts: Part[], people: number, grass = true): Pick<GameMap, 'rows' | 'scenery'> {
+function areaOf(parts: Part[], people: number): Pick<GameMap, 'rows' | 'scenery'> {
   const { doors, scenery } = street(parts);
   const w = doors.length;
   if (w < 24) throw new Error(`a street of ${w} is too short for its people`);
@@ -972,7 +1021,7 @@ function areaOf(parts: Part[], people: number, grass = true): Pick<GameMap, 'row
     scenery.some((s) => x >= s.x0 && x <= s.x1 && y >= s.y0);
   const top = (y: number) =>
     [...Array(w)].map((_, x) => (x > 0 && x < w - 1 && covered(x, y) ? 'W' : 'T')).join('');
-  const park = (x: number) => (grass && ((x >= 2 && x <= 9) || (x >= 15 && x <= 21)) ? ',' : 'v');
+  const park = (x: number) => ((x >= 2 && x <= 9) || (x >= 15 && x <= 21) ? ',' : 'v');
   const rows = [
     top(0),
     top(1),
@@ -986,6 +1035,7 @@ function areaOf(parts: Part[], people: number, grass = true): Pick<GameMap, 'row
     row(park, { ...spot(3, 7), 14: 'S', ...spot(4, 17) }),
     row(park),
     row('v'),
+    ...commonOf(w),
     'T'.repeat(w),
   ];
   return { rows, scenery };
@@ -1040,8 +1090,14 @@ export const FALMER: GameMap = {
       { landmark: 'rail', w: 5, label: 'FALMER' },
     ],
     2,
-    false,
   ),
+  wild: town(6, 9, [
+    ['enda', 20],
+    ['simomon', 20],
+    ['lorcamon', 20],
+    ['owemon', 20],
+    ['skehemon', 20],
+  ]),
   npcs: [
     guard(),
     {
@@ -1090,8 +1146,14 @@ export const SELHURST: GameMap = {
       { landmark: 'rail', w: 4, label: 'SELHURST' },
     ],
     4,
-    false,
   ),
+  wild: town(9, 13, [
+    ['jammon', 20],
+    ['hugomon', 20],
+    ['conemon', 20],
+    ['vinnimon', 20],
+    ['crampemon', 20],
+  ]),
   npcs: [
     guard(),
     local(
@@ -1350,8 +1412,14 @@ export const TOTTENHAM: GameMap = {
       { houses: '##' },
     ],
     4,
-    false,
   ),
+  wild: town(24, 28, [
+    ['robinmon', 20],
+    ['steadmon', 20],
+    ['lorcamon', 20],
+    ['boydemon', 20],
+    ['crampemon', 20],
+  ]),
   npcs: [
     guard(),
     local(
@@ -1441,8 +1509,14 @@ export const FULHAM: GameMap = {
       { houses: '##' },
     ],
     5,
-    false,
   ),
+  wild: town(30, 34, [
+    ['simomon', 20],
+    ['hugomon', 20],
+    ['paulimon', 20],
+    ['skehemon', 20],
+    ['vinnimon', 20],
+  ]),
   npcs: [
     guard(),
     local(
@@ -1478,8 +1552,14 @@ export const HIGHBURY: GameMap = {
       { houses: '##' },
     ],
     4,
-    false,
   ),
+  wild: town(33, 37, [
+    ['lorcamon', 20],
+    ['jammon', 20],
+    ['crampemon', 20],
+    ['steadmon', 20],
+    ['thilomon', 20],
+  ]),
   npcs: [
     guard(),
     local(
@@ -1841,7 +1921,410 @@ const ROUTE_TRAINERS: Trainer[] = [
   ),
 ];
 
-export const PREMIER_TRAINERS = [...PL_TRAINERS, ...ROUTE_TRAINERS];
+// ---------- the first ride on each line ----------
+
+/**
+ * A carriage: tables and seats along both sides and a wide aisle up the middle. The three
+ * passengers sit by the aisle, in seats facing it, so nobody gets up the train without being
+ * seen, and the conductor waits at the front. You board at the back (`@`), where the doors (`E`)
+ * take you back off onto the street outside King's Cross.
+ */
+const CARRIAGE = [
+  'WWOWWOWWOWWOWWOWWOWWOWWOWW',
+  'WnUnFnUn1nUnFnUnFnUn3nUnUW',
+  'WFFFFFFFFFFFFFFFFFFFFFFF4W',
+  'WFFFFFFFFFFFFFFFFFFFFFFFFW',
+  'W@nUnFnUnFnUn2nUnFnUnFnUnW',
+  'WEWWWWWWWWWWWWWWWWWWWWWWWW',
+];
+
+/** Getting off a train goes back out of King's Cross, onto the street in London. */
+export const KINGS_CROSS_DOOR = { map: 'london', x: 3, y: 2 };
+
+/** London's long grass tops out at Lv6: the first train starts a little over it. */
+const FIRST_FROM = 6;
+
+/** How many passengers battle you on each train. */
+const PASSENGERS_PER_TRAIN = 3;
+
+/** Someone on a train the first time you take it, with their two Ranemon. */
+interface Passenger {
+  look: Look;
+  name: string;
+  team: [string, string];
+  before: string;
+  after: string;
+}
+
+/** The passengers on each line's train, from the back of the carriage to the front. */
+const PASSENGERS: Record<string, Passenger[]> = {
+  falmer: [
+    {
+      look: 'hen',
+      name: 'Hen Party Shauna',
+      team: ['enda', 'skatemon'],
+      before:
+        'HEN PARTY SHAUNA: We’re off to Brighton for Ciara’s hen! You’re coming now. Battle first!',
+      after: 'HEN PARTY SHAUNA: Fine. You’re still coming to the hen.',
+    },
+    {
+      look: 'trainer',
+      name: 'Student Ollie',
+      team: ['simomon', 'oatmon'],
+      before: 'STUDENT OLLIE: I’m at Sussex. I study the vibes. Battle me.',
+      after: 'STUDENT OLLIE: I’ll write my dissertation on that.',
+    },
+    {
+      look: 'fan',
+      name: 'Seagulls Fan Dawn',
+      team: ['oystermon', 'owemon'],
+      before: 'SEAGULLS FAN DAWN: Up the Albion! Nobody takes points off us at the Amex.',
+      after: 'SEAGULLS FAN DAWN: Glenn Murray will sort you out.',
+    },
+  ],
+  selhurst: [
+    {
+      look: 'local',
+      name: 'Commuter Gary',
+      team: ['speedmon', 'jammon'],
+      before:
+        'COMMUTER GARY: Thameslink have cancelled the next six trains. I’ve time for a battle.',
+      after: 'COMMUTER GARY: Delayed. Again.',
+    },
+    {
+      look: 'fan',
+      name: 'Eagles Fan Tash',
+      team: ['hugomon', 'fleamon'],
+      before: 'EAGLES FAN TASH: Holmesdale Road End, born and bred. Come on then!',
+      after: 'EAGLES FAN TASH: We’ll still sing louder than you.',
+    },
+    {
+      look: 'trainer',
+      name: 'Croydon Kid Jordan',
+      team: ['skatemon', 'conemon'],
+      before: 'CROYDON KID JORDAN: Croydon’s got a Boxpark AND a tram. Respect it.',
+      after: 'CROYDON KID JORDAN: Still got the tram.',
+    },
+  ],
+  birmingham: [
+    {
+      look: 'trainer',
+      name: 'HS2 Engineer Priya',
+      team: ['boydemon', 'pedalmon'],
+      before: 'HS2 ENGINEER PRIYA: This line will be twenty minutes faster by 2040. Maybe. Battle.',
+      after: 'HS2 ENGINEER PRIYA: Over budget again.',
+    },
+    {
+      look: 'local',
+      name: 'Brummie Nan Joan',
+      team: ['steadmon', 'bagelmon'],
+      before: 'BRUMMIE NAN JOAN: Ow am ya, bab? Lovely. Now battle me.',
+      after: 'BRUMMIE NAN JOAN: Tara-a-bit, bab.',
+    },
+    {
+      look: 'fan',
+      name: 'Villa Fan Kev',
+      team: ['paulimon', 'seedmon'],
+      before: 'VILLA FAN KEV: Holte End, me. We won the European Cup, you know. Once.',
+      after: 'VILLA FAN KEV: 1982 still counts.',
+    },
+  ],
+  liverpool: [
+    {
+      look: 'sailor',
+      name: 'Ferry Worker Siobhán',
+      team: ['oystermon', 'thilomon'],
+      before: 'FERRY WORKER SIOBHÁN: I work the Dublin ferry. Today I’m off duty, and fighting.',
+      after: 'FERRY WORKER SIOBHÁN: Rough crossing, that.',
+    },
+    {
+      look: 'fan',
+      name: 'Toffee Fan Ste',
+      team: ['killemon', 'jabmon'],
+      before: 'TOFFEE FAN STE: Bramley-Moore Dock! Best new ground in the world. Prove me wrong.',
+      after: 'TOFFEE FAN STE: Still the People’s Club.',
+    },
+    {
+      look: 'lad',
+      name: 'Scouse Lad Connor',
+      team: ['conemon', 'decksmon'],
+      before:
+        'SCOUSE LAD CONNOR: Me nan’s from Wexford, me da’s from Mayo and I’m from Kirkby. Battle!',
+      after: 'SCOUSE LAD CONNOR: Boss, that, la.',
+    },
+  ],
+  leeds: [
+    {
+      look: 'trainer',
+      name: 'Intern Marta',
+      team: ['seedmon', 'hugomon'],
+      before: 'INTERN MARTA: Marcelo has me watching the whole carriage. You’re next.',
+      after: 'INTERN MARTA: I’ll need another forty hours of footage.',
+    },
+    {
+      look: 'fan',
+      name: 'Leeds Fan Gaz',
+      team: ['jammon', 'oatmon'],
+      before: 'LEEDS FAN GAZ: Marching on together! Mostly to the buffet car.',
+      after: 'LEEDS FAN GAZ: Dirty, that.',
+    },
+    {
+      look: 'local',
+      name: 'Rambler Margaret',
+      team: ['vinnimon', 'pedalmon'],
+      before: 'RAMBLER MARGARET: Off to walk the Dales. A battle first, it’ll warm my legs up.',
+      after: 'RAMBLER MARGARET: Right. Pass me my flask.',
+    },
+  ],
+  newcastle: [
+    {
+      look: 'stag',
+      name: 'Stag Do Lee',
+      team: ['gibbsmon', 'bagelmon'],
+      before: 'STAG DO LEE: Stag do to the Toon! No coats! Battle!',
+      after: 'STAG DO LEE: Taking me top off now. Not because of that.',
+    },
+    {
+      look: 'fan',
+      name: 'Toon Fan Shelley',
+      team: ['olliemon', 'fleamon'],
+      before: 'TOON FAN SHELLEY: Howay! Shearer’s waiting, and so am I.',
+      after: 'TOON FAN SHELLEY: Divvent tell Alan.',
+    },
+    {
+      look: 'trainer',
+      name: 'Reality Star Jay',
+      team: ['owemon', 'speedmon'],
+      before:
+        'REALITY STAR JAY: I’m auditioning for Geordie Shore. Battling’s part of it, probably.',
+      after: 'REALITY STAR JAY: I’ll just do a fake tan instead.',
+    },
+  ],
+  tottenham: [
+    {
+      look: 'fan',
+      name: 'Spurs Fan Daniel',
+      team: ['robinmon', 'jabmon'],
+      before: 'SPURS FAN DANIEL: This is our year. It’s always our year. Battle!',
+      after: 'SPURS FAN DANIEL: It’s the hope that kills you.',
+    },
+    {
+      look: 'local',
+      name: 'Barista Freya',
+      team: ['oatmon', 'crampemon'],
+      before: 'BARISTA FREYA: An oat flat white is six pounds. A battle’s free.',
+      after: 'BARISTA FREYA: That’ll be six pounds anyway.',
+    },
+    {
+      look: 'busker',
+      name: 'Busker Femi',
+      team: ['decksmon', 'lorcamon'],
+      before:
+        'BUSKER FEMI: I’ve played Wonderwall four hundred times today. Battle me so I can stop.',
+      after: 'BUSKER FEMI: Wonderwall it is, then.',
+    },
+  ],
+  eastlands: [
+    {
+      look: 'tux',
+      name: 'Hedge Fund Hugo',
+      team: ['bagelmon', 'oismon'],
+      before:
+        'HEDGE FUND HUGO: First class, obviously. The seats are fifty-pound notes. Battle me for one.',
+      after: 'HEDGE FUND HUGO: Put it on expenses.',
+    },
+    {
+      look: 'fan',
+      name: 'City Fan Nadia',
+      team: ['thilomon', 'speedmon'],
+      before: 'CITY FAN NADIA: Treble winners! The charges are irrelevant. Battle!',
+      after: 'CITY FAN NADIA: We’ll be appealing that.',
+    },
+    {
+      look: 'local',
+      name: 'Ticket Inspector Bernard',
+      team: ['gibbsmon', 'fleamon'],
+      before: 'TICKET INSPECTOR BERNARD: Tickets, please. No ticket? A battle, then.',
+      after: 'TICKET INSPECTOR BERNARD: Enjoy the rest of your journey.',
+    },
+  ],
+  fulham: [
+    {
+      look: 'tux',
+      name: 'Sloane Ranger Pippa',
+      team: ['simomon', 'skatemon'],
+      before:
+        'SLOANE RANGER PIPPA: Daddy says the District line is character building. Quick battle.',
+      after: 'SLOANE RANGER PIPPA: I’m getting an Uber next time.',
+    },
+    {
+      look: 'oldman',
+      name: 'Chelsea Pensioner Arthur',
+      team: ['steadmon', 'paulimon'],
+      before: 'CHELSEA PENSIONER ARTHUR: I saw Osgood play, son. Let’s see what you’ve got.',
+      after: 'CHELSEA PENSIONER ARTHUR: Not bad. Osgood was better.',
+    },
+    {
+      look: 'fan',
+      name: 'Blues Fan Mason',
+      team: ['hugomon', 'jabmon'],
+      before: 'BLUES FAN MASON: Eleven managers since I was born. Battle!',
+      after: 'BLUES FAN MASON: Sack the manager.',
+    },
+  ],
+  highbury: [
+    {
+      look: 'fan',
+      name: 'Gooner Aisha',
+      team: ['lorcamon', 'seedmon'],
+      before: 'GOONER AISHA: Two stops. Just long enough to beat you.',
+      after: 'GOONER AISHA: Trust the process.',
+    },
+    {
+      look: 'trainer',
+      name: 'Tourist Lars',
+      team: ['crampemon', 'pedalmon'],
+      before: 'TOURIST LARS: Is this the Tube to Arsenal? I will battle you for directions.',
+      after: 'TOURIST LARS: I will ask somebody else.',
+    },
+    {
+      look: 'local',
+      name: 'Islington Dad Rupert',
+      team: ['vinnimon', 'oatmon'],
+      before: 'ISLINGTON DAD RUPERT: Sourdough in one hand, season ticket in the other. Battle.',
+      after: 'ISLINGTON DAD RUPERT: I shall be writing to the Guardian.',
+    },
+  ],
+  anfield: [
+    {
+      look: 'fan',
+      name: 'Kopite Jen',
+      team: ['boydemon', 'decksmon'],
+      before: 'KOPITE JEN: You’ll never walk alone. You’ll lose, though.',
+      after: 'KOPITE JEN: Still never walking alone.',
+    },
+    {
+      look: 'lad',
+      name: 'Singer Tommo',
+      team: ['killemon', 'fleamon'],
+      before: 'SINGER TOMMO: (Singing.) Allez, allez, allez! Battle, battle, battle!',
+      after: 'SINGER TOMMO: (Still singing.)',
+    },
+    {
+      look: 'trainer',
+      name: 'Beatles Guide Paula',
+      team: ['enda', 'speedmon'],
+      before:
+        'BEATLES GUIDE PAULA: Strawberry Field is that way. But first, all you need is a battle.',
+      after: 'BEATLES GUIDE PAULA: Let it be.',
+    },
+  ],
+  manchester: [
+    {
+      look: 'fan',
+      name: 'United Fan Callum',
+      team: ['olliemon', 'jabmon'],
+      before: 'UNITED FAN CALLUM: Twenty titles. I was there for most of them. On the telly.',
+      after: 'UNITED FAN CALLUM: Fergie would’ve had words.',
+    },
+    {
+      look: 'trainer',
+      name: 'Poet Lou',
+      team: ['owemon', 'bagelmon'],
+      before: 'POET LOU: It rains in Manchester. It rains on you. Battle.',
+      after: 'POET LOU: That one’s going in the book.',
+    },
+    {
+      look: 'lad',
+      name: 'Raver Shaun',
+      team: ['oismon', 'decksmon'],
+      before: 'RAVER SHAUN: The Haçienda, ’89. Never really left. Come on then!',
+      after: 'RAVER SHAUN: Madchester, that.',
+    },
+  ],
+};
+
+const passengerId = (map: string, k: number) => `train-${map}-${k + 1}`;
+
+/** The ace of the club a line goes to, by its place in the fixtures. */
+const aceOf = (i: number) => Math.max(...FIXTURE_TEAMS[i].team.map(([, l]) => l));
+
+/** A line's club, by its place in the fixtures. */
+const fixtureOf = (l: Line) => CLUBS.findIndex((c) => c.map === l.map);
+
+/**
+ * The best Ranemon of the k-th passenger on a line: from the ace of the legend before up toward
+ * the ace of the legend you're on your way to, so you level up between grounds without grinding.
+ */
+export function passengerLevel(i: number, k: number): number {
+  const from = i === 0 ? FIRST_FROM : aceOf(i - 1);
+  return from + Math.round(((aceOf(i) - from) * (k + 1)) / (PASSENGERS_PER_TRAIN + 1));
+}
+
+/** Everyone on the trains: two Ranemon each, the first a level under the second. */
+const TRAIN_TRAINERS: Trainer[] = LINES.flatMap((l) => {
+  const i = fixtureOf(l);
+  return PASSENGERS[l.map].map((p, k): Trainer => {
+    const top = passengerLevel(i, k);
+    return {
+      ...ukTrainer(
+        passengerId(l.map, k),
+        p.name,
+        [
+          [p.team[0], top - 1],
+          [p.team[1], top],
+        ],
+        p.before,
+        p.after,
+      ),
+      // The first two trains are the easy ones, like London's own trainers.
+      ai: i < 2 ? 'easy' : 'normal',
+    };
+  });
+});
+
+/** A line's train, the first time you take it: its passengers, and the conductor at the front. */
+function trainRoom(l: Line): GameMap {
+  const passengers: Npc[] = PASSENGERS[l.map].map((p, k) => ({
+    look: p.look,
+    // The second passenger sits on the far side of the aisle, facing the other way.
+    face: k === 1 ? 'up' : 'down',
+    trainer: passengerId(l.map, k),
+    sight: 2,
+  }));
+  return {
+    id: trainId(l.map),
+    name: `The train to ${l.to}`,
+    county: 9,
+    flat: true,
+    uk: true,
+    inside: KINGS_CROSS_DOOR,
+    rows: CARRIAGE,
+    npcs: [
+      ...passengers,
+      {
+        look: 'conductor',
+        face: 'left',
+        talk: [
+          {
+            do: 'say',
+            text: `CONDUCTOR: You made it up the whole train! Next stop, ${l.to}. Mind the gap.`,
+          },
+          ...getOff(l),
+        ],
+      },
+    ],
+    things: {
+      n: 'A seat. Someone has put their bag on it, and their coat, and their feet.',
+      U: 'A table, sticky with someone else’s tea. A newspaper on it says the trains are late.',
+    },
+  };
+}
+
+/** The trains, one per line, each taken once: the first time you go to its town. */
+export const TRAIN_ROOMS = LINES.map(trainRoom);
+
+export const PREMIER_TRAINERS = [...PL_TRAINERS, ...ROUTE_TRAINERS, ...TRAIN_TRAINERS];
 
 /** The legends' jersey flags, in the order you win them. */
 export const PL_FLAGS = CLUBS.map((c) => plFlag(c.id));
