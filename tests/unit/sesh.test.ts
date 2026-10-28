@@ -5,6 +5,7 @@ import { hasMega } from '@/lib/battle/mega';
 import { RANELASS_MON } from '@/lib/battle/ranelasses';
 import { Rng } from '@/lib/battle/rng';
 import { actionOf, replayBattle, settle, startSeshBattle } from '@/lib/sesh/battle';
+import { STYLES } from '@/components/story/people';
 import { BOSSES } from '@/lib/sesh/bosses';
 import { bossAt, bossesFor, bouncerAt, DROPS, fightAt } from '@/lib/sesh/foes';
 import { isFair, routes, stageMap } from '@/lib/sesh/map';
@@ -163,7 +164,26 @@ describe('Sesh foes', () => {
   });
 
   it('never have a Ranelass as a boss', () => {
-    for (const b of BOSSES) expect(b.trainer.startsWith('rowans-')).toBe(false);
+    for (const b of BOSSES) {
+      expect(b.trainer?.startsWith('rowans-')).not.toBe(true);
+      expect(['bhav', 'esme', 'viv']).not.toContain(b.look);
+    }
+  });
+
+  it('each come with their story look, lines and a team, with or without a story trainer', () => {
+    expect(new Set(BOSSES.map((b) => b.id)).size).toBe(BOSSES.length);
+    for (const b of BOSSES) {
+      expect(Object.hasOwn(STYLES, b.look)).toBe(true);
+      QUICK_STAGES.forEach((stage, s) => {
+        const foe = bossAt(1, stage, s, b.id);
+        expect(foe.name).toBeTruthy();
+        expect(foe.before).toBeTruthy();
+        expect(foe.after).toBeTruthy();
+        expect(foe.look).toBe(b.look);
+        expect(foe.music).toBeTruthy();
+        expect(foe.team).toHaveLength(stage.boss.team);
+      });
+    }
   });
 });
 

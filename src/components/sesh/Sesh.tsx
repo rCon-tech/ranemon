@@ -9,6 +9,7 @@ import { Sprite } from '@/components/Sprite';
 import { TypeBadge } from '@/components/TypeBadge';
 import { MoveCard } from '@/components/MoveCard';
 import { MemberRow, MovesPanel, Panel } from '@/components/story/Panels';
+import { Portrait } from '@/components/story/Portrait';
 import { moveById } from '@/lib/battle/moves';
 import { replayBattle, type BattleInput } from '@/lib/sesh/battle';
 import {
@@ -429,6 +430,7 @@ function Briefing({ run, onFight }: { run: SeshRun; onFight: () => void }) {
   const kind = foe.kind === 'boss' ? 'BOSS' : NODE_LOOK[foe.kind].label;
   return (
     <Panel title={`${kind}: ${foe.name.toUpperCase()}`}>
+      {foe.look && <Portrait look={foe.look} className="mx-auto h-24 w-16" />}
       <p className="dialog px-3 py-2 text-[13px] leading-[1.8]">{foe.before}</p>
       <p className="text-[11px]">
         {foe.name} has {foe.team.length} Ranemon
@@ -698,7 +700,7 @@ export function Sesh() {
         start={resume ?? battle.start}
         difficulty={battle.foe.ai}
         scene={stageOf(night).scene}
-        music={battle.foe.kind === 'fight' ? 'trainer' : 'boss'}
+        music={battle.foe.music ?? (battle.foe.kind === 'fight' ? 'trainer' : 'boss')}
         flat
         story={{
           bag: battleBag(fightBag),
