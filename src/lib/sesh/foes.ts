@@ -1,6 +1,6 @@
 import { trainerById } from '@/content/story/trainers';
 import type { Difficulty } from '../battle/cpu';
-import { lineOf } from '../battle/evolutions';
+import { formAt, lineOf } from '../battle/evolutions';
 import { hasMega } from '../battle/mega';
 import { Rng, seedFrom } from '../battle/rng';
 import type { RaneType } from '../battle/types';
@@ -208,9 +208,10 @@ export function bossTeam(
   rng: Rng,
   mega: boolean,
 ): { team: Member[]; mega?: string } {
+  const { level, team: size } = stage.boss;
+  if (boss.own) return ownTeam(boss, rng, level, size);
   const types = bossTypes(boss);
   const fits = (id: string) => speciesById(id).types.some((t) => types.includes(t));
-  const { level, team: size } = stage.boss;
   const picks: string[] = [];
   const take = (from: string[]) => {
     const pool = from.filter((id) => !picks.some((p) => lineOf(p) === lineOf(id)));
@@ -230,6 +231,24 @@ export function bossTeam(
   );
   const ace = order[order.length - 1];
   return { team, ...(mega && hasMega(ace) && { mega: ace }) };
+}
+
+/**
+ * A team of a boss's own: their story team's ace (their own Ranemon) last, and the rest dealt
+ * from the others on their story team, each in its form for the stage's level.
+ */
+function ownTeam(boss: Boss, rng: Rng, level: number, size: number): { team: Member[] } {
+  const story = trainerById(boss.trainer!).team.map(([id]) => id);
+  const ace = story[story.length - 1];
+  const rest = story.slice(0, -1);
+  const picks = Array.from(
+    { length: Math.min(size - 1, rest.length) },
+    () => rest.splice(rng.int(0, rest.length - 1), 1)[0],
+  );
+  const team = [...picks, ace].map((id, i, all) =>
+    member(formAt(id, level), i === all.length - 1 ? level : level - 2, -1 - i, rng),
+  );
+  return { team };
 }
 
 /** The bosses for a run: one per stage, drawn from the whole pool, never the same one twice. */
