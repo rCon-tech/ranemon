@@ -67,7 +67,10 @@ export type Sent = {
 
 const TIMEOUT_MS = 8000;
 
-async function post(base: string, body: object): Promise<{ status: number; data: Record<string, unknown> }> {
+async function post(
+  base: string,
+  body: object,
+): Promise<{ status: number; data: Record<string, unknown> }> {
   const res = await fetch(`${base.replace(/\/+$/, '')}/sesh`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
