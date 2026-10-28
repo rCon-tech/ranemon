@@ -67,6 +67,7 @@ HD = {
     "vinnimon": (192, 64, (140, 0, 170)),
     "petchemon": (192, 64, (90, 10, 200)),
     "crampemon": (192, 64, (50, 0, 290)),
+    "nickamon": (192, 64, (90, 10, 200)),
     # An item evolution from its own photo, wrapped in its type's glow like the other evolutions.
     "cholokill": (192, 64, (105, 0, 150)),
 }
@@ -105,6 +106,7 @@ EVOLUTIONS = {
     "skehdinja": ("skehemon", "chill"),
     "vinnisaur": ("vinnimon", "charm"),
     "crampsb2bthilomon": ("crampemon", "hype"),
+    "nickoking": ("nickamon", "charm"),
     # A second look of the same Ranemon, from another photo (src/lib/battle/variants.ts).
     "hitmonollie-tricolour": ("olliemon-tricolour", "brawn"),
     "hitmonois-cap": ("oismon-cap", "hype"),
@@ -359,6 +361,15 @@ def costume(evo: str, d: ImageDraw.ImageDraw, back: ImageDraw.ImageDraw, head, b
         back.ellipse([fx - 6, fy - 4, fx + 6, fy + 4], fill=(248, 216, 96), outline=OUTLINE)
         for s in (-1, 1):
             poly(back, [(cx + s * 18, top + 44), (cx + s * 46, top + 30), (cx + s * 40, top + 52)], (72, 168, 88))
+    elif evo == "nickoking":
+        # Nidoking's horn on his forehead, its big pointed ears and a row of spikes behind.
+        purple = (150, 84, 196)
+        poly(d, [(cx - 4, top + 8), (cx, top - 12), (cx + 4, top + 8)], (232, 224, 240))
+        ears(back, cx, top + 8, w + 2, purple, (96, 52, 140), (240, 200, 220), tall=18)
+        for s in (-1, 1):
+            for i in range(3):
+                poly(back, [(cx + s * (w + 2), top + 24 + i * 9), (cx + s * (w + 13), top + 20 + i * 9),
+                            (cx + s * (w + 4), top + 31 + i * 9)], purple)
 
 
 # Evolutions of two lads at once: the partner whose photo stands beside the base form's.

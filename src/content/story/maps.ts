@@ -16,6 +16,7 @@ import {
 } from './buildings';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
+import { NICK } from './nick';
 import { HIGGINS, TRINITY_BALL } from './ball';
 import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
@@ -518,6 +519,7 @@ export const MAPS: GameMap[] = [
         ['lorcamon', 30],
         ['simomon', 25],
         ['owemon', 10],
+        ['nickamon', 5],
       ],
     },
     npcs: [
@@ -587,6 +589,7 @@ export const MAPS: GameMap[] = [
       },
       garda('Clare', 'jersey:clare'),
       ...LEGENDS.CLARE_NPCS,
+      NICK,
     ],
     signs: [
       'NEWMARKET-ON-FERGUS. Home of a President.',
@@ -1294,6 +1297,7 @@ export const MAPS: GameMap[] = [
         ['skehemon', 7],
         ['vinnimon', 7],
         ['crampemon', 7],
+        ['nickamon', 7],
         ['gibbsmon', 3],
         ['thilomon', 3],
       ],
