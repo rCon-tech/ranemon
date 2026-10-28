@@ -425,6 +425,26 @@ def vinnisaur(f, look, stage, view):
             f.part(ellipse(BX - 7, 70, BX + 7, 82), middle)
 
 
+def nickoking(f, look, stage, view):
+    """Nidoking: a horn on his forehead, big pointed ears, spikes down his back and a thick tail."""
+    purple = ramp((150, 84, 196), (186, 130, 226), (100, 52, 148))
+    horn = ramp((232, 224, 240))
+    inner = ramp((240, 196, 220))
+    if view == "front":
+        if stage == "behind":
+            pair(f, [(62, 22), (72, 2), (70, 26)], purple, view, inner, 0.5)
+            f.part(capsule((60, 86), (84, 84), 9) | capsule((84, 84), (92, 70), 7), purple)
+        if stage == "head":
+            f.part(poly((CX - 4, 12), (CX, -2), (CX + 4, 12)), horn)
+    else:
+        if stage == "behind":
+            f.part(capsule((62, 94), (88, 86), 11) | capsule((88, 86), (94, 70), 8), purple)
+            pair(f, [(66, 26), (80, 2), (76, 30)], purple, view, inner, 0.5)
+        if stage == "body":
+            for y in (62, 74, 86):
+                f.part(poly((BX - 6, y + 8), (BX, y - 7), (BX + 6, y + 8)), purple)
+
+
 COSTUMES = {
     "carlizard": ({}, carlizard),
     "steadakazam": ({"pose": "down"}, steadakazam),
@@ -445,4 +465,5 @@ COSTUMES = {
     "pauliwrath": ({"pose": "guard", "gloves": (72, 112, 200)}, pauliwrath),
     "skehdinja": ({}, skehdinja),
     "vinnisaur": ({}, vinnisaur),
+    "nickoking": ({}, nickoking),
 }

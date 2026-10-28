@@ -8,6 +8,7 @@ import { ARCADE_KING } from './brighton';
 import { BEAT_PEARS, BHAV_TRAINER } from './greystones';
 import { INTERIORS, MAPS } from './maps';
 import { MESCAL_TRAINER } from './mescal';
+import { NICK_TRAINER } from './nick';
 import { RENT_DONE } from './rent';
 import { COLLISONS } from './silicon';
 import { JAMIE } from './sidemen';
@@ -166,6 +167,12 @@ export const SKINS: Skin[] = [
   },
   { id: 'kill', name: 'Kill', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
   { id: 'stead', name: 'Stead', unlock: [BEAT_PEARS], hint: 'Sort out Greystones.' },
+  {
+    id: 'nick',
+    name: 'Nick',
+    unlock: beat(NICK_TRAINER),
+    hint: 'Beat the second most French man in Ireland, in Clare.',
+  },
   {
     id: 'bhav',
     name: 'Dr Bhav',

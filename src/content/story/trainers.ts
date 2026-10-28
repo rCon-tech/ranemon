@@ -5,6 +5,7 @@ import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
 import { BHAV_AFTER, BHAV_BEFORE, BHAV_REWARD, BHAV_TRAINER, PEAR_REWARD } from './greystones';
+import { NICK_AFTER, NICK_BEFORE, NICK_REWARD, NICK_TRAINER } from './nick';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
@@ -429,6 +430,21 @@ const T: Trainer[] = [
     before: BHAV_BEFORE,
     after: BHAV_AFTER,
     reward: BHAV_REWARD,
+  },
+
+  // ---------- Nick, by the beach in Clare: the second most French man in Ireland ----------
+  {
+    id: NICK_TRAINER,
+    name: 'Nick',
+    team: [
+      ['enda', 10],
+      ['nickamon', 12],
+    ],
+    ai: 'normal',
+    prize: 900,
+    before: NICK_BEFORE,
+    after: NICK_AFTER,
+    reward: NICK_REWARD,
   },
 
   // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
