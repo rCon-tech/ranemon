@@ -67,3 +67,32 @@ test('Quick Sesh: a battle left halfway carries on where it was', async ({ page 
   await expect(page.getByTestId('battlefield')).toBeVisible();
   await expect(ended ? done : turn2).toBeVisible();
 });
+
+test('Quick Sesh: the Daily Challenge is the same night for everyone, apart from a free run', async ({
+  page,
+  browser,
+}) => {
+  await unlock(page);
+  await page.goto('/sesh');
+  await page.getByTestId('sesh-name').fill('Daily One');
+  // A free run first, to check the Daily Challenge doesn't end it.
+  await page.getByTestId('sesh-new').click();
+  await page.goto('/sesh');
+  await expect(page.getByTestId('sesh-daily-next')).toContainText(/\d\d:\d\d:\d\d/);
+  await page.getByTestId('sesh-daily-start').click();
+  const party = await page.getByText('YOUR PARTY TONIGHT').locator('..').innerText();
+  await page.getByTestId('sesh-go').click();
+  await expect(page.getByTestId('sesh-daily-tag')).toContainText('DAILY CHALLENGE');
+  await page.goto('/sesh');
+  await expect(page.getByRole('button', { name: 'CARRY ON THE NIGHT' })).toBeVisible();
+  await expect(page.getByTestId('sesh-daily-carry-on')).toHaveText('CARRY ON TODAY’S CHALLENGE');
+
+  // Someone else, on another phone, gets the same party.
+  const other = await browser.newPage();
+  await unlock(other);
+  await other.goto('/sesh');
+  await other.getByTestId('sesh-name').fill('Daily Two');
+  await other.getByTestId('sesh-daily-start').click();
+  expect(await other.getByText('YOUR PARTY TONIGHT').locator('..').innerText()).toBe(party);
+  await other.close();
+});

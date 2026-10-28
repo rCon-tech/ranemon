@@ -17,6 +17,7 @@ export const UPDATES: Update[] = [
       'New on the home screen: QUICK SESH. You get a random party of six strong Ranemon and one night out: The Pub, The Nightclub and The Afterparty, with a boss at the end of each.',
       'Pick your way through each stage one stop at a time: a fight, a bouncer, the offie or a sit-down in the smoking area. Anyone still fainted after a battle goes home in a taxi.',
       'A new boss every run. It plays at 2× to start, and it has its own saves, so it never touches your Story mode.',
+      'The DAILY CHALLENGE: the same night for everyone each day, with the same party, maps and bosses. Play it as often as you like; your best score counts. A new one starts at midnight (UTC).',
       'LONG SESH is coming once we’ve all had a go.',
     ],
   },

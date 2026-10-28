@@ -38,6 +38,15 @@ A random party of 6 strong Ranemon and about 20 minutes a run, over the last thr
 - **Permadeath**: a Ranemon still fainted when a battle ends is sent home in a taxi for the rest of the run. Hair of the Dog revives only during a battle. Lose a battle, or win one with nobody standing, and the night's over.
 - **Score** (`scoreOf`): bosses beaten first, then Ranemon left standing, then fewest turns.
 
+## Daily Challenge
+
+`src/lib/sesh/daily.ts`. A Quick Sesh that everyone plays on the same seed for one day (UTC): `dailySeed(day)` is `seedFrom('ranemon-sesh-daily:YYYY-MM-DD')`, so the same party, maps, foes and bosses, worked out on each phone, even offline. Play it as often as you like that day; your best score counts.
+
+- It has its own save slot (`ranemon.sesh.daily.v1:<name>`), so starting one never ends a free run, and the other way round. A challenge left unfinished can be carried on after its day; it still counts for its own day.
+- Your best score each day is kept for the last 30 days (`recordDaily`); free runs keep their 5 best nights as before.
+- The start screen shows today's date, your best today, and a countdown to the next one at midnight UTC. The map shows DAILY CHALLENGE and its day.
+- A run counts on its day's board if it reaches the save server within 48 hours of the day ending (`countsFor`), for the leaderboard.
+
 ## Screens
 
 `src/components/sesh/` (`/sesh`), all 2D (`flat` on the battles, and the map is a flat screen of its own):
