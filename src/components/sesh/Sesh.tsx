@@ -27,7 +27,17 @@ import {
   type SeshAction,
   type SeshRun,
 } from '@/lib/sesh/run';
-import { countdown, dailyRun, dayOf, untilNext } from '@/lib/sesh/daily';
+import { countdown, dailyRun, dayOf, today as todayIs, untilNext } from '@/lib/sesh/daily';
+import {
+  fetchBoard,
+  fetchMine,
+  fetchWinners,
+  queued,
+  queueRun,
+  sendQueue,
+  type Sent,
+} from '@/lib/sesh/online';
+import type { SeshRow } from '@/lib/online/sesh';
 import { bossAt } from '@/lib/sesh/foes';
 import {
   lastSeshPlayer,
@@ -58,6 +68,16 @@ import {
 import { NODE_LOOK, SeshMap } from './SeshMap';
 
 const euro = (n: number) => `€${n.toLocaleString('en-IE')}`;
+
+/** The save server's address, when this build has one (see `save-api/`), for the boards. */
+function saveApi(): string | undefined {
+  try {
+    return process.env.NEXT_PUBLIC_SAVE_API || undefined;
+  } catch {
+    return undefined;
+  }
+}
+const SAVE_API = saveApi();
 const noSubscribe = () => () => {};
 const everySecond = (tick: () => void) => {
   const t = setInterval(tick, 1000);
@@ -476,12 +496,15 @@ function Results({
   run,
   bests,
   daily,
+  post,
   onAgain,
 }: {
   run: SeshRun;
   bests: SeshBest[];
   /** Your best Daily Challenge each day, when this run was one. */
   daily: DailyBests;
+  /** How sending it to the boards went. */
+  post?: React.ReactNode;
   onAgain: () => void;
 }) {
   const won = run.over === 'won';
@@ -513,6 +536,7 @@ function Results({
         SCORE {scoreOf(run).toLocaleString('en-IE')}
       </p>
       <PartyStrip party={run.party} gone={run.gone} />
+      {post}
       {best && (
         <p className="text-center text-[11px]" data-testid="sesh-daily-best">
           YOUR BEST ON THE {run.daily} CHALLENGE: {best.score.toLocaleString('en-IE')}
@@ -549,6 +573,175 @@ function Results({
   );
 }
 
+const SENT_WORDS: Record<NonNullable<Sent['error']>, string> = {
+  pin: 'Enter your PIN to put it on the board.',
+  nosave: 'That name has no online save yet. Play Story mode with your PIN first, then it goes up.',
+  offline: 'No connection: it goes up the next time you open The Sesh online.',
+  update:
+    'You and the save server are on different versions of the game. It goes up once you’re both updated.',
+};
+
+/** Whether a finished run has gone up to the boards, and the PIN when it's needed. */
+function PostStatus({ sent, onPin }: { sent: Sent | 'sending'; onPin: (pin: string) => void }) {
+  const [pin, setPin] = useState('');
+  if (sent === 'sending') return <p className="text-center text-[11px]">Sending to the board…</p>;
+  return (
+    <div className="flex flex-col gap-1 text-center text-[11px]" data-testid="sesh-post">
+      <p>{sent.error ? SENT_WORDS[sent.error] : 'On the board.'}</p>
+      {sent.error === 'pin' && (
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (/^\d{4,8}$/.test(pin)) onPin(pin);
+          }}
+        >
+          <input
+            className="dialog min-w-0 flex-1 px-2 py-1 text-[14px] text-ink outline-none"
+            inputMode="numeric"
+            type="password"
+            autoComplete="current-password"
+            placeholder="PIN"
+            value={pin}
+            maxLength={8}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+            data-testid="sesh-pin"
+          />
+          <button type="submit" className="pixel-btn px-3 text-[12px]" data-cmd="fight">
+            POST
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+/** One board: who, how far, and the score. */
+function BoardList({
+  rows,
+  label,
+  empty = 'Nobody yet.',
+}: {
+  rows: SeshRow[];
+  label: (r: SeshRow) => string;
+  empty?: string;
+}) {
+  if (!rows.length) return <p className="text-[11px] opacity-80">{empty}</p>;
+  return (
+    <ol className="flex flex-col gap-0.5 text-[11px]">
+      {rows.map((r, i) => (
+        <li key={`${r.day}-${r.name}-${i}`} className="flex justify-between gap-2">
+          <span className="truncate">
+            {i + 1}. {label(r)}
+          </span>
+          <span>{r.score.toLocaleString('en-IE')}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** The boards: today's Daily Challenge, past days' winners, and your own best runs. */
+function Boards({ base, name, onBack }: { base: string; name: string; onBack: () => void }) {
+  const [tab, setTab] = useState<'today' | 'winners' | 'mine'>('today');
+  const [rows, setRows] = useState<
+    | {
+        tab: string;
+        today?: SeshRow[];
+        winners?: SeshRow[];
+        mine?: { free: SeshRow[]; daily: SeshRow[] };
+      }
+    | 'error'
+    | null
+  >(null);
+  const now = useNow();
+  const day = now === null ? null : dayOf(now);
+  useEffect(() => {
+    if (!day) return;
+    let live = true;
+    const got =
+      tab === 'today'
+        ? fetchBoard(base, day).then((today) => ({ tab, today }))
+        : tab === 'winners'
+          ? fetchWinners(base, day).then((winners) => ({ tab, winners }))
+          : fetchMine(base, name).then((mine) => ({ tab, mine }));
+    got.then(
+      (r) => live && setRows(r),
+      () => live && setRows('error'),
+    );
+    return () => {
+      live = false;
+    };
+  }, [base, name, tab, day]);
+  const shown = rows !== 'error' && rows?.tab === tab ? rows : null;
+  const bosses = (r: SeshRow) => `${r.beaten}/${QUICK_STAGES.length}`;
+  return (
+    <Panel title="THE BOARDS">
+      <div className="grid grid-cols-3 gap-1" role="tablist">
+        {(
+          [
+            ['today', 'TODAY'],
+            ['winners', 'WINNERS'],
+            ['mine', 'MINE'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            className={`pixel-btn px-1 py-1 text-[11px] ${tab === id ? 'ring-2 ring-gold' : ''}`}
+            data-cmd={tab === id ? 'fight' : 'bag'}
+            onClick={() => setTab(id)}
+            data-testid={`board-${id}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {rows === 'error' && <p className="text-[11px]">Couldn’t reach the save server.</p>}
+      {rows !== 'error' && !shown && <p className="text-[11px]">Loading…</p>}
+      {shown?.today && (
+        <>
+          <h3 className="text-[11px] font-bold">DAILY CHALLENGE · {day}</h3>
+          <BoardList rows={shown.today} label={(r) => `${r.name}, ${bosses(r)} bosses`} />
+        </>
+      )}
+      {shown?.winners && (
+        <>
+          <h3 className="text-[11px] font-bold">PAST DAYS’ WINNERS</h3>
+          <BoardList rows={shown.winners} label={(r) => `${r.day}: ${r.name}`} />
+        </>
+      )}
+      {shown?.mine && (
+        <>
+          <h3 className="text-[11px] font-bold">YOUR DAILY CHALLENGES</h3>
+          <BoardList
+            rows={shown.mine.daily}
+            label={(r) => `${r.day}, ${bosses(r)} bosses`}
+            empty="None yet."
+          />
+          <h3 className="text-[11px] font-bold">YOUR BEST FREE RUNS</h3>
+          <BoardList
+            rows={shown.mine.free}
+            label={(r) => `${bosses(r)} bosses, ${r.standing} standing`}
+            empty="None yet."
+          />
+        </>
+      )}
+      <button
+        type="button"
+        className="pixel-btn menu-item mt-1 text-[13px]"
+        data-cmd="run"
+        onClick={onBack}
+        data-testid="boards-back"
+      >
+        BACK
+      </button>
+    </Panel>
+  );
+}
+
 /**
  * The Sesh (`docs/sesh.md`): Quick Sesh, a roguelike night out with a random party. Its own
  * saves, its own speed (2× to start), and every screen in 2D, whatever look is picked.
@@ -566,6 +759,9 @@ export function Sesh() {
   const [overlay, setOverlay] = useState<'party' | 'bag' | 'quit' | null>(null);
   const [bests, setBests] = useState<SeshBest[]>([]);
   const [daily, setDaily] = useState<DailyBests>({});
+  /** How sending finished runs to the boards went. */
+  const [sent, setSent] = useState<Sent | 'sending' | null>(null);
+  const [boards, setBoards] = useState(false);
   const [fightBag, setFightBag] = useState<SeshRun['bag']>({});
   /** A battle left halfway, played back to where it was, to carry on from. */
   const [resume, setResume] = useState<Session | null>(null);
@@ -603,6 +799,9 @@ export function Sesh() {
     setLines([]);
     setBests(loadBests(who));
     setDaily(loadDailyBests(who));
+    setSent(null);
+    // Runs finished offline go up now, if they can without asking for the PIN.
+    if (SAVE_API && queued(who).length) void send(who);
     // A battle left halfway carries on where it was: the same choices play out the same.
     const left = next.fight?.length && !next.run.over ? battleOf(next.run) : null;
     let back: ReturnType<typeof replayBattle> | null = null;
@@ -621,6 +820,13 @@ export function Sesh() {
     }
   }
 
+  /** Sends finished runs to the boards. */
+  async function send(who: string, pin?: string) {
+    if (!SAVE_API) return;
+    setSent('sending');
+    setSent(await sendQueue(SAVE_API, who, pin));
+  }
+
   /** A new free run, or today's Daily Challenge from the start. */
   function startRun(who: string, run: SeshRun) {
     playSfx('select');
@@ -634,7 +840,7 @@ export function Sesh() {
   }
 
   function startDaily(who: string) {
-    startRun(who, dailyRun(dayOf(Date.now())));
+    startRun(who, dailyRun(todayIs()));
   }
 
   function act(a: SeshAction) {
@@ -660,6 +866,10 @@ export function Sesh() {
       // A Daily Challenge counts for its day; a free run is kept among your best nights.
       if (out.run.daily) setDaily(recordDaily(player, out.run.daily, best));
       else setBests(recordBest(player, best));
+      if (SAVE_API) {
+        queueRun(player, out.run, next.actions);
+        void send(player);
+      }
     }
   }
 
@@ -677,6 +887,15 @@ export function Sesh() {
 
   // ---------- the start screen ----------
   if (remembered === undefined) return <div className="flex-1" />;
+  if (boards && SAVE_API && name && (!save || !player)) {
+    return (
+      <div className="gb-body flex flex-1 flex-col items-center gap-3 px-4 py-6">
+        <div className="w-full max-w-[420px]">
+          <Boards base={SAVE_API} name={name} onBack={() => setBoards(false)} />
+        </div>
+      </div>
+    );
+  }
   if (!save || !player) {
     return (
       <div className="gb-body flex flex-1 flex-col items-center justify-center gap-5 px-4 py-10 text-center">
@@ -769,6 +988,18 @@ export function Sesh() {
             </p>
           )}
         </section>
+        {SAVE_API && (
+          <button
+            type="button"
+            className="pixel-btn menu-item w-full max-w-[320px] text-[13px]"
+            data-cmd="party"
+            disabled={!name}
+            onClick={() => setBoards(true)}
+            data-testid="sesh-boards"
+          >
+            THE BOARDS
+          </button>
+        )}
         <Link href="/" className="text-[11px] text-[#e6e2ff] underline underline-offset-4">
           BACK TO THE TITLE
         </Link>
@@ -808,6 +1039,7 @@ export function Sesh() {
         run={night}
         bests={bests}
         daily={daily}
+        post={sent && <PostStatus sent={sent} onPin={(pin) => void send(player, pin)} />}
         onAgain={() => (night.daily ? startDaily(player) : startRun(player, newRun(freshSeed())))}
       />
     );

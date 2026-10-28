@@ -22,6 +22,8 @@
  *                                    'update'}) from a newer build of the game.
  *   POST /api/battle {op, ...}     → live friend battles and the Online Champion, run by
  *                                    `src/lib/online/server.ts`
+ *   POST /api/sesh {op, ...}       → The Sesh's boards: finished runs, replayed before they
+ *                                    count, run by `src/lib/online/sesh.ts`
  *
  * The handler takes its storage as a `SaveStore`, so the tests run it against memory.
  */
@@ -82,12 +84,53 @@ export type BattleCall = (
   ctx: BattleContext,
 ) => Promise<{ status: number; body: object }>;
 
+/** A run on The Sesh's boards (`SeshEntry` in `src/lib/online/sesh.ts`). */
+export interface SeshEntry {
+  id: string;
+  name: string;
+  day: string;
+  seed: number;
+  score: number;
+  beaten: number;
+  standing: number;
+  turns: number;
+  at: number;
+  actions: string;
+}
+
+export type SeshRow = Omit<SeshEntry, 'actions' | 'id' | 'seed'>;
+
+/** The Sesh's runs (`SeshStore` in `src/lib/online/sesh.ts`). */
+export interface SeshStore {
+  put(entry: SeshEntry): Promise<boolean>;
+  board(day: string, limit: number): Promise<SeshRow[]>;
+  winners(before: string, limit: number): Promise<SeshRow[]>;
+  mine(id: string, day: string | null, limit: number): Promise<SeshRow[]>;
+}
+
+/** What The Sesh's boards need from the save server (`SeshContext` there). */
+export interface SeshContext {
+  runs: SeshStore;
+  auth(id: string, pin: string): Promise<'ok' | 'pin' | 'locked' | 'nosave'>;
+  device(id: string, token: string): Promise<boolean>;
+  newDevice(id: string): Promise<string | null>;
+  now(): number;
+}
+
+/** The Sesh's boards, bundled from the game's own code (`gen/sesh.js`), to replay runs. */
+export type SeshCall = (
+  body: unknown,
+  ctx: SeshContext,
+) => Promise<{ status: number; body: object }>;
+
 export interface Options {
   /** Sites allowed to call the server. */
   origins: string[];
   now?: () => number;
   /** Friend battles, when this deployment has them. */
   battles?: { rooms: RoomStore; call: BattleCall; crown?: CrownStore };
+  /** The Sesh's boards, when this deployment has them. */
+  sesh?: { runs: SeshStore; call: SeshCall };
 }
 
 export const MAX_FAILS = 5;
@@ -210,6 +253,31 @@ export async function handle(req: Request, store: SaveStore, opts: Options): Pro
       seed: () => new Int32Array(randomBytes(4).buffer)[0],
       token: () => b64(randomBytes(18)).replace(/\+/g, '-').replace(/\//g, '_'),
       random: () => new Uint32Array(randomBytes(4).buffer)[0] / 2 ** 32,
+    });
+    return reply(r.status, r.body);
+  }
+  if (req.method === 'POST' && path === '/sesh' && opts.sesh) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return reply(400, { error: 'bad request' });
+    }
+    const { runs, call } = opts.sesh;
+    const r = await call(body, {
+      runs,
+      auth: (id, pin) => checkPin(store, id, pin, now()),
+      device: async (id, token) =>
+        DEVICE.test(token) &&
+        !!store.device &&
+        (await store.device(await hashDevice(token))) === id,
+      newDevice: async (id) => {
+        if (!store.addDevice) return null;
+        const token = b64(randomBytes(24)).replace(/\+/g, '-').replace(/\//g, '_');
+        await store.addDevice(await hashDevice(token), id, now());
+        return token;
+      },
+      now,
     });
     return reply(r.status, r.body);
   }

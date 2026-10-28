@@ -47,6 +47,15 @@ A random party of 6 strong Ranemon and about 20 minutes a run, over the last thr
 - The start screen shows today's date, your best today, and a countdown to the next one at midnight UTC. The map shows DAILY CHALLENGE and its day.
 - A run counts on its day's board if it reaches the save server within 48 hours of the day ending (`countsFor`), for the leaderboard.
 
+## The boards
+
+On the save server (`save-api/`, `POST /api/sesh`, run by `src/lib/online/sesh.ts` and bundled into `gen/sesh.js`). A finished run goes up as its seed and every choice, never as a score: the server replays it with `replayRun`, which turns away any choice the game wouldn't allow, and works out the score itself. One new table, `sesh_runs`, made on first use: each name's best run per day and seed (free runs are filed under `free`).
+
+- **Who you are:** your trainer name and PIN, as for online saves and friend battles, so the name needs an online save. The phone's device token stands in for the PIN; the first run sent with the PIN hands one out if the phone hasn't one from Story mode.
+- **Offline** (`src/lib/sesh/online.ts`): a finished run joins a queue in this browser (`ranemon.sesh.queue:<name>`) and goes up the next time The Sesh opens online. A run the server turns away leaves the queue; anything else (no connection, the PIN needed, no online save) keeps it. A Daily Challenge counts on its own day's seed only, and only if it's in within 48 hours of its day ending.
+- **The boards** (THE BOARDS on the start screen, when the build has a save server): today's Daily Challenge (best first, ties to whoever was first), past days' winners, and your own Daily Challenges and best free runs (your record, not ranked, since each has a different party).
+- `SESH_RULES` is bumped when a change to the game would make an old run replay differently; a phone on different rules gets `update` and keeps its runs queued.
+
 ## Screens
 
 `src/components/sesh/` (`/sesh`), all 2D (`flat` on the battles, and the map is a flat screen of its own):
