@@ -109,6 +109,11 @@ export interface Session {
   remote: boolean;
   /** Online: the last choice to send to the save server. */
   outbox: Outgoing | null;
+  /**
+   * Every roll comes from the battle itself, not from the screen (The Sesh): the same choices
+   * always play out the same battle, so a run can be replayed from its choices alone.
+   */
+  seeded: boolean;
 }
 
 export type SessionAction =
@@ -130,6 +135,14 @@ function randomFrom(seed: number): () => number {
   return () => rng.next();
 }
 
+/**
+ * The seed for a roll: the one the action carries, or in a seeded session one made from the
+ * battle's own RNG state and turn, so it never depends on when the screen asked.
+ */
+function rollFor(s: Session, salt: string, given: number): number {
+  return s.seeded ? seedFrom(`${s.state.rng}:${s.state.turn}:${salt}`) : given;
+}
+
 /** Whether a move is about to miss: its user's miss comes straight after it. */
 export const missed = (item: QueueItem, rest: QueueItem[]) =>
   item.kind === 'move' && rest[0]?.kind === 'miss' && rest[0].side === item.side;
@@ -141,6 +154,7 @@ export interface SessionOptions {
   foe?: Foe;
   timer?: boolean;
   remote?: boolean;
+  seeded?: boolean;
 }
 
 export function startSession(
@@ -174,6 +188,7 @@ export function startSession(
     played: 0,
     remote: options.remote ?? false,
     outbox: null,
+    seeded: options.seeded ?? false,
   };
 }
 
@@ -317,7 +332,12 @@ function step(s: Session, random: number): Session {
       return { ...s, mode: 'forced-switch', message: 'Choose your next Ranemon.' };
     }
     if (s.remote) return wait(s);
-    const to = chooseReplacement(s.state, 1, s.difficulty, randomFrom(random));
+    const to = chooseReplacement(
+      s.state,
+      1,
+      s.difficulty,
+      randomFrom(rollFor(s, 'replace', random)),
+    );
     const next = replaceFainted(s.state, 1, to);
     return playEvents(s, next.state, next.events);
   }
@@ -331,7 +351,7 @@ function step(s: Session, random: number): Session {
 
 function act(s: Session, action: Action, random: number, before: QueueItem[] = []): Session {
   if (s.remote) return send(s, { kind: 'act', action, turn: s.state.turn });
-  const foe = chooseAction(s.state, 1, s.difficulty, randomFrom(random));
+  const foe = chooseAction(s.state, 1, s.difficulty, randomFrom(rollFor(s, 'act', random)));
   const next = playTurn(s.state, [action, foe]);
   return playEvents({ ...s, queue: [...s.queue, ...before] }, next.state, next.events);
 }
@@ -380,7 +400,7 @@ function applyItemAction(s: Session, a: Extract<SessionAction, { type: 'item' }>
 function throwPint(s: Session, a: Extract<SessionAction, { type: 'pint' }>): Session {
   const target = activeBattler(s.state, 1);
   const chance = catchChance(target.stats.hp, target.hp, a.rate, a.pint.multiplier, target.status);
-  const n = sips(chance, randomFrom(a.random));
+  const n = sips(chance, randomFrom(rollFor(s, 'pint', a.random)));
   const lines: QueueItem[] = [say(`You threw a ${a.pint.name}!`)];
   for (let i = 1; i <= n; i++) lines.push(say(['Sip…', ...Array(i - 1).fill('sip…')].join(' ')));
   if (n === 3) {
@@ -407,7 +427,7 @@ function run(s: Session, random: number): Session {
   const mine = effectiveStat(activeBattler(s.state, 0), 'speed');
   const theirs = effectiveStat(activeBattler(s.state, 1), 'speed');
   const odds = mine >= theirs ? 1 : ((mine * 128) / theirs + 30 * (s.runs + 1)) / 256;
-  if (randomFrom(random)() < odds) {
+  if (randomFrom(rollFor(s, 'run', random))() < odds) {
     return {
       ...s,
       queue: [say('Got away safely!'), { kind: 'end', result: 'fled' }],
