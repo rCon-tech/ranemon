@@ -78,7 +78,9 @@ export type SeshAction =
   /** Takes back what a member is holding, into the bag. */
   | { kind: 'unhold'; uid: number }
   /** Puts a learnt move into one of a member's 4 slots. */
-  | { kind: 'swap'; uid: number; slot: number; move: string };
+  | { kind: 'swap'; uid: number; slot: number; move: string }
+  /** Calls it a night: the run ends where it is. */
+  | { kind: 'quit' };
 
 /** What you start with, besides the party. */
 export const START_CASH = 2000;
@@ -228,7 +230,15 @@ function afterFight(run: SeshRun, inputs: BattleInput[]): { run: SeshRun; lines:
   // A win with nobody left standing (the last hit's recoil, say) still ends the night.
   if (result !== 'win' || after.every((m) => m.hp === 0)) {
     return {
-      run: { ...run, bag, party: after.filter((m) => m.hp > 0), turns, at: null, over: 'lost' },
+      run: {
+        ...run,
+        bag,
+        party: after.filter((m) => m.hp > 0),
+        gone: [...run.gone, ...after.filter((m) => m.hp === 0)],
+        turns,
+        at: null,
+        over: 'lost',
+      },
       lines: ['Your night’s over. Someone call you a taxi.'],
     };
   }
@@ -358,6 +368,8 @@ export function play(run: SeshRun, a: SeshAction): { run: SeshRun; lines: string
         lines: [],
       };
     }
+    case 'quit':
+      return { run: { ...run, at: null, over: 'lost' }, lines: ['You called it a night.'] };
     case 'swap': {
       const m = member(run, a.uid);
       const next = swapMove(m, a.slot, a.move);

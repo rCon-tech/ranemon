@@ -1,7 +1,7 @@
-import { startBattle, type Action, type Entrant } from '../battle/engine';
+import { startBattle, type Entrant } from '../battle/engine';
 import { canUse, itemById, type ItemId } from '../story/items';
 import { toEntrant, type Member } from '../story/party';
-import { reduce, startSession, type Session, type SessionAction } from '../ui/session';
+import { reduce, startSession, type Input, type Session, type SessionAction } from '../ui/session';
 import type { SeshFoe } from './foes';
 
 /**
@@ -10,11 +10,7 @@ import type { SeshFoe } from './foes';
  * page closed mid-fight carries on where it was, and how the save server checks a run.
  */
 export type BattleInput =
-  | { kind: 'act'; action: Action }
-  | { kind: 'replace'; to: number }
-  /** An item from the BAG, on one of your Ranemon by its place in the battle. */
-  | { kind: 'item'; item: ItemId; target: number }
-  | { kind: 'forfeit' };
+  Exclude<Input, { kind: 'item' }> | { kind: 'item'; item: ItemId; target: number };
 
 /** Your party as it goes into a battle: with the Mega Ring, any with a Mega form can use it. */
 export const entrantsOf = (party: Member[], ring: boolean): Entrant[] =>
@@ -82,6 +78,7 @@ export function actionOf(input: BattleInput): SessionAction {
         effect: item.use.effect,
         target: input.target,
         random: 0,
+        id: input.item,
       };
     }
   }

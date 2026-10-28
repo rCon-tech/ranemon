@@ -22,6 +22,18 @@ A random party of 6 strong Ranemon and about 20 minutes a run, over the last thr
 - **Permadeath**: a Ranemon still fainted when a battle ends is sent home in a taxi for the rest of the run. Hair of the Dog revives only during a battle. Lose a battle, or win one with nobody standing, and the night's over.
 - **Score** (`scoreOf`): bosses beaten first, then Ranemon left standing, then fewest turns.
 
+## Screens
+
+`src/components/sesh/` (`/sesh`), all 2D (`flat` on the battles, and the map is a flat screen of its own):
+
+- **Start**: a trainer name (the last one used, or Story mode's), NEW RUN, and CARRY ON THE NIGHT when there's a run going.
+- **Your party tonight**: the six you've been dealt, their types and what they're holding, then START THE NIGHT.
+- **The map** (`SeshMap.tsx`): the stage's name and place, cash, the party's faces with HP (a grey TAXI for anyone sent home), and the picks from the bottom up to the boss, whose name is shown. Nodes you can go to next are ringed; the route taken so far is lit. PARTY (moves, taking back a held item), BAG (food, Blue Ghosts, things to hold) and GO HOME (ends the run).
+- **A battle**: who it is and what they say, then the usual battle screen with the BAG, in the stage's scene, with the trainer music for fights and the boss music for Bouncers and bosses.
+- **The Offie** and **the Smoking Area**, and the **results card**: bosses, standing, turns, the score, your 5 best nights in this browser, and PLAY AGAIN.
+
+Every choice is saved as it's made, so leaving and coming back carries on the same night, in the same node. A battle left halfway starts again from its beginning, with the same foes and the same rolls.
+
 ## Replays
 
 A run is plain data (`SeshRun` in `src/lib/sesh/run.ts`), and everything in it follows from its seed and the choices made (`SeshAction`): `replayRun` plays a run again from those alone and throws on any choice the run wouldn't allow. A battle is kept as the player's choices (`BattleInput` in `src/lib/sesh/battle.ts`). Its session is seeded (`seeded` in `src/lib/ui/session.ts`): every roll the CPU and items need comes from the battle's own RNG state, never from the screen, so the same choices always play out the same battle. That is how a page closed mid-fight can carry on, and how the save server can check a run before it goes on the board.

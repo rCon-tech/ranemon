@@ -24,9 +24,11 @@ import {
   isChoosing,
   reduce,
   startSession,
+  type Input,
   type Outgoing,
   type QueueItem,
   type Result,
+  type Session,
 } from '@/lib/ui/session';
 import { battleCues } from '@/lib/sound/cues';
 import { playJingle, playSfx } from '@/lib/sound/engine';
@@ -92,9 +94,16 @@ interface Props {
   scene?: Scene;
   /** The battle theme; battle mode's rival gets the trainers' one. */
   music?: SongId;
-  /** Only in 2D for now, whichever look is picked: battles in Ghent. */
+  /** Only in 2D for now, whichever look is picked: battles in Ghent and The Sesh. */
   flat?: boolean;
-  onFinish: (result: Result, state: BattleState, fought: number[]) => void;
+  /**
+   * A battle that starts from a session made elsewhere: The Sesh's are seeded, so they play out
+   * from the player's choices alone (`lib/sesh/battle.ts`).
+   */
+  start?: Session;
+  /** Each time the player makes a choice the battle takes, with every choice so far. */
+  onInputs?: (inputs: Input[]) => void;
+  onFinish: (result: Result, state: BattleState, fought: number[], inputs: Input[]) => void;
 }
 
 /** Items only used from the bag outside battle: a Blue Ghost, or one that sets off an evolution. */
@@ -169,14 +178,20 @@ export function BattleScreen({
   music = 'trainer',
   remote,
   flat,
+  start,
+  onInputs,
   onFinish,
 }: Props) {
-  const [session, dispatch] = useReducer(reduce, null, () =>
-    startSession(remote?.start ?? startBattle(teams!, newSeed()), difficulty, {
-      foe: against,
-      timer: !story,
-      remote: !!remote,
-    }),
+  const [session, dispatch] = useReducer(
+    reduce,
+    null,
+    () =>
+      start ??
+      startSession(remote?.start ?? startBattle(teams!, newSeed()), difficulty, {
+        foe: against,
+        timer: !story,
+        remote: !!remote,
+      }),
   );
   // The bag item picked in the BAG menu, waiting for a Ranemon to use it on.
   const [bagPick, setBagPick] = useState<BagEntry | null>(null);
@@ -197,7 +212,12 @@ export function BattleScreen({
   }, [mode, queue, pause]);
 
   // Online: send each choice, and play back what the server says happened.
-  const { outbox } = session;
+  const { outbox, inputs } = session;
+  useEffect(() => {
+    if (inputs.length) onInputs?.(inputs);
+    // Only when a new choice is taken.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputs]);
   useEffect(() => {
     if (outbox) remote?.send(outbox);
     // Each choice once, by its number.
@@ -243,7 +263,14 @@ export function BattleScreen({
     if (entry.use.kind !== 'heal' && entry.use.kind !== 'vape') return;
     story?.onUse(entry.id);
     setBagPick(null);
-    dispatch({ type: 'item', name: entry.name, effect: entry.use.effect, target, random: roll() });
+    dispatch({
+      type: 'item',
+      name: entry.name,
+      effect: entry.use.effect,
+      target,
+      random: roll(),
+      id: entry.id,
+    });
   };
   const pickEntry = (entry: BagEntry) => {
     if (entry.use.kind === 'pint') {
@@ -308,7 +335,7 @@ export function BattleScreen({
       <div className="field" data-scene={scene} data-testid="battlefield">
         <div className="absolute right-1 top-1 z-20 flex gap-1">
           <SoundButton />
-          <ViewButton />
+          {!flat && <ViewButton />}
           <SpeedButton />
         </div>
         {look === '3d' ? <Backdrop3D scene={scene} /> : <Backdrop scene={scene} />}
@@ -720,7 +747,7 @@ export function BattleScreen({
           <button
             type="button"
             className="pixel-btn menu-item"
-            onClick={() => onFinish(result, state, session.fought)}
+            onClick={() => onFinish(result, state, session.fought, session.inputs)}
           >
             CONTINUE
           </button>
