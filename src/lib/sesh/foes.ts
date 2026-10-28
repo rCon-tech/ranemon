@@ -5,8 +5,10 @@ import { hasMega } from '../battle/mega';
 import { Rng, seedFrom } from '../battle/rng';
 import type { RaneType } from '../battle/types';
 import { UK } from '../battle/uk';
+import type { SongId } from '../sound/songs';
 import type { ItemId } from '../story/items';
 import { makeMember, speciesById, type Member } from '../story/party';
+import type { Look } from '../story/world';
 import { BOSSES, type Boss } from './bosses';
 import { deal, lookFor, SESH_POOL } from './party';
 import { fightLevel, type Stage, type StageId } from './stages';
@@ -29,6 +31,10 @@ export interface SeshFoe {
   /** What a Bouncer drops: a held item, or the Mega Ring from The Afterparty's. */
   drop?: ItemId | 'mega-ring';
   kind: 'fight' | 'bouncer' | 'boss';
+  /** A boss's story look, drawn on the Briefing. */
+  look?: Look;
+  /** A boss's battle theme. */
+  music?: SongId;
 }
 
 /** Who you meet at an ordinary fight, by stage: the main game's own trainers, with new teams. */
@@ -180,6 +186,7 @@ export function bouncerAt(
  */
 export function bossTypes(boss: Boss): RaneType[] {
   if (boss.types) return boss.types;
+  if (!boss.trainer) throw new Error(`${boss.id} needs types`);
   const count = new Map<RaneType, number>();
   for (const [species] of trainerById(boss.trainer).team) {
     for (const t of speciesById(species).types) count.set(t, (count.get(t) ?? 0) + 1);
@@ -237,17 +244,23 @@ export function bossAt(seed: number, stage: Stage, s: number, id: string): SeshF
   const boss = BOSSES.find((b) => b.id === id)!;
   const rng = new Rng(seedFrom(`${seed}:${s}:boss`));
   const { team, mega } = bossTeam(boss, stage, rng, stage.id === 'after');
-  const t = trainerById(boss.trainer);
+  const t = boss.trainer ? trainerById(boss.trainer) : undefined;
+  const name = boss.name ?? t?.name;
+  const before = boss.before ?? t?.before;
+  const after = boss.after ?? t?.after;
+  if (!name || !before || !after) throw new Error(`${boss.id} needs a name and lines`);
   return {
     id: boss.id,
-    name: boss.name ?? t.name,
+    name,
     team,
     ai: 'hard',
-    before: boss.before ?? t.before,
-    after: boss.after ?? t.after,
-    line: t.line,
+    before,
+    after,
+    line: boss.line ?? t?.line,
     prize: 50 * stage.boss.level,
     ...(mega && { mega }),
     kind: 'boss',
+    look: boss.look,
+    music: boss.music ?? 'boss',
   };
 }
