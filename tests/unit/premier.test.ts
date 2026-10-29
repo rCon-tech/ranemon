@@ -26,6 +26,9 @@ import { LONDON_LINES } from '@/lib/battle/london';
 import { hasUkForm } from '@/lib/battle/uk';
 import type { Step } from '@/lib/story/world';
 
+/** Having been to every ground's town before, so the trains go straight there. */
+const SEEN = PL_MAPS.map((m) => `seen:${m.id}`);
+
 /** Plays a script against `flags`, answering every question yes, noting what happens. */
 function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
   for (const s of steps) {
@@ -148,7 +151,7 @@ describe('King’s Cross', () => {
 
   it('runs a train to every ground’s own part of town, from its own platform', () => {
     const towns = platforms.map((n) =>
-      play(n.talk!, new Set([RAILCARD])).find((l) => l.startsWith('TRAVEL')),
+      play(n.talk!, new Set([RAILCARD, ...SEEN])).find((l) => l.startsWith('TRAVEL')),
     );
     expect(towns.map((t) => t?.split(' ')[1]).sort()).toEqual(PL_MAPS.map((m) => m.id).sort());
   });
@@ -158,7 +161,9 @@ describe('King’s Cross', () => {
       (n) => !play(n.talk!, new Set()).some((l) => l.startsWith('TRAVEL')),
     );
     expect(
-      shut.map((n) => play(n.talk!, new Set([RAILCARD])).find((l) => l.startsWith('TRAVEL'))),
+      shut.map((n) =>
+        play(n.talk!, new Set([RAILCARD, ...SEEN])).find((l) => l.startsWith('TRAVEL')),
+      ),
     ).toEqual(['TRAVEL birmingham', 'TRAVEL newcastle']);
     const wright = trainerById(legendId('palace'));
     const flags = new Set<string>();

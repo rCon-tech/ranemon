@@ -146,6 +146,11 @@ function writeSync(id: string, change: Sync) {
   }
 }
 
+/** Keeps a device token the save server handed out for a name some other way (The Sesh's board). */
+export function keepDevice(name: string, device: string) {
+  writeSync(playerId(name), { device });
+}
+
 /** Whether this browser's save has changes the online save doesn't have yet. */
 export function unsynced(name: string, local: StoryState | null): boolean {
   if (!cloud || !local) return false;

@@ -11,6 +11,51 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-29',
+    title: 'The road to Dublin',
+    notes: [
+      'Every county line is a place of its own now: a short stretch of road between each county, from the Shannon to the edge of Dublin, each with something to see and someone to meet.',
+      'An old rival turns up more often on the way, and a few familiar faces are heading for Dublin too.',
+      'Somebody has lost something on a stag do. Beat the lads causing trouble on the road and see where it takes you. It shows in MISSIONS.',
+      'A new game starts with Exp Share on, so your whole party keeps up. Some gyms give better prizes, and the long grass in the midlands has a few new faces.',
+    ],
+  },
+  {
+    date: '2026-10-29',
+    title: 'Training pays',
+    notes: [
+      'The last fights of the London story still keep up with you, but now only half way, and to your whole party rather than your strongest Ranemon. Every level you train before you go in counts.',
+      'Win once and they take you seriously: after that they keep up with you all the way.',
+    ],
+  },
+  {
+    date: '2026-10-28',
+    title: 'Quick Sesh',
+    notes: [
+      'New on the home screen: QUICK SESH. You get a random party of six strong Ranemon and one night out: The Pub, The Nightclub and The Afterparty, with a boss at the end of each.',
+      'Pick your way through each stage one stop at a time: a fight, a bouncer, the offie or a sit-down in the smoking area. Anyone still fainted after a battle goes home in a taxi.',
+      'A new boss every run. It plays at 2× to start, and it has its own saves, so it never touches your Story mode.',
+      'The DAILY CHALLENGE: the same night for everyone each day, with the same party, maps and bosses. Play it as often as you like; your best score counts. A new one starts at midnight (UTC).',
+      'THE BOARDS: today’s Daily Challenge, past days’ winners and your own best runs, on the save server with your trainer name and PIN. A run finished offline goes up the next time you open it online.',
+      'LONG SESH is coming once we’ve all had a go.',
+    ],
+  },
+  {
+    date: '2026-10-28',
+    title: 'Très bien',
+    notes: [
+      'Someone down by the sea in Clare has something to tell you about himself, whether you ask or not. Beat him and there’s a new skin to wear.',
+      'There’s a new Ranemon in the long grass, at home and over the water, and it evolves.',
+    ],
+  },
+  {
+    date: '2026-10-28',
+    title: 'Cheap Blue Ghosts in England',
+    notes: [
+      'The man with the sports bag has made it over the water. Look in the corner of any W.B Yates for Blue Ghosts at a tenth of the Vapes & More price, if you’d rather not grind between grounds.',
+    ],
+  },
+  {
     date: '2026-10-27',
     title: 'Random Parties in friend battles',
     notes: [

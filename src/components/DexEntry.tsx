@@ -16,6 +16,7 @@ import {
   type DexKnowledge,
   type DexMove,
 } from '@/lib/story/dex';
+import { STAT_HELP } from '@/lib/ui/stats';
 
 const STAT_LABEL = {
   hp: 'HP',
@@ -139,6 +140,9 @@ export function DexEntry({
               </div>
             ))}
           </dl>
+          <p className="text-[9px] leading-relaxed opacity-70" data-testid="spirit-help">
+            SPI is Spirit. {STAT_HELP.spirit}
+          </p>
         </Section>
       )}
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HOME_ID, interiorId } from '@/content/story/interiors';
 import { AFTER_MAPS, INTERIORS, MAPS, mapById } from '@/content/story/maps';
+import { TRAIN_ROOMS } from '@/content/story/premier';
 import { teamOf, TRAINERS, trainerById } from '@/content/story/trainers';
 import { speciesById } from '@/lib/story/party';
 import {
@@ -66,9 +67,10 @@ describe.each([
 
   it('places every person, and nobody extra', () => {
     expect(npcsOf(map)).toHaveLength(map.npcs.length);
-    // Ten at most: `1` to `9`, then `0`.
-    expect(map.npcs.length).toBeLessThanOrEqual(10);
-    if (map.npcs.length < 10) expect(find(map, slot(map.npcs.length))).toHaveLength(0);
+    // Ten markers at most: `1` to `9`, then `0`. Anyone past them stands where `at` says.
+    const marked = map.npcs.filter((n, i) => i < 10 || !n.at).length;
+    expect(marked).toBeLessThanOrEqual(10);
+    if (marked < 10) expect(find(map, slot(marked))).toHaveLength(0);
   });
 
   it('has text for every sign, house and landmark', () => {
@@ -95,9 +97,10 @@ describe.each([
       expect(exits).toHaveLength(1);
       expect(seen.has(`${width - 1},${exits[0]}`)).toBe(true);
       expect(marker(map, '>')).toBeTruthy();
-      // The Garda (or porter) stands right in front of the way out.
+      // The Garda (or porter) stands right in front of the way out. The road between two
+      // counties has none: the county behind it already had one.
       const guard = npcsOf(map).find((n) => n.x === width - 2 && n.y === exits[0]);
-      expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
+      if (!map.link) expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
     }
     if (map.west) expect(marker(map, '@').x).toBe(0);
   });
@@ -178,8 +181,11 @@ describe('rooms', () => {
       [...DOORS].flatMap((kind) => find(room, kind).map((_, i) => interiorId(room.id, kind, i))),
     );
     for (const id of inner) expect(mapById(id).id).toBe(id);
+    // And the trains in England, taken from the platforms at King's Cross rather than a door.
     expect(INTERIORS.length).toBe(
-      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0) + inner.length,
+      MAPS.reduce((n, m) => n + [...DOORS].flatMap((k) => find(m, k)).length, 0) +
+        inner.length +
+        TRAIN_ROOMS.length,
     );
   });
 

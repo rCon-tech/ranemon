@@ -582,6 +582,22 @@ export const STYLES: Record<Look | 'player', Style> = {
     earrings: '#e0b848',
     maxi: '#7a1c2c',
   },
+  // Nick, the second most French man in Ireland: dark hair, a dark beard, a white tee, black
+  // shorts, white trainers and a black backpack.
+  nick: {
+    skin: '#d6a178',
+    hair: '#1e1614',
+    hairStyle: 'short',
+    beard: '#261a16',
+    top: '#f6f6f2',
+    topKind: 'shirt',
+    trim: '#e6e6e0',
+    legs: '#d6a178',
+    shorts: '#1a1618',
+    socks: '#3a3a40',
+    shoes: '#ececf0',
+    bag: '#1c1c22',
+  },
   cyclist: {
     skin: '#f0c8a0',
     hair: '#6a4a2a',

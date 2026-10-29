@@ -1,4 +1,4 @@
-import { CARL_PUB } from './ball';
+import { CARL_PUB, CARL_YATES } from './ball';
 import { ELVIS_PUB } from './elvis';
 import { keeperOf } from './keepers';
 import { PUGH_TALK } from './neeson';
@@ -145,6 +145,7 @@ const placesFor = (rows: string[], n: number) =>
 /**
  * A pub in Britain: a W.B Yates, with Florence Pugh behind the bar (neeson.ts) and its own owner
  * and regulars (`yates` on the town's map). In London that's Donal from Cork, with Próvaí in the back.
+ * Carl Ryan is in the corner of every one, as he is in every McGrattans (ball.ts).
  */
 function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'inside'>): GameMap {
   const town = outside.name.split(',')[0];
@@ -163,7 +164,8 @@ function yatesRoom(outside: GameMap, base: Pick<GameMap, 'id' | 'county' | 'insi
     ...base,
     name: `W.B Yates, ${town}`,
     rows: placesFor(YATES, npcs.length),
-    npcs,
+    // Carl Ryan, in his own corner, with his sports bag of Blue Ghosts.
+    npcs: [...npcs, CARL_YATES],
     things: {
       V: 'Every whiskey in Ireland, a few from Scotland, and none at all from England.',
       U: 'A sticky table, a pint of Guinness and a packet of King crisps, smuggled over.',

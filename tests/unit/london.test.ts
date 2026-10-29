@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { CARL_YATES } from '@/content/story/ball';
 import { TECHNO_DONE } from '@/content/story/cramps';
 import { interiorId } from '@/content/story/interiors';
 import {
@@ -243,7 +244,9 @@ describe('Britain', () => {
     expect(owner.look).toBe('donal');
     expect(provai.look).toBe('provai');
     expect(thatcher.look).toBe('thatcher');
-    expect(npcsOf(pub)).toHaveLength(4);
+    // And Carl Ryan, in the corner with his Blue Ghosts.
+    expect(npcsOf(pub)).toHaveLength(5);
+    expect(pub.npcs[4]).toBe(CARL_YATES);
     expect(PUGH_LINES.length).toBeGreaterThan(3);
     expect(mapById(interiorId('london', 'M', 0)).name).toBe('Vapes & More, London');
   });

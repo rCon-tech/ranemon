@@ -828,6 +828,8 @@ const SCENES: Record<string, Scene> = {
   'too-good-for-ireland': shout('TRY!', '#30b050', true),
   'money-talks': shout('€€€', '#f8d030', true),
   'drop-the-bass': shout('DROP!', '#d94fa8', true),
+  'ooh-la-la': shout('OOH LA LA', '#3d6fd1', true),
+  'wait-till-you-meet-my-brother': shout('MON FRÈRE…', '#e04848', true),
 };
 
 /** An energy drink thrown in from the user's bench, for Helping Hand. */

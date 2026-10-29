@@ -14,7 +14,7 @@ import {
 import { keeperOf } from './keepers';
 import { bigBenRoom } from './neeson';
 import { FORECOURT } from './palace';
-import { KINGS_CROSS_ROOM } from './premier';
+import { commonOf, KINGS_CROSS_ROOM } from './premier';
 import { OVERGROUND, SHOREDITCH_TRAINERS } from './shoreditch';
 import { homeward } from './station';
 import type { GameMap, Npc, Step, Trainer, Yates } from '@/lib/story/world';
@@ -801,6 +801,8 @@ export const LONDON: GameMap = {
     'Tv..,,,,,,,,,...vvSvvvvvvvvvvvvT',
     'Tv.....5........vvvvvvvv6vvvvvvT',
     'TvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvT',
+    // Hyde Park, out to the south: a big common of long grass for battling and levelling up.
+    ...commonOf(32, 10),
     'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
   ],
   wild: {
@@ -818,6 +820,7 @@ export const LONDON: GameMap = {
       ['skehemon', 8],
       ['killemon', 8],
       ['vinnimon', 8],
+      ['nickamon', 4],
       ['oystermon', 8],
       ['speedmon', 4],
       ['pedalmon', 4],

@@ -5,6 +5,7 @@ import type { Step, Trainer } from '@/lib/story/world';
 import { phone } from './maps';
 import { NEVER_FIND_OUT, RENT_DONE } from './rent';
 import { BHAV_AFTER, BHAV_BEFORE, BHAV_REWARD, BHAV_TRAINER, PEAR_REWARD } from './greystones';
+import { NICK_AFTER, NICK_BEFORE, NICK_REWARD, NICK_TRAINER } from './nick';
 import { RAVE_TRAINERS } from './rave';
 import { BRIGHTON_TRAINERS } from './brighton';
 import { TECHNO_TRAINERS } from './techno';
@@ -16,6 +17,7 @@ import { ROWANS_TRAINERS } from './rowans';
 import { SILICON_TRAINERS } from './silicon';
 import { SIDEMEN_TRAINERS, WEMBLEY_TRAINERS } from './sidemen';
 import { NEESON_TRAINERS } from './neeson';
+import { ROAD_TRAINERS } from './road';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
 
 /** Beating whoever you accused of taking the rent: thanks, but still no rent. */
@@ -29,6 +31,21 @@ const RENT_REWARD: Step[] = [
   { do: 'give', item: 'full-irish', count: 2 },
 ];
 
+/** A Lad on Tour: what they let slip about the lost groom once you've beaten them. */
+const stag = (t: Trainer, after: string, reward?: Step[]): Trainer => ({ ...t, after, reward });
+
+/** Finding the groom in Dublin, the end of the Lads on Tour. */
+const STAG_FOUND: Step[] = [
+  { do: 'say', text: 'The Lads on Tour come running up the road from the Phoenix Park, cheering.' },
+  {
+    do: 'say',
+    text: 'DEC: You found him! Here, have what’s left of the stag kitty. And the Monster. So much Monster.',
+  },
+  { do: 'give', item: 'monster', count: 5 },
+  { do: 'give', item: 'full-irish', count: 2 },
+  { do: 'give', item: 'blue-ghost' },
+];
+
 /** All Alex Simonin ever says: before, during and after a battle. */
 export const ALEX = 'ALEX SIMONIN: How do we always end up here?';
 
@@ -38,9 +55,30 @@ function jersey(county: string, next: string, extra: Step[] = []): Step[] {
     { do: 'say', text: `You got the ${county} jersey!` },
     { do: 'flag', flag: `jersey:${county.toLowerCase()}` },
     ...extra,
-    phone(next),
+    phone(next, DUBLIN_TEASERS[county]),
   ];
 }
+
+/** What Michael D lets slip about Dublin after each gym: one of the city's secrets a call. */
+const DUBLIN_TEASERS: Record<string, string> = {
+  Clare:
+    'And wait till you see Dublin. There’s a basement on the south side, the Rave Cave, where the party never stops.',
+  Limerick:
+    'The trains out of Connolly Station in Dublin go everywhere, you know. Greystones, Donegal, and further again if you know the right people.',
+  Tipperary:
+    'An old woman on the Dublin quays tells a story about a Ranemon older than the city. Keep your ears open when you get there.',
+  Kilkenny:
+    'Eight glass towers on Grand Canal Dock in Dublin, and every boss in them thinks they could beat you. Silicon Docks, they call it.',
+  Laois:
+    'Ollie and Simo have a house on the south bank in Dublin. They say the rent’s gone missing out of the biscuit tin. Call in when you’re up.',
+  Offaly:
+    'I hear Paul Mescal is wandering round Dublin, looking very sad altogether. Don’t ask him why.',
+  Westmeath:
+    'That stag party has lost the groom, I’m told. Last seen heading for Dublin. Keep an eye out on the way.',
+  Meath:
+    'One more jersey. B&S were on the news again from Trinity, gloating. Kildare, then Dublin, then them.',
+  Kildare: 'Dublin’s yours. Through the city to Trinity, and B&S are waiting under the Campanile.',
+};
 
 const T: Trainer[] = [
   // ---------- the rival: Margaret Thatcher, who picks after you and is terribly British ----------
@@ -78,7 +116,30 @@ const T: Trainer[] = [
     prize: 880,
     before:
       'THATCHER: I’ve been training at Wimbledon between rounds of cucumber sandwiches. Pearls on. Handbag ready. Prepare yourself.',
-    after: 'THATCHER: Extraordinary. Simply not cricket. I’ll see you in Kildare, I suppose.',
+    after: 'THATCHER: Extraordinary. Simply not cricket. I’ll be waiting on the bog, I suppose.',
+  },
+  {
+    id: 'rival-bog',
+    name: 'Margaret Thatcher',
+    rival: true,
+    team: [],
+    ai: 'normal',
+    prize: 1200,
+    before:
+      'THATCHER: The Bog of Allen. Wet, brown and frankly rather un-British. I took the little turf train so my brogues would stay dry. Shall we?',
+    after:
+      'THATCHER: Bog water on my pearls. Unforgivable. I shall have my revenge on the motorway, mark my words.',
+  },
+  {
+    id: 'rival-services',
+    name: 'Margaret Thatcher',
+    rival: true,
+    team: [],
+    ai: 'hard',
+    prize: 1520,
+    before:
+      'THATCHER: A motorway services. They call that a scone? I’ve been waiting by the car wash for an hour. Handbag ready, dear.',
+    after: 'THATCHER: Hmph. Back in the car. I’ll see you in Kildare, I suppose.',
   },
   {
     id: 'rival-4',
@@ -148,7 +209,10 @@ const T: Trainer[] = [
       'SAOIRSE: Hiya! Quick check-in before we start: my Ranemon have unionised, my oat flat white is fair trade, and this battle is a safe space. Now let’s GO.',
     after:
       'SAOIRSE: Okay, that was problematic… for me. Fair play, though. Take the Tipperary jersey, and a reusable tote bag. Plastic is so last century.',
-    reward: jersey('Tipperary', 'Kilkenny'),
+    reward: jersey('Tipperary', 'Kilkenny', [
+      { do: 'give', item: 'settled-pint', count: 3 },
+      { do: 'give', item: 'blue-ghost' },
+    ]),
   },
   {
     id: 'gym-kilkenny',
@@ -196,7 +260,10 @@ const T: Trainer[] = [
     prize: 1280,
     before: 'BROTHER CIARÁN: Silence in the scriptorium. We battle quietly here.',
     after: 'BROTHER CIARÁN: Go in peace. And in the Offaly jersey.',
-    reward: jersey('Offaly', 'Westmeath'),
+    reward: jersey('Offaly', 'Westmeath', [
+      { do: 'give', item: 'spice-bag', count: 3 },
+      { do: 'give', item: 'blue-ghost' },
+    ]),
   },
   {
     id: 'gym-westmeath',
@@ -431,6 +498,21 @@ const T: Trainer[] = [
     reward: BHAV_REWARD,
   },
 
+  // ---------- Nick, by the beach in Clare: the second most French man in Ireland ----------
+  {
+    id: NICK_TRAINER,
+    name: 'Nick',
+    team: [
+      ['enda', 10],
+      ['nickamon', 12],
+    ],
+    ai: 'normal',
+    prize: 900,
+    before: NICK_BEFORE,
+    after: NICK_AFTER,
+    reward: NICK_REWARD,
+  },
+
   // ---------- Alex Simonin, in Front Square: Simomon only, and only the one line ----------
   {
     id: 'trinity-alex',
@@ -464,14 +546,17 @@ const T: Trainer[] = [
   },
 
   // ---------- route trainers ----------
-  trainer(
-    'lads-dec',
-    'Lad on Tour Dec',
-    [
-      ['killemon', 9],
-      ['carlmon', 10],
-    ],
-    'STAG! STAG! STAG!',
+  stag(
+    trainer(
+      'lads-dec',
+      'Lad on Tour Dec',
+      [
+        ['killemon', 9],
+        ['carlmon', 10],
+      ],
+      'STAG! STAG! STAG!',
+    ),
+    'DEC: The groom? Haven’t seen him since Limerick. …Wait, this IS Limerick. Gav went on to Thurles to look.',
   ),
   trainer(
     'clare-surfer',
@@ -518,14 +603,17 @@ const T: Trainer[] = [
     ],
     'Up Tipp!',
   ),
-  trainer(
-    'lads-gav',
-    'Lad on Tour Gav',
-    [
-      ['owemon', 14],
-      ['jammon', 15],
-    ],
-    'Have you seen the groom? We lost him in Limerick.',
+  stag(
+    trainer(
+      'lads-gav',
+      'Lad on Tour Gav',
+      [
+        ['owemon', 14],
+        ['jammon', 15],
+      ],
+      'Have you seen the groom? We lost him in Limerick.',
+    ),
+    'GAV: Shane’s the best man. He’ll know where the groom is. He’s at the Electric Picnic, in Laois.',
   ),
   trainer(
     'tipp-camogie',
@@ -599,15 +687,18 @@ const T: Trainer[] = [
     ],
     'Laois! Laois! Laois! Sorry, it just comes out.',
   ),
-  trainer(
-    'lads-ringleader',
-    'Ringleader Shane',
-    [
-      ['thilomon', 22],
-      ['killemon', 22],
-      ['carlmon', 23],
-    ],
-    'I’m headlining Electric Picnic. Get off my stage.',
+  stag(
+    trainer(
+      'lads-ringleader',
+      'Ringleader Shane',
+      [
+        ['thilomon', 22],
+        ['killemon', 22],
+        ['carlmon', 23],
+      ],
+      'I’m headlining Electric Picnic. Get off my stage.',
+    ),
+    'SHANE: The groom? Last I saw, he was on a boat party heading up the Shannon. Try Shannonbridge.',
   ),
   trainer(
     'laois-raver',
@@ -785,15 +876,19 @@ const T: Trainer[] = [
     ],
     'Three laps of the Phoenix Park before breakfast!',
   ),
-  trainer(
-    'dublin-stag',
-    'Lad on Tour Groom',
-    [
-      ['killemon', 42],
-      ['thilomon', 43],
-      ['owemon', 43],
-    ],
-    'Last night of the stag! Let’s make it count!',
+  stag(
+    trainer(
+      'dublin-stag',
+      'Lad on Tour Groom',
+      [
+        ['killemon', 42],
+        ['thilomon', 43],
+        ['owemon', 43],
+      ],
+      'Last night of the stag! Let’s make it count!',
+    ),
+    'GROOM: The wedding is TOMORROW? Lads. LADS. Where are my shoes?',
+    STAG_FOUND,
   ),
   trainer(
     'greystones-cyclist',
@@ -816,6 +911,7 @@ const T: Trainer[] = [
   ...SIDEMEN_TRAINERS,
   ...WEMBLEY_TRAINERS,
   ...NEESON_TRAINERS,
+  ...ROAD_TRAINERS,
 ];
 
 function trainer(id: string, name: string, team: [string, number][], before: string): Trainer {
@@ -854,6 +950,10 @@ const RIVAL_STAGES: Record<string, { levels: number[] }> = {
   'rival-1': { levels: [5] },
   'rival-2': { levels: [14, 12] },
   'rival-3': { levels: [22, 20, 20] },
+  // On the Bog of Allen boardwalk, between Laois and Offaly.
+  'rival-bog': { levels: [30, 28, 28, 29] },
+  // At the Applegreen on the M4, between Meath and Kildare.
+  'rival-services': { levels: [38, 36, 36, 37, 37] },
   'rival-4': { levels: [42, 40, 40, 41] },
   'rival-5': { levels: [46, 44, 44, 45, 45, 44] },
   // In London, with the UK Ranemon she picked after yours.

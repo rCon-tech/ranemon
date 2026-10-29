@@ -3,6 +3,7 @@
 import { moveById } from '@/lib/battle/moves';
 import { TYPE_LABEL } from '@/lib/battle/types';
 import { strongAgainst } from '@/lib/story/dex';
+import { CATEGORY_HELP } from '@/lib/ui/stats';
 import { TypeBadge } from './TypeBadge';
 
 const CATEGORY = { physical: 'PHYS', spirit: 'SPIR', status: 'STATUS' } as const;
@@ -52,7 +53,11 @@ export function MoveCard({
           {strong.length > 0 && `Strong vs ${strong.map((t) => TYPE_LABEL[t]).join(', ')}`}
         </span>
       )}
-      {picked && <span className="text-[9px] leading-relaxed">{move.flavour}</span>}
+      {picked && (
+        <span className="text-[9px] leading-relaxed">
+          {move.flavour} <span className="opacity-70">{CATEGORY_HELP[move.category]}</span>
+        </span>
+      )}
     </>
   );
   const look = 'pixel-btn flex flex-col gap-0.5 px-2 py-1.5 text-[10px]';

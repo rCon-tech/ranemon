@@ -15,9 +15,10 @@ export interface LimeStop {
  * Everywhere the Limepass can take you: every town you've been to, in the order of the road,
  * standing outside its McGrattans (or where you come in, if it has none). A Lime doesn't cross
  * the Irish Sea, so in Britain (`uk`) it only goes to towns in Britain, and at home only at home.
+ * The road between the counties (`link`) has no town to stop in.
  */
 export function limeStops(flags: ReadonlySet<string>, uk = false): LimeStop[] {
-  const here = MAPS.filter((m) => !!m.uk === uk);
+  const here = MAPS.filter((m) => !!m.uk === uk && !m.link);
   return here
     .filter((m) => flags.has(`visited:${m.id}`))
     .map((m) => {

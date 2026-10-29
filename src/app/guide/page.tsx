@@ -56,10 +56,10 @@ export default function Guide() {
         </p>
         <ul className="list-disc pl-4">
           <li>
-            <b>Battle mode</b> (on the title screen): pick 6 Ranemon in 2 minutes, from the 20 lads
-            (more join as you get further in Story mode), basic or fully evolved. Tap one on your
-            team to pick its look, what it holds and its moves. Your rival gets 6 of the rest. You
-            fight 6 against 6 until one side has nobody left standing.
+            <b>Battle mode</b> (on the title screen): pick 6 Ranemon in 2 minutes, from the{' '}
+            {ROSTER.length} lads (more join as you get further in Story mode), basic or fully
+            evolved. Tap one on your team to pick its look, what it holds and its moves. Your rival
+            gets 6 of the rest. You fight 6 against 6 until one side has nobody left standing.
           </li>
           <li>
             <b>Story mode</b>: walk from Co. Clare to Trinity College Dublin, catch Ranemon, beat
@@ -147,9 +147,15 @@ export default function Guide() {
             always goes first, then faster moves, then the faster Ranemon.
           </li>
           <li>
-            <b>Stats</b>: HP is how much it can take, ATK how hard its physical moves hit, DEF how
-            well it takes them, SPI (Spirit) powers its other moves and guards against them, and SPD
-            decides who goes first.
+            <b>Stats</b>: HP is how much it can take, ATK how hard its Physical moves hit, DEF how
+            well it takes them, and SPD decides who goes first.
+          </li>
+          <li>
+            <b>Spirit</b> (SPI) does two jobs. It is how hard its Spirit moves hit <i>and</i> how
+            well it takes Spirit moves from the foe: a Spirit move is its Spirit against the foe’s
+            Spirit. So raising your Spirit helps on both ends, and lowering a foe’s Spirit makes
+            your Spirit moves hit harder and theirs hit softer. It does nothing for Physical moves,
+            and Status moves do no damage at all. Every move shows PHYS, SPIR or STATUS.
           </li>
           <li>
             Moves have PP, so they run out. A Ranemon with no PP left will flail. One hit in 24 is a
@@ -198,8 +204,8 @@ export default function Guide() {
           </li>
           <li>
             <b>Levels</b>: Ranemon earn EXP from battles. A Blue Ghost gives one level straight
-            away, and there’s a man in the corner of every McGrattans who sells them cheap, if you’d
-            rather not grind. Every Ranemon evolves once, at level 30.
+            away, and there’s a man in the corner of every McGrattans and every W.B Yates who sells
+            them cheap, if you’d rather not grind. Every Ranemon evolves once, at level 30.
           </li>
           <li>
             <b>Level cap</b>: no Ranemon can grow past the level of the next gym leader’s strongest

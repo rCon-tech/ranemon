@@ -40,7 +40,15 @@ import {
 import { remoteSaves } from '@/lib/story/remote';
 import { describe, keepCopy, replace } from '@/lib/story/save';
 import { SaveTools } from './SaveTools';
-import { applyItem, ITEMS, itemById, priceOf, type ItemId } from '@/lib/story/items';
+import {
+  applyItem,
+  holdOf,
+  holdsItem,
+  ITEMS,
+  itemById,
+  priceOf,
+  type ItemId,
+} from '@/lib/story/items';
 import { devSave, isDevName } from '@/lib/story/devsave';
 import { COMPANIONS, companionOf, finds, pickFind } from '@/lib/story/norm';
 import {
@@ -579,15 +587,16 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
             // Once you're Champion, every trainer scales up to your party; the Championship
             // in Galway always does, Champion or not. Britain is a new story line that starts
             // again from Lv5, so its trainers keep their own levels, unless they always scale
-            // (`above`), like the Ranelasses at Rowans.
+            // (`above`), like the Ranelasses at Rowans, who only come half way until Viv is
+            // first beaten (`halfway`).
             const own = teamOf(t, t.uk ? g.ukStarter : g.starter);
-            const team = (t.uk && t.above === undefined ? own : scaleTeam(own, g, t.above)).map(
-              ([id, level], i) => {
-                const e = toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined));
-                // A trainer with a Mega Ring, such as a Ranelass, uses it on their ace.
-                return e.creature.id === t.mega ? { ...e, mega: true } : e;
-              },
-            );
+            const halfway = !!t.halfway && !g.flags.includes(t.halfway);
+            const scaled = scaleTeam(own, g, t.above, halfway);
+            const team = (t.uk && t.above === undefined ? own : scaled).map(([id, level], i) => {
+              const e = toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined));
+              // A trainer with a Mega Ring, such as a Ranelass, uses it on their ace.
+              return e.creature.id === t.mega ? { ...e, mega: true } : e;
+            });
             for (const e of team) g = see(g, e.creature.id);
             setGame(g);
             setQueue(q);
@@ -1456,15 +1465,16 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
                 const r = blueGhost(m, game.party, levelCap(game));
                 g = { ...g, party: g.party.map((x, j) => (j === i ? r.member : x)) };
                 lines = r.lines;
-              } else if (item.use.kind === 'hold') {
+              } else if (holdsItem(item, m.species)) {
                 // Stays in the BAG: what happened shows there.
+                const hold = holdOf(item.use)!;
                 g = holdItem(game, i, id);
                 const back = m.held ? ` and gave back the ${itemById(m.held).name}` : '';
                 persist(g);
                 setGame(g);
                 return [
                   `${name} is now holding the ${item.name}${back}!`,
-                  `Its ${item.use.stat.toUpperCase()} goes up ${Math.round((item.use.factor - 1) * 100)}% in every battle.`,
+                  `Its ${hold.stat.toUpperCase()} goes up ${Math.round((hold.factor - 1) * 100)}% in every battle.`,
                 ];
               } else if (item.use.kind === 'evolve') {
                 const r = itemEvolve(m, id);
