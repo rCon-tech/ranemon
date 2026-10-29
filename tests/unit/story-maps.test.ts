@@ -97,9 +97,10 @@ describe.each([
       expect(exits).toHaveLength(1);
       expect(seen.has(`${width - 1},${exits[0]}`)).toBe(true);
       expect(marker(map, '>')).toBeTruthy();
-      // The Garda (or porter) stands right in front of the way out.
+      // The Garda (or porter) stands right in front of the way out. The road between two
+      // counties has none: the county behind it already had one.
       const guard = npcsOf(map).find((n) => n.x === width - 2 && n.y === exits[0]);
-      expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
+      if (!map.link) expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
     }
     if (map.west) expect(marker(map, '@').x).toBe(0);
   });

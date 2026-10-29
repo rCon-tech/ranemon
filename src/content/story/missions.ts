@@ -22,6 +22,7 @@ import { SIDEMEN_ARRIVED, SIDEMEN_DONE, SIDEMEN_SIX, SIDEMEN_START, SIX } from '
 import { NEESON_DONE, NEESON_DOUBLE, NEESON_START } from './neeson';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
+import { STAG_BOAT, STAG_DONE, STAG_START } from './road';
 
 /**
  * Missions: the main story and every side story, as START → MISSIONS shows them. A mission is
@@ -96,6 +97,42 @@ export const MISSIONS: Mission[] = [
         until: BALL_FLAG,
         todo: 'Show your nine jerseys at the Front Gate, get past the scholars and beat B&S under the Campanile.',
         where: 'Trinity College Dublin',
+      },
+    ],
+  },
+  {
+    id: 'stag',
+    name: 'The Lads on Tour',
+    about:
+      'A stag party is doing every county from Clare to Dublin, and somewhere along the way they lost the groom.',
+    start: STAG_START,
+    done: STAG_DONE,
+    hideIf: LONDON_ONLY,
+    steps: [
+      {
+        until: beatFlag('lads-gav'),
+        todo: 'Dec says Gav went on ahead to look for the groom. Find Gav.',
+        where: 'Thurles, Co. Tipperary',
+      },
+      {
+        until: beatFlag('lads-ringleader'),
+        todo: 'Gav says Shane, the best man, will know. He’s at the Electric Picnic.',
+        where: 'Stradbally, Co. Laois',
+      },
+      {
+        until: STAG_BOAT,
+        todo: 'Shane last saw the groom on a boat party going up the Shannon. Ask the skipper.',
+        where: 'Shannonbridge, between Offaly and Westmeath',
+      },
+      {
+        until: beatFlag('lads-fiach'),
+        todo: 'The groom got off at Athlone looking for Sean’s Bar, and Fiach went after him.',
+        where: 'Athlone, Co. Westmeath',
+      },
+      {
+        until: STAG_DONE,
+        todo: 'The groom got the Luas into Dublin for a proper stag. Find him before the wedding.',
+        where: 'Dublin City',
       },
     ],
   },

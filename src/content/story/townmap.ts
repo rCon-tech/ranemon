@@ -120,7 +120,9 @@ export interface Stop {
 
 /** Every stop on the road, west to east, as this save knows it. */
 export function stopsOf(game: StoryState): Stop[] {
-  const here = outsideOf(mapById(game.map)).id;
+  const outside = outsideOf(mapById(game.map));
+  // On the road between two counties, you're still in the one behind you.
+  const here = outside.link ? outside.west! : outside.id;
   const at = here === 'trinity' ? 'dublin' : here;
   return MAPS.filter(
     (m) =>

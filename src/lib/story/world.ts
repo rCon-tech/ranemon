@@ -361,6 +361,11 @@ export interface GameMap {
   arrive?: Step[];
   /** Only drawn in 2D for now: with the 3D look picked, this map and its rooms show in 2D. */
   flat?: boolean;
+  /**
+   * A short stretch of road between two counties (content/story/road.ts): no Garda at its way
+   * out, and left off the Town Map and the Limepass, which count it as the county behind it.
+   */
+  link?: boolean;
   /** Slate roofs on every building, not only the gym: the look of a well-off town. */
   slate?: boolean;
   /**
