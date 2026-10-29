@@ -193,9 +193,9 @@ export const FOOTBALLER_MON: Creature[] = [
   footballer({
     id: 'murraymon',
     name: 'Murraymon',
-    types: ['brawn', 'charm'],
+    types: ['charm', 'chill'],
     base: stats(95, 105, 85, 75, 100),
-    moves: ['seagull-header', 'headlock', 'charm-offensive', 'flex'],
+    moves: ['seagull-header', 'charm-offensive', 'cold-shoulder', 'unbothered'],
     entry:
       'Has played for both ends of the M23 and chose the seaside. Nests at the back post and is never far from a seagull.',
     colour: '#0057b8',

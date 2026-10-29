@@ -151,7 +151,7 @@ LOOKS = {
 
 # Their types, for the glow: the first of each one's types.
 TYPE = {
-    "murraymon": "brawn", "wrightymon": "hype", "mcgrathmon": "chill", "duncanmon": "brawn",
+    "murraymon": "charm", "wrightymon": "hype", "mcgrathmon": "chill", "duncanmon": "brawn",
     "bielsamon": "brains", "shearermon": "graft", "robbiemon": "charm", "agueromon": "hype",
     "terrymon": "brawn", "henrymon": "arty", "gerrardmon": "graft", "keanemon": "brawn",
 }
