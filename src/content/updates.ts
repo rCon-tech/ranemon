@@ -11,6 +11,14 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-29',
+    title: 'Training pays',
+    notes: [
+      'The last fights of the London story still keep up with you, but now only half way, and to your whole party rather than your strongest Ranemon. Every level you train before you go in counts.',
+      'Win once and they take you seriously: after that they keep up with you all the way.',
+    ],
+  },
+  {
     date: '2026-10-28',
     title: 'Quick Sesh',
     notes: [

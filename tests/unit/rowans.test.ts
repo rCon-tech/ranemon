@@ -25,6 +25,7 @@ import { MEGAS, megaForm } from '@/lib/battle/mega';
 import { UK } from '@/lib/battle/uk';
 import { makeMember, speciesById as creatureById, toEntrant } from '@/lib/story/party';
 import { MEGA_RING } from '@/lib/story/keys';
+import { scaleTeam } from '@/lib/story/levels';
 import { healParty, newGame } from '@/lib/story/state';
 import { find, npcsOf, type Step } from '@/lib/story/world';
 
@@ -144,5 +145,32 @@ describe('Rowans', () => {
     const s = { ...newGame(), flags: [...RUN, wonFlag(VIV), MEGA_RING] };
     expect(breakRun(s.flags)).toEqual([wonFlag(VIV), MEGA_RING]);
     expect(healParty(s).flags).toEqual([wonFlag(VIV), MEGA_RING]);
+  });
+});
+
+describe('Ranelass level scaling', () => {
+  const viv = trainerById(VIV);
+  const ace = (t: [string, number][]) => Math.max(...t.map(([, l]) => l));
+  const party = (...levels: number[]) => levels.map((l, i) => makeMember('carlmon', l, i, UK));
+
+  it('comes only half way on the first run, so training pays', () => {
+    const flags: string[] = [];
+    const at = (l: number) =>
+      ace(scaleTeam(viv.team, { flags, party: party(l, l, l) }, viv.above, true));
+    expect(viv.halfway).toBe(RANELASSES_BEATEN);
+    expect(at(60)).toBe(ace(viv.team));
+    // Lv80: the gap to Viv's ace (79 against her 63) is 16, so she comes up 8.
+    expect(at(80)).toBe(71);
+    expect(at(100) - ace(viv.team)).toBeLessThan(100 - 1 - ace(viv.team));
+  });
+
+  it('scales to the party’s average, not one over-levelled Ranemon', () => {
+    const one = scaleTeam(viv.team, { flags: [], party: party(90, 60, 60) }, viv.above, true);
+    expect(ace(one)).toBe(ace(viv.team) + Math.round((70 - 1 - ace(viv.team)) / 2));
+  });
+
+  it('scales in full on a rematch, once Viv is beaten', () => {
+    const s = { flags: [RANELASSES_BEATEN], party: party(80, 60) };
+    expect(ace(scaleTeam(viv.team, s, viv.above))).toBe(79);
   });
 });

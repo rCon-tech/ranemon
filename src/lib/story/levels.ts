@@ -59,14 +59,21 @@ export const scales = (s: Flags) => has(s, CHAMPION);
  * same amount, so its ace is as high as your best Ranemon. A team is never made weaker. With
  * `above` (the Championship in Galway) it always scales, and its ace comes in that many levels
  * from your best (negative is under it), up to MAX_LEVEL.
+ *
+ * With `halfway` (the Ranelasses' first run) the team only closes half the gap, and to the
+ * party's average level rather than its best, so training before the fight still pays and one
+ * over-levelled Ranemon doesn't pull the whole team up with it.
  */
 export function scaleTeam(
   team: [string, number][],
   s: Pick<StoryState, 'flags' | 'party'>,
   above?: number,
+  halfway = false,
 ): [string, number][] {
   if ((above === undefined && !scales(s)) || !team.length || !s.party.length) return team;
-  const best = Math.max(...s.party.map((m) => m.level));
-  const up = Math.max(0, best + (above ?? 0) - aceOf(team));
+  const levels = s.party.map((m) => m.level);
+  const to = halfway ? levels.reduce((a, l) => a + l, 0) / levels.length : Math.max(...levels);
+  const gap = to + (above ?? 0) - aceOf(team);
+  const up = Math.max(0, Math.round(halfway ? gap / 2 : gap));
   return team.map(([id, level]) => [id, Math.min(MAX_LEVEL, level + up)]);
 }

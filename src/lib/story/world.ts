@@ -265,6 +265,12 @@ export interface Trainer {
    */
   above?: number;
   /**
+   * With `above`: until this flag is set, the team only closes half the gap to your party's
+   * average level (`scaleTeam`), so training pays. After it, it scales in full. The Ranelasses,
+   * until Viv is first beaten.
+   */
+  halfway?: string;
+  /**
    * The species on its team that Mega evolves (`lib/battle/mega.ts`): the trainer has a Mega
    * Ring, and uses it on that one. The Ranelasses at Rowans.
    */
