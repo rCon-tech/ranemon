@@ -44,7 +44,9 @@ def tones(r):
     l, m, d = (np.array(c, float) for c in r)
     glint = mix(l, (255, 250, 230), 0.45)
     light = mix(l, WARM, 0.18)
-    shadow = mix(d, COOL, 0.22)
+    # Skin shades warm (into red, not purple), everything else cools into its shadow.
+    skin = m[0] > 150 and m[0] > m[1] + 25 and m[1] > m[2] + 10
+    shadow = mix(d, (150, 60, 66), 0.18) if skin else mix(d, COOL, 0.22)
     deep = mix(shadow * 0.72, NIGHT, 0.3)
     return [np.clip(c, 0, 255) for c in (glint, light, m, shadow, deep)]
 
@@ -84,24 +86,26 @@ BAYER = np.array([[0, 2], [3, 1]]) / 4 - 0.375
 def render(fig: Figure, level: int) -> Image.Image:
     if level == 0:
         return ORIGINAL(fig)
-    z = np.full((SIZE, SIZE), -1)
+    n = fig.layers[0][0].shape[0]
+    k = n // SIZE  # 2 when drawn at double resolution: offsets in 96ths of the figure
+    z = np.full((n, n), -1)
     for i, (mask, _, _) in enumerate(fig.layers):
         z[mask] = i
-    out = np.zeros((SIZE, SIZE, 4), np.uint8)
-    deep = np.zeros((SIZE, SIZE, 3))
+    out = np.zeros((n, n, 4), np.uint8)
+    deep = np.zeros((n, n, 3))
     for i, (mask, paint, line) in enumerate(fig.layers):
         own = z == i
         if not own.any():
             continue
         if level == 1:
-            shadow = own & ~shift(mask, 3, 3)
-            half = own & ~shift(mask, 6, 6) & ~shadow
-            light = own & ~shift(mask, -3, -3) & ~shadow & ~half
+            shadow = own & ~shift(mask, 3 * k, 3 * k)
+            half = own & ~shift(mask, 6 * k, 6 * k) & ~shadow
+            light = own & ~shift(mask, -3 * k, -3 * k) & ~shadow & ~half
             step = np.where(shadow, 3, np.where(half, 2.5, np.where(light, 1, 2)))
         else:
             # A dome over the part: its height rises from the edge, its slope faces the light.
-            h = blur(np.sqrt(np.minimum(distance(mask), 9) / 9), 1)
-            gy, gx = np.gradient(h * 5)
+            h = blur(np.sqrt(np.minimum(distance(mask, 12 * k), 9 * k) / (9 * k)), k)
+            gy, gx = np.gradient(h * 5 * k)
             n = np.stack((-gx, -gy, np.ones_like(h)), -1)
             n /= np.linalg.norm(n, axis=-1, keepdims=True)
             lit = n @ LIGHT
@@ -111,10 +115,10 @@ def render(fig: Figure, level: int) -> Image.Image:
             for m, _, l in fig.layers[i + 1:]:
                 if l:
                     front |= m
-            cast = own & shift(front, -2, -3) & ~front
+            cast = own & shift(front, -2 * k, -3 * k) & ~front
             step = np.where(cast, np.maximum(step, 2.5) + 0.5, step)
         for y, x in zip(*np.nonzero(own)):
-            t = tones(paint(x, y))
+            t = tones(paint(x // k, y // k))
             s = step[y, x]
             if s == 0.6:  # a glint only on the very top of a dome
                 c = t[0] if (x + y) % 3 == 0 else t[1]
@@ -176,7 +180,7 @@ CREAM = ramp((246, 214, 140))
 HORN = ramp((240, 226, 190))
 
 
-def wing(f, pts, root, view, flap):
+def wing(f, pts, root, view, flap, bone=2):
     """A wing on each side: an orange frame, teal webbing, and three bones out to its points."""
     pts = turn(pts, root, -flap)
     for side, r in ((pts, root), (mirror(pts, view), mirror([root], view)[0])):
@@ -184,7 +188,7 @@ def wing(f, pts, root, view, flap):
         f.part(poly(*costumes.shrink(side, 0.64)), TEAL, line=False)
         tips = [side[3], side[5], side[8]]
         for t in tips:
-            f.part(capsule(r, t, 2), BONE, line=False)
+            f.part(capsule(r, t, bone), BONE, line=False)
 
 
 def flame(f, x, y, s, k):
@@ -201,12 +205,12 @@ def flame(f, x, y, s, k):
         f.part(poly(*p), ramp(col), line=scale == 1.0)
 
 
-def carlizard2(flap=0, flick=0):
+def carlizard2(flap=0, flick=0, bone=2):
     def extras(f, look, stage, view):
         if view == "front":
             if stage == "behind":
                 wing(f, [(58, 60), (62, 46), (74, 32), (93, 10), (95, 24), (93, 40), (86, 45), (89, 55),
-                         (80, 55), (78, 64), (66, 66)], (58, 60), view, flap)
+                         (80, 55), (78, 64), (66, 66)], (58, 60), view, flap, bone)
                 tail = capsule((58, 84), (78, 86), 7) | capsule((78, 86), (86, 74), 6)
                 f.part(tail, ORANGE)
                 f.part(tail & (kit.Y > 86) | capsule((62, 87), (77, 89), 2), CREAM, line=False)
@@ -222,7 +226,7 @@ def carlizard2(flap=0, flick=0):
                 f.part(tail, ORANGE)
                 f.part(capsule((62, 96), (80, 95), 3), CREAM, line=False)
                 wing(f, [(54, 76), (60, 62), (72, 46), (93, 20), (96, 34), (95, 50), (88, 56), (91, 66),
-                         (82, 66), (80, 74), (64, 80)], (54, 76), view, flap)
+                         (82, 66), (80, 74), (64, 80)], (54, 76), view, flap, bone)
                 f.part(ellipse(40, 68, 58, 82), ORANGE)
             if stage == "head":
                 f.part(poly((30, 16), (26, 3), (38, 12)) | poly((68, 16), (72, 3), (60, 12)), HORN)
