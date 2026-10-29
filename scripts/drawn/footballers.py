@@ -9,6 +9,7 @@ with its mini and its shiny; the contact sheet goes to art/drawn/premier/sheet.p
 """
 
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -24,6 +25,7 @@ from kit import (
     SKIN_RUDDY,
     Look,
     ellipse,
+    poly,
     ramp,
     rect,
     solid,
@@ -157,6 +159,60 @@ TYPE = {
 }
 
 
+# --- Harry Kane: Kanemon, and his Mega, Ballan d'Or ------------------------------------------
+
+
+def golden_ball(f, look, stage, view):
+    """The Ballon d'Or, held up over his head in the raised hand."""
+    if stage == "front" and view == "front":
+        hw = round(18 * look.build)
+        x, y = CX - hw - 11, 26
+        f.part(ellipse(x - 9, y - 9, x + 9, y + 9), ramp((240, 196, 48), (255, 236, 150), (190, 140, 20)))
+        f.part(rect(x - 4, y + 9, x + 4, y + 14), ramp((200, 150, 30)))
+
+
+def ballan(f, look, stage, view):
+    """Ballan d'Or: a laurel crown of gold, the trophy held high, and gold rays behind him."""
+    golden_ball(f, look, stage, view)
+    c = CX if view == "front" else BX
+    if stage == "behind":
+        for dx, dy in ((-40, 20), (40, 20), (-34, -2), (34, -2), (-44, 48), (44, 48)):
+            f.part(poly((c, 46), (c + dx - 4, 46 + dy - 46), (c + dx + 4, 46 + dy - 46)),
+                   ramp((250, 214, 90)), line=False)
+    if stage == "head":
+        top = 4 if view == "front" else 8
+        for dx in (-14, -7, 0, 7, 14):
+            f.part(ellipse(c + dx - 4, top - 2, c + dx + 4, top + 6), ramp((240, 196, 48)))
+
+
+def kanemon(f, look, stage, view):
+    """England's number 9, with the Ballon d'Or he's brought himself."""
+    number("9", (19, 34, 87))(f, look, stage, view)
+    golden_ball(f, look, stage, view)
+
+
+KANE = Look(skin=SKIN, hair="short", hair_colour=(106, 74, 42), eyes="open", mouth="smirk",
+            inner=kit_shirt(WHITE), neck="crew", neck_colour=(19, 34, 87), sleeves="short",
+            trousers=(19, 34, 87), shoes=BLACK, pose="raise", extras=kanemon)
+LOOKS["kanemon"] = KANE
+TYPE["kanemon"] = "brawn"
+
+# The Mega: all in gold, like the trophy, with the Mega's two glows and symbol.
+BALLAN = replace(KANE, inner=kit_shirt((240, 196, 48)), trousers=(240, 196, 48), shoes=(240, 196, 48),
+                 mouth="grin", extras=ballan)
+
+
+def save_mega():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    import mega  # noqa: E402  (megafy: the glow and the symbol)
+
+    figure = sprites.gild(sprites.outline(kit.front(BALLAN, outlined=False)), False)
+    im = mega.megafy(figure, "posh")
+    for root in (PUBLIC / "premier" / "mega", PUBLIC / "shiny" / "premier" / "mega"):
+        root.mkdir(parents=True, exist_ok=True)
+        im.save(root / "kanemon.png")
+
+
 def draw(id):
     return glow(sprites.outline(kit.front(LOOKS[id], outlined=False)), TYPE[id])
 
@@ -190,6 +246,7 @@ def sheet():
 def main(ids):
     for id in ids or LOOKS:
         save(id)
+    save_mega()
     sheet()
 
 

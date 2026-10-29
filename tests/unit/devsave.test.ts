@@ -1,3 +1,4 @@
+import { KANE_TRAINER } from '@/content/story/kane';
 import { describe, expect, it } from 'vitest';
 import { CHAMPION_OF_IRELAND, COLLINS, COLLINS_HEARD, ELITE } from '@/content/story/galway';
 import { ARCADE_KING } from '@/content/story/brighton';
@@ -94,7 +95,7 @@ describe('the developer save', () => {
     expect(flags.has('mescal:gone')).toBe(true);
   });
 
-  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass, Galway and the Premier League to fight', () => {
+  it('has beaten every trainer but leaves Poseidon, the B&S rematch, the twins, the Arcade King, DJ Vandenbass, Galway, the Premier League and Harry Kane to fight', () => {
     const bosses = [
       'poseidon',
       'bns-rematch',
@@ -106,6 +107,7 @@ describe('the developer save', () => {
       ...PREMIER_TRAINERS.map((t) => t.id),
       ...PALACE_TRAINERS.map((t) => t.id),
       ...[...SIDEMEN_TRAINERS, ...WEMBLEY_TRAINERS].map((t) => t.id),
+      KANE_TRAINER,
     ];
     for (const t of TRAINERS.filter((t) => !bosses.includes(t.id)))
       expect(flags.has(beatFlag(t.id)), t.id).toBe(true);

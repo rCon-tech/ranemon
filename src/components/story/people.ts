@@ -1173,6 +1173,17 @@ export const STYLES: Record<Look | 'player', Style> = {
     legs: '#f4f4f4',
     shoes: '#18181c',
   },
+  // Harry Kane: England white, navy shorts, and the captain's armband.
+  kane: {
+    skin: '#f0c4a0',
+    hair: '#6a4a2a',
+    hairStyle: 'short',
+    top: '#f4f4f4',
+    topKind: 'shirt',
+    trim: '#132257',
+    legs: '#132257',
+    shoes: '#18181c',
+  },
   // The W.B Yates owners. Seán and Pádraig, the Mayo brothers: green and red jumpers, flat caps.
   mayo: {
     skin: '#f0c4a0',

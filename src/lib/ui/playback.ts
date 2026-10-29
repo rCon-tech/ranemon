@@ -1,4 +1,5 @@
 import type { BattleEvent, BattleState, Side } from '../battle/engine';
+import { KANE_ID } from '../battle/kane';
 import { moveById, type Stat, type Status } from '../battle/moves';
 
 /** Who the player is up against, which changes how the text box talks about the other side. */
@@ -206,7 +207,9 @@ export function describeEvent(
       const b = state.teams[side].battlers[event.index];
       const was = b.before?.name ?? creature;
       const whose = side === 0 ? 'Your' : `${trainer}’s`;
-      return `${whose} Mega Ring is glowing! ${was} Mega Evolved into ${creature}!`;
+      // Harry Kane's Kanemon brings his own Ballon d'Or, not a Mega Ring.
+      const stone = b.creature.id === KANE_ID ? 'Ballon d’Or' : 'Mega Ring';
+      return `${whose} ${stone} is glowing! ${was} Mega Evolved into ${creature}!`;
     }
   }
 }

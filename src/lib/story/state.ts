@@ -4,6 +4,7 @@ import { breakRun as breakRowans } from '@/content/story/rowans';
 import { LONDON_ONLY } from '@/content/story/kneecap';
 import { LONDON_START, LONDON_START_FLAGS, LONDON_START_PUB } from '@/content/story/london';
 import type { BattleState } from '../battle/engine';
+import { KANE_ID } from '../battle/kane';
 import { moveById } from '../battle/moves';
 import type { Result } from '../ui/session';
 import { sellPrice, type ItemId } from './items';
@@ -24,6 +25,7 @@ import {
 } from './party';
 import { levelCap } from './levels';
 import { SCHEMA } from './save';
+import { MEGA_RING } from './keys';
 import { marker, type Dir } from './world';
 
 /** Everything a story save holds. Plain JSON. */
@@ -254,6 +256,12 @@ export function recruit(
 export function healParty(s: StoryState): StoryState {
   return { ...s, party: s.party.map(heal), flags: breakRowans(breakRun(s.flags)) };
 }
+
+/**
+ * Whether a member can Mega evolve in your battles: any with a Mega form once you have the Mega
+ * Ring, and Harry Kane always, since he brings his own Ballon d'Or.
+ */
+export const canMega = (s: StoryState, m: Member) => hasFlag(s, MEGA_RING) || m.species === KANE_ID;
 
 export const canFight = (s: StoryState) => s.party.some((m) => m.hp > 0);
 

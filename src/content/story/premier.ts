@@ -1,3 +1,4 @@
+import { KANE_TEXT } from './kane';
 import { interiorId } from './interiors';
 import { CHAMPION, FIXTURES, LONDON_ONLY, RAILCARD } from './kneecap';
 import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
@@ -399,7 +400,13 @@ const CLUBS: Club[] = [
       'The commentator, from somewhere high up: “AGÜEROOOO… no. NO! It’s the Irish lad! City will be appealing that, surely.”',
     own: 'agueromon',
     hand: 'AGÜERO: Take Agüeromon. He’s best in the last minute. Like me. Like the appeal.',
-    gift: [],
+    gift: [
+      {
+        do: 'say',
+        text: 'AGÜERO: Take these. Sky blue, like the shirt. For the last minute, when you need it.',
+      },
+      { do: 'give', item: 'blue-ghost', count: 3 },
+    ],
     seats:
       'Sky blue seats, every one sponsored by a different company. They all have the same address. It’s in the Gulf.',
     pitch:
@@ -518,6 +525,7 @@ const CHAMPIONS: Step[] = [
     do: 'say',
     text: 'PRÓVAÍ: (on the phone) CHAMPIONS! Get back to London. The police on the Mall have to let you through now. It’s the law. Probably.',
   },
+  ...KANE_TEXT,
 ];
 
 export const PL_TRAINERS: Trainer[] = CLUBS.map((c, i) => {

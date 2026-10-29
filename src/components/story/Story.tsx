@@ -64,6 +64,7 @@ import {
   type Member,
 } from '@/lib/story/party';
 import {
+  canMega,
   beatFlag,
   befriend,
   canFight,
@@ -124,7 +125,7 @@ import {
 } from '@/lib/story/world';
 import type { Foe } from '@/lib/ui/playback';
 import type { Result } from '@/lib/ui/session';
-import { LIMEPASS, MEGA_RING, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
+import { LIMEPASS, notice, TABLET, TAKE_TABLET } from '@/lib/story/keys';
 import { LimepassPanel } from './LimepassPanel';
 import { rollShiny } from '@/lib/story/shiny';
 import { rollVariant } from '@/lib/battle/variants';
@@ -166,9 +167,12 @@ type Run = Step | { do: 'offer-chat' };
 /** What runs each time you come onto a map outdoors, such as someone running up to you. */
 const arrival = (map: GameMap): Run[] => (map.inside ? [] : (map.arrive ?? []));
 
-/** Your party, sent into a battle: with the Mega Ring, any of them with a Mega form can use it. */
+/**
+ * Your party, sent into a battle: with the Mega Ring, any of them with a Mega form can use it,
+ * and Harry Kane can without it (`canMega`).
+ */
 const yours = (g: StoryState) =>
-  g.party.map((m) => ({ ...toEntrant(m), ...(hasFlag(g, MEGA_RING) && { mega: true }) }));
+  g.party.map((m) => ({ ...toEntrant(m), ...(canMega(g, m) && { mega: true }) }));
 
 type Overlay =
   | 'menu'

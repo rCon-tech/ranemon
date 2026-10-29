@@ -1,4 +1,5 @@
 import { interiorId } from './interiors';
+import { KANE_GATE, WEMBLEY_WAY_ID } from './kane';
 import type { ItemId } from '@/lib/story/items';
 import type { GameMap, Look, Npc, Step, Trainer, Yates } from '@/lib/story/world';
 
@@ -575,7 +576,13 @@ const HOMEWARD: Npc = {
   ],
 };
 
-/** The guard for the Metropolitan line at King's Cross: only for Jamie's lot. */
+/** The ride out to Wembley Park. */
+const TO_WEMBLEY: Step[] = [
+  { do: 'say', text: 'Out through Finchley Road, past a great many semis. There’s the arch.' },
+  { do: 'travel', ...WEMBLEY_ARRIVAL },
+];
+
+/** The guard for the Metropolitan line at King's Cross: for Jamie's lot, and the Champion. */
 export const METROPOLITAN: Npc = {
   look: 'conductor',
   face: 'down',
@@ -589,19 +596,28 @@ export const METROPOLITAN: Npc = {
         {
           do: 'ask',
           text: 'GUARD: The Metropolitan line to Wembley Park. Hop on?',
-          yes: [
-            {
-              do: 'say',
-              text: 'Out through Finchley Road, past a great many semis. There’s the arch.',
-            },
-            { do: 'travel', ...WEMBLEY_ARRIVAL },
-          ],
+          yes: TO_WEMBLEY,
           no: say('GUARD: Every few minutes. Every few minutes full of Sidemen fans.'),
         },
       ],
-      else: say(
-        'GUARD: Wembley Park? It’s players and crew only out there this week, for the Sidemen Charity Match. Unless Jamie Elliott says otherwise.',
-      ),
+      // The Champion can go too, Sidemen or not: Harry Kane is out there.
+      else: [
+        {
+          do: 'if',
+          flag: KANE_GATE,
+          then: [
+            {
+              do: 'ask',
+              text: 'GUARD: The Metropolitan line to Wembley Park. The Champion goes where the Champion likes. Hop on?',
+              yes: TO_WEMBLEY,
+              no: say('GUARD: Every few minutes, Champion.'),
+            },
+          ],
+          else: say(
+            'GUARD: Wembley Park? It’s players and crew only out there this week, for the Sidemen Charity Match. Unless Jamie Elliott says otherwise.',
+          ),
+        },
+      ],
     },
   ],
 };
@@ -680,6 +696,26 @@ const WELCOME: Step[] = [
  * Wembley Park: the station and the main street along the top, two more doors over the road,
  * and Wembley Stadium at the bottom between two patches of long grass. `z` is the stadium's glass.
  */
+/** Wembley Park's rows: the way out east onto Wembley Way, once it's open, along row 7. */
+const WEMBLEY_ROWS = (east: boolean) => [
+  'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+  'T^^^^^^^^^^^^^^^^^^^^^^^^^^^^T',
+  'T##L####L####P####M####L###L#T',
+  'T@vvvvvvvvvvvvvvvvvvvvvvvvvvvT',
+  'Tv1vvvvvvvvvvvvSvvvvvvvvvv2vvT',
+  'TaaaaaaaaaaaaaaaaaaaaaaaaaaaaT',
+  'TaacaaaaaaaaaaaaaaaaaaaaacaaaT',
+  `Tvvvvvvvvvvvvvvvvvvvvvvvvvvvv${east ? '>' : 'T'}`,
+  'Tv^^^^^^^vvvvvvvvvvvv^^^^^^^vT',
+  'Tv###L###vvv3vvvvvvvv###L###vT',
+  'TvvvvvvvvvzzzzzzzzzzvvvvvvvvvT',
+  'Tv,,,,,,,vzzzzzzzzzzv,,,,,,,vT',
+  'Tv,,,4,,,vzzzzLzzzzzv,,,5,,,vT',
+  'Tv,,,,,,,vvvvvvvvvvvv,,,,,,,vT',
+  'TvvvvvvvvvvvvvSvvvvvvvvvvvvvvT',
+  'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+];
+
 export const WEMBLEY: GameMap = {
   id: WEMBLEY_ID,
   name: 'Wembley Park, London',
@@ -689,24 +725,9 @@ export const WEMBLEY: GameMap = {
   uk: true,
   yates: WEMBLEY_YATES,
   arrive: [{ do: 'if', flag: SIDEMEN_ARRIVED, then: [], else: WELCOME }],
-  rows: [
-    'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
-    'T^^^^^^^^^^^^^^^^^^^^^^^^^^^^T',
-    'T##L####L####P####M####L###L#T',
-    'T@vvvvvvvvvvvvvvvvvvvvvvvvvvvT',
-    'Tv1vvvvvvvvvvvvSvvvvvvvvvv2vvT',
-    'TaaaaaaaaaaaaaaaaaaaaaaaaaaaaT',
-    'TaacaaaaaaaaaaaaaaaaaaaaacaaaT',
-    'TvvvvvvvvvvvvvvvvvvvvvvvvvvvvT',
-    'Tv^^^^^^^vvvvvvvvvvvv^^^^^^^vT',
-    'Tv###L###vvv3vvvvvvvv###L###vT',
-    'TvvvvvvvvvzzzzzzzzzzvvvvvvvvvT',
-    'Tv,,,,,,,vzzzzzzzzzzv,,,,,,,vT',
-    'Tv,,,4,,,vzzzzLzzzzzv,,,5,,,vT',
-    'Tv,,,,,,,vvvvvvvvvvvv,,,,,,,vT',
-    'TvvvvvvvvvvvvvSvvvvvvvvvvvvvvT',
-    'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
-  ],
+  rows: WEMBLEY_ROWS(false),
+  // Once you're Champion, the way east onto Wembley Way, where Harry Kane is (`kane.ts`).
+  after: { flag: KANE_GATE, rows: WEMBLEY_ROWS(true), east: WEMBLEY_WAY_ID },
   wild: {
     min: 24,
     max: 29,

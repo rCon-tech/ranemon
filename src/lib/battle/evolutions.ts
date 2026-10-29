@@ -3,6 +3,7 @@ import { LEGEND } from './legend';
 import { LONDON, LONDON_EVOLUTIONS, LONDON_ITEM_EVOLUTIONS } from './london';
 import { PETCHEMON } from './petchemon';
 import { FOOTBALLER_MON } from './footballers';
+import { KANEMON } from './kane';
 import { RANELASS_MON } from './ranelasses';
 import { ROSTER } from './roster';
 
@@ -271,6 +272,7 @@ const FORMS = new Map(
     ...LONDON,
     ...RANELASS_MON,
     ...FOOTBALLER_MON,
+    KANEMON,
   ].map((c) => [c.id, c]),
 );
 

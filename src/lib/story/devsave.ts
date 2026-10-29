@@ -15,6 +15,7 @@ import {
   PROVAI_MET,
   UK_STARTER,
 } from '@/content/story/kneecap';
+import { KANE_HOME, KANE_TRAINER } from '@/content/story/kane';
 import { PALACE_TRAINERS } from '@/content/story/palace';
 import { PL_FLAGS, PL_MAPS, PREMIER_TRAINERS } from '@/content/story/premier';
 import {
@@ -91,6 +92,8 @@ export const LONDON_TO_PLAY = [
   ...PL_FLAGS,
   ...PALACE_TRAINERS.map((t) => beatFlag(t.id)),
   ...PREMIER_TRAINERS.map((t) => beatFlag(t.id)),
+  KANE_HOME,
+  beatFlag(KANE_TRAINER),
   ...['london', 'airport', ...PL_MAPS.map((m) => m.id)].map((m) => `seen:${m}`),
 ];
 
