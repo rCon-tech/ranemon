@@ -9,7 +9,8 @@ head (after the head and hat), front (last) and paint (on the finished image).
 """
 
 import numpy as np
-from PIL import ImageDraw
+import kit
+from PIL import Image
 
 from kit import CX, Figure, capsule, ellipse, poly, ramp, rect
 
@@ -36,11 +37,33 @@ def pair(f: Figure, pts, paint, view, inner=None, k=0.62):
 
 
 def flame(f: Figure, x, y, s=1.0):
-    f.part(poly((x - 6 * s, y + 4 * s), (x - 4 * s, y - 6 * s), (x, y - 14 * s), (x + 3 * s, y - 6 * s),
-                (x + 6 * s, y - 10 * s), (x + 7 * s, y + 3 * s), (x, y + 8 * s)),
-           ramp((236, 96, 40), (250, 150, 60), (190, 50, 30)))
-    f.part(ellipse(x - 3 * s, y - 4 * s, x + 4 * s, y + 6 * s), ramp((252, 214, 72), (255, 246, 170), (232, 160, 40)),
-           line=False)
+    """Four flames one inside the other, red at the edge to white-hot in the heart."""
+    pts = [(x - 6 * s, y + 4 * s), (x - 4 * s, y - 6 * s), (x, y - 14 * s), (x + 3 * s, y - 6 * s),
+           (x + 6 * s, y - 10 * s), (x + 7 * s, y + 3 * s), (x, y + 8 * s)]
+    cy = y + 2 * s
+    for k, col in ((1.0, (206, 56, 36)), (0.78, (242, 112, 40)), (0.55, (252, 196, 64)), (0.28, (255, 246, 196))):
+        f.part(poly(*[(x + (px - x) * k, cy + (py - cy) * k) for px, py in pts]), ramp(col), line=k == 1.0)
+
+
+def firelight(im, x, y, reach=26, strength=0.32):
+    """A flame lights up what's near it, less the further away, on the finished figure."""
+    a = np.asarray(im).astype(float)
+    k = im.width // kit.SIZE
+    yy, xx = np.mgrid[0:im.height, 0:im.width] / k
+    w = np.clip(1 - np.hypot(xx - x, yy - y) / reach, 0, 1) ** 1.6 * strength
+    w[a[..., 3] == 0] = 0
+    lit = a[..., :3] * (1 - w[..., None]) + np.array((255, 170, 70)) * w[..., None]
+    a[..., :3] = np.maximum(a[..., :3], lit)
+    im.paste(Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA"))
+
+
+def wings(f: Figure, pts, root, view, frame, web, bone):
+    """A pair of wings: the frame, the webbing inside it, and bones from the root out to its points."""
+    for side, r in ((pts, root), (mirror(pts, view), mirror([root], view)[0])):
+        f.part(poly(*side), frame)
+        f.part(poly(*shrink(side, 0.64)), web, line=False)
+        for t in (side[3], side[5], side[8]):
+            f.part(capsule(r, t, 1), bone, line=False)
 
 
 ORANGE = ramp((232, 112, 48))
@@ -50,28 +73,42 @@ TEAL = ramp((88, 168, 200))
 # --- The evolutions ----------------------------------------------------------------------
 
 
+BONE = ramp((214, 92, 40))
+CREAM = ramp((246, 214, 140))
+HORN = ramp((240, 226, 190))
+
+
 def carlizard(f, look, stage, view):
-    """Charizard: orange wings with teal webbing from his back, a flaming tail, two horns."""
+    """Charizard: orange wings with teal webbing and bones from his back, a flaming tail with a
+    cream belly, two ridged horns, and the flame lighting him up."""
     if view == "front":
         if stage == "behind":
-            pair(f, [(58, 60), (62, 46), (74, 32), (93, 10), (95, 24), (93, 40), (86, 45), (89, 55),
-                     (80, 55), (78, 64), (66, 66)], ORANGE, view, TEAL)
-            f.part(capsule((58, 84), (78, 86), 7) | capsule((78, 86), (86, 74), 6), ORANGE)
-            f.part(poly((30, 12), (26, 0), (36, 8)) | poly((66, 12), (70, 0), (60, 8)),
-                   ramp((240, 226, 190)))
+            wings(f, [(58, 60), (62, 46), (74, 32), (93, 10), (95, 24), (93, 40), (86, 45), (89, 55),
+                      (80, 55), (78, 64), (66, 66)], (58, 60), view, ORANGE, TEAL, BONE)
+            tail = capsule((58, 84), (78, 86), 7) | capsule((78, 86), (86, 74), 6)
+            f.part(tail, ORANGE)
+            f.part(tail & (kit.Y > 86) | capsule((62, 87), (77, 89), 2), CREAM, line=False)
+            for hx, tip, s in ((30, 26, 1), (66, 70, -1)):
+                f.part(poly((hx, 12), (tip, 0), (hx + 6 * s, 8)), HORN)
+                f.part(poly((hx + s, 8), (hx + 4 * s, 7), (hx + 3 * s, 9)), ramp((190, 170, 140)), line=False)
         if stage == "front":
-            flame(f, 87, 68, 0.9)
+            flame(f, 87, 68, 0.95)
+        if stage == "paint":
+            firelight(f, 87, 64)
     else:
         if stage == "body":
-            f.part(capsule((58, 96), (80, 92), 9) | capsule((80, 92), (88, 80), 7), ORANGE)
-            pair(f, [(54, 76), (60, 62), (72, 46), (93, 20), (96, 34), (95, 50), (88, 56), (91, 66),
-                     (82, 66), (80, 74), (64, 80)], ORANGE, view, TEAL)
+            tail = capsule((58, 96), (80, 92), 9) | capsule((80, 92), (88, 80), 7)
+            f.part(tail, ORANGE)
+            f.part(capsule((62, 96), (80, 95), 3), CREAM, line=False)
+            wings(f, [(54, 76), (60, 62), (72, 46), (93, 20), (96, 34), (95, 50), (88, 56), (91, 66),
+                      (82, 66), (80, 74), (64, 80)], (54, 76), view, ORANGE, TEAL, BONE)
             f.part(ellipse(40, 68, 58, 82), ORANGE)
         if stage == "head":
-            f.part(poly((30, 16), (26, 3), (38, 12)) | poly((68, 16), (72, 3), (60, 12)),
-                   ramp((240, 226, 190)))
+            f.part(poly((30, 16), (26, 3), (38, 12)) | poly((68, 16), (72, 3), (60, 12)), HORN)
         if stage == "front":
-            flame(f, 88, 72, 1.0)
+            flame(f, 88, 72, 1.05)
+        if stage == "paint":
+            firelight(f, 88, 68)
 
 
 def steadakazam(f, look, stage, view):
@@ -85,7 +122,7 @@ def steadakazam(f, look, stage, view):
                 f.part(ellipse(hx + s * 4 - 4, 46, hx + s * 4 + 4, 58), silver)
             f.part(poly((44, 12), (48, 5), (52, 12), (48, 15)), ramp((240, 196, 48)))
         if stage == "paint":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             hair = ramp(look.hair_colour)[2]
             d.line([(40, 41), (30, 50)], fill=hair)
             d.line([(56, 41), (66, 50)], fill=hair)
@@ -216,7 +253,7 @@ def primeboyd(f, look, stage, view):
             a = np.radians(150 + i * 20)
             r = 30 if i % 2 else 22
             pts.append((CX + r * np.cos(a), 34 + r * np.sin(a) * 1.1))
-        f.part(poly(*pts) & (np.mgrid[0:96, 0:96][0] < 62), fur)
+        f.part(poly(*pts) & (kit.Y < 62), fur)
         pair(f, [(60, 52), (76, 48), (72, 56), (80, 58), (64, 64)], fur, view)
     if stage == "body" and view == "back":
         pair(f, [(58, 58), (82, 50), (76, 62), (88, 66), (64, 72)], fur, view)
@@ -224,7 +261,7 @@ def primeboyd(f, look, stage, view):
         for x in range(28, 74, 8):
             f.part(poly((x - 5, 20), (x, 4), (x + 5, 20)), fur)
     if stage == "paint" and view == "front":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         x, y = 62, 12
         for dx, dy in ((-3, 0), (3, 0), (0, -3), (0, 3)):
             d.line([(x, y), (x + dx, y + dy)], fill=(232, 40, 40), width=2)
@@ -265,7 +302,7 @@ def lorchu(f, look, stage, view):
             f.part(capsule((60, 84), (80, 80), 4), dark)
             bolt_tail([(78, 82), (90, 64), (84, 64), (94, 44), (80, 62), (86, 62), (76, 80)])
         if stage == "paint":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             for x in (30, 60):
                 d.ellipse([x, 34, x + 6, 39], fill=(248, 196, 72))
     else:
@@ -329,7 +366,7 @@ def robinsey(f, look, stage, view):
         if stage == "front":
             f.part(ellipse(40, 64, 56, 82), ramp((248, 244, 228)))
         if stage == "paint":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             d.rectangle([46, 2, 50, 8], fill=(232, 56, 72))
             d.rectangle([44, 4, 52, 6], fill=(232, 56, 72))
     else:
@@ -351,7 +388,7 @@ def weezimo(f, look, stage, view):
         for x, y, r in balls:
             f.part(ellipse(x - r, y - r, x + r, y + r), purple)
     if stage == "paint":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         for x, y, r in balls:
             d.point((x - 3, y - 2), fill=(40, 40, 48))
             d.point((x + 2, y - 2), fill=(40, 40, 48))
@@ -365,10 +402,10 @@ def thilotrode(f, look, stage, view):
     if stage == "behind":
         box = (2, 6, 94, 98) if view == "front" else (2, 2, 96, 96)
         ball = ellipse(*box)
-        f.part(ball & (np.mgrid[0:96, 0:96][0] < 52), red)
-        f.part(ball & (np.mgrid[0:96, 0:96][0] >= 52), white)
+        f.part(ball & (kit.Y < 52), red)
+        f.part(ball & (kit.Y >= 52), white)
     if stage == "paint":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         for x, y in ((12, 18), (82, 22), (8, 64)):
             d.line([(x, y), (x + 3, y + 5), (x, y + 6), (x + 3, y + 11)], fill=(248, 216, 40), width=2)
 
@@ -376,7 +413,7 @@ def thilotrode(f, look, stage, view):
 def pauliwrath(f, look, stage, view):
     """Poliwrath: blue boxing gloves and the swirl on his belly."""
     if view == "front" and stage == "paint":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         x, y = CX, 72
         for r in (8, 5, 2):
             d.arc([x - r, y - r, x + r, y + r], 40, 340, fill=(30, 30, 40), width=1)

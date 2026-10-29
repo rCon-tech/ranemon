@@ -9,7 +9,7 @@ A plan only, written 24 October 2026. Nothing here is built yet. It turns Rich's
 - **Three new types: Posh, Graft and Arty**, making nine. The chart stays fair: every type hits 3 types for double, is resisted by 3, is weak to 3 and resists 3.
 - **Names follow the lads' pattern.** Each base form is one London word plus _-mon_ (Oystermon, Oatmon). Each evolution blends that word with a Gen 1 or 2 Pokémon, and a whole line keeps to one Pokémon family, like Carlizard, Lorchu and Robinsey do.
 - **UK Ranemon get evolutions.** The 20 lads' UK forms evolve at Lv30 into their drawn evolved forms, as at home. The new London Ranemon evolve at their own levels, from Lv12 to Lv55, instead of everyone at Lv30.
-- **All drawn, no photos**, with the pixel-art body kit from the drawn Ranemon (PR #59's branch), 96 px, with a back view, shiny and follower each.
+- **All drawn, no photos**, with the pixel-art body kit from the drawn Ranemon (PR #59's branch), drawn at 192 px (on a 96 px grid), with a back view, shiny and follower each.
 - **Eleven London areas**, opened as you collect jerseys, with wild levels running from Lv3 at Liverpool Street to Lv48 in the City before the palace, and Lv50 to 70 after the credits.
 - **Built in six batches** of about 25 to 35 species, each its own PR, with a sprite sheet for Rich to approve before any code goes in.
 

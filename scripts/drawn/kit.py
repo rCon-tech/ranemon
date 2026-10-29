@@ -1,11 +1,14 @@
 """A body kit for drawn Ranemon: pixel-art figures from a short description of each friend.
 
-Every figure is the same chibi body at 96 pixels (a big head on a small body), dressed from a
-`Look`: skin, hair, facial hair, eyes, mouth, a hat, the top and its pattern, trousers, a pose and
-a prop. Each part is a shape with a three-tone colour ramp. The kit shades every part from the
-top left (a shadow band, a dithered half-shadow and a highlight), darkens the pixels where a part
-sits in front of another for the inner lines, paints the face on top and puts the game's 1-pixel
-outline round it, like the handhelds' sprites. `front` is the foe's view and `back` your own.
+Every figure is the same chibi body (a big head on a small body), described on a 96-pixel grid and
+drawn at twice that, 192 pixels, like the game's HD looks, dressed from a `Look`: skin, hair,
+facial hair, eyes, mouth, a hat, the top and its pattern, trousers, a pose and a prop. Each part is
+a shape with a colour ramp. The kit shades every part as a rounded form lit from the top left, in
+five hue-shifted tones (warm lights, cool shadows, skin into red), with shadows cast by the parts in
+front and the deep tone for the inner lines; it combs strands into hair and beards, draws the face
+at full size (irises, catchlights, lids, brows, a shaded nose) and finishes with an outline coloured
+from what it wraps, a back light on the right and a dark outer ring. `front` is the foe's view and
+`back` your own.
 """
 
 from __future__ import annotations
@@ -21,7 +24,9 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import sprites  # noqa: E402  (the game's outline and shiny palette)
 
-SIZE = 96
+SIZE = 96  # the grid every shape is described on
+SCALE = 2  # and drawn at twice that: 192 pixels, the size of the game's HD looks
+N = SIZE * SCALE
 CX = 48
 INK = (40, 40, 48)
 
@@ -82,9 +87,61 @@ SKIN_DEEP = ramp((116, 72, 48), (152, 102, 70), (78, 44, 30))
 # --- Shapes ---------------------------------------------------------------------------------
 
 
+class Scaled:
+    """An ImageDraw that takes the 96-pixel grid's coordinates and draws them at full size."""
+
+    def __init__(self, im):
+        self.im = im
+        self.d = ImageDraw.Draw(im)
+
+    def text(self, xy, s, fill=None, **kw):
+        """Text in the grid's own pixel font, blown up: the same lettering, just bigger."""
+        t = Image.new("RGBA", (SIZE, SIZE))
+        ImageDraw.Draw(t).text(xy, s, fill=fill, **kw)
+        self.im.alpha_composite(t.resize((N, N), Image.NEAREST))
+
+    @staticmethod
+    def _pts(xy):
+        if len(xy) and np.isscalar(xy[0]):
+            xy = list(zip(xy[::2], xy[1::2]))
+        return [(x * SCALE + 0.5, y * SCALE + 0.5) for x, y in xy]
+
+    @staticmethod
+    def _box(b):
+        x0, y0, x1, y1 = b if len(b) == 4 else (*b[0], *b[1])
+        return [x0 * SCALE, y0 * SCALE, x1 * SCALE + SCALE - 1, y1 * SCALE + SCALE - 1]
+
+    def rectangle(self, b, **kw):
+        self.d.rectangle(self._box(b), **kw)
+
+    def ellipse(self, b, **kw):
+        self.d.ellipse(self._box(b), **kw)
+
+    def rounded_rectangle(self, b, r=0, **kw):
+        self.d.rounded_rectangle(self._box(b), r * SCALE, **kw)
+
+    def arc(self, b, a0, a1, fill=None, width=1):
+        self.d.arc(self._box(b), a0, a1, fill=fill, width=width * SCALE)
+
+    def polygon(self, xy, **kw):
+        self.d.polygon(self._pts(xy), **kw)
+
+    def line(self, xy, fill=None, width=1, **kw):
+        self.d.line(self._pts(xy), fill=fill, width=width * SCALE, joint="curve")
+
+    def point(self, xy, fill=None):
+        for x, y in self._pts(xy if isinstance(xy, list) else [xy]):
+            self.d.rectangle([x - 0.5, y - 0.5, x + SCALE - 1.5, y + SCALE - 1.5], fill=fill)
+
+
+def draw(im: Image.Image):
+    """Something to draw on a figure with, in the grid's coordinates whatever size it is."""
+    return Scaled(im) if im.width == N else ImageDraw.Draw(im)
+
+
 def _mask(fn) -> np.ndarray:
-    m = Image.new("L", (SIZE, SIZE))
-    fn(ImageDraw.Draw(m))
+    m = Image.new("L", (N, N))
+    fn(Scaled(m))
     return np.array(m) > 0
 
 
@@ -110,7 +167,8 @@ def capsule(a, b, w):
     return _mask(draw)
 
 
-Y, X = np.mgrid[0:SIZE, 0:SIZE]
+# Every pixel's place on the grid, in grid pixels (halves at double size).
+Y, X = np.mgrid[0:N, 0:N] / SCALE
 
 
 def shift(mask, dx, dy):
@@ -123,44 +181,157 @@ def shift(mask, dx, dy):
     return out
 
 
+def moved(a, dx, dy):
+    """An array (of any depth) read at (x + dx, y + dy), zero off the edge."""
+    out = np.zeros_like(a)
+    h, w = a.shape[:2]
+    out[max(0, -dy):h - max(0, dy), max(0, -dx):w - max(0, dx)] = \
+        a[max(0, dy):h - max(0, -dy), max(0, dx):w - max(0, -dx)]
+    return out
+
+
+def _mix(a, b, t):
+    return np.asarray(a, float) * (1 - t) + np.asarray(b, float) * t
+
+
+WARM, COOL, NIGHT = (255, 236, 190), (70, 56, 130), (34, 26, 58)
+
+
+def tones(r: Ramp) -> list[np.ndarray]:
+    """A ramp as five hue-shifted tones: glint, light (warmer), mid, shadow (cooler) and deep.
+    Skin shades warm, into red; everything else cools into blue-violet."""
+    l, m, d = (np.array(c, float) for c in r)
+    skin = m[0] > 150 and m[0] > m[1] + 25 and m[1] > m[2] + 10
+    shadow = _mix(d, (150, 60, 66), 0.18) if skin else _mix(d, COOL, 0.22)
+    return [np.clip(c, 0, 255) for c in (
+        _mix(l, (255, 250, 230), 0.45), _mix(l, WARM, 0.18), m, shadow, _mix(shadow * 0.72, NIGHT, 0.3))]
+
+
+def _depth(mask, cap):
+    """How far in from the edge each pixel of a mask is, up to cap."""
+    d = np.zeros(mask.shape, float)
+    m = mask.copy()
+    for _ in range(cap):
+        d[m] += 1
+        m = m & moved(m, 1, 0) & moved(m, -1, 0) & moved(m, 0, 1) & moved(m, 0, -1)
+        if not m.any():
+            break
+    return d
+
+
+def _blur(a, n):
+    for _ in range(n):
+        a = (a + moved(a, 1, 0) + moved(a, -1, 0) + moved(a, 0, 1) + moved(a, 0, -1)) / 5
+    return a
+
+
+LIGHT = np.array((-0.55, -0.7, 0.75)) / np.linalg.norm((-0.55, -0.7, 0.75))
+
+
 class Figure:
     """Parts drawn back to front, each with a mask, a paint and whether it gets a line."""
 
     def __init__(self):
         self.layers: list[tuple[np.ndarray, Paint, bool]] = []
+        self.hair: set[int] = set()  # the layers that get strands
 
-    def part(self, mask, paint, line=True):
+    def part(self, mask, paint, line=True, hair=False):
         if not callable(paint):
             r = paint
             paint = lambda x, y: r  # noqa: E731
+        if hair:
+            self.hair.add(len(self.layers))
         self.layers.append((mask, paint, line))
 
     def render(self) -> Image.Image:
-        z = np.full((SIZE, SIZE), -1)
+        """Each part shaded as a rounded form lit from the top left: its height rises from its edge,
+        the slope facing the light is lit and the far side falls into shadow, in five hue-shifted
+        tones. The parts in front cast a shadow down and to the right; where a part sits in front
+        of another its edge takes the deep tone for the inner lines."""
+        k = SCALE
+        z = np.full((N, N), -1)
         for i, (mask, _, _) in enumerate(self.layers):
             z[mask] = i
-        out = np.zeros((SIZE, SIZE, 4), np.uint8)
+        out = np.zeros((N, N, 4), np.uint8)
+        deep = np.zeros((N, N, 3))
         for i, (mask, paint, line) in enumerate(self.layers):
             own = z == i
             if not own.any():
                 continue
-            shadow = own & ~shift(mask, 3, 3)
-            half = own & ~shift(mask, 6, 6) & ~shadow
-            light = own & ~shift(mask, -3, -3) & ~shadow & ~half
+            h = _blur(np.sqrt(np.minimum(_depth(mask, 12 * k), 9 * k) / (9 * k)), k)
+            gy, gx = np.gradient(h * 5 * k)
+            n = np.stack((-gx, -gy, np.ones_like(h)), -1)
+            lit = (n / np.linalg.norm(n, axis=-1, keepdims=True)) @ LIGHT
+            step = np.select([lit > 0.93, lit > 0.8, lit > 0.6, lit > 0.38], [0.6, 1, 2, 2.5], 3).astype(float)
+            front = np.zeros_like(mask)
+            for m, _, l in self.layers[i + 1:]:
+                if l:
+                    front |= m
+            cast = own & moved(front, -2 * k, -3 * k) & ~front
+            step = np.where(cast, np.maximum(step, 2.5) + 0.5, step)
             for y, x in zip(*np.nonzero(own)):
-                r = paint(x, y)
-                if half[y, x]:
-                    out[y, x, :3] = r[2] if (x + y) % 2 else r[1]
+                t = tones(paint(x // k, y // k))
+                s = step[y, x]
+                if s == 0.6:  # a glint, only on the very top of a form
+                    c = t[0] if (x + y) % 3 == 0 else t[1]
+                elif s % 1:  # between two tones: a tone of its own, half way
+                    c = _mix(t[int(s)], t[int(s) + 1], 0.5)
                 else:
-                    out[y, x, :3] = r[2 if shadow[y, x] else 0 if light[y, x] else 1]
+                    c = t[int(min(s, 4))]
+                out[y, x, :3] = np.clip(c, 0, 255)
                 out[y, x, 3] = 255
+                deep[y, x] = t[4]
             if line:
                 behind = np.zeros_like(own)
                 for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-                    n = np.roll(z, (dy, dx), (0, 1))
-                    behind |= own & (n >= 0) & (n < i)
-                out[behind, :3] = (out[behind, :3] * 0.45).astype(np.uint8)
+                    nb = moved(z + 1, dx, dy) - 1
+                    behind |= own & (nb >= 0) & (nb < i)
+                out[behind, :3] = deep[behind].astype(np.uint8)
+            if i in self.hair:
+                strands(out, own, paint(CX, 10)[1], seed=i)
         return Image.fromarray(out, "RGBA")
+
+
+def strands(out: np.ndarray, mask: np.ndarray, colour, seed=1, every=3, length=5):
+    """Fine strands combed down and out from the parting, some darker, some catching the light."""
+    rng = np.random.default_rng(seed)
+    ys, xs = np.nonzero(mask)
+    if not len(ys):
+        return
+    dark, light = np.array(colour) * 0.62, np.minimum(np.array(colour) * 1.25 + 18, 255)
+    for j in rng.choice(len(ys), len(ys) // (every * length), replace=False):
+        y, x = ys[j], xs[j]
+        lean = np.sign(x - CX * SCALE) * 0.35
+        c = light if rng.random() < 0.35 else dark
+        for t in range(length):
+            yy, xx = y + t, int(round(x + lean * t))
+            if 0 <= yy < N and 0 <= xx < N and mask[yy, xx]:
+                out[yy, xx, :3] = (out[yy, xx, :3] * 0.4 + c * 0.6).astype(np.uint8)
+
+
+def outline(im: Image.Image, rim=(255, 240, 200)) -> Image.Image:
+    """The finish round a figure: an outline coloured from the pixel it wraps (darker on the shadow
+    side, softer on the lit side), a back light just inside it on the right, and a second, darker
+    ring outside so it reads as boldly at the game's size as the handhelds' 1-pixel line."""
+    body = np.asarray(im)[..., 3] > 0
+    out = _ring(np.asarray(im).astype(float), soft=True)
+    edge = body & ~moved(body, 1, 0) & moved(body, -1, 0)
+    out[edge, :3] = _mix(out[edge, :3], rim, 0.35)
+    return Image.fromarray(_ring(out, soft=False).clip(0, 255).astype(np.uint8), "RGBA")
+
+
+def _ring(a: np.ndarray, soft: bool) -> np.ndarray:
+    op = a[..., 3] > 0
+    out = a.copy()
+    for (dy, dx), lit in (((1, 0), True), ((0, 1), True), ((-1, 0), False), ((0, -1), False)):
+        # (dy, dx) is the step from the ring pixel to the body pixel it hugs.
+        ring = ~op & moved(op, dx, dy) & (out[..., 3] == 0)
+        src = moved(a[..., :3], dx, dy)
+        dark = _mix(src * 0.32, NIGHT, 0.55)
+        c = _mix(dark, src, 0.22) if lit and soft else dark
+        out[ring, :3] = c[ring]
+        out[ring, 3] = 255
+    return out
 
 
 # --- The look -------------------------------------------------------------------------------
@@ -236,7 +407,7 @@ def _hair_paint(look: Look) -> Paint:
 
 def bumps(cx, cy, rx, ry, r, a0=180, a1=360, n=12):
     """Little circles round the edge of an ellipse: curls."""
-    m = np.zeros((SIZE, SIZE), bool)
+    m = np.zeros((N, N), bool)
     for i in range(n + 1):
         a = np.radians(a0 + (a1 - a0) * i / n)
         x, y = cx + rx * np.cos(a), cy + ry * np.sin(a)
@@ -452,10 +623,10 @@ def head_front(f: Figure, look: Look):
     f.part(ellipse(26, 4, 70, 50), look.skin)
     fh = face_hair_mask(look.face_hair)
     if fh is not None:
-        f.part(fh, _face_hair_ramp(look))
+        f.part(fh, _face_hair_ramp(look), hair=True)
     hm = hair_front(look)
     if hm is not None:
-        f.part(hm, _hair_paint(look))
+        f.part(hm, _hair_paint(look), hair=True)
     hat_front(f, look)
 
 
@@ -482,21 +653,54 @@ def hat_front(f: Figure, look: Look):
         f.part(rect(36, 0, 39, 9) | rect(47, -2, 50, 9) | rect(58, 0, 61, 9), ramp(look.hat_band), line=False)
 
 
+def _eyes(hd: ImageDraw.ImageDraw, look: Look, ey: int):
+    """Eyes at full size: white, an iris in the eye colour, a pupil, a catchlight, the lash line
+    over the top, and for heavy lids the skin of the lid over the top third."""
+    k = SCALE
+    sk = [tuple(int(v) for v in c) for c in tones(look.skin)]
+    iris = tuple(int(v) for v in look.eye_colour)
+    rim = tuple(int(v * 0.7) for v in look.eye_colour)
+    lash = (44, 30, 34)
+    for x in (36, 55):
+        ex, cx, cy = x * k, x * k + 5, ey * k + 3
+        hd.ellipse([ex, cy - 4, ex + 10, cy + 4], fill=(246, 244, 240))
+        hd.ellipse([cx - 3, cy - 3, cx + 3, cy + 4], fill=iris)
+        hd.ellipse([cx - 2, cy - 2, cx + 2, cy + 3], fill=rim)
+        hd.rectangle([cx - 1, cy - 1, cx + 1, cy + 1], fill=(20, 22, 30))
+        hd.point((cx + 1, cy - 2), fill=(255, 255, 255))
+        hd.point((cx - 2, cy + 2), fill=tuple(min(255, v + 80) for v in iris))
+        if look.eyes == "lids":
+            hd.chord([ex - 1, cy - 6, ex + 11, cy + 2], 180, 360, fill=sk[3])
+            hd.chord([ex - 1, cy - 7, ex + 11, cy + 1], 180, 360, fill=sk[2])
+            hd.line([(ex - 1, cy - 2), (ex + 11, cy - 2)], fill=lash, width=2)
+        else:
+            hd.arc([ex - 1, cy - 5, ex + 11, cy + 5], 195, 345, fill=lash, width=2)
+        hd.line([(ex + 1, cy + 4), (ex + 9, cy + 4)], fill=sk[3])
+
+
+def _fist(im: Image.Image, look: Look, hand):
+    """A fist at the chin: curled fingers and a thumb."""
+    hd = ImageDraw.Draw(im)
+    sk = [tuple(int(v) for v in c) for c in tones(look.skin)]
+    hx, hy = hand[0] * SCALE, hand[1] * SCALE
+    for i in range(3):
+        hd.arc([hx - 7, hy - 4 + i * 3, hx + 3, hy + 1 + i * 3], 20, 160, fill=sk[3], width=1)
+    hd.line([(hx + 4, hy + 4), (hx + 6, hy - 4)], fill=sk[3], width=1)
+    hd.line([(hx + 3, hy + 4), (hx + 5, hy - 4)], fill=sk[1], width=1)
+    for x in (hx - 5, hx - 2, hx + 1):
+        hd.point((x, hy - 4), fill=sk[0])
+
+
 def face(im: Image.Image, look: Look):
-    d = ImageDraw.Draw(im)
+    d = draw(im)
+    hd = ImageDraw.Draw(im)
+    k = SCALE
     brow = _face_hair_ramp(look)[2] if look.hair == "bald" else _hair_ramp(look)[2]
+    sk = [tuple(int(v) for v in c) for c in tones(look.skin)]
     e = look.eyes
     ey = 26
-    if look.hat in ("cap", "trilby", "fila"):
-        pass
     if e in ("open", "lids", "glasses", "round"):
-        for x in (36, 55):
-            d.rectangle([x, ey, x + 4, ey + 2], fill=(248, 248, 248))
-            d.rectangle([x + 1, ey, x + 3, ey + 2], fill=look.eye_colour)
-            d.point((x + 2, ey + 1), fill=INK)
-            d.line([(x, ey - 1), (x + 4, ey - 1)], fill=INK)
-            if e == "lids":
-                d.line([(x, ey), (x + 4, ey)], fill=INK)
+        _eyes(hd, look, ey)
     if e == "happy":
         for x in (36, 55):
             d.line([(x, ey + 2), (x + 1, ey)], fill=INK)
@@ -524,15 +728,23 @@ def face(im: Image.Image, look: Look):
         d.line([(43, ey - 2), (52, ey - 2)], fill=INK)
         d.line([(27, ey - 2), (33, ey - 2)], fill=INK)
         d.line([(63, ey - 2), (69, ey - 2)], fill=INK)
-    if e != "shades" and look.hat not in ("cap", "trilby", "fila", "beanie", "helmet"):
-        d.line([(35, 22), (40, 21)], fill=brow, width=2)
-        d.line([(55, 21), (60, 22)], fill=brow, width=2)
-    elif e != "shades":
-        d.line([(35, 22), (40, 21)], fill=brow, width=1)
-        d.line([(55, 21), (60, 22)], fill=brow, width=1)
-    # The nose.
-    d.line([(47, 32), (49, 34)], fill=look.skin[2])
-    d.point((50, 34), fill=look.skin[2])
+    if e != "shades":
+        # Brows: thick at the inner end, thinning out to a tip; thinner under a hat's brim.
+        w = 3 if look.hat not in ("cap", "trilby", "fila", "beanie", "helmet") else 2
+        for inner, outer in ((40 * k + 1, 35 * k), (55 * k, 60 * k + 1)):
+            tip = outer + (-2 if outer < inner else 2)
+            hd.line([(inner, 21 * k + 1), (outer, 22 * k - 2)], fill=brow, width=w)
+            hd.line([(outer, 22 * k - 2), (tip, 22 * k + 1)], fill=brow, width=w - 1)
+    # The nose: a shadow down its far side and under it, a glint on the tip; colour in the cheeks.
+    hd.line([(50 * k, 29 * k), (51 * k, 33 * k)], fill=sk[3], width=1)
+    hd.line([(46 * k, 34 * k + 1), (50 * k, 34 * k + 1)], fill=sk[3], width=1)
+    hd.point((46 * k, 34 * k), fill=sk[3])
+    hd.point((48 * k - 1, 33 * k - 1), fill=sk[0])
+    blush = tuple(int(v) for v in _mix(look.skin[1], (220, 110, 110), 0.35))
+    for cx in (34 * k, 62 * k) if look.face_hair in ("none", "moustache", "goatee") else ():
+        for y in range(33 * k, 36 * k, 2):
+            for x in range(cx - 4, cx + 5, 2):
+                hd.point((x + (y // 2) % 2, y), fill=blush)
     # Bare skin round the mouth when there's a beard, then the moustache over it.
     fh = look.face_hair
     fr = _face_hair_ramp(look)
@@ -633,7 +845,7 @@ def london_props(f: Figure, look: Look, arms: list[Arm]):
 
 
 def overlays_front(im: Image.Image, look: Look, arms: list[Arm]):
-    d = ImageDraw.Draw(im)
+    d = draw(im)
     p = look.props
     if "shades_collar" in p:
         d.rectangle([CX - 6, 58, CX - 1, 61], fill=(30, 30, 36))
@@ -708,8 +920,10 @@ def front(look: Look, outlined: bool = True) -> Image.Image:
     im = f.render()
     face(im, look)
     overlays_front(im, look, arms)
+    if look.pose == "chin" and not look.gloves:
+        _fist(im, look, arms[0].hand)
     x(im, look, "paint", "front")
-    return sprites.outline(im) if outlined else im
+    return outline(im) if outlined else im
 
 
 def back(look: Look, outlined: bool = True) -> Image.Image:
@@ -753,7 +967,7 @@ def back(look: Look, outlined: bool = True) -> Image.Image:
     f.part(ellipse(26, 8, 72, 56), look.skin)
     hm = hair_back(look)
     if hm is not None:
-        f.part(hm, _hair_paint(look))
+        f.part(hm, _hair_paint(look), hair=True)
     if look.eyes == "shades" or look.eyes in ("glasses", "round"):
         f.part(rect(22, 28, 28, 29) | rect(70, 28, 76, 29), ramp(look.frame), line=False)
     h, c = look.hat, ramp(look.hat_colour)
@@ -779,12 +993,12 @@ def back(look: Look, outlined: bool = True) -> Image.Image:
     x(f, look, "head", "back")
     x(f, look, "front", "back")
     im = f.render()
-    d = ImageDraw.Draw(im)
+    d = draw(im)
     if look.hair == "bald":
         d.ellipse([35, 13, 46, 19], fill=tuple(min(255, v + 18) for v in look.skin[0]))
         d.arc([40, 44, 58, 54], 20, 160, fill=look.skin[2])
     x(im, look, "paint", "back")
-    return sprites.outline(im) if outlined else im
+    return outline(im) if outlined else im
 
 
 def mini(im: Image.Image) -> Image.Image:

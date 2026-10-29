@@ -104,7 +104,7 @@ def gem(im, view, colour, y=14):
     """A jewel on the brow, painted on the finished figure."""
     if view != "front":
         return
-    d = ImageDraw.Draw(im)
+    d = kit.draw(im)
     d.ellipse([CX - 3, y - 3, CX + 3, y + 3], fill=colour, outline=(40, 40, 48))
     d.point((CX - 1, y - 1), fill=(255, 255, 255))
 
@@ -124,7 +124,7 @@ def extra_head(f, view, stage, look, dx, dy, s=0.7):
 def extra_face(im, view, dx, dy, s=0.7):
     if view != "front":
         return
-    d = ImageDraw.Draw(im)
+    d = kit.draw(im)
     x0 = CX + dx
     ey = int(4 + dy + 46 * s * 0.5)
     for ex in (x0 - 7, x0 + 3):
@@ -202,7 +202,7 @@ def meridrio(f, look, stage, view):
         extra_face(f, view, -28, 8)
         extra_face(f, view, 28, 8)
         if view == "front":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             d.rectangle([CX - 7, 64, CX + 7, 72], fill=(250, 250, 246), outline=(60, 60, 70))
             d.text((CX - 5, 63), "0", fill=(40, 40, 48))
 
@@ -338,7 +338,7 @@ def ampharoast(f, look, stage, view):
     if stage == "paint":
         gem(f, view, (220, 60, 50), 12)
         if view == "front":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             for x in (66, 72, 78):
                 d.line([(x, 82), (x + 2, 86)], fill=(40, 40, 48))
 
@@ -413,7 +413,7 @@ add("jabmon", "Jabmon", "brawn", 1,
 def ursaringside(f, look, stage, view):
     ears(f, view, stage, (130, 86, 50), (210, 170, 120), tall=4, wide=16)
     if stage == "paint" and view == "front":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         d.ellipse([CX - 7, 62, CX + 7, 76], outline=(246, 214, 70), width=2)
 
 
@@ -550,7 +550,7 @@ def primape(f, look, stage, view):
     ears(f, view, stage, (226, 200, 160), (240, 150, 140), tall=8, wide=16)
     collar_fluff(f, view, stage, (226, 200, 160))
     if stage == "paint" and view == "front":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         d.rectangle([CX - 9, 70, CX + 9, 75], fill=(250, 214, 70), outline=(60, 50, 30))
         d.rectangle([CX - 3, 69, CX + 3, 76], fill=(220, 60, 60), outline=(60, 50, 30))
 
@@ -618,7 +618,7 @@ def behzchamp(f, look, stage, view):
             f.part(poly((c + dx - 3, top + 6), (c + dx, top - 6), (c + dx + 3, top + 6)),
                    ramp((150, 160, 180)))
     if stage == "paint" and view == "front":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         d.rectangle([CX - 14, 78, CX + 14, 82], fill=(230, 190, 60), outline=(90, 70, 20))
         d.ellipse([CX - 5, 76, CX + 5, 84], fill=(250, 220, 90), outline=(90, 70, 20))
 
@@ -664,7 +664,7 @@ def tobitic(f, look, stage, view):
     # Togetic's little white wings, and the red and blue triangles of its shell.
     wings(f, view, stage, (250, 250, 250), (230, 230, 240), span=0.7, low=4)
     if stage == "paint" and view == "front":
-        d = ImageDraw.Draw(f)
+        d = kit.draw(f)
         for x, col in ((CX - 9, (220, 60, 60)), (CX + 3, (60, 110, 220))):
             d.polygon([(x, 74), (x + 6, 74), (x + 3, 68)], fill=col, outline=(40, 40, 48))
 
@@ -680,18 +680,19 @@ SCALE = {1: 0.8, 2: 0.9, 3: 1.0}
 
 
 def sized(im: Image.Image, stage: int) -> Image.Image:
+    """The figure stood in its box at its stage's size, then outlined."""
     k = SCALE[stage]
     if k == 1:
-        return im
-    w = round(SIZE * k)
-    small = sprites.pixelate(im, w, 48)
-    out = Image.new("RGBA", (SIZE, SIZE))
-    out.alpha_composite(small, ((SIZE - w) // 2, SIZE - w))
-    return sprites.outline(out)
+        return kit.outline(im)
+    w = round(kit.N * k)
+    small = sprites.pixelate(im, w, 96)
+    out = Image.new("RGBA", (kit.N, kit.N))
+    out.alpha_composite(small, ((kit.N - w) // 2, kit.N - w))
+    return kit.outline(out)
 
 
 def glow(im: Image.Image, kind: str) -> Image.Image:
-    out = sprites.aura(im, sprites.TYPE_COLOUR[kind])
+    out = sprites.aura(im, sprites.TYPE_COLOUR[kind], kit.SCALE)
     out.alpha_composite(im)
     return out
 
@@ -699,7 +700,7 @@ def glow(im: Image.Image, kind: str) -> Image.Image:
 def draw(id: str) -> tuple[Image.Image, Image.Image]:
     look = LOOKS[id]
     f, b = kit.front(look, outlined=False), kit.back(look, outlined=False)
-    f, b = sized(sprites.outline(f), STAGE[id]), sized(sprites.outline(b), STAGE[id])
+    f, b = sized(f, STAGE[id]), sized(b, STAGE[id])
     if STAGE[id] > 1 and id != "aerodactivist":
         f, b = glow(f, TYPE[id]), glow(b, TYPE[id])
     return f, b

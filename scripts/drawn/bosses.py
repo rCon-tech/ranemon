@@ -280,7 +280,7 @@ RANEMON = {
 def draw(id, kind):
     """Front and back: a boss's ace stands full size in its box, with its type's glow."""
     look = RANEMON[id]
-    f, b = sprites.outline(kit.front(look, outlined=False)), sprites.outline(kit.back(look, outlined=False))
+    f, b = kit.front(look), kit.back(look)
     return glow(f, kind), glow(b, kind)
 
 

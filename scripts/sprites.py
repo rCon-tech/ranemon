@@ -157,9 +157,10 @@ def outline(im: Image.Image, colour=OUTLINE) -> Image.Image:
     return out
 
 
-def aura(mask: Image.Image, colour) -> Image.Image:
-    """A soft glow in the type's colour, stepped into 3 hard bands so it stays pixel art."""
-    a = mask.getchannel("A").filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(4))
+def aura(mask: Image.Image, colour, scale: int = 1) -> Image.Image:
+    """A soft glow in the type's colour, stepped into 3 hard bands so it stays pixel art. `scale`
+    spreads it as far, in the figure's own pixels, on a figure drawn at a multiple of 96."""
+    a = mask.getchannel("A").filter(ImageFilter.MaxFilter(8 * scale + 1)).filter(ImageFilter.GaussianBlur(4 * scale))
     v = np.asarray(a).astype(np.float32) / 255
     band = np.select([v > 0.75, v > 0.45, v > 0.2], [200, 130, 70], 0).astype(np.uint8)
     out = np.zeros((*v.shape, 4), np.uint8)
