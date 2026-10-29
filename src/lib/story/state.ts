@@ -341,9 +341,13 @@ export function settleBattle(
     // What each member earns from every foe that fainted, added up so it's said once.
     const earned = party.map(() => 0);
     const foes = battle.teams[1].battlers.filter((b) => b.hp === 0 && !b.left);
+    // A wild partner from Helping Hand fights for the one that called it, who earns its share.
+    const mine = battle.teams[0].battlers;
+    const fighters = [...new Set(fought.map((i) => mine[i]?.standsIn ?? i))].filter(
+      (i) => i < party.length && party[i].hp > 0,
+    );
     for (const foe of foes) {
       const total = expYield(foe.level, trainer);
-      const fighters = fought.filter((i) => i < party.length && party[i].hp > 0);
       const each = Math.max(1, Math.floor(total / Math.max(1, fighters.length)));
       for (const i of fighters) earned[i] += each;
       const bench = s.expShare

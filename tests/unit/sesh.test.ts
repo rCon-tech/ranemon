@@ -273,10 +273,11 @@ describe('a Quick Sesh run', () => {
       const { inputs, session } = botBattle(battle.start, new Rng(seed));
       if (session.result !== 'win') continue;
       const after = play(run, { kind: 'battle', inputs }).run;
-      // A wild partner who joined mid-battle is on the end of the team, not in the party.
+      // A wild partner who joined mid-battle is on the end of the team, not in the party, and
+      // the one it replaced didn't faint.
       const fainted = session.state.teams[0].battlers
         .slice(0, run.party.length)
-        .filter((b) => b.hp === 0).length;
+        .filter((b) => b.hp === 0 && !b.left).length;
       expect(after.party).toHaveLength(run.party.length - fainted);
       expect(after.gone).toHaveLength(fainted);
       for (const m of after.party) {

@@ -24,6 +24,10 @@ export interface Battler {
   pp: number[];
   /** Replaced by a wild partner: off the team for good, and kept at 0 HP. */
   left?: boolean;
+  /** The HP it had when a wild partner replaced it, which it goes home with after the battle. */
+  leftHp?: number;
+  /** A wild partner: the index of the teammate it stood in for, who earns its EXP. */
+  standsIn?: number;
   /** The turn it was last switched in on, so the CPU doesn't swap it straight back out. */
   cameIn?: number;
   /** Holding something that keeps it chill, like Xanax: it can't be Flustered. */
@@ -521,10 +525,12 @@ class Turn {
         if (to < 0) {
           // No partner on the team: a wild one joins with the drink and takes the caller's place.
           const caller = this.active(side);
+          caller.leftHp = caller.hp;
           caller.hp = 0;
           caller.left = true;
           const creature = formById(sameStage(effect.partner, caller.creature.id));
           const wild = makeBattler({ creature, level: caller.level });
+          wild.standsIn = caller.standsIn ?? team.active;
           // The can's been drunk: the wild one can't call in another, or it would never end.
           wild.creature.moves.forEach((id, i) => {
             if (moveById(id).specials?.some((e) => e.kind === 'tag-partner')) wild.pp[i] = 0;

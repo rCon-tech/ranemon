@@ -237,7 +237,8 @@ export function toEntrant(m: Member): Entrant {
 
 /** Copies what a battle did to a member back onto it. */
 export function afterBattle(m: Member, b: Battler): Member {
-  return { ...m, hp: b.hp, pp: [...b.pp], status: b.status };
+  // One a wild partner replaced didn't faint: it goes home as it was when it left.
+  return { ...m, hp: b.left ? (b.leftHp ?? 0) : b.hp, pp: [...b.pp], status: b.status };
 }
 
 export const isHealthy = (m: Member) => m.hp > 0;
