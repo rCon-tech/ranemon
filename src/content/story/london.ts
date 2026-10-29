@@ -820,7 +820,6 @@ export const LONDON: GameMap = {
       ['skehemon', 8],
       ['killemon', 8],
       ['vinnimon', 8],
-      ['nickamon', 4],
       ['oystermon', 8],
       ['speedmon', 4],
       ['pedalmon', 4],

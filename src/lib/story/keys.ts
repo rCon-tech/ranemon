@@ -25,6 +25,9 @@ export const TAKE_TABLET: Step[] = [
   { do: 'flag', flag: TABLET_TAKEN },
 ];
 
+/** Nick's beret, found at the Rock of Cashel and handed back to him at the Thurles gym door. */
+export const NICK_BERET = 'item:nick-beret';
+
 /** The Mega Ring: your Ranemon that have a Mega form can Mega evolve, once a battle. */
 export const MEGA_RING = 'item:mega-ring';
 
@@ -69,6 +72,13 @@ export const KEY_ITEMS: KeyItem[] = [
     about:
       'A small white tablet from Josh Lee in Bundoran. He swears that once you take it, you can see Poseidon.',
     usable: true,
+  },
+  {
+    flag: NICK_BERET,
+    goneIf: 'nick:done',
+    name: 'Nick’s Beret',
+    about:
+      'Black, a bit squashed, found on the Rock of Cashel. Nick won’t leave the Semple Stadium gym door without it.',
   },
   // From the Premier League legends in the London expansion (content/story/premier.ts).
   {

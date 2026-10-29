@@ -499,16 +499,16 @@ const T: Trainer[] = [
     reward: BHAV_REWARD,
   },
 
-  // ---------- Nick, by the beach in Clare: the second most French man in Ireland ----------
+  // ---------- Nick, in the Thurles gym doorway: the second most French man in Ireland ----------
   {
     id: NICK_TRAINER,
     name: 'Nick',
     team: [
-      ['enda', 10],
-      ['nickamon', 12],
+      ['enda', 15],
+      ['nickamon', 17],
     ],
     ai: 'normal',
-    prize: 900,
+    prize: 1000,
     before: NICK_BEFORE,
     after: NICK_AFTER,
     reward: NICK_REWARD,

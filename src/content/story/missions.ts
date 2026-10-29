@@ -23,6 +23,7 @@ import { NEESON_DONE, NEESON_DOUBLE, NEESON_START } from './neeson';
 import { TABLET, TABLET_TAKEN } from '@/lib/story/keys';
 import { beatFlag } from '@/lib/story/state';
 import { STAG_BOAT, STAG_DONE, STAG_START } from './road';
+import { NICK_BERET, NICK_DONE, NICK_MET, NICK_TEXT } from './nick';
 
 /**
  * Missions: the main story and every side story, as START → MISSIONS shows them. A mission is
@@ -133,6 +134,31 @@ export const MISSIONS: Mission[] = [
         until: STAG_DONE,
         todo: 'The groom got the Luas into Dublin for a proper stag. Find him before the wedding.',
         where: 'Dublin City',
+      },
+    ],
+  },
+  {
+    id: 'nick',
+    name: 'The second most French man in Ireland',
+    about: 'Nick is standing in the door of the Thurles gym, and he isn’t moving.',
+    start: NICK_TEXT,
+    done: NICK_DONE,
+    hideIf: LONDON_ONLY,
+    steps: [
+      {
+        until: NICK_MET,
+        todo: 'Nick texted you. Find him in the door of Saoirse’s gym.',
+        where: 'Semple Stadium, Thurles, Co. Tipperary',
+      },
+      {
+        until: NICK_BERET,
+        todo: 'The wind took Nick’s beret at the Rock of Cashel. Find it.',
+        where: 'The Rock of Cashel, top of Thurles',
+      },
+      {
+        until: NICK_DONE,
+        todo: 'Give Nick his beret, then beat him.',
+        where: 'Semple Stadium, Thurles, Co. Tipperary',
       },
     ],
   },

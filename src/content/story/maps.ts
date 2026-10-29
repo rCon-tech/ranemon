@@ -16,7 +16,7 @@ import {
 } from './buildings';
 import { STATION_ARRIVE, homeward, stationRoom } from './station';
 import { MESCAL } from './mescal';
-import { NICK } from './nick';
+import { NICK, NICK_ARRIVE, ROCK_OF_CASHEL } from './nick';
 import { HIGGINS, TRINITY_BALL } from './ball';
 import { BOUNCER, RAVE_ARRIVE, raveRoom } from './rave';
 import { ENDA_BY_ROAD, ENDA_CALLS, ENDA_IN_ROAD } from './enda';
@@ -525,7 +525,6 @@ export const MAPS: GameMap[] = [
         ['lorcamon', 30],
         ['simomon', 25],
         ['owemon', 10],
-        ['nickamon', 5],
       ],
     },
     npcs: [
@@ -595,7 +594,6 @@ export const MAPS: GameMap[] = [
       },
       garda('Clare', 'jersey:clare'),
       ...LEGENDS.CLARE_NPCS,
-      NICK,
     ],
     signs: [
       'NEWMARKET-ON-FERGUS. Home of a President.',
@@ -769,6 +767,8 @@ export const MAPS: GameMap[] = [
       garda('Tipperary', 'jersey:tipperary'),
       { look: 'oldman', face: 'down', talk: DONKEY_VET },
       ...LEGENDS.TIPPERARY_NPCS,
+      // In the gym doorway until you've found his beret and beaten him (content/story/nick.ts).
+      NICK,
     ],
     signs: [
       LEGENDS.TIPPERARY_SIGNS.hayes,
@@ -786,15 +786,7 @@ export const MAPS: GameMap[] = [
       ],
       ...LEGENDS.TIPPERARY_HOUSES,
     ],
-    landmarks: [
-      [
-        {
-          do: 'say',
-          text: 'THE ROCK OF CASHEL. You can see half of Munster from up here.',
-        },
-      ],
-      ...LEGENDS.TIPPERARY_LANDMARKS,
-    ],
+    landmarks: [ROCK_OF_CASHEL, ...LEGENDS.TIPPERARY_LANDMARKS],
     gym: {
       trainer: 'gym-tipperary',
       place: 'Semple Stadium',
@@ -809,6 +801,8 @@ export const MAPS: GameMap[] = [
     },
     west: 'link-roadworks',
     east: 'link-hurling',
+    // Nick texts you where he is, the first time you're in Thurles.
+    arrive: NICK_ARRIVE,
   },
   {
     id: 'kilkenny',
@@ -1058,8 +1052,7 @@ export const MAPS: GameMap[] = [
         ['carlmon', 25],
         ['robinmon', 25],
         ['conemon', 20],
-        // Nickamon and Crampemon, rare everywhere else on the road, come for the Shannon.
-        ['nickamon', 10],
+        // Crampemon, rare everywhere else on the road, comes for the Shannon.
         ['crampemon', 10],
       ],
     },
@@ -1316,7 +1309,6 @@ export const MAPS: GameMap[] = [
         ['skehemon', 7],
         ['vinnimon', 7],
         ['crampemon', 7],
-        ['nickamon', 7],
         ['gibbsmon', 3],
         ['thilomon', 3],
       ],
