@@ -17,6 +17,7 @@ import {
   eventFor,
   isLevelRule,
   isOnlineAction,
+  randomParties,
   RULES_VERSION,
   skinOf,
   stateFor,
@@ -40,7 +41,7 @@ import {
  *
  * Every answer is a RoomView, plus the player's `token` from create and join. The name's PIN
  * is checked against its online save, and the team is that save's party, checked by
- * `validateTeam`. This file has no I/O: storage and the PIN check come in a BattleContext, so the
+ * `validateTeam`, or under the `random` rule a party the server deals (`randomParties`). This file has no I/O: storage and the PIN check come in a BattleContext, so the
  * tests run it against memory and the save server against Neon.
  */
 
@@ -524,18 +525,26 @@ export async function battleCall(body: unknown, ctx: BattleContext): Promise<Rep
       }
       const skin = readSkin(raw);
       const { champ } = await readCrown(ctx);
-      const checked = validateTeam(party);
+      // Random parties never look at the save's team, so any save can play them.
+      const random = (JSON.parse(got!.doc) as Room).rule === 'random';
+      const checked = random ? { team: [] } : validateTeam(party);
       if ('error' in checked) return { status: 422, body: { error: 'team', why: checked.error } };
       return update(ctx, code, { token }, after, (room, side) => {
         if (room.stage !== 'lobby') return fail(409, room.stage);
         const me = room.players[side];
         me.ready = true;
-        me.team = entrantsOf(checked.team, room.rule);
+        if (!random) me.team = entrantsOf(checked.team, room.rule);
         // The save is read again here, so a skin changed since joining shows too.
         dress(me, champ, skin);
         const [a, b] = room.players;
         if (!a.ready || !b?.ready) return;
         const now = ctx.now();
+        if (random) {
+          // Dealt only now both are in, so neither save is read for a team, or written.
+          const parties = randomParties(ctx.seed());
+          a.team = entrantsOf(parties[0], room.rule);
+          b.team = entrantsOf(parties[1], room.rule);
+        }
         const start = startBattle([a.team!, b.team!], ctx.seed());
         room.state = start.state;
         room.stage = 'live';

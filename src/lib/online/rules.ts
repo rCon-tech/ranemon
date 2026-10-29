@@ -8,17 +8,27 @@ import type {
   Phase,
   Side,
 } from '../battle/engine';
-import { EVOLVED, ITEM_EVOLVED, reachedAt } from '../battle/evolutions';
+import { EVOLVED, formAt, ITEM_EVOLVED, reachedAt } from '../battle/evolutions';
 import { LONDON } from '../battle/london';
 import { LEGEND } from '../battle/legend';
 import { allMoves } from '../battle/moves';
 import { PETCHEMON } from '../battle/petchemon';
 import { POSEIDON } from '../battle/poseidon';
+import { Rng } from '../battle/rng';
 import { ROSTER } from '../battle/roster';
 import { TYPES, typeMultiplier } from '../battle/types';
+import { UK } from '../battle/uk';
 import { variantOf } from '../battle/variants';
 import { heldBoost, heldCalm, holdOf, ITEMS } from '../story/items';
-import { BOSS, creatureOf, movesAt, PARTY_SIZE, speciesById, type Member } from '../story/party';
+import {
+  BOSS,
+  creatureOf,
+  makeMember,
+  movesAt,
+  PARTY_SIZE,
+  speciesById,
+  type Member,
+} from '../story/party';
 import type { QueueItem } from '../ui/session';
 
 /**
@@ -30,7 +40,7 @@ import type { QueueItem } from '../ui/session';
  * Bumped by hand when the engine changes how a battle plays out. The rest of RULES_VERSION is a
  * hash of the battle data, so a new move or a rebalance changes it on its own.
  */
-const ENGINE_REVISION = 1;
+const ENGINE_REVISION = 2;
 
 /** FNV-1a, as 8 hex digits. Not for security: only to tell two versions of the data apart. */
 function fnv(text: string): string {
@@ -66,8 +76,11 @@ export const RULES_VERSION = fnv(
   ]),
 );
 
-/** How levels are set for a friend battle, picked by the challenger. */
-export type LevelRule = 'flat50' | 'cap50' | 'caught';
+/**
+ * How levels are set for a friend battle, picked by the challenger. `random` leaves both saved
+ * teams at home: the server deals each side a random party at Lv100 instead.
+ */
+export type LevelRule = 'flat50' | 'cap50' | 'caught' | 'random';
 
 export const LEVEL_RULES: { id: LevelRule; label: string; about: string }[] = [
   {
@@ -81,12 +94,18 @@ export const LEVEL_RULES: { id: LevelRule; label: string; about: string }[] = [
     about: 'Above Lv50 comes down to 50; the rest stay as they are.',
   },
   { id: 'caught', label: 'AS CAUGHT', about: `Real levels, 5 to ${MAX_LEVEL}.` },
+  {
+    id: 'random',
+    label: 'RANDOM PARTIES',
+    about: `Both of you get a random party of ${PARTY_SIZE}, every one at Lv${MAX_LEVEL}. Your own team stays at home.`,
+  },
 ];
 
 export const isLevelRule = (x: unknown): x is LevelRule => LEVEL_RULES.some((r) => r.id === x);
 
 export function ruleLevel(rule: LevelRule, level: number): number {
   if (rule === 'flat50') return 50;
+  if (rule === 'random') return MAX_LEVEL;
   if (rule === 'cap50') return Math.min(50, level);
   return level;
 }
@@ -175,6 +194,31 @@ export function skinOf(save: unknown): string | undefined {
   const { skin, skins } = save;
   if (typeof skin !== 'string' || !/^[a-z0-9-]{1,40}$/.test(skin)) return undefined;
   return Array.isArray(skins) && skins.includes(skin) ? skin : undefined;
+}
+
+/**
+ * Every Ranemon a random party can be dealt: the ones made from photos (the lads, their
+ * evolutions and the legends), each in the form it has at Lv100. London's drawn Ranemon never
+ * are, and nor is B&S.
+ */
+const RANDOM_POOL: string[] = ALL_SPECIES.filter((c) => !LONDON.includes(c))
+  .map((c) => c.id)
+  .filter((id) => formAt(id, MAX_LEVEL) === id);
+
+/**
+ * A random party for each side, from the seed, all at Lv100 with the moves they'd know by then.
+ * Each one is as likely to come in its photo look as its drawn (UK) look, where it has one. No
+ * Ranemon turns up twice in the battle, so there's still only one of each legend.
+ */
+export function randomParties(seed: number): [Member[], Member[]] {
+  const rng = new Rng(seed);
+  const pool = [...RANDOM_POOL];
+  const deal = (): Member[] =>
+    Array.from({ length: PARTY_SIZE }, (_, i) => {
+      const [id] = pool.splice(rng.int(0, pool.length - 1), 1);
+      return makeMember(id, MAX_LEVEL, i + 1, rng.chance(0.5) ? UK : undefined);
+    });
+  return [deal(), deal()];
 }
 
 /** A checked team as the engine starts it online: at the rule's level, healthy and full of PP. */

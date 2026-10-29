@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { MAX_LEVEL } from '@/lib/battle/creature';
 import { legalActions, startBattle, switchTargets, type Side } from '@/lib/battle/engine';
 import { LEGEND } from '@/lib/battle/legend';
+import { LONDON } from '@/lib/battle/london';
 import { PETCHEMON } from '@/lib/battle/petchemon';
 import { creatureById } from '@/lib/battle/roster';
 import {
   entrantsOf,
   eventFor,
   HIDDEN,
+  randomParties,
   RULES_VERSION,
   CHAMPION_SKIN,
   skinOf,
@@ -96,6 +98,26 @@ describe('online teams', () => {
     expect(entrants[1].creature.id).toBe('cholokill');
     expect(entrants[2]).toMatchObject({ held: { defense: 1.2 } });
     expect(entrants[2].creature.id).toBe('crowdbat');
+  });
+
+  it('deals two random parties at Lv100, with nobody on both', () => {
+    const [a, b] = randomParties(42);
+    expect(a).toHaveLength(6);
+    expect(b).toHaveLength(6);
+    const species = [...a, ...b].map((m) => m.species);
+    expect(new Set(species).size).toBe(12);
+    expect(species).not.toContain('bns');
+    // Only the Ranemon made from photos, in their photo or drawn look.
+    const london = new Set(LONDON.map((c) => c.id));
+    expect(species.filter((id) => london.has(id))).toEqual([]);
+    const looks = new Set([...a, ...b].map((m) => m.variant ?? 'photo'));
+    expect([...looks].sort()).toEqual(['photo', 'uk']);
+    for (const party of [a, b]) {
+      expect(validateTeam(party)).toHaveProperty('team');
+      expect(entrantsOf(party, 'random').map((e) => e.level)).toEqual(Array(6).fill(MAX_LEVEL));
+    }
+    expect(randomParties(42)).toEqual([a, b]);
+    expect(randomParties(7)).not.toEqual([a, b]);
   });
 
   it('reads the skin a save is wearing, only when it’s been unlocked', () => {
@@ -396,6 +418,23 @@ describe('friend battles on the save server', () => {
       status: 422,
       body: { error: 'team', why: expect.stringMatching(/mewtwo/) },
     });
+  });
+
+  it('deals random parties at Lv100, whatever the saves hold, and leaves the saves alone', async () => {
+    const bad = JSON.stringify({ ...JSON.parse(LATE), party: [] });
+    const saves = { rich: LATE, con: bad };
+    const { ready, w, code, players } = await started(world(saves), 'random');
+    expect(ready.body.rule).toBe('random');
+    expect(ready.body.stage).toBe('live');
+    const first = await w.call({ op: 'poll', code, token: players[0].token, after: 0 });
+    const mine = first.body.state!.teams[0].battlers;
+    const theirs = ready.body.state!.teams[0].battlers;
+    expect(mine).toHaveLength(6);
+    expect(theirs).toHaveLength(6);
+    for (const b of [...mine, ...theirs]) expect(b.level).toBe(MAX_LEVEL);
+    const own = new Set(partyOf(LATE).map((m) => m.species));
+    expect(mine.map((b) => b.creature.id).every((id) => own.has(id))).toBe(false);
+    expect(saves).toEqual({ rich: LATE, con: bad });
   });
 
   it('keeps a third trainer out, and lets a player back in with their PIN', async () => {
