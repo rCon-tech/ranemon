@@ -27,7 +27,7 @@ import { makeMember, speciesById as creatureById, toEntrant } from '@/lib/story/
 import { MEGA_RING } from '@/lib/story/keys';
 import { scaleTeam } from '@/lib/story/levels';
 import { healParty, newGame } from '@/lib/story/state';
-import { find, npcsOf, type Step } from '@/lib/story/world';
+import { DELTA, find, isWalkable, marker, npcsOf, tileAt, type Step } from '@/lib/story/world';
 
 /** Plays a script against `flags`, saying yes to every question, and returns what was said and done. */
 function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
@@ -97,6 +97,32 @@ describe('Rowans', () => {
   it('has one Ranelass per room, in order, with Viv last', () => {
     const order = ROWANS_ROOM_IDS.map((id) => mapById(id).npcs[0].trainer);
     expect(order).toEqual([...RANELASSES, VIV]);
+  });
+
+  it('lets you walk past each Ranelass to the door out of her room', () => {
+    for (const id of ROWANS_ROOM_IDS) {
+      const room = mapById(id);
+      const people = new Set(npcsOf(room).map((n) => `${n.x},${n.y}`));
+      const start = marker(room, '@');
+      const seen = new Set([`${start.x},${start.y}`]);
+      const queue = [start];
+      while (queue.length) {
+        const { x, y } = queue.shift()!;
+        for (const [dx, dy] of Object.values(DELTA)) {
+          const key = `${x + dx},${y + dy}`;
+          if (seen.has(key) || people.has(key) || !isWalkable(tileAt(room, x + dx, y + dy)))
+            continue;
+          seen.add(key);
+          queue.push({ x: x + dx, y: y + dy });
+        }
+      }
+      for (const door of find(room, 'L')) {
+        const near = Object.values(DELTA).some(([dx, dy]) =>
+          seen.has(`${door.x + dx},${door.y + dy}`),
+        );
+        expect(near, `${room.name}: door at ${door.x},${door.y}`).toBe(true);
+      }
+    }
   });
 
   it('gives each Ranelass her own Ranemon, and an ace that Mega evolves', () => {
