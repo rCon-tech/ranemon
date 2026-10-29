@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DEX as IRISH_DEX, EVOLUTIONS } from '@/lib/battle/evolutions';
+import { FOOTBALLER_MON } from '@/lib/battle/footballers';
 import { LONDON } from '@/lib/battle/london';
 import { ROSTER } from '@/lib/battle/roster';
 import { UK } from '@/lib/battle/uk';
@@ -13,16 +14,17 @@ import { hasUkDex, UK_DEX, ukKnowledge } from '@/lib/story/ukdex';
 const inLondon = { ...newGame(), map: 'london' };
 
 describe('the UK Ranedex', () => {
-  it('has every one of the lads, base and evolved, drawn, then London’s own', () => {
+  it('has every one of the lads, base and evolved, drawn, then London’s own and the legends’', () => {
     const ids = UK_DEX.map((c) => c.id);
     for (const r of ROSTER) expect(ids, r.id).toContain(r.id);
     for (const e of EVOLUTIONS) expect(ids, e.id).toContain(e.id);
     expect(ids).toContain('cholokill');
     for (const c of LONDON) expect(ids, c.id).toContain(c.id);
+    expect(ids.slice(-FOOTBALLER_MON.length)).toEqual(FOOTBALLER_MON.map((c) => c.id));
     expect(new Set(ids).size).toBe(ids.length);
     // Each base form comes just before what it evolves into.
     for (const e of EVOLUTIONS) expect(ids.indexOf(e.id), e.id).toBe(ids.indexOf(e.from) + 1);
-    for (const c of UK_DEX.slice(0, UK_DEX.length - LONDON.length)) {
+    for (const c of UK_DEX.slice(0, UK_DEX.length - LONDON.length - FOOTBALLER_MON.length)) {
       expect(c.variant, c.id).toBe(UK);
       expect(c.sprite, c.id).toBe(`/sprites/drawn/${c.id}.png`);
       expect(existsSync(`public${c.sprite}`), c.id).toBe(true);

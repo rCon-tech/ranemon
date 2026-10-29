@@ -234,7 +234,7 @@ Florence Pugh's ask after Liam Neeson comes with the fifth jersey (Leeds), and J
 
 The ground-by-ground notes below were written for the first order (United first) and keep their numbers; the dialogue in the game follows the new order.
 
-Every legend's team is made of UK-form lads. AI: legends 1 to 4 Normal, 5 to 12 Hard. Each pays the leader rate (ace level × £40).
+Every legend's team is made of UK-form lads, with his own Ranemon as the ace (`src/lib/battle/footballers.ts`, drawn 2D by `scripts/drawn/footballers.py`): Murraymon, Wrightymon, McGrathmon, Duncanmon, Bielsamon, Shearermon, Robbiemon, Agüeromon, Terrymon, Henrymon, Gerrardmon and Keanemon. Each is a single stage at 460 with a special move of its own, and takes the place of the team's ace at its level. Beat the legend and he gives you his, at that level, after the jersey; saves that had beaten him before find it in the Group Chat on Britain's side of the sea (save schema 8). They're at the end of the UK Ranedex, and never wild, in battle mode or dealt in The Sesh. AI: legends 1 to 4 Normal, 5 to 12 Hard. Each pays the leader rate (ace level × £40).
 
 #### Each ground
 

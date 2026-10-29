@@ -11,6 +11,14 @@ export interface Update {
 
 export const UPDATES: Update[] = [
   {
+    date: '2026-10-29',
+    title: 'Legends of the game',
+    notes: [
+      'Every Premier League legend now brings a Ranemon of his own to the jersey battle, and he gives it to you when you beat him.',
+      'Already beaten some of them? Look in your Group Chat.',
+    ],
+  },
+  {
     date: '2026-10-28',
     title: 'Quick Sesh',
     notes: [

@@ -19,7 +19,7 @@ import {
 } from '@/content/story/sidemen';
 import { SKINS } from '@/content/story/skins';
 import { trainerById } from '@/content/story/trainers';
-import { LONDON_EVOLUTIONS, SIDEMEN } from '@/lib/battle/london';
+import { LONDON, LONDON_EVOLUTIONS, SIDEMEN } from '@/lib/battle/london';
 import { moveById } from '@/lib/battle/moves';
 import { hasUkForm } from '@/lib/battle/uk';
 import { UK_DEX } from '@/lib/story/ukdex';
@@ -48,7 +48,7 @@ const beat = (id: string, flags: Set<string>) => {
 const room = (i: number) => mapById(interiorId(WEMBLEY_ID, 'L', i));
 
 describe('the Sidemen’s Ranemon', () => {
-  it('are six lines of two, each evolving at Lv30, in the UK Ranedex after London’s own', () => {
+  it('are six lines of two, each evolving at Lv30, in the UK Ranedex at the end of London’s own', () => {
     expect(SIDEMEN.map((c) => c.name)).toEqual([
       'Ksimon',
       'Primape',
@@ -68,7 +68,9 @@ describe('the Sidemen’s Ranemon', () => {
       expect(evo.id).toBe(SIDEMEN[i + 1].id);
       expect(evo.level).toBe(30);
     }
-    expect(UK_DEX.slice(-12).map((c) => c.id)).toEqual(SIDEMEN.map((c) => c.id));
+    const ids = UK_DEX.map((c) => c.id);
+    const end = ids.indexOf(LONDON[LONDON.length - 1].id) + 1;
+    expect(ids.slice(end - 12, end)).toEqual(SIDEMEN.map((c) => c.id));
   });
 
   it('each know their own special move from the start', () => {
