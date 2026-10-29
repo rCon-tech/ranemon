@@ -90,7 +90,7 @@ def number(digits, colour=WHITE):
     def paint(f, look, stage, view):
         ball(f, look, stage, view)
         if stage == "paint" and view == "front":
-            d = ImageDraw.Draw(f)
+            d = kit.draw(f)
             d.text((CX - 3 * len(digits) - 1, 62), digits, fill=colour)
 
     return paint
@@ -206,7 +206,7 @@ def save_mega():
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     import mega  # noqa: E402  (megafy: the glow and the symbol)
 
-    figure = sprites.gild(sprites.outline(kit.front(BALLAN, outlined=False)), False)
+    figure = sprites.gild(kit.front(BALLAN), False)
     im = mega.megafy(figure, "posh")
     for root in (PUBLIC / "premier" / "mega", PUBLIC / "shiny" / "premier" / "mega"):
         root.mkdir(parents=True, exist_ok=True)
@@ -214,7 +214,7 @@ def save_mega():
 
 
 def draw(id):
-    return glow(sprites.outline(kit.front(LOOKS[id], outlined=False)), TYPE[id])
+    return glow(kit.front(LOOKS[id]), TYPE[id])
 
 
 def save(id):

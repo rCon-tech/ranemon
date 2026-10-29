@@ -25,7 +25,7 @@ OUT = roster.OUT
 
 
 def glow(figure: Image.Image, kind: str) -> Image.Image:
-    out = sprites.aura(figure, sprites.TYPE_COLOUR[kind])
+    out = sprites.aura(figure, sprites.TYPE_COLOUR[kind], kit.SCALE)
     out.alpha_composite(figure)
     return out
 
@@ -35,17 +35,20 @@ def decks(evo: str, figure: Image.Image, head, kind: str) -> Image.Image:
     behind = Image.new("RGBA", (SIZE, SIZE))
     front = Image.new("RGBA", (SIZE, SIZE))
     sprites.costume(evo, ImageDraw.Draw(front), ImageDraw.Draw(behind), head, 82)
+    # The photo pipeline's pieces are drawn on the 96-pixel grid: blown up to the figure's size.
+    behind, front = (im.resize(figure.size, Image.NEAREST) for im in (behind, front))
     return glow(sprites.outline(Image.alpha_composite(Image.alpha_composite(behind, figure), front)), kind)
 
 
 def duo(left: Image.Image, right: Image.Image) -> Image.Image:
     """Two drawn figures back to back, each shrunk to two thirds, the partner just behind."""
-    size = SIZE * 2 // 3
-    canvas = Image.new("RGBA", (SIZE, SIZE))
+    n = right.width
+    size = n * 2 // 3
+    canvas = Image.new("RGBA", (n, n))
     r = right.resize((size, size), Image.NEAREST)
     l = left.resize((size, size), Image.NEAREST).transpose(Image.FLIP_LEFT_RIGHT)
-    canvas.alpha_composite(r, (SIZE - size, SIZE - size))
-    canvas.alpha_composite(l, (0, SIZE - size))
+    canvas.alpha_composite(r, (n - size, n - size))
+    canvas.alpha_composite(l, (0, n - size))
     return canvas
 
 
