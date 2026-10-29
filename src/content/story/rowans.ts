@@ -512,8 +512,8 @@ const ROOMS: Room[] = [
     name: 'The Dancefloor',
     rows: [
       'WoooooLoooooW',
-      'WIllll1llllIW',
       'WIllllllllllW',
+      'WIllll1lllllW',
       'WllllllllllIW',
       'WIllllllllllW',
       'WllllllllllIW',
@@ -532,8 +532,8 @@ const ROOMS: Room[] = [
     name: 'The Diner',
     rows: [
       'WWWWWWLWWWWWW',
-      'WCCCCF1FCCCCW',
-      'WFFFFFFFFFFFW',
+      'WCCCCFFFCCCCW',
+      'WFFFFF1FFFFFW',
       'WnnFUFFFUFnnW',
       'WFFFFFFFFFFFW',
       'WnnFUFFFUFnnW',
@@ -554,7 +554,7 @@ const ROOMS: Room[] = [
     name: 'The VIP Lanes',
     rows: [
       'WWWWWWLWWWWWW',
-      'WXggXgggXggXW',
+      'WXgggggggggXW',
       'WggggX1XggggW',
       'WgggggggggggW',
       'WnnnngggnnnnW',
