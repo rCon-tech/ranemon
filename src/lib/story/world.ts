@@ -266,6 +266,12 @@ export interface Trainer {
    */
   above?: number;
   /**
+   * With `above`: until this flag is set, the team only closes half the gap to your party's
+   * average level (`scaleTeam`), so training pays. After it, it scales in full. The Ranelasses,
+   * until Viv is first beaten.
+   */
+  halfway?: string;
+  /**
    * The species on its team that Mega evolves (`lib/battle/mega.ts`): the trainer has a Mega
    * Ring, and uses it on that one. The Ranelasses at Rowans.
    */
@@ -356,6 +362,11 @@ export interface GameMap {
   arrive?: Step[];
   /** Only drawn in 2D for now: with the 3D look picked, this map and its rooms show in 2D. */
   flat?: boolean;
+  /**
+   * A short stretch of road between two counties (content/story/road.ts): no Garda at its way
+   * out, and left off the Town Map and the Limepass, which count it as the county behind it.
+   */
+  link?: boolean;
   /** Slate roofs on every building, not only the gym: the look of a well-off town. */
   slate?: boolean;
   /**

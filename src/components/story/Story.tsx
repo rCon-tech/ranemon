@@ -591,15 +591,16 @@ export function Story({ mode = 'dublin' }: { mode?: StoryMode } = {}) {
             // Once you're Champion, every trainer scales up to your party; the Championship
             // in Galway always does, Champion or not. Britain is a new story line that starts
             // again from Lv5, so its trainers keep their own levels, unless they always scale
-            // (`above`), like the Ranelasses at Rowans.
+            // (`above`), like the Ranelasses at Rowans, who only come half way until Viv is
+            // first beaten (`halfway`).
             const own = teamOf(t, t.uk ? g.ukStarter : g.starter);
-            const team = (t.uk && t.above === undefined ? own : scaleTeam(own, g, t.above)).map(
-              ([id, level], i) => {
-                const e = toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined));
-                // A trainer with a Mega Ring, such as a Ranelass, uses it on their ace.
-                return e.creature.id === t.mega ? { ...e, mega: true } : e;
-              },
-            );
+            const halfway = !!t.halfway && !g.flags.includes(t.halfway);
+            const scaled = scaleTeam(own, g, t.above, halfway);
+            const team = (t.uk && t.above === undefined ? own : scaled).map(([id, level], i) => {
+              const e = toEntrant(makeMember(id, level, -1 - i, t.uk ? UK : undefined));
+              // A trainer with a Mega Ring, such as a Ranelass, uses it on their ace.
+              return e.creature.id === t.mega ? { ...e, mega: true } : e;
+            });
             for (const e of team) g = see(g, e.creature.id);
             setGame(g);
             setQueue(q);

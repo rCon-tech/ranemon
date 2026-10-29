@@ -25,8 +25,9 @@ import { MEGAS, megaForm } from '@/lib/battle/mega';
 import { UK } from '@/lib/battle/uk';
 import { makeMember, speciesById as creatureById, toEntrant } from '@/lib/story/party';
 import { MEGA_RING } from '@/lib/story/keys';
+import { scaleTeam } from '@/lib/story/levels';
 import { healParty, newGame } from '@/lib/story/state';
-import { find, npcsOf, type Step } from '@/lib/story/world';
+import { DELTA, find, isWalkable, marker, npcsOf, tileAt, type Step } from '@/lib/story/world';
 
 /** Plays a script against `flags`, saying yes to every question, and returns what was said and done. */
 function play(steps: Step[], flags: Set<string>, out: string[] = []): string[] {
@@ -98,6 +99,32 @@ describe('Rowans', () => {
     expect(order).toEqual([...RANELASSES, VIV]);
   });
 
+  it('lets you walk past each Ranelass to the door out of her room', () => {
+    for (const id of ROWANS_ROOM_IDS) {
+      const room = mapById(id);
+      const people = new Set(npcsOf(room).map((n) => `${n.x},${n.y}`));
+      const start = marker(room, '@');
+      const seen = new Set([`${start.x},${start.y}`]);
+      const queue = [start];
+      while (queue.length) {
+        const { x, y } = queue.shift()!;
+        for (const [dx, dy] of Object.values(DELTA)) {
+          const key = `${x + dx},${y + dy}`;
+          if (seen.has(key) || people.has(key) || !isWalkable(tileAt(room, x + dx, y + dy)))
+            continue;
+          seen.add(key);
+          queue.push({ x: x + dx, y: y + dy });
+        }
+      }
+      for (const door of find(room, 'L')) {
+        const near = Object.values(DELTA).some(([dx, dy]) =>
+          seen.has(`${door.x + dx},${door.y + dy}`),
+        );
+        expect(near, `${room.name}: door at ${door.x},${door.y}`).toBe(true);
+      }
+    }
+  });
+
   it('gives each Ranelass her own Ranemon, and an ace that Mega evolves', () => {
     for (const t of ROWANS_TRAINERS) {
       expect(t.mega, t.id).toBeDefined();
@@ -144,5 +171,32 @@ describe('Rowans', () => {
     const s = { ...newGame(), flags: [...RUN, wonFlag(VIV), MEGA_RING] };
     expect(breakRun(s.flags)).toEqual([wonFlag(VIV), MEGA_RING]);
     expect(healParty(s).flags).toEqual([wonFlag(VIV), MEGA_RING]);
+  });
+});
+
+describe('Ranelass level scaling', () => {
+  const viv = trainerById(VIV);
+  const ace = (t: [string, number][]) => Math.max(...t.map(([, l]) => l));
+  const party = (...levels: number[]) => levels.map((l, i) => makeMember('carlmon', l, i, UK));
+
+  it('comes only half way on the first run, so training pays', () => {
+    const flags: string[] = [];
+    const at = (l: number) =>
+      ace(scaleTeam(viv.team, { flags, party: party(l, l, l) }, viv.above, true));
+    expect(viv.halfway).toBe(RANELASSES_BEATEN);
+    expect(at(60)).toBe(ace(viv.team));
+    // Lv80: the gap to Viv's ace (79 against her 63) is 16, so she comes up 8.
+    expect(at(80)).toBe(71);
+    expect(at(100) - ace(viv.team)).toBeLessThan(100 - 1 - ace(viv.team));
+  });
+
+  it('scales to the party’s average, not one over-levelled Ranemon', () => {
+    const one = scaleTeam(viv.team, { flags: [], party: party(90, 60, 60) }, viv.above, true);
+    expect(ace(one)).toBe(ace(viv.team) + Math.round((70 - 1 - ace(viv.team)) / 2));
+  });
+
+  it('scales in full on a rematch, once Viv is beaten', () => {
+    const s = { flags: [RANELASSES_BEATEN], party: party(80, 60) };
+    expect(ace(scaleTeam(viv.team, s, viv.above))).toBe(79);
   });
 });

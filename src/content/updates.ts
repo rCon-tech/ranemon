@@ -27,6 +27,24 @@ export const UPDATES: Update[] = [
     ],
   },
   {
+    date: '2026-10-29',
+    title: 'The road to Dublin',
+    notes: [
+      'Every county line is a place of its own now: a short stretch of road between each county, from the Shannon to the edge of Dublin, each with something to see and someone to meet.',
+      'An old rival turns up more often on the way, and a few familiar faces are heading for Dublin too.',
+      'Somebody has lost something on a stag do. Beat the lads causing trouble on the road and see where it takes you. It shows in MISSIONS.',
+      'A new game starts with Exp Share on, so your whole party keeps up. Some gyms give better prizes, and the long grass in the midlands has a few new faces.',
+    ],
+  },
+  {
+    date: '2026-10-29',
+    title: 'Training pays',
+    notes: [
+      'The last fights of the London story still keep up with you, but now only half way, and to your whole party rather than your strongest Ranemon. Every level you train before you go in counts.',
+      'Win once and they take you seriously: after that they keep up with you all the way.',
+    ],
+  },
+  {
     date: '2026-10-28',
     title: 'Quick Sesh',
     notes: [

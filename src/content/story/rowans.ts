@@ -161,7 +161,9 @@ export const KNEECAP_AT_KINGS_CROSS: Npc[] = [
 
 /**
  * Where each one's ace comes in against your best Ranemon, as in Galway: a few levels under it,
- * closing in on Viv, so they keep up with you all the way to 100.
+ * closing in on Viv, so they keep up with you all the way to 100. Until Viv is first beaten they
+ * only come half way, to your party's average (`halfway`), so training for Rowans pays off;
+ * rematches after that scale in full.
  */
 export const ABOVE: Record<string, number> = {
   'rowans-sibeal': -3,
@@ -192,6 +194,7 @@ const lass = (
   uk: true,
   ai: 'hard',
   above: ABOVE[id],
+  halfway: RANELASSES_BEATEN,
   prize: id === VIV ? 15000 : 8000,
   before,
   after,
@@ -509,8 +512,8 @@ const ROOMS: Room[] = [
     name: 'The Dancefloor',
     rows: [
       'WoooooLoooooW',
-      'WIllll1llllIW',
       'WIllllllllllW',
+      'WIllll1lllllW',
       'WllllllllllIW',
       'WIllllllllllW',
       'WllllllllllIW',
@@ -529,8 +532,8 @@ const ROOMS: Room[] = [
     name: 'The Diner',
     rows: [
       'WWWWWWLWWWWWW',
-      'WCCCCF1FCCCCW',
-      'WFFFFFFFFFFFW',
+      'WCCCCFFFCCCCW',
+      'WFFFFF1FFFFFW',
       'WnnFUFFFUFnnW',
       'WFFFFFFFFFFFW',
       'WnnFUFFFUFnnW',
@@ -551,7 +554,7 @@ const ROOMS: Room[] = [
     name: 'The VIP Lanes',
     rows: [
       'WWWWWWLWWWWWW',
-      'WXggXgggXggXW',
+      'WXgggggggggXW',
       'WggggX1XggggW',
       'WgggggggggggW',
       'WnnnngggnnnnW',

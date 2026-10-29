@@ -35,7 +35,7 @@ describe('the Limepass', () => {
   it('drops you on open ground outside every town’s McGrattans', () => {
     const visited = new Set(MAPS.map((m) => `visited:${m.id}`));
     const all = [...limeStops(visited), ...limeStops(visited, true)];
-    expect(all).toHaveLength(MAPS.length);
+    expect(all).toHaveLength(MAPS.filter((m) => !m.link).length);
     for (const s of all) {
       const map = mapById(s.map);
       expect(canEnter(map, s.x, s.y, new Set()), `${s.map} ${s.x},${s.y}`).toBe(true);

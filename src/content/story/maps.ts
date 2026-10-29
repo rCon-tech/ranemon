@@ -41,6 +41,7 @@ import {
   SILICON_SIGNS,
 } from './silicon';
 import * as LEGENDS from './legends';
+import { BNS_SIGHTING, LINKS } from './road';
 
 /**
  * The road from Co. Clare to Trinity College Dublin, one map per county, walked west to east.
@@ -48,9 +49,13 @@ import * as LEGENDS from './legends';
  * edge who lets you through once you have that county's jersey. See docs/story-mode.md.
  */
 
-const phone = (next: string) => ({
+/**
+ * Michael D on the phone after each gym: well done, where next, and one thing waiting in Dublin,
+ * so the road always has the city at the end of it.
+ */
+const phone = (next: string, tease?: string) => ({
   do: 'say' as const,
-  text: `♪ Ring ring! It’s Michael D: “Maith thú! On to ${next} with you now.”`,
+  text: `♪ Ring ring! It’s Michael D: “Maith thú! On to ${next} with you now.${tease ? ` ${tease}` : ''}”`,
 });
 
 /** The Garda at each county line: gone once you have the jersey. */
@@ -621,7 +626,7 @@ export const MAPS: GameMap[] = [
       ...LEGENDS.CLARE_LANDMARKS,
     ],
     gym: { trainer: 'gym-clare', place: 'Ennis' },
-    east: 'limerick',
+    east: 'link-killaloe',
     enter: [
       {
         do: 'say',
@@ -630,6 +635,10 @@ export const MAPS: GameMap[] = [
       {
         do: 'say',
         text: 'MAM: Go on up to him. The farmhouse is east of the house. Talk to people with the A button.',
+      },
+      {
+        do: 'say',
+        text: 'MAM: And Exp Share is on in the START menu, so every Ranemon in your party learns as you go. You can thank me later.',
       },
     ],
   },
@@ -709,8 +718,8 @@ export const MAPS: GameMap[] = [
       ...LEGENDS.LIMERICK_LANDMARKS,
     ],
     gym: { trainer: 'gym-limerick', place: 'Thomond Park' },
-    west: 'clare',
-    east: 'tipperary',
+    west: 'link-killaloe',
+    east: 'link-roadworks',
   },
   {
     id: 'tipperary',
@@ -798,8 +807,8 @@ export const MAPS: GameMap[] = [
           'You used HM NEURODIVERGENT! You spot the pattern in the tiles straight away. The door clicks open.',
       },
     },
-    west: 'limerick',
-    east: 'kilkenny',
+    west: 'link-roadworks',
+    east: 'link-hurling',
   },
   {
     id: 'kilkenny',
@@ -865,8 +874,8 @@ export const MAPS: GameMap[] = [
       ...LEGENDS.KILKENNY_LANDMARKS,
     ],
     gym: { trainer: 'gym-kilkenny', place: 'Kilkenny Castle' },
-    west: 'tipperary',
-    east: 'laois',
+    west: 'link-hurling',
+    east: 'link-picnic',
   },
   {
     id: 'laois',
@@ -935,8 +944,8 @@ export const MAPS: GameMap[] = [
     houses: LEGENDS.LAOIS_HOUSES,
     landmarks: LEGENDS.LAOIS_LANDMARKS,
     gym: { trainer: 'gym-laois', place: 'Electric Picnic' },
-    west: 'kilkenny',
-    east: 'offaly',
+    west: 'link-picnic',
+    east: 'link-bog',
   },
   {
     id: 'offaly',
@@ -977,6 +986,8 @@ export const MAPS: GameMap[] = [
         ['steadmon', 30],
         ['hugomon', 20],
         ['skehemon', 20],
+        // Thilomon, wandered off from the Picnic.
+        ['thilomon', 10],
       ],
     },
     npcs: [
@@ -1004,8 +1015,10 @@ export const MAPS: GameMap[] = [
       ...LEGENDS.OFFALY_LANDMARKS,
     ],
     gym: { trainer: 'gym-offaly', place: 'Clonmacnoise' },
-    west: 'laois',
-    east: 'westmeath',
+    // B&S drive past, once, on the way in from Laois.
+    arrive: BNS_SIGHTING,
+    west: 'link-bog',
+    east: 'link-shannonbridge',
   },
   {
     id: 'westmeath',
@@ -1045,6 +1058,9 @@ export const MAPS: GameMap[] = [
         ['carlmon', 25],
         ['robinmon', 25],
         ['conemon', 20],
+        // Nickamon and Crampemon, rare everywhere else on the road, come for the Shannon.
+        ['nickamon', 10],
+        ['crampemon', 10],
       ],
     },
     npcs: [
@@ -1088,8 +1104,8 @@ export const MAPS: GameMap[] = [
       LEGENDS.WESTMEATH_LANDMARKS[1],
     ],
     gym: { trainer: 'gym-westmeath', place: 'Mullingar' },
-    west: 'offaly',
-    east: 'meath',
+    west: 'link-shannonbridge',
+    east: 'link-canal',
   },
   {
     id: 'meath',
@@ -1131,6 +1147,7 @@ export const MAPS: GameMap[] = [
         ['simomon', 20],
         ['vinnimon', 20],
         ['enda', 10],
+        ['paulimon', 10],
       ],
     },
     npcs: [
@@ -1158,8 +1175,8 @@ export const MAPS: GameMap[] = [
       ...LEGENDS.MEATH_LANDMARKS,
     ],
     gym: { trainer: 'gym-meath', place: 'Newgrange' },
-    west: 'westmeath',
-    east: 'kildare',
+    west: 'link-canal',
+    east: 'link-services',
   },
   {
     id: 'kildare',
@@ -1200,6 +1217,7 @@ export const MAPS: GameMap[] = [
         ['owemon', 40],
         ['boydemon', 40],
         ['gibbsmon', 20],
+        ['skehemon', 10],
       ],
     },
     npcs: [
@@ -1222,8 +1240,8 @@ export const MAPS: GameMap[] = [
     landmarks: LEGENDS.KILDARE_LANDMARKS,
     gym: { trainer: 'gym-kildare', place: 'The Curragh' },
     arrive: ENDA_CALLS,
-    west: 'meath',
-    east: 'dublin',
+    west: 'link-services',
+    east: 'link-redcow',
   },
   {
     id: 'dublin',
@@ -1408,7 +1426,7 @@ export const MAPS: GameMap[] = [
     landmarkLabels: SILICON_LABELS,
     // Once you're Champion, Cramps comes running up the street the first time you're back out.
     arrive: [...CRAMPS_ARRIVE, ...PROVAI_ARRIVE],
-    west: 'kildare',
+    west: 'link-redcow',
     east: 'trinity',
   },
   {
@@ -1543,6 +1561,8 @@ export const MAPS: GameMap[] = [
   WEMBLEY,
   FINSBURY_PARK,
   WEMBLEY_WAY,
+  // The road between the counties, after everything else so the counties keep their places.
+  ...LINKS,
 ];
 
 /** The rooms behind every door. */
