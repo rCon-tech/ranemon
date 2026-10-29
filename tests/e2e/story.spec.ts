@@ -121,7 +121,8 @@ test('story mode: the old man’s HM opens the Semple Stadium gym', async ({ pag
         box: [],
         bag: {},
         money: 3000,
-        flags: ['starter', 'visited:tipperary', 'jersey:clare', 'jersey:limerick'],
+        // Nick's done and out of the gym doorway: his own test is below.
+        flags: ['starter', 'visited:tipperary', 'jersey:clare', 'jersey:limerick', 'nick:done'],
         seen: [],
         caught: [],
         pub: { map: 'tipperary', x: 4, y: 11 },
@@ -185,6 +186,106 @@ test('story mode: the old man’s HM opens the Semple Stadium gym', async ({ pag
   await tap('ArrowUp');
   await expect(world).toHaveAttribute('aria-label', /Semple Stadium gym/);
   await expect(text).toContainText('You used HM NEURODIVERGENT!');
+});
+
+test('story mode: Nick blocks the Semple Stadium gym until he has his beret', async ({ page }) => {
+  await unlock(page);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('ranemon.story.v1:beret')) return;
+    localStorage.setItem(
+      'ranemon.story.v1:beret',
+      JSON.stringify({
+        version: 1,
+        map: 'tipperary',
+        x: 19,
+        y: 12,
+        face: 'up',
+        party: [
+          {
+            uid: 1,
+            species: 'enda',
+            level: 20,
+            exp: 8000,
+            hp: 70,
+            pp: [10],
+            status: null,
+            moves: ['fierce-friendship'],
+          },
+        ],
+        box: [],
+        bag: {},
+        money: 3000,
+        flags: ['starter', 'visited:tipperary', 'jersey:clare', 'jersey:limerick', 'nick:text'],
+        seen: [],
+        caught: [],
+        pub: { map: 'tipperary', x: 4, y: 11 },
+        uid: 2,
+        steps: 0,
+      }),
+    );
+  });
+  await page.goto('/story');
+  await page.getByTestId('trainer-name').fill('Beret');
+  await page.getByRole('button', { name: 'CONTINUE' }).click();
+  const text = page.getByTestId('story-text');
+  const world = page.getByTestId('overworld');
+  const tap = async (key: string) => {
+    await page.keyboard.down(key);
+    await page.waitForTimeout(80);
+    await page.keyboard.up(key);
+    await page.waitForTimeout(400);
+  };
+  const walk = async (key: string, x: number, y: number) => {
+    for (let i = 0; i < 16; i++) {
+      if (
+        (await world.getAttribute('data-x')) === String(x) &&
+        (await world.getAttribute('data-y')) === String(y)
+      )
+        return;
+      await tap(key);
+    }
+    await expect(world).toHaveAttribute('data-x', String(x));
+    await expect(world).toHaveAttribute('data-y', String(y));
+  };
+  const through = async (until?: string) => {
+    for (let i = 0; i < 30 && (await text.count()); i++) {
+      if (until && (await text.filter({ hasText: until }).count())) return;
+      await text.click();
+    }
+  };
+  await expect(world).toBeVisible();
+
+  // He's in the doorway: you can't get past him to the gym.
+  await tap('ArrowUp');
+  await expect(world).toHaveAttribute('data-y', '12');
+  await page.keyboard.press('z');
+  await expect(text).toContainText('NICK:');
+  await through('second most French man');
+  await expect(text).toContainText('second most French man in Ireland');
+  await through();
+  await expect(text).toHaveCount(0);
+
+  // His beret is up at the Rock of Cashel, at the top of the town.
+  await walk('ArrowLeft', 8, 12);
+  await walk('ArrowUp', 8, 4);
+  await walk('ArrowRight', 18, 4);
+  await walk('ArrowUp', 18, 3);
+  await tap('ArrowUp');
+  await through('NICK’S BERET');
+  await expect(text).toContainText('NICK’S BERET');
+  await through();
+  await expect(text).toHaveCount(0);
+
+  // Back down to him, and now he battles you.
+  await walk('ArrowDown', 18, 4);
+  await walk('ArrowLeft', 8, 4);
+  await walk('ArrowDown', 8, 12);
+  await walk('ArrowRight', 19, 12);
+  await tap('ArrowUp');
+  await page.keyboard.press('z');
+  await expect(text).toContainText('beret');
+  await through();
+  await expect(page.getByTestId('text-box')).toContainText('Nick sent out', { timeout: 15_000 });
 });
 
 test('story mode: the Town Map opens from START and from the place name', async ({ page }) => {

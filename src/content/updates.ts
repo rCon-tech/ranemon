@@ -12,6 +12,14 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-29',
+    title: 'Fashion emergency',
+    notes: [
+      'Someone has moved to Thurles and is standing somewhere very inconvenient. Keep your phone on when you get there. It shows in MISSIONS.',
+      'Already beaten him somewhere else? Go and say hello: he owes you something.',
+    ],
+  },
+  {
+    date: '2026-10-29',
     title: 'Coming home?',
     notes: [
       'Become Premier League Champion and keep your phone on: someone very famous is back at Wembley for the week, and he isn’t planning to stay. London finally has a legendary.',

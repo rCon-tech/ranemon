@@ -171,7 +171,7 @@ export const SKINS: Skin[] = [
     id: 'nick',
     name: 'Nick',
     unlock: beat(NICK_TRAINER),
-    hint: 'Beat the second most French man in Ireland, in Clare.',
+    hint: 'Find what the second most French man in Ireland lost in Tipperary, then beat him.',
   },
   {
     id: 'bhav',
