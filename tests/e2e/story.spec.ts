@@ -11,7 +11,7 @@ test('story mode: Michael D hands over a starter in Clare', async ({ page }) => 
   await page.getByRole('button', { name: 'NEW GAME' }).click();
   const text = page.getByTestId('story-text');
   // Mam's wake-up call: tap twice per line (finish typing, then next).
-  for (let i = 0; i < 4 && (await text.count()); i++) await text.click();
+  for (let i = 0; i < 6 && (await text.count()); i++) await text.click();
   await expect(text).toHaveCount(0);
 
   // Walk east along the lane until Michael D blocks the way, then talk to him. Waiting on the
@@ -1240,9 +1240,10 @@ test('story mode: Enda stands in the road out of Kildare and asks you to Brighto
   await expect(text).toHaveCount(0);
   expect((await save()).flags).toEqual(expect.arrayContaining(['enda:met', 'enda:asked']));
 
-  // He's stepped aside, so the road to Dublin is open.
+  // He's stepped aside, so the road to Dublin is open: over the Red Cow and into the city.
   await page.keyboard.down('ArrowRight');
-  await expect(world).toHaveAttribute('aria-label', /^Dublin City/, { timeout: 10_000 });
+  await expect(world).toHaveAttribute('aria-label', /^The Red Cow/, { timeout: 10_000 });
+  await expect(world).toHaveAttribute('aria-label', /^Dublin City/, { timeout: 20_000 });
   await page.keyboard.up('ArrowRight');
   expect((await save()).map).toBe('dublin');
 });
@@ -1251,15 +1252,15 @@ test('story mode: Enda waves you over as you walk into Kildare', async ({ page }
   await unlock(page);
   await page.addInitScript(() => {
     if (localStorage.getItem('ranemon.story.v1:wave')) return;
-    // On the road at the east edge of Meath, a step from Kildare, with the Meath jersey.
+    // At the Applegreen on the M4, past the rival, a step from Kildare, with the Meath jersey.
     localStorage.setItem(
       'ranemon.story.v1:wave',
       JSON.stringify({
         version: 1,
         schema: 3,
-        map: 'meath',
-        x: 39,
-        y: 12,
+        map: 'link-services',
+        x: 20,
+        y: 4,
         face: 'right',
         party: [
           {

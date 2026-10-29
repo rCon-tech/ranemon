@@ -235,8 +235,12 @@ describe('story state', () => {
     expect(out.state.party[0].hp).toBe(statsOf(s.party[0]).hp);
   });
 
+  it('starts a new game with Exp Share on', () => {
+    expect(newGame().expShare).toBe(true);
+  });
+
   it('gives the bench EXP with Exp Share on, and none with it off', () => {
-    let s = recruit(newGame(), 'carlmon', 5).state;
+    let s = recruit({ ...newGame(), expShare: false }, 'carlmon', 5).state;
     s = recruit(s, 'enda', 5).state;
     s = recruit(s, 'jammon', 5).state;
     s = { ...s, party: s.party.map((m, i) => (i === 2 ? { ...m, hp: 0 } : m)) };
@@ -259,7 +263,7 @@ describe('story state', () => {
     let s = recruit(newGame(), 'carlmon', 5).state;
     s = recruit(s, 'enda', 5).state;
     s = recruit(s, 'jammon', 8).state;
-    s = toggleExpShare(s);
+    s = { ...s, expShare: true };
     const foes = [
       { creature: creatureById('olliemon'), level: 9 },
       { creature: creatureById('olliemon'), level: 9 },
@@ -302,7 +306,7 @@ describe('story state', () => {
     let s = newGame();
     for (const id of ['carlmon', 'enda', 'jammon', 'olliemon', 'conemon', 'carlmon'])
       s = recruit(s, id, 5).state;
-    s = toggleExpShare(s);
+    s = { ...s, expShare: true };
     const { state } = startBattle(
       [s.party.map(toEntrant), [{ creature: creatureById('enda'), level: 9 }]],
       1,

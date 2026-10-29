@@ -122,6 +122,8 @@ export function newGame(): StoryState {
     uid: 1,
     steps: 0,
     skins: [],
+    // On from the start, so the whole party keeps up with the road without grinding the grass.
+    expShare: true,
     schema: SCHEMA,
   };
 }
