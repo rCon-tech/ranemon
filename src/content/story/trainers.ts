@@ -16,6 +16,7 @@ import { GALWAY_TRAINERS } from './galway';
 import { ROWANS_TRAINERS } from './rowans';
 import { SILICON_TRAINERS } from './silicon';
 import { SIDEMEN_TRAINERS, WEMBLEY_TRAINERS } from './sidemen';
+import { KANE } from './kane';
 import { NEESON_TRAINERS } from './neeson';
 import { ROAD_TRAINERS } from './road';
 import { MESCAL_AFTER, MESCAL_BEFORE, MESCAL_RUNS, MESCAL_TRAINER } from './mescal';
@@ -910,6 +911,7 @@ const T: Trainer[] = [
   ...SILICON_TRAINERS,
   ...SIDEMEN_TRAINERS,
   ...WEMBLEY_TRAINERS,
+  KANE,
   ...NEESON_TRAINERS,
   ...ROAD_TRAINERS,
 ];

@@ -132,6 +132,7 @@ export type Look =
   | 'gerrard'
   | 'henry'
   | 'aguero'
+  | 'kane'
   | 'mayo'
   | 'brid'
   | 'kelly'

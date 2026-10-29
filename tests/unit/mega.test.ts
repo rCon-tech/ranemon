@@ -18,7 +18,7 @@ describe('Mega forms', () => {
     for (const id of Object.keys(MEGAS)) {
       const c = creatureById(id);
       const m = megaForm(c)!;
-      expect(m.name).toBe(`Mega ${c.name}`);
+      expect(m.name).toBe(MEGAS[id].name ?? `Mega ${c.name}`);
       expect(m.mega).toBe(true);
       expect(existsSync(resolve('public', `.${m.sprite}`)), m.sprite).toBe(true);
       expect(

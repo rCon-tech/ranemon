@@ -14,6 +14,8 @@ interface Mega {
   focus: keyof Omit<BaseStats, 'hp'>;
   /** Its types as a Mega, if they change. */
   types?: [RaneType] | [RaneType, RaneType];
+  /** Its name as a Mega, if it isn't “Mega” and its own. */
+  name?: string;
 }
 
 export const MEGAS: Record<string, Mega> = {
@@ -25,6 +27,8 @@ export const MEGAS: Record<string, Mega> = {
   lorchu: { focus: 'speed' },
   cholokill: { focus: 'attack' },
   clefenda: { focus: 'spirit' },
+  // Harry Kane, with the Ballon d'Or he brings himself: gold, like the trophy.
+  kanemon: { focus: 'attack', types: ['brawn', 'posh'], name: 'Ballan d’Or' },
 };
 
 export const hasMega = (species: string) => Object.hasOwn(MEGAS, species);
@@ -44,11 +48,12 @@ export function megaStats(base: BaseStats, focus: Mega['focus']): BaseStats {
  * Its Mega sprite: the same picture's Mega version, its look and shininess kept
  * (`/sprites/evo/carlizard-tache.png` becomes `/sprites/mega/carlizard-tache.png`). A drawn UK
  * form's Mega is drawn too (`/sprites/drawn/carlizard.png` becomes
- * `/sprites/drawn/mega/carlizard.png`, from `scripts/drawn/mega.py`).
+ * `/sprites/drawn/mega/carlizard.png`, from `scripts/drawn/mega.py`), and so is Harry Kane's
+ * (`/sprites/premier/mega/kanemon.png`, from `scripts/drawn/footballers.py`).
  */
 export const megaSprite = (sprite: string) =>
-  /^\/sprites\/(shiny\/)?drawn\//.test(sprite)
-    ? sprite.replace(/^\/sprites\/(shiny\/)?drawn\//, '/sprites/$1drawn/mega/')
+  /^\/sprites\/(shiny\/)?(drawn|premier)\//.test(sprite)
+    ? sprite.replace(/^\/sprites\/(shiny\/)?(drawn|premier)\//, '/sprites/$1$2/mega/')
     : sprite.replace(/^\/sprites\/(shiny\/)?(evo|bw)\//, '/sprites/$1mega/');
 
 /** A creature's Mega form, or undefined if it hasn't one (or already is one). */
@@ -57,7 +62,7 @@ export function megaForm(c: Creature): Creature | undefined {
   if (!m || c.mega) return undefined;
   return {
     ...c,
-    name: `Mega ${c.name}`,
+    name: m.name ?? `Mega ${c.name}`,
     types: m.types ?? c.types,
     base: megaStats(c.base, m.focus),
     sprite: c.sprite && megaSprite(c.sprite),

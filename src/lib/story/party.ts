@@ -11,6 +11,8 @@ import {
   previousOf,
 } from '../battle/evolutions';
 import { LONDON } from '../battle/london';
+import { FOOTBALLER_MON } from '../battle/footballers';
+import { KANEMON } from '../battle/kane';
 import { RANELASS_MON } from '../battle/ranelasses';
 import { moveById, type Status } from '../battle/moves';
 import { LEGEND } from '../battle/legend';
@@ -81,6 +83,8 @@ const SPECIES = new Map(
     POSEIDON,
     ...LONDON,
     ...RANELASS_MON,
+    ...FOOTBALLER_MON,
+    KANEMON,
   ].map((c) => [c.id, c]),
 );
 

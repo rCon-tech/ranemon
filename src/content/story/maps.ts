@@ -26,6 +26,7 @@ import { PROVAI_ARRIVE } from './kneecap';
 import { BELGIUM } from './techno';
 import { AIRPORT, LONDON, STANSTED } from './london';
 import { WEMBLEY } from './sidemen';
+import { WEMBLEY_WAY } from './kane';
 import { palaceRooms } from './palace';
 import { PL_MAPS, TRAIN_ROOMS } from './premier';
 import { SHOREDITCH } from './shoreditch';
@@ -1559,6 +1560,7 @@ export const MAPS: GameMap[] = [
   GALWAY,
   WEMBLEY,
   FINSBURY_PARK,
+  WEMBLEY_WAY,
   // The road between the counties, after everything else so the counties keep their places.
   ...LINKS,
 ];

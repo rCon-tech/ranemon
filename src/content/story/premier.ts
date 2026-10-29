@@ -1,3 +1,4 @@
+import { KANE_TEXT } from './kane';
 import { interiorId } from './interiors';
 import { CHAMPION, FIXTURES, LONDON_ONLY, RAILCARD } from './kneecap';
 import { JAMIE_AT_KINGS_CROSS, METROPOLITAN } from './sidemen';
@@ -99,6 +100,10 @@ interface Club {
   after: string;
   /** What else the legend gives you after the jersey. */
   gift: Step[];
+  /** His own Ranemon (`footballers.ts`): his ace, and yours once you've beaten him. */
+  own: string;
+  /** What he says as he hands it over. */
+  hand: string;
   /** What the seats and the pitch say when you look at them. */
   seats: string;
   pitch: string;
@@ -239,6 +244,8 @@ const CLUBS: Club[] = [
     before:
       'MURRAY: I played for Brighton and for Palace, and I chose Brighton. That’s all you need to know about me.',
     after: 'MURRAY: Fair play. Enda said you’d be good. Enda says that about everyone, to be fair.',
+    own: 'murraymon',
+    hand: 'MURRAY: Take Murraymon with you. He knows the way to Palace. He just won’t go.',
     gift: [
       { do: 'say', text: 'MURRAY: Have a pint on me. The bar’s open even when there’s no match.' },
       { do: 'give', item: 'perfect-pour', count: 1 },
@@ -256,6 +263,8 @@ const CLUBS: Club[] = [
     before: 'WRIGHTY: LISTEN TO ME. LISTEN TO ME. You are a BAD MAN. In a GOOD way. Come on then!',
     after:
       'WRIGHTY: OH MY DAYS. OH. MY. DAYS. You’ve done me! I played for Palace AND Arsenal and you’ve DONE me!',
+    own: 'wrightymon',
+    hand: 'WRIGHTY: And TAKE WRIGHTYMON! He’s a BAD MAN! He’ll look after you, yeah?',
     gift: [
       {
         do: 'say',
@@ -282,6 +291,8 @@ const CLUBS: Club[] = [
     before:
       'McGRATH: The knees are gone, so I don’t really train. I just turn up. It works, mostly.',
     after: 'McGRATH: Ah, well done. Sure there’s always next week. There always was for me.',
+    own: 'mcgrathmon',
+    hand: 'McGRATH: Bring McGrathmon along. Don’t worry about training him. I never did.',
     gift: [
       {
         do: 'say',
@@ -301,6 +312,8 @@ const CLUBS: Club[] = [
     map: 'liverpool',
     before: 'FERGUSON: Right.',
     after: 'FERGUSON: Fair enough.',
+    own: 'duncanmon',
+    hand: 'Big Dunc points at Duncanmon, then at you. Duncanmon follows you. Nobody says anything.',
     gift: [
       { do: 'say', text: 'Big Dunc hands you the jersey and two cans. He says nothing.' },
       { do: 'give', item: 'blue-ghost', count: 2 },
@@ -318,6 +331,8 @@ const CLUBS: Club[] = [
     before:
       'BIELSA: I know your team. I sent a man to watch you through the hedge. I apologise. But I know your team.',
     after: 'BIELSA: I knew your team. I did not know you. That is football.',
+    own: 'bielsamon',
+    hand: 'BIELSA: Bielsamon goes with you. He has watched you for a week. He knows you better than I do now.',
     gift: [
       {
         do: 'say',
@@ -339,6 +354,8 @@ const CLUBS: Club[] = [
     before: 'SHEARER: Right. One arm up. Let’s go.',
     after:
       'SHEARER: He’ll be disappointed with that. I’m he. I’m disappointed with that. Good win.',
+    own: 'shearermon',
+    hand: 'SHEARER: And take Shearermon. He’ll be disappointed with you now and then. Don’t take it personally.',
     gift: [
       { do: 'say', text: 'SHEARER: Here. Two of me mam’s dinners. Not the same as yours. Close.' },
       { do: 'give', item: 'full-irish', count: 2 },
@@ -357,6 +374,8 @@ const CLUBS: Club[] = [
       'ROBBIE KEANE: Ah, here, an Irish trainer! Lovely. Any relation to Roy? No? Good. Beat me and I’ll do the cartwheel. Lose and I’ll do it anyway.',
     after:
       'Robbie Keane does the cartwheel, the forward roll and the finger guns, in that order. ROBBIE KEANE: Still got it.',
+    own: 'robbiemon',
+    hand: 'ROBBIE KEANE: Here, Robbiemon wants to go with you. He’s from Tallaght too. He says you were always his boyhood club.',
     gift: [
       {
         do: 'say',
@@ -379,7 +398,15 @@ const CLUBS: Club[] = [
       'AGÜERO: You know what 93:20 means here? It means it’s never over. Not the season, not the hearing, not the appeal. Vamos.',
     after:
       'The commentator, from somewhere high up: “AGÜEROOOO… no. NO! It’s the Irish lad! City will be appealing that, surely.”',
-    gift: [],
+    own: 'agueromon',
+    hand: 'AGÜERO: Take Agüeromon. He’s best in the last minute. Like me. Like the appeal.',
+    gift: [
+      {
+        do: 'say',
+        text: 'AGÜERO: Take these. Sky blue, like the shirt. For the last minute, when you need it.',
+      },
+      { do: 'give', item: 'blue-ghost', count: 3 },
+    ],
     seats:
       'Sky blue seats, every one sponsored by a different company. They all have the same address. It’s in the Gulf.',
     pitch:
@@ -394,6 +421,8 @@ const CLUBS: Club[] = [
     map: 'fulham',
     before: 'TERRY: Captain. Leader. Legend. It’s on a banner, so it’s true.',
     after: 'TERRY: Still a legend. Banner says so.',
+    own: 'terrymon',
+    hand: 'TERRY: Take Terrymon. He’ll captain your lot. He’ll lift the trophy even if he’s on the bench.',
     gift: [
       {
         do: 'say',
@@ -414,6 +443,8 @@ const CLUBS: Club[] = [
     before: 'HENRY: Ah, ze Irish. You are still upset about ze 2009? …Okay. Zis is fair. Allez.',
     after:
       'HENRY: Bravo. (He offers to shake your hand, then pulls it back.) I am joking. I am joking. ’Ere.',
+    own: 'henrymon',
+    hand: 'HENRY: Henrymon will go with you. Do not let him near a ball with his hands. Not in Paris, anyway.',
     gift: [
       { do: 'say', text: 'HENRY: Take some Monster. Va-va-voom, as we say.' },
       { do: 'give', item: 'monster', count: 3 },
@@ -430,6 +461,8 @@ const CLUBS: Club[] = [
     map: 'anfield',
     before: 'GERRARD: We go again. Careful there. It’s slippy. Trust me.',
     after: 'GERRARD: We go again. Well. You go on. I’ll stay here.',
+    own: 'gerrardmon',
+    hand: 'GERRARD: Take Gerrardmon with you. Mind him on the wet grass.',
     gift: [
       {
         do: 'say',
@@ -450,6 +483,8 @@ const CLUBS: Club[] = [
     before:
       'KEANE: Eleven jerseys. Eleven. And you think that makes you a champion? This is the biggest club in the world. Fail to prepare, prepare to fail.',
     after: 'KEANE: Ah, you weren’t bad. I’ll not say any more than that.',
+    own: 'keanemon',
+    hand: 'KEANE: And take Keanemon. If he walks out on you, that’s your fault. Not his.',
     gift: [
       {
         do: 'say',
@@ -490,11 +525,15 @@ const CHAMPIONS: Step[] = [
     do: 'say',
     text: 'PRÓVAÍ: (on the phone) CHAMPIONS! Get back to London. The police on the Mall have to let you through now. It’s the law. Probably.',
   },
+  ...KANE_TEXT,
 ];
 
 export const PL_TRAINERS: Trainer[] = CLUBS.map((c, i) => {
-  const { team, ai } = FIXTURE_TEAMS[i];
-  const ace = Math.max(...team.map(([, l]) => l));
+  const { team: lads, ai } = FIXTURE_TEAMS[i];
+  const ace = Math.max(...lads.map(([, l]) => l));
+  // His own Ranemon takes the place of the team's ace, at its level, and goes out last.
+  const benched = lads.findIndex(([, l]) => l === ace);
+  const team: Trainer['team'] = [...lads.filter((_, j) => j !== benched), [c.own, ace]];
   return {
     id: legendId(c.id),
     name: c.legend,
@@ -508,9 +547,17 @@ export const PL_TRAINERS: Trainer[] = CLUBS.map((c, i) => {
       { do: 'flag', flag: plFlag(c.id) },
       { do: 'say', text: `You won the ${c.club.toUpperCase()} jersey!` },
       ...c.gift,
+      { do: 'say', text: c.hand },
+      { do: 'recruit', species: c.own, level: ace },
       ...(i === CLUBS.length - 1 ? CHAMPIONS : postcard(i)),
     ],
   };
+});
+
+/** Each legend's own Ranemon, and the level he gives it to you at: his ace's. */
+export const LEGEND_OWN = PL_TRAINERS.map((t) => {
+  const [species, level] = t.team[t.team.length - 1];
+  return { trainer: t.id, species, level };
 });
 
 // ---------- the grounds ----------

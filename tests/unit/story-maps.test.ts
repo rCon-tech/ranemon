@@ -98,16 +98,20 @@ describe.each([
       expect(seen.has(`${width - 1},${exits[0]}`)).toBe(true);
       expect(marker(map, '>')).toBeTruthy();
       // The Garda (or porter) stands right in front of the way out. The road between two
-      // counties has none: the county behind it already had one.
+      // counties has none: the county behind it already had one, and nor does a way out that
+      // only opens with a flag (Wembley Park's onto Wembley Way, for the Champion).
       const guard = npcsOf(map).find((n) => n.x === width - 2 && n.y === exits[0]);
-      if (!map.link) expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
+      if (!map.link && !mapById(map.id).after?.east)
+        expect(guard?.item.hideIf, 'a gate in front of the exit').toMatch(/^jersey:/);
     }
     if (map.west) expect(marker(map, '@').x).toBe(0);
   });
 
   it('links to maps that link back', () => {
+    // A way that only opens with a flag is on the map's `after` form.
+    const east = (id: string) => mapById(id).east ?? mapById(id).after?.east;
     if (map.east) expect(mapById(map.east).west).toBe(map.id);
-    if (map.west) expect(mapById(map.west).east).toBe(map.id);
+    if (map.west) expect(east(map.west)).toBe(map.id);
   });
 
   it('only uses trainers, species and items that exist', () => {

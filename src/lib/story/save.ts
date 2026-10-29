@@ -1,10 +1,17 @@
-import { mapById, mapFor } from '@/content/story/maps';
+import { mapById, mapFor, outsideOf } from '@/content/story/maps';
 import { earned, SKINS } from '@/content/story/skins';
 import { CHAMPION } from '@/content/story/kneecap';
-import { ARRIVAL, CONCOURSE, KINGS_CROSS_ID, legendId, plFlag } from '@/content/story/premier';
+import {
+  ARRIVAL,
+  CONCOURSE,
+  KINGS_CROSS_ID,
+  LEGEND_OWN,
+  legendId,
+  plFlag,
+} from '@/content/story/premier';
 import { moveById } from '../battle/moves';
 import { ITEMS } from './items';
-import { catchUp, speciesById, type Member } from './party';
+import { catchUp, makeMember, speciesById, type Member } from './party';
 import {
   beatFlag,
   modeOf,
@@ -27,7 +34,7 @@ import { doorStep, find, marker, type Dir } from './world';
  * A change to what a save holds bumps SCHEMA and adds a step here; it never changes `version`,
  * so a save written by a newer build still loads in an older one that is open in another tab.
  */
-export const SCHEMA = 7;
+export const SCHEMA = 8;
 
 type Raw = Record<string, unknown>;
 
@@ -79,7 +86,46 @@ const MIGRATIONS: Record<number, (d: Raw) => Raw> = {
     pub: isObject(d.pub) ? { ...d.pub, ...toOwnGround(d.pub) } : d.pub,
     schema: 7,
   }),
+  // Every Premier League legend got a Ranemon of his own, which he gives you when you beat him.
+  // Anyone who'd already beaten him finds it waiting in their Group Chat.
+  7: (d) => ({ ...d, ...legendsOwn(d), schema: 8 }),
 };
+
+/**
+ * The legends' own Ranemon for a save that beat them before they had any: each one it doesn't
+ * have yet, at the level he'd give it, in the Group Chat on Britain's side of the Irish Sea (the
+ * one waiting over the sea, if you're in Ireland with your British Ranemon left behind).
+ */
+export function legendsOwn(d: Raw): Raw {
+  const flags = strings(d.flags);
+  const away = isObject(d.away) ? d.away : null;
+  const members = [d.party, d.box, away?.party, away?.box].flatMap(arr).filter(isObject);
+  const had = new Set(members.map((m) => m.species));
+  const owed = LEGEND_OWN.filter((o) => flags.includes(beatFlag(o.trainer)) && !had.has(o.species));
+  if (!owed.length) return {};
+  let uid = Math.max(num(d.uid, 1), ...members.map((m) => num(m.uid, 0) + 1));
+  const given = owed.map((o) => makeMember(o.species, o.level, uid++));
+  const ids = given.map((m) => m.species);
+  const add = (v: unknown) => [...new Set([...strings(v), ...ids])];
+  const dex = {
+    seen: add(d.seen),
+    caught: add(d.caught),
+    ...(d.ukSeen !== undefined && { ukSeen: add(d.ukSeen) }),
+    ...(d.ukCaught !== undefined && { ukCaught: add(d.ukCaught) }),
+  };
+  if (away && !inBritain(d.map))
+    return { ...dex, uid, away: { ...away, box: [...arr(away.box), ...given] } };
+  return { ...dex, uid, box: [...arr(d.box), ...given] };
+}
+
+/** Whether a map is in Britain; one this build doesn't know counts as Britain. */
+function inBritain(map: unknown): boolean {
+  try {
+    return !!outsideOf(mapById(String(map))).uk;
+  } catch {
+    return true;
+  }
+}
 
 /** The grounds that moved onto maps of their own, by their old room's id. */
 export const MOVED_GROUNDS: Record<string, string> = {

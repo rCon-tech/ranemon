@@ -12,6 +12,22 @@ export interface Update {
 export const UPDATES: Update[] = [
   {
     date: '2026-10-29',
+    title: 'Coming home?',
+    notes: [
+      'Become Premier League Champion and keep your phone on: someone very famous is back at Wembley for the week, and he isn’t planning to stay. London finally has a legendary.',
+      'Glenn Murray to Roy Keane all hand over a gift when you beat them now, Sergio Agüero included.',
+    ],
+  },
+  {
+    date: '2026-10-29',
+    title: 'Legends of the game',
+    notes: [
+      'Every Premier League legend now brings a Ranemon of his own to the jersey battle, and he gives it to you when you beat him.',
+      'Already beaten some of them? Look in your Group Chat.',
+    ],
+  },
+  {
+    date: '2026-10-29',
     title: 'The road to Dublin',
     notes: [
       'Every county line is a place of its own now: a short stretch of road between each county, from the Shannon to the edge of Dublin, each with something to see and someone to meet.',
